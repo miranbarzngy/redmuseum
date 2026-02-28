@@ -5,6 +5,17 @@ import { supabase } from '../lib/supabase-client'
 
 const SLIDE_DURATION = 8500
 
+// Helper function to normalize paths - handles relative paths, absolute URLs, and already-prefixed paths
+const normalizePath = (path) => {
+  if (!path) return null
+  // If already a full URL (http/https), don't modify
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  // If already has leading slash, return as is
+  if (path.startsWith('/')) return path
+  // Otherwise add leading slash for relative paths
+  return `/${path}`
+}
+
 const fallbackSlides = [
   { slide_number: 1, title: 'Red Prison', title_kr: 'ئەمنە سورەکە', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'Statue of dictator Saddam Hussein', description_kr: 'پەیکەری دیکتاتۆر سەدام حوسێن', background_image: '/assets/images/bg-1.jpg', museum_image: '/assets/images/saddam2.png', video_url: '/assets/videos/peshmarga.mp4' },
   { slide_number: 2, title: 'Peshmarga', title_kr: 'پێشمەرگە', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'Peshmerga is an ambassador of generosity and love', description_kr: 'پێشمەرگە باڵویزی بەخشندەی و خۆشەویستی', background_image: '/assets/images/bg-2.jpg', museum_image: '/assets/images/peshmarga.png', video_url: '/assets/videos/peshmarga.mp4' },
@@ -29,6 +40,7 @@ export default function Slider({ currentLang = 'en' }) {
   const [playSlider, setPlaySlider] = useState(null)
 
   const lang = currentLang === 'ku' ? 'kr' : 'en'
+  const isKurdish = currentLang === 'ku'
 
   const fetchSlides = useCallback(async () => {
     // Skip if supabase is not configured
@@ -52,7 +64,14 @@ export default function Slider({ currentLang = 'en' }) {
       }
       if (data && data.length > 0) {
         console.log('Loaded slides from Supabase:', data.length)
-        setSlides(data)
+        // Process paths: add leading slash only for relative paths (not absolute URLs)
+        const processedSlides = data.map(slide => ({
+          ...slide,
+          background_image: normalizePath(slide.background_image),
+          museum_image: normalizePath(slide.museum_image),
+          video_url: normalizePath(slide.video_url),
+        }))
+        setSlides(processedSlides)
       } else {
         console.log('No slides in database, using fallback')
         setSlides(fallbackSlides)
@@ -65,8 +84,35 @@ export default function Slider({ currentLang = 'en' }) {
     }
   }, [])
 
+  // Fetch slides on mount
   useEffect(() => {
     fetchSlides()
+  }, [fetchSlides])
+
+  // Subscribe to realtime changes for slides table
+  useEffect(() => {
+    if (!supabase) return
+
+    const channel = supabase
+      .channel('slides-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'slides'
+        },
+        (payload) => {
+          console.log('Slide change detected:', payload)
+          // Refresh slides when any change happens
+          fetchSlides()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [fetchSlides])
 
   useEffect(() => {
@@ -112,8 +158,11 @@ export default function Slider({ currentLang = 'en' }) {
 
   if (loading) {
     return (
-      <div className="slider-loading">
-        <div className="spinner"></div>
+      <div className="w-full h-screen bg-gray-900 flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-white text-lg font-medium">Loading slides...</p>
+        </div>
       </div>
     )
   }
@@ -155,9 +204,20 @@ export default function Slider({ currentLang = 'en' }) {
 
             {/* Text Content Layer - z-[777] absolute container flex flex-col items-center justify-center */}
             <div className="absolute top-0 left-0 w-full h-screen flex flex-col items-center justify-center z-[777]">
-              {/* Caption - position top-[80px] with text-red-600 uppercase */}
-              <h3 className="slide-caption absolute top-[80px] lg:top-[70px] text-red-600 uppercase tracking-widest md:text-2xl font-semibold max-[400px]:text-[.8em] max-[400px]:top-[50px] max-[580px]:text-[.9em] max-[580px]:top-[70px] max-[850px]:text-[1em] max-[850px]:top-[70px]">
-                {lang === 'kr' ? 'تا لە یادمان نەچێت' : 'Not To Be Forgotten'}
+              {/* Caption - NOT TO BE FORGOTTEN - styled to match slide titles */}
+              <h3 
+                className="absolute top-[80px] lg:top-[70px]"
+                style={{ 
+                  color: '#dc2626', // Red color matching museum theme
+                  fontSize: '1.5rem',
+                  fontWeight: isKurdish ? '700' : '700',
+                  letterSpacing: isKurdish ? '0' : '0.2em',
+                  textTransform: isKurdish ? 'none' : 'uppercase',
+                  fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif',
+                  textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+                }}
+              >
+                {isKurdish ? 'تا لە یادمان نەچێت' : 'Not To Be Forgotten'}
               </h3>
               
               {/* Museum Name - position absolute top-[170px] right-[190px] (adjusted for mobile) */}
@@ -173,22 +233,13 @@ export default function Slider({ currentLang = 'en' }) {
               </h1>
               
               {/* Paragraph - position bottom-[150px] with semi-transparent background */}
-              <p className="absolute bottom-[150px] lg:bottom-[120px] text-white text-base md:text-xl font-bold max-w-4xl px-4 md:px-12 text-left max-[580px]:text-[.6em] max-[580px]:w-[390px] max-[580px]:text-center"
+              <p className="absolute bottom-[80px] lg:bottom-[80px] text-white text-base md:text-xl font-bold max-w-4xl px-4 md:px-12 text-left max-[580px]:text-[.6em] max-[580px]:w-[390px] max-[580px]:text-center"
                  style={{ 
                    textShadow: '0 5px 25px rgba(0,0,0,.5)',
                    backgroundColor: 'rgba(96, 96, 96, 0.412)'
                  }}>
                 {lang === 'kr' ? (slide.description_kr || slide.description) : slide.description}
               </p>
-              
-              {/* Button - red border at bottom-[70px] */}
-              <button
-                onClick={() => openVideo(slide.video_url, lang === 'kr' ? slide.title_kr : slide.title)}
-                className="absolute bottom-[70px] lg:bottom-[40px] max-[580px]:bottom-[42px] max-[580px]:w-[170px] max-[580px]:left-[20px] bg-transparent border-[3px] border-red-600 text-white text-sm font-bold uppercase w-[125px] h-[45px] hover:bg-red-600 hover:text-white transition-all duration-300"
-                style={{ borderRadius: '2px' }}
-              >
-                {lang === 'kr' ? 'بینینی ڤیدیۆ' : 'Watch Video'}
-              </button>
             </div>
           </div>
         ))}

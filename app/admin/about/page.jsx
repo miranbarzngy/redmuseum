@@ -8,6 +8,7 @@ export default function AboutEditor() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [formData, setFormData] = useState({
+    id: 1,
     about_title_en: '',
     about_title_kr: '',
     about_text_en: '',
@@ -34,6 +35,7 @@ export default function AboutEditor() {
 
       if (data) {
         setFormData({
+          id: data.id,
           about_title_en: data.about_title_en || '',
           about_title_kr: data.about_title_kr || '',
           about_text_en: data.about_text_en || '',
@@ -59,28 +61,31 @@ export default function AboutEditor() {
     setSaving(true)
 
     try {
-      // Check if settings exist
-      const { data: existing } = await supabase
+      // Use upsert to insert or update the record
+      const { error } = await supabase
         .from('settings')
-        .select('id')
-        .single()
+        .upsert([{
+          id: formData.id,
+          about_title_en: formData.about_title_en,
+          about_title_kr: formData.about_title_kr,
+          about_text_en: formData.about_text_en,
+          about_text_kr: formData.about_text_kr,
+          museums_count: formData.museums_count,
+          archives_count: formData.archives_count,
+          visitors_count: formData.visitors_count,
+          contact_phone: formData.contact_phone,
+          contact_email: formData.contact_email,
+          contact_address_en: formData.contact_address_en,
+          contact_address_kr: formData.contact_address_kr,
+          updated_at: new Date().toISOString()
+        }], { onConflict: 'id' })
 
-      if (existing) {
-        // Update
-        await supabase
-          .from('settings')
-          .update(formData)
-          .eq('id', existing.id)
-      } else {
-        // Insert
-        await supabase
-          .from('settings')
-          .insert([formData])
-      }
+      if (error) throw error
 
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (error) {
+      console.error('Error saving settings:', error)
       alert('Error saving settings: ' + error.message)
     } finally {
       setSaving(false)

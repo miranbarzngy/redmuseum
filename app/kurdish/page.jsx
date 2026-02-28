@@ -1,44 +1,66 @@
 'use client'
 
-import Navbar from '../components/Navbar'
+import { useState, useEffect } from 'react'
+import Sidebar from '../components/Sidebar'
 import Slider from '../components/Slider'
 import About from '../components/About'
+import VRSection from '../components/VRSection'
 import Gallery from '../components/Gallery'
 import ContactForm from '../components/ContactForm'
 
 export default function KurdishPage() {
+  const [activeSection, setActiveSection] = useState('home')
+  const [currentLang, setCurrentLang] = useState('ku')
+
+  // Load language from localStorage on mount
+  useEffect(() => {
+    const savedLang = localStorage.getItem('museum-lang')
+    if (savedLang) {
+      setCurrentLang(savedLang)
+    }
+  }, [])
+
+  // Apply Kurdish font class to body when language changes
+  useEffect(() => {
+    if (currentLang === 'ku') {
+      document.body.classList.add('font-kurdish')
+    } else {
+      document.body.classList.remove('font-kurdish')
+    }
+  }, [currentLang])
+
+  // Function to handle language change
+  const handleLangChange = (newLang) => {
+    setCurrentLang(newLang)
+    localStorage.setItem('museum-lang', newLang)
+  }
+
+  // Function to manually set active section (for instant click feedback)
+  const handleSectionClick = (sectionId) => {
+    setActiveSection(sectionId)
+  }
+
   return (
-    <main dir="rtl">
-      <Navbar currentLang="ku" />
-      <Slider currentLang="ku" />
-      <About currentLang="ku" />
+    <main dir="rtl" className={currentLang === 'ku' ? 'font-kurdish' : ''}>
+      {/* Sidebar only - removed duplicate Navbar */}
+      <Sidebar 
+        activeSection={activeSection} 
+        onSectionClick={handleSectionClick} 
+        currentLang={currentLang} 
+        onLangChange={handleLangChange} 
+      />
+      <Slider currentLang={currentLang} />
+      <About currentLang={currentLang} />
       
-      {/* Virtual Tour Section */}
-      <section id="virtual-tour" className="py-20 bg-gray-900">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-white mb-8">
-            بینینی بەشەکانی مۆزەخانە بەشیوەی ٣٦٠
-          </h2>
-          <p className="text-center text-gray-300 mb-8">
-            گەشتێکی تایبەت بکە بە ناو مۆزەخانەدا
-          </p>
-          <div className="max-w-4xl mx-auto">
-            <iframe 
-              src="https://cdn.pannellum.org/2.5/pannellum.htm#panorama=https://pannellum.org/images/alma.jpg"
-              className="w-full h-96 rounded-lg"
-              frameBorder="0"
-              allowFullScreen
-            ></iframe>
-          </div>
-        </div>
-      </section>
+      {/* VR Section - New YouTube Embed */}
+      <VRSection currentLang={currentLang} />
       
-      <Gallery currentLang="ku" />
-      <ContactForm currentLang="ku" />
+      <Gallery currentLang={currentLang} />
+      <ContactForm currentLang={currentLang} />
       
       {/* Footer */}
       <footer className="py-6 bg-black text-white text-center">
-        <p>© ٢٠٢٥ مۆزەخانەی نیشتمانی ئەمنە سورەکە. هەموو مافەکان پارێزراوە.</p>
+        <p>{currentLang === 'ku' ? '© ٢٠٢٥ مۆزەخانەی نیشتمانی ئەمنە سورەکە. هەموو مافەکان پارێزراوە.' : '© 2025 Amna Suraka National Museum. All rights reserved.'}</p>
       </footer>
     </main>
   )

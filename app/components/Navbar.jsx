@@ -31,16 +31,24 @@ export default function Navbar({ currentLang = 'en', onLangChange }) {
         { id: 'contact', label: 'Contact', href: '#contact' },
       ]
 
+  // Handle language toggle
+  const toggleLanguage = () => {
+    const newLang = currentLang === 'en' ? 'ku' : 'en'
+    if (onLangChange) {
+      onLangChange(newLang)
+    }
+  }
+
   return (
     <nav className={`fixed top-0 left-0 z-50 transition-all duration-300 ${
       scrolled ? 'bg-black/80 backdrop-blur-md' : 'bg-transparent'
     }`}>
       <div className="flex items-center justify-between px-4">
         {/* Logo */}
-        <Link href={currentLang === 'ku' ? '/index.html' : '/index.html'} className="p-2">
+        <Link href="#home" className="p-2" onClick={() => setActiveItem('home')}>
           <img 
-            src={currentLang === 'ku' ? '/assets/images/english flag.jpg' : '/assets/images/Flag_of_Kurdistan.png'}
-            alt="Logo" 
+            src="/assets/images/amnasuraka_logo-removebg-preview.png"
+            alt="Amna Suraka Logo" 
             className="w-10 h-10 object-contain"
           />
         </Link>
@@ -71,13 +79,22 @@ export default function Navbar({ currentLang = 'en', onLangChange }) {
           ))}
         </ul>
 
-        {/* Language Switcher */}
-        <Link 
-          href={currentLang === 'en' ? '/kurdish.html' : '/index.html'}
-          className="px-3 py-1 text-sm bg-white/20 rounded hover:bg-white/30 transition-colors"
+        {/* Language Switcher - Flag Toggle */}
+        <button 
+          onClick={toggleLanguage}
+          className="flex items-center gap-2 px-3 py-1 text-sm bg-white/20 rounded hover:bg-white/30 transition-colors cursor-pointer"
+          title={currentLang === 'en' ? 'Switch to Kurdish' : 'Switch to English'}
         >
-          {currentLang === 'en' ? 'کوردی' : 'English'}
-        </Link>
+          {/* Show Kurdistan flag when English, UK/USA flag when Kurdish */}
+          <img 
+            src={currentLang === 'en' ? '/assets/images/Flag_of_Kurdistan.png' : '/assets/images/english flag.jpg'}
+            alt={currentLang === 'en' ? 'Kurdistan Flag' : 'English Flag'} 
+            className="w-6 h-6 object-cover rounded-full"
+          />
+          <span className="hidden sm:inline">
+            {currentLang === 'en' ? 'کوردی' : 'English'}
+          </span>
+        </button>
       </div>
     </nav>
   )

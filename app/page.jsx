@@ -1,15 +1,41 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Navbar from './components/Navbar'
+import { useRouter } from 'next/navigation'
 import Sidebar from './components/Sidebar'
 import Slider from './components/Slider'
 import About from './components/About'
+import VRSection from './components/VRSection'
 import Gallery from './components/Gallery'
 import ContactForm from './components/ContactForm'
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState('home')
+  const [currentLang, setCurrentLang] = useState('en')
+  const router = useRouter()
+
+  // Load language from localStorage on mount
+  useEffect(() => {
+    const savedLang = localStorage.getItem('museum-lang')
+    if (savedLang) {
+      setCurrentLang(savedLang)
+    }
+  }, [])
+
+  // Apply Kurdish font class to body when language changes
+  useEffect(() => {
+    if (currentLang === 'ku') {
+      document.body.classList.add('font-kurdish')
+    } else {
+      document.body.classList.remove('font-kurdish')
+    }
+  }, [currentLang])
+
+  // Function to handle language change
+  const handleLangChange = (newLang) => {
+    setCurrentLang(newLang)
+    localStorage.setItem('museum-lang', newLang)
+  }
 
   // Function to manually set active section (for instant click feedback)
   const handleSectionClick = (sectionId) => {
@@ -94,38 +120,26 @@ export default function Home() {
   }, [activeSection])
 
   return (
-    <main>
-      <Navbar currentLang="en" />
-      <Sidebar activeSection={activeSection} onSectionClick={handleSectionClick} />
-      <Slider currentLang="en" />
-      <About currentLang="en" />
+    <main className={currentLang === 'ku' ? 'font-kurdish' : ''}>
+      {/* Sidebar only - removed duplicate Navbar */}
+      <Sidebar 
+        activeSection={activeSection} 
+        onSectionClick={handleSectionClick} 
+        currentLang={currentLang} 
+        onLangChange={handleLangChange} 
+      />
+      <Slider currentLang={currentLang} />
+      <About currentLang={currentLang} />
       
-      {/* Virtual Tour Section */}
-      <section id="virtual-tour" className="py-20 bg-gray-900">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center text-white mb-8">
-            Explore Our Place in 360°
-          </h2>
-          <p className="text-center text-gray-300 mb-8">
-            Experience a virtual tour of our location!
-          </p>
-          <div className="max-w-4xl mx-auto">
-            <iframe 
-              src="https://cdn.pannellum.org/2.5/pannellum.htm#panorama=https://pannellum.org/images/alma.jpg"
-              className="w-full h-96 rounded-lg"
-              frameBorder="0"
-              allowFullScreen
-            ></iframe>
-          </div>
-        </div>
-      </section>
+      {/* VR Section - New YouTube Embed */}
+      <VRSection currentLang={currentLang} />
       
-      <Gallery currentLang="en" />
-      <ContactForm currentLang="en" />
+      <Gallery currentLang={currentLang} />
+      <ContactForm currentLang={currentLang} />
       
       {/* Footer */}
       <footer className="py-6 bg-black text-white text-center">
-        <p>© 2025 Amna Suraka National Museum. All rights reserved.</p>
+        <p>{currentLang === 'ku' ? '© ٢٠٢٥ مۆزەخانەی نیشتمانی ئەمنە سورەکە. هەموو مافەکان پارێزراوە.' : '© 2025 Amna Suraka National Museum. All rights reserved.'}</p>
       </footer>
     </main>
   )

@@ -10,12 +10,31 @@ const categories = [
   { id: 'donation', name: 'Donation', folder: 'donation' },
 ]
 
+// Helper function to normalize paths
+const normalizePath = (path) => {
+  if (!path) return null
+  // If already a full URL (http/https), don't modify
+  if (path.startsWith('http://') || path.startsWith('https://')) return path
+  // If already has leading slash, return as is
+  if (path.startsWith('/')) return path
+  // Otherwise add leading slash for relative paths
+  return `/${path}`
+}
+
 export default function GalleryManagement() {
   const [gallery, setGallery] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('visitor')
   const [editingItem, setEditingItem] = useState(null)
   const [isAdding, setIsAdding] = useState(false)
+  const [uploading, setUploading] = useState(false)
+
+  const [formData, setFormData] = useState({
+    image_url: '',
+    title: '',
+    description: '',
+    display_order: 0
+  })
 
   useEffect(() => {
     fetchGallery()
@@ -60,50 +79,153 @@ export default function GalleryManagement() {
     }
   }
 
-  const [formData, setFormData] = useState({
-    image_url: '',
-    title: '',
-    description: '',
-    display_order: 0
-  })
+  // Handle file upload to Supabase Storage
+  const handleFileUpload = async (file) => {
+    if (!file) return null
+    
+    setUploading(true)
+    
+    try {
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+      const filePath = `gallery/${selectedCategory}/${fileName}`
+      
+      // Upload to Supabase Storage
+      const { data, error } = await supabase.storage
+        .from('museum-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (error) {
+        console.error('Upload error:', error)
+        throw error
+      }
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('museum-images')
+        .getPublicUrl(filePath)
+
+      const publicUrl = urlData.publicUrl
+      console.log('Uploaded to:', publicUrl)
+      
+      return publicUrl
+    } catch (error) {
+      console.error('Error uploading file:', error)
+      alert('Error uploading file: ' + error.message)
+      return null
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  // Handle input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'display_order' ? parseInt(value) || 0 : value
+    }))
+  }
+
+  // Handle file selection
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // First, try to upload to Supabase Storage
+    const uploadedUrl = await handleFileUpload(file)
+    
+    if (uploadedUrl) {
+      setFormData(prev => ({
+        ...prev,
+        image_url: uploadedUrl
+      }))
+    }
+  }
 
   const handleSave = async (e) => {
     e.preventDefault()
     
     if (!formData.image_url) {
-      alert('Please enter or upload an image URL')
+      alert('Please select or upload an image')
       return
     }
+
+    // Ensure display_order is a number
+    const displayOrder = parseInt(formData.display_order) || 0
 
     const data = {
       category: selectedCategory,
       image_url: formData.image_url,
-      title: formData.title,
-      description: formData.description,
-      display_order: parseInt(formData.display_order) || 0,
+      title: formData.title || null,
+      description: formData.description || null,
+      display_order: displayOrder,
       is_active: true
     }
 
     try {
       if (editingItem) {
+        // Update existing record
         const { error } = await supabase
           .from('gallery')
           .update(data)
           .eq('id', editingItem.id)
+        
         if (error) throw error
+        console.log('Image updated successfully')
       } else {
+        // Insert new record
         const { error } = await supabase
           .from('gallery')
           .insert([data])
+        
         if (error) throw error
+        console.log('Image added successfully')
       }
+      
+      // Reset form and refresh list
       setEditingItem(null)
       setIsAdding(false)
-      setFormData({ image_url: '', title: '', description: '', display_order: 0 })
+      setFormData({ 
+        image_url: '', 
+        title: '', 
+        description: '', 
+        display_order: 0 
+      })
+      
+      // Refresh gallery list
       fetchGallery()
     } catch (error) {
       alert('Error saving: ' + error.message)
     }
+  }
+
+  // Handle edit button click
+  const handleEdit = (item) => {
+    setEditingItem(item)
+    setIsAdding(true)
+    setFormData({
+      image_url: item.image_url || '',
+      title: item.title || '',
+      description: item.description || '',
+      display_order: item.display_order || 0
+    })
+  }
+
+  // Handle cancel
+  const handleCancel = () => {
+    setEditingItem(null)
+    setIsAdding(false)
+    setFormData({ 
+      image_url: '', 
+      title: '', 
+      description: '', 
+      display_order: 0 
+    })
   }
 
   const filteredImages = gallery.filter(img => img.category === selectedCategory)
@@ -129,6 +251,12 @@ export default function GalleryManagement() {
               setSelectedCategory(cat.id)
               setEditingItem(null)
               setIsAdding(false)
+              setFormData({ 
+                image_url: '', 
+                title: '', 
+                description: '', 
+                display_order: 0 
+              })
             }}
             className={`px-4 py-2 rounded-lg ${
               selectedCategory === cat.id
@@ -147,6 +275,12 @@ export default function GalleryManagement() {
           onClick={() => {
             setIsAdding(true)
             setEditingItem(null)
+            setFormData({ 
+              image_url: '', 
+              title: '', 
+              description: '', 
+              display_order: filteredImages.length + 1 
+            })
           }}
           className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
         >
@@ -161,95 +295,107 @@ export default function GalleryManagement() {
             {editingItem ? 'Edit Image' : 'Add New Image'}
           </h2>
           <form onSubmit={handleSave} className="space-y-4">
+            {/* Category Display */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <input
+                type="text"
+                value={categories.find(c => c.id === selectedCategory)?.name || selectedCategory}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
+              />
+            </div>
+
+            {/* Image Upload */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
               <div className="flex gap-2">
                 <input
                   type="text"
                   name="image_url"
-                  value={editingItem ? editingItem.image_url : formData.image_url}
-                  onChange={(e) => setFormData({...formData, image_url: e.target.value})}
-                  placeholder="/assets/images/..."
+                  value={formData.image_url}
+                  onChange={handleInputChange}
+                  placeholder="Enter image URL or upload a file"
                   className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
                 />
-                <button
-                  type="button"
-                  onClick={() => {
-                    // Open file picker
-                    const input = document.createElement('input')
-                    input.type = 'file'
-                    input.accept = 'image/*'
-                    input.onchange = async (e) => {
-                      const file = e.target.files?.[0]
-                      if (file) {
-                        // For now, just use object URL as placeholder
-                        // In production, upload to Supabase Storage
-                        const url = URL.createObjectURL(file)
-                        setFormData({...formData, image_url: url})
-                      }
-                    }
-                    input.click()
-                  }}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
+                <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
                   📤 Upload
-                </button>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
               </div>
-              {(editingItem?.image_url || formData.image_url) && (
+              {uploading && (
+                <p className="text-blue-600 mt-2">Uploading...</p>
+              )}
+              {(formData.image_url) && (
                 <img
-                  src={editingItem ? editingItem.image_url : formData.image_url}
+                  src={normalizePath(formData.image_url)}
                   alt="Preview"
-                  className="mt-2 h-20 w-auto rounded border"
-                  onError={(e) => e.target.style.display = 'none'}
+                  className="mt-2 h-32 w-auto rounded border object-cover"
+                  onError={(e) => {
+                    console.log('Preview image failed to load')
+                    e.target.style.display = 'none'
+                  }}
                 />
               )}
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={editingItem ? editingItem.title : formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-                <input
-                  type="number"
-                  name="display_order"
-                  value={editingItem ? editingItem.display_order : (formData.display_order || filteredImages.length + 1)}
-                  onChange={(e) => setFormData({...formData, display_order: parseInt(e.target.value)})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                />
-              </div>
+
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleInputChange}
+                placeholder="Enter image title"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
             </div>
+
+            {/* Description */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea
                 name="description"
-                value={editingItem ? editingItem.description : formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                value={formData.description}
+                onChange={handleInputChange}
+                placeholder="Enter image description"
                 rows="2"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
+
+            {/* Display Order */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
+              <input
+                type="number"
+                name="display_order"
+                value={formData.display_order}
+                onChange={handleInputChange}
+                min="0"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+            </div>
+
+            {/* Action Buttons */}
             <div className="flex gap-2">
               <button
                 type="submit"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                disabled={uploading}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                Save
+                {uploading ? 'Uploading...' : 'Save'}
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setEditingItem(null)
-                  setIsAdding(false)
-                  setFormData({ image_url: '', title: '', description: '', display_order: 0 })
-                }}
+                onClick={handleCancel}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Cancel
@@ -265,11 +411,12 @@ export default function GalleryManagement() {
           <div key={img.id} className="bg-white rounded-lg shadow overflow-hidden">
             <div className="relative aspect-square">
               <img
-                src={img.image_url}
-                alt={img.title}
+                src={normalizePath(img.image_url)}
+                alt={img.title || 'Gallery image'}
                 className="w-full h-full object-cover"
                 onError={(e) => {
-                  e.target.src = '/assets/images/placeholder.jpg'
+                  // Use a valid fallback image
+                  e.target.src = '/assets/images/bg-1.jpg'
                 }}
               />
             </div>
@@ -278,7 +425,7 @@ export default function GalleryManagement() {
               <p className="text-xs text-gray-500">Order: {img.display_order}</p>
               <div className="flex gap-2 mt-2">
                 <button
-                  onClick={() => setEditingItem(img)}
+                  onClick={() => handleEdit(img)}
                   className="text-blue-600 text-sm hover:underline"
                 >
                   Edit

@@ -12,6 +12,32 @@ export default function MessagesManagement() {
     fetchMessages()
   }, [])
 
+  // Subscribe to realtime changes for messages table
+  useEffect(() => {
+    if (!supabase) return
+
+    const channel = supabase
+      .channel('messages-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'messages'
+        },
+        (payload) => {
+          console.log('Message change detected:', payload)
+          // Refresh messages when any change happens
+          fetchMessages()
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
   const fetchMessages = async () => {
     try {
       const { data, error } = await supabase

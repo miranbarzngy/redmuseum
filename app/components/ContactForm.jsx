@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase-client'
 
 export default function ContactForm({ currentLang = 'en' }) {
   const [formData, setFormData] = useState({
@@ -12,26 +12,96 @@ export default function ContactForm({ currentLang = 'en' }) {
   })
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+  const [settings, setSettings] = useState(null)
+  const [settingsLoading, setSettingsLoading] = useState(true)
+  const [errors, setErrors] = useState({})
 
   const isKurdish = currentLang === 'ku'
+
+  useEffect(() => {
+    fetchSettings()
+  }, [])
+
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('*')
+        .single()
+
+      if (data) {
+        setSettings(data)
+      }
+    } catch (error) {
+      console.log('Error fetching settings:', error)
+    } finally {
+      setSettingsLoading(false)
+    }
+  }
+
+  // Get localized contact info
+  const phone = settings?.contact_phone || '+964 0770 000000'
+  const email = settings?.contact_email || 'info@amnasuraka.com'
+  const address = isKurdish 
+    ? (settings?.contact_address_kr || 'شاری سلێمانی')
+    : (settings?.contact_address_en || 'Sulaymaniyah, Iraq')
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type })
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 5000)
   }
 
+  const validateForm = () => {
+    const newErrors = {}
+    
+    // Check name
+    if (!formData.name || formData.name.trim() === '') {
+      newErrors.name = isKurdish ? 'ناوی سیانی پێویستە' : 'Full name is required'
+    }
+    
+    // Check phone
+    if (!formData.phone || formData.phone.trim() === '') {
+      newErrors.phone = isKurdish ? 'ژمارەی مۆبایل پێویستە' : 'Phone number is required'
+    }
+    
+    // Check email
+    if (!formData.email || formData.email.trim() === '') {
+      newErrors.email = isKurdish ? 'ئیمەیڵ پێویستە' : 'Email is required'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = isKurdish ? 'ئیمەیڵەکەت دروست نیە' : 'Please enter a valid email'
+    }
+    
+    // Check message
+    if (!formData.message || formData.message.trim() === '') {
+      newErrors.message = isKurdish ? 'پەیام پێویستە' : 'Message is required'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Validate form before submission
+    if (!validateForm()) {
+      showToast(
+        isKurdish ? 'تکایە هەموو خانە پڕبکەرەوە' : 'Please fill in all required fields',
+        'error'
+      )
+      return
+    }
+    
     setLoading(true)
 
     try {
       const { data, error } = await supabase
         .from('messages')
         .insert([{
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
-          message: formData.message,
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email.trim(),
+          message: formData.message.trim(),
           created_at: new Date().toISOString()
         }])
 
@@ -39,11 +109,21 @@ export default function ContactForm({ currentLang = 'en' }) {
 
       showToast(isKurdish ? 'پەیامەکەت بە سەرکەوتوویی نێرا!' : 'Message sent successfully!', 'success')
       setFormData({ name: '', phone: '', email: '', message: '' })
+      setErrors({})
     } catch (error) {
       console.error('Error:', error)
       showToast(isKurdish ? 'هەڵەیەک ڕوویدا. تکایە دووبارە هەوڵبدەرەوە.' : 'Error sending message. Please try again.', 'error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: null }))
     }
   }
 
@@ -55,58 +135,100 @@ export default function ContactForm({ currentLang = 'en' }) {
         </h2>
 
         <div className="max-w-4xl mx-auto">
-          {/* Contact Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-            <div className="text-center">
-              <i className="ri-phone-line text-3xl mb-4 text-blue-400"></i>
-              <p>+964 0770 000000</p>
+          {/* Contact Info - Now from database */}
+          {settingsLoading ? (
+            <div className="flex justify-center mb-12">
+              <div className="w-8 h-8 border-3 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
             </div>
-            <div className="text-center">
-              <i className="ri-mail-line text-3xl mb-4 text-blue-400"></i>
-              <p>info@amnasuraka.com</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+              <div className="text-center">
+                <i className="ri-phone-line text-3xl mb-4 text-blue-400"></i>
+                <p>{phone}</p>
+              </div>
+              <div className="text-center">
+                <i className="ri-mail-line text-3xl mb-4 text-blue-400"></i>
+                <p>{email}</p>
+              </div>
+              <div className="text-center">
+                <i className="ri-map-pin-line text-3xl mb-4 text-blue-400"></i>
+                <p>{address}</p>
+              </div>
             </div>
-            <div className="text-center">
-              <i className="ri-map-pin-line text-3xl mb-4 text-blue-400"></i>
-              <p>{isKurdish ? 'شاری سلێمانی' : 'Sulaymaniyah, Iraq'}</p>
-            </div>
-          </div>
+          )}
 
           {/* Contact Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <input
-                type="text"
-                placeholder={isKurdish ? 'ناوی سیانی' : 'Your Name'}
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-blue-500"
-              />
-              <input
-                type="text"
-                placeholder={isKurdish ? 'ژمارەی مۆبایل' : 'Phone Number'}
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                required
-                className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-blue-500"
-              />
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  <span className="text-red-500">*</span> {isKurdish ? 'ناوی تەواو' : 'Full Name'}
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder={isKurdish ? 'ناوی سیانی' : 'Your Name'}
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg focus:outline-none focus:border-blue-500 ${
+                    errors.name ? 'border-red-500' : 'border-white/20'
+                  }`}
+                />
+                {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  <span className="text-red-500">*</span> {isKurdish ? 'ژمارەی مۆبایل' : 'Phone Number'}
+                </label>
+                <input
+                  type="tel"
+                  name="phone"
+                  placeholder={isKurdish ? 'ژمارەی مۆبایل' : 'Phone Number'}
+                  value={formData.phone}
+                  onChange={handleChange}
+                  required
+                  className={`w-full px-4 py-3 bg-white/10 border rounded-lg focus:outline-none focus:border-blue-500 ${
+                    errors.phone ? 'border-red-500' : 'border-white/20'
+                  }`}
+                />
+                {errors.phone && <p className="text-red-400 text-sm mt-1">{errors.phone}</p>}
+              </div>
             </div>
-            <input
-              type="email"
-              placeholder={isKurdish ? 'ئیمەیڵ' : 'Your Email'}
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-blue-500"
-            />
-            <textarea
-              rows="5"
-              placeholder={isKurdish ? 'پەیام' : 'Your Message'}
-              value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              required
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-blue-500"
-            />
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                <span className="text-red-500">*</span> {isKurdish ? 'ئیمەیڵ' : 'Email'}
+              </label>
+              <input
+                type="email"
+                name="email"
+                placeholder={isKurdish ? 'ئیمەیڵ' : 'Your Email'}
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className={`w-full px-4 py-3 bg-white/10 border rounded-lg focus:outline-none focus:border-blue-500 ${
+                  errors.email ? 'border-red-500' : 'border-white/20'
+                }`}
+              />
+              {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                <span className="text-red-500">*</span> {isKurdish ? 'پەیام' : 'Message'}
+              </label>
+              <textarea
+                name="message"
+                rows="5"
+                placeholder={isKurdish ? 'پەیام' : 'Your Message'}
+                value={formData.message}
+                onChange={handleChange}
+                required
+                className={`w-full px-4 py-3 bg-white/10 border rounded-lg focus:outline-none focus:border-blue-500 ${
+                  errors.message ? 'border-red-500' : 'border-white/20'
+                }`}
+              />
+              {errors.message && <p className="text-red-400 text-sm mt-1">{errors.message}</p>}
+            </div>
             <button
               type="submit"
               disabled={loading}

@@ -17,6 +17,43 @@ section {
   --background-end-rgb: 255, 255, 255;
 }
 
+/* ============================================
+   Kurdish Font - UniSalar
+   ============================================ */
+@font-face {
+  font-family: 'UniSalar';
+  src: url('/fonts/UniSalar.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Kurdish font class */
+.font-kurdish {
+  font-family: 'UniSalar', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
+}
+
+/* Apply Kurdish font to RTL elements when language is Kurdish */
+[dir="rtl"] .font-kurdish,
+.font-kurdish {
+  font-family: 'UniSalar', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
+}
+
+/* Adjustments for Kurdish text */
+.font-kurdish p,
+.font-kurdish span,
+.font-kurdish h1,
+.font-kurdish h2,
+.font-kurdish h3,
+.font-kurdish h4,
+.font-kurdish h5,
+.font-kurdish h6,
+.font-kurdish li,
+.font-kurdish label {
+  font-family: 'UniSalar', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
+  line-height: 1.6;
+}
+
 body {
   color: rgb(var(--foreground-rgb));
   background: linear-gradient(
@@ -48,6 +85,27 @@ body {
   
   .slide-caption {
     @apply text-xl md:text-2xl font-semibold text-white;
+  }
+  
+  /* Slide Header - "NOT TO BE FORGOTTEN" - matches slide title typography */
+  .slide-header {
+    color: #dc2626;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+  }
+  
+  /* Kurdish version of slide header */
+  .slide-header-kr {
+    color: #dc2626;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    font-family: 'UniSalar', 'Noto Naskh Arabic', 'Tahoma', sans-serif;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
   }
   
   .contact-btn {
