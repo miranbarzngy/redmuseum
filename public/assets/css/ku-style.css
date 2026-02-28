@@ -1,0 +1,913 @@
+/*========== Google fonts ==========*/
+@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Reem+Kufi+Fun:wght@400..700&family=Reem+Kufi:wght@400..700&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Reem+Kufi+Fun:wght@400..700&family=Reem+Kufi:wght@400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Kanit:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Noto+Kufi+Arabic:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Reem+Kufi+Fun:wght@400..700&family=Reem+Kufi:wght@400..700&family=Sour+Gummy:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Reem+Kufi+Fun:wght@400..700&family=Reem+Kufi:wght@400..700&display=swap');
+
+
+@font-face {
+  font-family: myFont;
+  src: url('Rabar.ttf');
+ }
+
+
+/*========== Main CSS ==========*/
+
+:root{
+  /*======= Main colors =======*/
+  --first-color:#fff ;
+  --second-color: #c70a0a;
+  --third-color: #000000;
+
+  /*======= Other colors =======*/
+  --body-bg-color: #3c3c3c;
+  --hover-red-color: #ff0000;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+.main-section {
+  overflow: auto; /* Ensure overflow is not hidden */
+  z-index: 1;
+}
+
+
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+
+  font-optical-sizing: auto;
+
+}
+
+
+/* mouse hover section icon */
+
+.list[data-title]::after {
+  content: attr(data-title);
+  position: absolute;
+  bottom: -20%; /* Position above the element */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 8px;
+  opacity: 0;
+  visibility: hidden;
+  white-space: nowrap;
+  transition: opacity 0.3s, visibility 0.3s;
+  font-family: "Noto Kufi Arabic", serif;
+
+}
+
+.list:hover[data-title]::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+
+
+.section {
+  height: 100vh;
+  padding: 20px;
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+}
+
+
+
+body{
+  position: relative;
+  min-height: 100vh;
+  background: var(--body-bg-color);
+
+}
+
+
+.main-section {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+
+}
+.main-section .menu-icon{
+  color: #ffffff;
+  opacity: 1;
+}
+
+.main-section .logo{
+  z-index: 999;
+  position: absolute;
+  top: 50px;
+  left: 100px;
+  color: #fff;
+  font-size: 1em;
+  font-weight: 600;
+  text-decoration: none;
+  font-family: "Reem Kufi", serif;
+
+}
+
+
+.logo .logospan{
+  color: white;
+  background-color: #ff0000;
+  font-family: "Reem Kufi", serif;
+
+}
+/*========== Slider CSS ==========*/
+
+.slider {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+
+}
+
+.slider::before{
+content: "";
+z-index: 777;
+position: absolute;
+bottom: 0;
+left: 0;
+width: 100%;
+height: 30%;
+background: linear-gradient(to top,rgba(0,0,0,1),transparent);
+}
+
+.slider .slide{
+  position: absolute;
+  width: 100%;
+  height: 100vh;
+  opacity: 0;
+}
+.slider .slide.active{
+  
+  opacity: 1;
+}
+
+/*========== Slide images ==========*/
+.slide .slide-images {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.slide .slide-bg-img {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100vh;
+object-fit: cover;
+background-position: center;
+background-size: cover;
+pointer-events: none;
+user-select: none;
+opacity: 0;
+transition: opacity 1s linear;
+}
+.slide.active .slide-bg-img{
+opacity: 1;
+transition: opacity 1s linear;
+animation: museum-bg 17s linear infinite;
+
+}
+@keyframes museum-bg {
+  0%{
+    transform: scale(1);
+  }
+  50%{
+    transform: scale(1.25);
+
+  }
+  100%{
+    transform: scale(1);
+
+  }
+}  
+
+
+.slide .museum-name {
+position: absolute;
+  top: 170px;
+  color: var(--first-color);
+  font-weight: 600;
+  text-align: center;
+right: 190px;
+  letter-spacing: 5px;
+  text-shadow: 0 5px 25px rgba(0,0,0,.5);
+  opacity: 0;
+  transition: 0s;
+  font-family: "Reem Kufi", serif;
+
+}
+.museum-span {
+  font-size: 0.7em; /* Makes the span text smaller */
+  font-weight: 800; /* Optional: Removes bold style for the span */
+  color: #ffffff; /* Optional: Add a different color to the span */
+  background-color: #ff0000;
+  letter-spacing: .1px;
+  
+}
+.slide.active .museum-name{
+  opacity: 1;
+  transform: scale(1.25);
+  transition: 8s ease, 5s  ease;
+  transition-property: transform,opacity;
+  transition-delay: .5s;
+}
+
+.slide .slide-museum-image {
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100vh;
+object-fit: contain;
+background-position: center;
+background-size: cover;
+pointer-events: none;
+user-select: none;
+padding-bottom: 8%;
+transform: scale(1) translateY(75px);
+opacity: 0;
+transition: 2s ;
+}
+
+.slide.active .slide-museum-image{
+opacity: 1;
+transition: .8s;
+transition-property: opacity;
+transition-delay: .3s;
+transition-timing-function: cubic-bezier(.7,.1);
+
+}
+
+/*========== Slide text contents ==========*/
+
+.slide .slide-text-content {
+z-index: 777;
+position: absolute;
+top: 0;
+left: 0;
+width: 100%;
+height: 100vh;
+display: flex;
+justify-content: center;
+align-items: center;
+flex-direction: column;
+
+}
+
+.slide.active .slide-text-content{
+  z-index: 888;
+}
+
+.slide .slide-caption {
+position: absolute;
+top: 80px;
+color:red;
+font-weight: 900;
+text-transform: uppercase;
+letter-spacing: 3px;
+transform: scale(.8);
+opacity: 0;
+font-size: 2em;
+}
+
+.slide.active .slide-caption{
+  transform: scale(1);
+opacity: 1;
+transition: .8s,1.3s;
+transition-property: transform,opacity;
+transition-delay: .6s;
+transition-timing-function: cubic-bezier(.7,.1);
+font-family: "Reem Kufi", serif;
+
+}
+.slide .slide-paragraph {
+  position: absolute;
+  
+  bottom: 150px;
+  text-align: center;
+  justify-items: center;
+  max-width: 1400px;
+  color: #ffffff;
+  font-size: .8em;
+  font-weight: 1000;
+  line-height: 32px;
+  text-align: left;
+  text-shadow: 0 5px 25px rgba(0,0,0,.5);
+  transform: scale(.8);
+  opacity: 0;
+  padding-left: 50px;
+padding-right: 50px;
+
+background-color: rgba(96, 96, 96, 0.412);
+
+font-family: "Noto Kufi Arabic", serif;
+
+}
+.slide.active .slide-paragraph{
+  transform: scale(1);
+  opacity: 1;
+  transition: .8s,1.5s;
+  transition-property: transform,opacity;
+  transition-delay: .6s;
+  transition-timing-function: cubic-bezier(.7,.1);
+  
+  
+
+}
+
+.slide-paragraph .paragraph-anchor-tag {
+  color: wheat;
+  font-size: .88em;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color .3s ease;
+
+}
+
+.slide-paragraph .read-more:hover {
+  color:#c70a0a;
+}
+
+.slide .watch-video-btn {
+  position: absolute;
+  bottom: 70px;
+  background: none;
+  border: 3px solid #ff0000;
+  color: var(--first-color);
+  font-size: .7em;
+  font-weight: 800;
+  text-transform: uppercase;
+  width: 125px;
+  height: 45px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: .5s ease;
+  font-family: "Noto Kufi Arabic", serif;
+
+
+}
+
+.slide .watch-video-btn:hover {
+  background: #c70a0a;
+  color: #ffffff;
+  font-size: .9em;
+
+}
+
+/*========== Social media links ==========*/
+.slider-media-icons {
+  z-index: 888;
+  position: fixed; /* Changed from absolute to fixed */
+  background: linear-gradient(45deg,#2424244e,#00000095);
+  left: 1px;
+  top: 50%; /* Centers the icons vertically */
+  transform: translateY(-50%); /* Adjusts the position to keep it centered */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+border-radius: 30px;  
+height: 400px;
+width: 40px;
+}
+
+.slider-media-icons .logo-container {
+ display: flex;
+  justify-content: center;
+  align-items: center;
+
+}
+
+.menu-logo {
+  width: 25px !important; /* Force the width */
+  height: 25px !important; /* Force the height */
+  object-fit: cover; /* Ensures the image fits well */
+  border-radius: 50%; /* Optional: Makes the logo circular */
+  max-width: 100%; /* Ensure the logo doesn't exceed container size */
+  cursor: pointer;
+  
+}
+
+.slider-media-icons ul{
+display: flex;
+height: 350px;
+flex-direction: column;
+align-items: center;
+
+}
+
+.slider-media-icons ul li{
+position: relative;
+height: 70px;
+width: 70px;
+list-style: none;
+z-index: 1;
+}
+.slider-media-icons ul li a {
+position: relative;
+display: flex;
+justify-content: center;
+align-items: center;
+flex-direction: row;
+height: 100%;
+text-align: center;
+font-weight: 10;
+text-decoration: none;
+
+}
+
+.slider-media-icons ul li a .icon {
+position: relative;
+display: block;
+line-height: 75px;
+font-size: 1.5em ;
+text-align: center;
+color: #ddd;
+transition: .9s;
+
+}
+
+.slider-media-icons ul li.active a .icon {
+transform: translateX(0px);
+
+}
+
+.slider-media-icons ul li a .circle {
+position: absolute;
+display: block;
+width: 35px;
+height: 35px;
+background: transparent;
+border-radius: 50%;
+border: 3px solid #ffffff;
+transform: scale(0);
+
+}
+
+.slider-media-icons ul li.active a .circle {
+  transform: translatey(1px) scale(1);
+   
+  }
+
+
+.indicatorNavbar {
+position: absolute;
+width: 35px;
+left: 6%;
+top: 14.7%;
+height: 35px;
+background: linear-gradient(45deg,#ff0000,#1a0000);
+border: 4px solid rgb(0, 0, 0);
+border-radius: 50%;
+transition: .6s;
+
+}
+
+.indicatorNavbar::before {
+content: '';
+position: absolute;
+width: 10px;
+height: 10px;
+background: transparent;
+left: -6px;
+border-top-left-radius: 50%;
+}
+
+.indicatorNavbar::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: transparent;
+  right: -6px;
+  border-top-right-radius: 50%;
+  }
+
+  .slider-media-icons ul li:nth-child(1).active~.indicatorNavbar {
+transform: translatey(calc(70px * 0));
+
+  }
+  .slider-media-icons ul li:nth-child(2).active~.indicatorNavbar {
+    transform: translatey(calc(70px * 1));
+    
+      }
+
+      .slider-media-icons ul li:nth-child(3).active~.indicatorNavbar {
+        transform: translatey(calc(70px * 2));
+        
+          }
+          .slider-media-icons ul li:nth-child(4).active~.indicatorNavbar {
+            transform: translatey(calc(70px * 3));
+            
+              }
+              .slider-media-icons ul li:nth-child(5).active~.indicatorNavbar {
+                transform: translatey(calc(70px * 4));
+                
+                  }
+          
+
+/* Style for the active link */
+
+
+
+
+/*========== Slider left/right arrow navigation ==========*/
+.slider-navigation{
+  z-index: 888;
+  position: absolute;
+  bottom: 30px;
+  right: 100px;
+  display: flex;
+  gap: 70px;
+}
+
+.slider-navigation .prev-btn,
+.slider-navigation .next-btn {
+color: #bfbfbf;
+font-size: .8em;
+font-weight: 600;
+display: flex;
+justify-content: center;
+align-items: center;
+cursor: pointer;
+user-select: none;
+transition:.3s ease;
+font-family: "Noto Kufi Arabic", serif;
+
+
+}
+
+.slider-navigation i{
+  font-size: 2.5em;
+}
+
+
+.slider-navigation .prev-btn:hover,
+.slider-navigation .next-btn:hover {
+  color: #ff0000;
+}
+
+/*========== Slider pagination buttons ==========*/
+.slide-pagination {
+  z-index: 888;
+  position: absolute;
+  right: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.slide-pagination .slide-btn{
+  width: 3px;
+  height: 25px;
+  background: rgba(255,255,255, .5);
+  box-shadow: 0 5px 25px rgba(2,2,2,.25);
+  cursor: pointer;
+  transition: .3s ease;
+}
+.slide-pagination .slide-btn.active{
+  background: #ff0000;
+}
+
+.slide-pagination .slide-btn:hover{
+  background: #ff0000;
+}
+
+
+/*========== Slides visibility indicator bars ==========*/
+.slide-indicator-bars{
+  z-index: 888;
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  left: 0;
+
+}
+ .slide-indicator-bars .indicator-bar{
+  position: absolute;
+  bottom: 0;
+  width: 0;
+height: 4px;
+background: var(--second-color);
+}
+
+.slide-indicator-bars .indicator-bar.active{
+  width: 100%;
+  transition: width 8.2s linear;
+
+}
+/*========== Slide video modal ==========*/
+.slider-video-modal{
+   z-index: 000;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: rgba(0,0,0,.5);
+  backdrop-filter: blur(5px);
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+.slider-video-modal.active{
+z-index: 999;
+opacity: 1;
+}
+
+.video-modal-content{
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transform: scale(0);
+  opacity: 0;
+  transition: transform .5s, opacity .5s;
+
+}
+.video-modal-content.active{
+  transform: scale(1);
+  opacity: 1;
+  transition: transform .8s, opacity .5s;
+}
+
+.slider-video-modal .video-close-btn {
+  z-index: 999;
+  position: absolute;
+  top: 35px;
+  right: 295px;
+  color: var(--first-color);
+  font-size: 4em;
+  cursor: pointer;
+  transition: .3s ease;
+
+}
+.slider-video-modal .video-close-btn:hover{
+  color: var(--hover-red-color);
+}
+
+.slider-video-modal .video-card{
+  position: relative;
+  background:none ;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  margin: 50px;
+  border-radius: 10%;
+  box-shadow: 0 5px 25px rgba(0,0,0,.5);
+  overflow: hidden;
+}
+
+.video-card .video-paragraph {
+  font-size: 2em;
+  color: #ffffff;
+  margin: 20px 25px;
+  max-width: 800px;
+  text-align: center;
+  background-color: none;
+  font-family: "Noto Kufi Arabic", serif;
+
+}
+
+/* About setion */
+
+.about {
+  display: flex;
+  justify-items: center;
+}
+
+.contact-section {
+  padding: 50px 20px;
+  background-color: var(--body-bg-color);
+  color: var(--first-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+
+/*========== Media queries (max-width: 990px) ==========*/
+@media screen and (max-width: 990px){
+
+  .slide .museum-name {
+   font-size: 1.5em;
+   top: 170px;
+   right: 90px;
+      }
+      .slide .slide-museum-image {
+        transform: scale(1.25) translateY(50px);
+       }
+       .slide .slide-paragraph {
+        bottom: 120px;
+margin: 0 100px;   
+font-weight: 1000;   
+    }
+    .slide .watch-video-btn {
+      bottom: 40px;
+      left: 100px;
+      text-align: center;
+      justify-items: center;
+      width: 110px;
+      height: 30px;
+}
+.slide .slide-caption {
+  position: absolute;
+  top: 70px;
+  color: red;
+  font-size: 1em;
+ 
+}
+.slider-navigation {
+  bottom: 30px;
+justify-content: center;  
+  gap: 60px;
+}
+/*========== Media queries (max-width: 850px) ==========*/
+@media screen and (max-width: 850px){
+
+  .main-section .logo {
+  font-size: .6em;
+    top: 30px;
+    left: 50px;
+  
+}
+
+.slider-media-icons {
+
+  left: 1px;
+  bottom: 430px;
+ 
+}
+
+.slider-navigation {
+  right: 50px;
+
+
+}
+.slide .slide-caption {
+  position: absolute;
+  top: 70px;
+  color: red;
+  font-size: 1em;
+ 
+}
+
+.slide .museum-name {
+  top: 150px;
+   font-size: 1em;
+   
+ }
+}
+
+/*========== Media queries (max-width: 580px) ==========*/
+@media screen and (max-width: 580px){
+  .main-section .logo {
+  font-size: .4em;
+    left: 20px;
+  
+}
+
+.slider .museum-span {
+  font-size: .5em;
+} 
+.slide .museum-name {
+ top: 160px;
+  font-size: 1em;
+  right: 40px;
+  
+}
+
+.slide .slide-museum-image {
+
+  transform: scale(1.4) translateY(15px);
+ 
+}
+.slide .slide-caption {
+  position: absolute;
+  top: 70px;
+  color: red;
+  font-size: .9em;
+ 
+}
+.slide .slide-paragraph {
+font-size: .6em;
+font-weight: 1000;
+text-align: center;
+justify-items: center;
+color: #ffffff;
+text-align: center;
+text-shadow: #000000;
+width: 390px;
+
+
+}
+.slide .watch-video-btn{
+bottom: 42px;
+width: 170px;
+left: 20px;
+
+}
+}
+.slider-video-modal {
+margin: 25px;
+}
+
+.slider-media-icons .media-links{
+  font-size: 1.6em;
+  left: 1px;
+
+}
+.slider-navigation {
+  bottom: 40px;
+}
+.slider-navigation .prev-btn, .slider-navigation .next-btn {
+  font-size: 1em;
+  left: 20px;
+  
+}
+
+.slider-navigation{
+  right: 0;
+  width: 50%;
+  gap: 40px;
+  bottom: 35px;
+  align-items: center;
+}
+
+.slide-pagination{
+  bottom: 280px;
+  right: 16px;
+
+}
+.museum-span {
+
+   font-size: 1em;
+   
+ }
+}
+
+/*========== Media queries (max-width: 400px) ==========*/
+@media screen and (max-width: 400px){
+  .slide .slide-caption{
+    font-size: .8em;
+    top: 50px;
+
+  }
+  .slider-navigation{
+    right: 0;
+    width: 50%;
+    gap: 10px;
+    bottom: 30px;
+    align-items: center;
+  }
+  .slider-media-icons .media-links{
+  font-size: 1.3em;
+  left: 1px;
+  margin-bottom: 30px;
+}
+.slide .museum-name {
+  top: 100px;
+  right: 40px;
+   font-size: .9em;
+   
+ }
+
+/* Media queries for smaller screens */
+@media screen and (max-width: 768px) {
+  .slide .slide-museum-image {
+
+    transform: scale(1) translateY(15px);
+   
+  }
+}
+
+@media screen and (max-width: 480px) {
+
+
+ 
+}
+
+
+}
