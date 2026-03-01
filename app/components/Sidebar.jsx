@@ -47,13 +47,19 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     }
   }
 
-  // Handle language toggle
+  // Handle language toggle - navigate to correct route
   const toggleLanguage = (e) => {
     e.preventDefault()
     e.stopPropagation()
     const newLang = currentLang === 'en' ? 'ku' : 'en'
     if (onLangChange) {
       onLangChange(newLang)
+    }
+    // Navigate to the appropriate page
+    if (newLang === 'ku') {
+      window.location.href = '/kurdish'
+    } else {
+      window.location.href = '/'
     }
   }
 

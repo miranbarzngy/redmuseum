@@ -20,12 +20,16 @@ export default function KurdishPage() {
     }
   }, [])
 
-  // Apply Kurdish font class to body when language changes
+  // Apply Kurdish font class and direction to body when language changes
   useEffect(() => {
     if (currentLang === 'ku') {
       document.body.classList.add('font-kurdish')
+      document.documentElement.setAttribute('dir', 'rtl')
+      document.documentElement.setAttribute('lang', 'ku')
     } else {
       document.body.classList.remove('font-kurdish')
+      document.documentElement.setAttribute('dir', 'ltr')
+      document.documentElement.setAttribute('lang', 'en')
     }
   }, [currentLang])
 

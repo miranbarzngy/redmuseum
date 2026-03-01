@@ -1,26 +1,30 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import About from './components/About'
+import ContactForm from './components/ContactForm'
+import Gallery from './components/Gallery'
 import Sidebar from './components/Sidebar'
 import Slider from './components/Slider'
-import About from './components/About'
 import VRSection from './components/VRSection'
-import Gallery from './components/Gallery'
-import ContactForm from './components/ContactForm'
 
 export default function Home() {
   const [activeSection, setActiveSection] = useState('home')
   const [currentLang, setCurrentLang] = useState('en')
   const router = useRouter()
 
-  // Load language from localStorage on mount
+  // Redirect to Kurdish version by default
   useEffect(() => {
+    // Check if user has a language preference saved
     const savedLang = localStorage.getItem('museum-lang')
-    if (savedLang) {
+    // If no preference or preference is Kurdish, redirect to Kurdish
+    if (!savedLang || savedLang === 'ku') {
+      router.push('/kurdish')
+    } else {
       setCurrentLang(savedLang)
     }
-  }, [])
+  }, [router])
 
   // Apply Kurdish font class to body when language changes
   useEffect(() => {
@@ -139,7 +143,7 @@ export default function Home() {
       
       {/* Footer */}
       <footer className="py-6 bg-black text-white text-center">
-        <p>{currentLang === 'ku' ? '© ٢٠٢٥ مۆزەخانەی نیشتمانی ئەمنە سورەکە. هەموو مافەکان پارێزراوە.' : '© 2025 Amna Suraka National Museum. All rights reserved.'}</p>
+        <p>{currentLang === 'ku' ? '٢٠٢٦©  مۆزەخانەی نیشتمانی ئەمنە سورەکە - هەموو مافەکان پارێزراوە' : '© 2026 Amna Suraka National Museum. All rights reserved.'}</p>
       </footer>
     </main>
   )
