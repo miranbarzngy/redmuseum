@@ -9,8 +9,6 @@ const SOCIAL_PLATFORMS = [
   { name: 'Instagram', icon: 'ri-instagram-line' },
   { name: 'YouTube', icon: 'ri-youtube-fill' },
   { name: 'TikTok', icon: 'ri-tiktok-fill' },
-  { name: 'Twitter', icon: 'ri-twitter-x-fill' },
-  { name: 'LinkedIn', icon: 'ri-linkedin-box-fill' },
 ]
 
 export default function AboutEditor() {
@@ -73,7 +71,6 @@ export default function AboutEditor() {
     setSaving(true)
 
     try {
-      // Use upsert to insert or update the record
       const { error } = await supabase
         .from('settings')
         .upsert([{
@@ -113,7 +110,6 @@ export default function AboutEditor() {
     }))
   }
 
-  // Social links handlers
   const addSocialLink = () => {
     const newLink = {
       id: Date.now().toString(),
@@ -143,7 +139,6 @@ export default function AboutEditor() {
     }))
   }
 
-  // Get icon class by platform name
   const getIconClass = (iconName) => {
     const platform = SOCIAL_PLATFORMS.find(p => p.icon === iconName)
     return platform ? platform.icon : 'ri-links-line'
@@ -341,18 +336,15 @@ export default function AboutEditor() {
             Add your social media links to display on the contact section of the website.
           </p>
 
-          {/* Existing Social Links */}
           <div className="space-y-4 mb-4">
             {formData.social_json.map((link) => {
               const iconClass = getIconClass(link.icon_name)
               return (
                 <div key={link.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  {/* Icon Preview */}
                   <div className="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-full">
                     <i className={`${iconClass} text-blue-600 text-xl`}></i>
                   </div>
                   
-                  {/* Platform Select */}
                   <select
                     value={link.icon_name}
                     onChange={(e) => updateSocialLink(link.id, 'icon_name', e.target.value)}
@@ -365,7 +357,6 @@ export default function AboutEditor() {
                     ))}
                   </select>
                   
-                  {/* URL Input */}
                   <input
                     type="url"
                     value={link.url}
@@ -374,7 +365,6 @@ export default function AboutEditor() {
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   
-                  {/* Delete Button */}
                   <button
                     type="button"
                     onClick={() => deleteSocialLink(link.id)}
@@ -387,7 +377,6 @@ export default function AboutEditor() {
             })}
           </div>
 
-          {/* Add New Link Button */}
           <button
             type="button"
             onClick={addSocialLink}
