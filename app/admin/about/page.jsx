@@ -2,16 +2,15 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase-client'
-import { Facebook, Instagram, Youtube, Music, Twitter, Linkedin, Mail, Phone, MapPin, Plus, Trash2 } from 'lucide-react'
 
-// Available social platforms with their icons
+// Available social platforms with their icon class names (Remix Icon)
 const SOCIAL_PLATFORMS = [
-  { name: 'Facebook', icon: 'Facebook', iconComponent: Facebook },
-  { name: 'Instagram', icon: 'Instagram', iconComponent: Instagram },
-  { name: 'YouTube', icon: 'Youtube', iconComponent: Youtube },
-  { name: 'TikTok', icon: 'Music', iconComponent: Music },
-  { name: 'Twitter', icon: 'Twitter', iconComponent: Twitter },
-  { name: 'LinkedIn', icon: 'Linkedin', iconComponent: Linkedin },
+  { name: 'Facebook', icon: 'ri-facebook-fill' },
+  { name: 'Instagram', icon: 'ri-instagram-line' },
+  { name: 'YouTube', icon: 'ri-youtube-fill' },
+  { name: 'TikTok', icon: 'ri-tiktok-fill' },
+  { name: 'Twitter', icon: 'ri-twitter-x-fill' },
+  { name: 'LinkedIn', icon: 'ri-linkedin-box-fill' },
 ]
 
 export default function AboutEditor() {
@@ -120,7 +119,7 @@ export default function AboutEditor() {
       id: Date.now().toString(),
       platform_name: 'Facebook',
       url: '',
-      icon_name: 'Facebook'
+      icon_name: 'ri-facebook-fill'
     }
     setFormData(prev => ({
       ...prev,
@@ -144,10 +143,10 @@ export default function AboutEditor() {
     }))
   }
 
-  // Get icon component by name
-  const getIconComponent = (iconName) => {
+  // Get icon class by platform name
+  const getIconClass = (iconName) => {
     const platform = SOCIAL_PLATFORMS.find(p => p.icon === iconName)
-    return platform ? platform.iconComponent : Facebook
+    return platform ? platform.icon : 'ri-links-line'
   }
 
   if (loading) {
@@ -271,7 +270,7 @@ export default function AboutEditor() {
         {/* Contact Info */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Phone className="w-5 h-5" />
+            <i className="ri-phone-line"></i>
             Contact Information
           </h2>
           
@@ -334,7 +333,7 @@ export default function AboutEditor() {
         {/* Social Media Links */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-            <Mail className="w-5 h-5" />
+            <i className="ri-share-forward-line"></i>
             Social Media Links
           </h2>
           
@@ -344,13 +343,13 @@ export default function AboutEditor() {
 
           {/* Existing Social Links */}
           <div className="space-y-4 mb-4">
-            {formData.social_json.map((link, index) => {
-              const IconComponent = getIconComponent(link.icon_name)
+            {formData.social_json.map((link) => {
+              const iconClass = getIconClass(link.icon_name)
               return (
                 <div key={link.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   {/* Icon Preview */}
                   <div className="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-full">
-                    <IconComponent className="w-5 h-5 text-blue-600" />
+                    <i className={`${iconClass} text-blue-600 text-xl`}></i>
                   </div>
                   
                   {/* Platform Select */}
@@ -381,7 +380,7 @@ export default function AboutEditor() {
                     onClick={() => deleteSocialLink(link.id)}
                     className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <i className="ri-delete-bin-line text-xl"></i>
                   </button>
                 </div>
               )
@@ -394,7 +393,7 @@ export default function AboutEditor() {
             onClick={addSocialLink}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
-            <Plus className="w-4 h-4" />
+            <i className="ri-add-line"></i>
             Add Social Link
           </button>
         </div>

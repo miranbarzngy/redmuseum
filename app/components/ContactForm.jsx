@@ -2,16 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase-client'
-import { Facebook, Instagram, Youtube, Music, Twitter, Linkedin } from 'lucide-react'
 
-// Map icon names to Lucide components
+// Map icon names to Remix Icon class names
 const SOCIAL_ICONS = {
-  Facebook: Facebook,
-  Instagram: Instagram,
-  Youtube: Youtube,
-  Music: Music, // TikTok
-  Twitter: Twitter,
-  Linkedin: Linkedin,
+  'ri-facebook-fill': 'ri-facebook-fill',
+  'ri-instagram-line': 'ri-instagram-line',
+  'ri-youtube-fill': 'ri-youtube-fill',
+  'ri-tiktok-fill': 'ri-tiktok-fill',
+  'ri-twitter-x-fill': 'ri-twitter-x-fill',
+  'ri-linkedin-box-fill': 'ri-linkedin-box-fill',
 }
 
 export default function ContactForm({ currentLang = 'en' }) {
@@ -141,12 +140,6 @@ export default function ContactForm({ currentLang = 'en' }) {
     }
   }
 
-  // Render social icon based on icon_name
-  const renderSocialIcon = (iconName) => {
-    const IconComponent = SOCIAL_ICONS[iconName] || Facebook
-    return <IconComponent className="w-6 h-6" />
-  }
-
   return (
     <section id="contact" className="py-20 bg-gray-900 text-white">
       <div className="container mx-auto px-4">
@@ -274,7 +267,7 @@ export default function ContactForm({ currentLang = 'en' }) {
                     className="text-2xl hover:text-blue-400 transition-colors"
                     title={link.platform_name}
                   >
-                    {renderSocialIcon(link.icon_name)}
+                    <i className={link.icon_name || 'ri-links-line'}></i>
                   </a>
                 )
               ))}
@@ -291,7 +284,7 @@ export default function ContactForm({ currentLang = 'en' }) {
                 <i className="ri-instagram-line"></i>
               </a>
               <a href="#" className="text-2xl hover:text-gray-400 transition-colors">
-                <i className="ri-tiktok-line"></i>
+                <i className="ri-tiktok-fill"></i>
               </a>
             </div>
           )}
