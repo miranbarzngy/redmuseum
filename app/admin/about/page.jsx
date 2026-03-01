@@ -2,6 +2,17 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase-client'
+import { Facebook, Instagram, Youtube, Music, Twitter, Linkedin, Mail, Phone, MapPin, Plus, Trash2 } from 'lucide-react'
+
+// Available social platforms with their icons
+const SOCIAL_PLATFORMS = [
+  { name: 'Facebook', icon: 'Facebook', iconComponent: Facebook },
+  { name: 'Instagram', icon: 'Instagram', iconComponent: Instagram },
+  { name: 'YouTube', icon: 'Youtube', iconComponent: Youtube },
+  { name: 'TikTok', icon: 'Music', iconComponent: Music },
+  { name: 'Twitter', icon: 'Twitter', iconComponent: Twitter },
+  { name: 'LinkedIn', icon: 'Linkedin', iconComponent: Linkedin },
+]
 
 export default function AboutEditor() {
   const [loading, setLoading] = useState(true)
@@ -19,7 +30,8 @@ export default function AboutEditor() {
     contact_phone: '',
     contact_email: '',
     contact_address_en: '',
-    contact_address_kr: ''
+    contact_address_kr: '',
+    social_json: []
   })
 
   useEffect(() => {
@@ -46,7 +58,8 @@ export default function AboutEditor() {
           contact_phone: data.contact_phone || '',
           contact_email: data.contact_email || '',
           contact_address_en: data.contact_address_en || '',
-          contact_address_kr: data.contact_address_kr || ''
+          contact_address_kr: data.contact_address_kr || '',
+          social_json: data.social_json || []
         })
       }
     } catch (error) {
@@ -77,6 +90,7 @@ export default function AboutEditor() {
           contact_email: formData.contact_email,
           contact_address_en: formData.contact_address_en,
           contact_address_kr: formData.contact_address_kr,
+          social_json: formData.social_json,
           updated_at: new Date().toISOString()
         }], { onConflict: 'id' })
 
@@ -98,6 +112,42 @@ export default function AboutEditor() {
       ...prev,
       [name]: type === 'number' ? parseInt(value) || 0 : value
     }))
+  }
+
+  // Social links handlers
+  const addSocialLink = () => {
+    const newLink = {
+      id: Date.now().toString(),
+      platform_name: 'Facebook',
+      url: '',
+      icon_name: 'Facebook'
+    }
+    setFormData(prev => ({
+      ...prev,
+      social_json: [...prev.social_json, newLink]
+    }))
+  }
+
+  const updateSocialLink = (id, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      social_json: prev.social_json.map(link => 
+        link.id === id ? { ...link, [field]: value } : link
+      )
+    }))
+  }
+
+  const deleteSocialLink = (id) => {
+    setFormData(prev => ({
+      ...prev,
+      social_json: prev.social_json.filter(link => link.id !== id)
+    }))
+  }
+
+  // Get icon component by name
+  const getIconComponent = (iconName) => {
+    const platform = SOCIAL_PLATFORMS.find(p => p.icon === iconName)
+    return platform ? platform.iconComponent : Facebook
   }
 
   if (loading) {
@@ -131,8 +181,8 @@ export default function AboutEditor() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Title (Kurdish)
+              <label className="block text-sm font-medium text-gray-700 mb-1" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
+                Title (Kurdish / کوردی)
               </label>
               <input
                 type="text"
@@ -140,6 +190,7 @@ export default function AboutEditor() {
                 value={formData.about_title_kr}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
               />
             </div>
           </div>
@@ -158,8 +209,8 @@ export default function AboutEditor() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Description (Kurdish)
+              <label className="block text-sm font-medium text-gray-700 mb-1" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
+                Description (Kurdish / کوردی)
               </label>
               <textarea
                 name="about_text_kr"
@@ -167,6 +218,7 @@ export default function AboutEditor() {
                 onChange={handleChange}
                 rows="4"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
               />
             </div>
           </div>
@@ -218,7 +270,10 @@ export default function AboutEditor() {
 
         {/* Contact Info */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Phone className="w-5 h-5" />
+            Contact Information
+          </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -261,8 +316,8 @@ export default function AboutEditor() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Address (Kurdish)
+              <label className="block text-sm font-medium text-gray-700 mb-1" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
+                Address (Kurdish / کوردی)
               </label>
               <input
                 type="text"
@@ -270,9 +325,78 @@ export default function AboutEditor() {
                 value={formData.contact_address_kr}
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
               />
             </div>
           </div>
+        </div>
+
+        {/* Social Media Links */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+            <Mail className="w-5 h-5" />
+            Social Media Links
+          </h2>
+          
+          <p className="text-sm text-gray-500 mb-4">
+            Add your social media links to display on the contact section of the website.
+          </p>
+
+          {/* Existing Social Links */}
+          <div className="space-y-4 mb-4">
+            {formData.social_json.map((link, index) => {
+              const IconComponent = getIconComponent(link.icon_name)
+              return (
+                <div key={link.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  {/* Icon Preview */}
+                  <div className="w-10 h-10 flex items-center justify-center bg-blue-100 rounded-full">
+                    <IconComponent className="w-5 h-5 text-blue-600" />
+                  </div>
+                  
+                  {/* Platform Select */}
+                  <select
+                    value={link.icon_name}
+                    onChange={(e) => updateSocialLink(link.id, 'icon_name', e.target.value)}
+                    className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {SOCIAL_PLATFORMS.map(platform => (
+                      <option key={platform.icon} value={platform.icon}>
+                        {platform.name}
+                      </option>
+                    ))}
+                  </select>
+                  
+                  {/* URL Input */}
+                  <input
+                    type="url"
+                    value={link.url}
+                    onChange={(e) => updateSocialLink(link.id, 'url', e.target.value)}
+                    placeholder="https://..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  
+                  {/* Delete Button */}
+                  <button
+                    type="button"
+                    onClick={() => deleteSocialLink(link.id)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Add New Link Button */}
+          <button
+            type="button"
+            onClick={addSocialLink}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Social Link
+          </button>
         </div>
 
         {/* Submit */}

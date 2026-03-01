@@ -2,6 +2,17 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase-client'
+import { Facebook, Instagram, Youtube, Music, Twitter, Linkedin } from 'lucide-react'
+
+// Map icon names to Lucide components
+const SOCIAL_ICONS = {
+  Facebook: Facebook,
+  Instagram: Instagram,
+  Youtube: Youtube,
+  Music: Music, // TikTok
+  Twitter: Twitter,
+  Linkedin: Linkedin,
+}
 
 export default function ContactForm({ currentLang = 'en' }) {
   const [formData, setFormData] = useState({
@@ -45,6 +56,9 @@ export default function ContactForm({ currentLang = 'en' }) {
   const address = isKurdish 
     ? (settings?.contact_address_kr || 'شاری سلێمانی')
     : (settings?.contact_address_en || 'Sulaymaniyah, Iraq')
+  
+  // Get social links from settings
+  const socialLinks = settings?.social_json || []
 
   const showToast = (message, type = 'success') => {
     setToast({ show: true, message, type })
@@ -125,6 +139,12 @@ export default function ContactForm({ currentLang = 'en' }) {
     if (errors[name]) {
       setErrors(prev => ({ ...prev, [name]: null }))
     }
+  }
+
+  // Render social icon based on icon_name
+  const renderSocialIcon = (iconName) => {
+    const IconComponent = SOCIAL_ICONS[iconName] || Facebook
+    return <IconComponent className="w-6 h-6" />
   }
 
   return (
@@ -241,18 +261,40 @@ export default function ContactForm({ currentLang = 'en' }) {
             </button>
           </form>
 
-          {/* Social Media */}
-          <div className="flex justify-center space-x-6 mt-12">
-            <a href="#" className="text-2xl hover:text-blue-400 transition-colors">
-              <i className="ri-facebook-fill"></i>
-            </a>
-            <a href="#" className="text-2xl hover:text-pink-400 transition-colors">
-              <i className="ri-instagram-line"></i>
-            </a>
-            <a href="#" className="text-2xl hover:text-gray-400 transition-colors">
-              <i className="ri-tiktok-line"></i>
-            </a>
-          </div>
+          {/* Social Media Links - From Database */}
+          {socialLinks && socialLinks.length > 0 && (
+            <div className="flex justify-center space-x-6 mt-12">
+              {socialLinks.map((link) => (
+                link.url && (
+                  <a 
+                    key={link.id || link.platform_name}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-2xl hover:text-blue-400 transition-colors"
+                    title={link.platform_name}
+                  >
+                    {renderSocialIcon(link.icon_name)}
+                  </a>
+                )
+              ))}
+            </div>
+          )}
+
+          {/* Fallback social icons if no database links */}
+          {(!socialLinks || socialLinks.length === 0) && (
+            <div className="flex justify-center space-x-6 mt-12">
+              <a href="#" className="text-2xl hover:text-blue-400 transition-colors">
+                <i className="ri-facebook-fill"></i>
+              </a>
+              <a href="#" className="text-2xl hover:text-pink-400 transition-colors">
+                <i className="ri-instagram-line"></i>
+              </a>
+              <a href="#" className="text-2xl hover:text-gray-400 transition-colors">
+                <i className="ri-tiktok-line"></i>
+              </a>
+            </div>
+          )}
         </div>
       </div>
 
