@@ -17,20 +17,34 @@ const normalizePath = (path) => {
 }
 
 const fallbackSlides = [
-  { slide_number: 1, title: 'Red Prison', title_kr: 'ئەمنە سورەکە', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'Statue of dictator Saddam Hussein', description_kr: 'پەیکەری دیکتاتۆر سەدام حوسێن', background_image: '/assets/images/bg-1.jpg', museum_image: '/assets/images/saddam2.png', video_url: '/assets/videos/peshmarga.mp4' },
-  { slide_number: 2, title: 'Peshmarga', title_kr: 'پێشمەرگە', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'Peshmerga is an ambassador of generosity and love', description_kr: 'پێشمەرگە باڵویزی بەخشندەی و خۆشەویستی', background_image: '/assets/images/bg-2.jpg', museum_image: '/assets/images/peshmarga.png', video_url: '/assets/videos/peshmarga.mp4' },
-  { slide_number: 3, title: 'Cinema', title_kr: 'سینەما', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: '', description_kr: 'سینەمای یەڵماز گونەی', background_image: '/assets/images/bg-3.jpg', museum_image: '/assets/images/cinema.png', video_url: '/assets/videos/cinema.mp4' },
-  { slide_number: 4, title: 'Kurdish Heritage', title_kr: 'کلتور', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'cultural and heritage museum', description_kr: 'شێخ مەحمود یەکەم مەلیکی کوردوستان', background_image: '/assets/images/bg-4.jpg', museum_image: '/assets/images/malikshekhmahmud.png', video_url: '/assets/videos/Malikshexmahmud.mp4' },
-  { slide_number: 5, title: 'Prisons', title_kr: 'زیندانیان', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'These jails remained intact', description_kr: 'ئەم بەشە تایبەت بووە بۆ هەڵواسین', background_image: '/assets/images/bg-5.jpg', museum_image: '/assets/images/zindanyakan.png', video_url: '/assets/videos/zindanakan.mp4' },
-  { slide_number: 6, title: 'Mine Museum', title_kr: 'مین و تەقەمەنی', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'dedicated to displaying all types of mines', description_kr: 'ئەم بەشە تایبەتە بە پیشاندان', background_image: '/assets/images/bg-6.jpg', museum_image: '/assets/images/minwtaqamany.png', video_url: '/assets/videos/Min-taqmany.mp4' },
-  { slide_number: 7, title: 'Exodus', title_kr: 'کۆڕەو', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'After the 1991 spring uprising', description_kr: 'دوای ڕاپەڕینی بەهاری ١٩٩١', background_image: '/assets/images/bg-koraw.jpg', museum_image: '/assets/images/koraw.png', video_url: '/assets/videos/koraw.mp4' },
-  { slide_number: 8, title: 'Mirrors', title_kr: 'ئاوێنەکان', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: "It's walls are covered with 182,000 mirrors", description_kr: 'دویوارەکان ڕوپۆشکراووە بە ١٨٢،٠٠٠ پارچە ئاوێنە', background_image: '/assets/images/bg-awenakan.jpg', museum_image: '/assets/images/awenakan.png', video_url: '/assets/videos/awenakan.mp4' },
-  { slide_number: 9, title: 'Martyrs of ISIS', title_kr: 'شەهیدانی打底', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'In that unwanted war we represented the world', description_kr: 'لەو جەنگە نەخوازراوەدا نوێنەرایەتی جیهانمان کرد', background_image: '/assets/images/bg-isis.jpg', museum_image: '/assets/images/isis.png', video_url: '/assets/videos/isis.mp4' },
-  { slide_number: 10, title: 'Exhibition Hall', title_kr: 'گەلەری', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'Gallery hall for exhibiting works', description_kr: 'هۆڵی گەلەری بۆ نمایشکردنی کاری هونەری', background_image: '/assets/images/bg-gallery.jpg', museum_image: '/assets/images/gallaery.png', video_url: '/assets/videos/gallery.mp4' },
-  { slide_number: 11, title: 'Anfal', title_kr: 'ئەنفال', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'dedicated to displaying victims of Anfal', description_kr: 'تایبەتە بە نمایشکردنی ناو و وێنەی قوربانیان', background_image: '/assets/images/bg-anfal.jpg', museum_image: '/assets/images/anfal.png', video_url: '/assets/videos/anfal.mp4' },
-  { slide_number: 12, title: 'Resistance', title_kr: 'خۆڕاگری', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'dedicated to political prisoners', description_kr: 'تایبەتە بە ناو وێنەی ئەو زیندانییە سیاسیانە', background_image: '/assets/images/bg-xoragry.jpg', museum_image: '/assets/images/xoragry.png', video_url: '/assets/videos/balganama.mp4' },
-  { slide_number: 13, title: 'Heavy Weapons', title_kr: 'گۆڕەپانی چەکی قورس', subtitle: 'museum', subtitle_kr: 'مۆزەی', description: 'dedicated to displaying tanks and military vehicles', description_kr: 'تایبەتە بە نمایشکردنی ئەو تانک و تۆپ', background_image: '/assets/images/bg-gorapan.jpg', museum_image: '/assets/images/gorapan.png', video_url: '/assets/videos/red museum.mp4' },
+  { slide_number: 1, title: 'Red Prison', title_kr: 'ئەمنە سورەکە', title_ar: 'السجن الأحمر', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'Statue of dictator Saddam Hussein', description_kr: 'پەیکەری دیکتاتۆر سەدام حوسێن', description_ar: 'تمثال الدكتاتور صدام حسين', background_image: '/assets/images/bg-1.jpg', museum_image: '/assets/images/saddam2.png', video_url: '/assets/videos/peshmarga.mp4' },
+  { slide_number: 2, title: 'Peshmarga', title_kr: 'پێشمەرگە', title_ar: 'البيشمركة', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'Peshmerga is an ambassador of generosity and love', description_kr: 'پێشمەرگە باڵویزی بەخشندەی و خۆشەویستی', description_ar: 'البيشمركة سفير الكرم والحب', background_image: '/assets/images/bg-2.jpg', museum_image: '/assets/images/peshmarga.png', video_url: '/assets/videos/peshmarga.mp4' },
+  { slide_number: 3, title: 'Cinema', title_kr: 'سینەما', title_ar: 'السينما', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: '', description_kr: 'سینەمای یەڵماز گونەی', description_ar: 'سينما يلماز غوناي', background_image: '/assets/images/bg-3.jpg', museum_image: '/assets/images/cinema.png', video_url: '/assets/videos/cinema.mp4' },
+  { slide_number: 4, title: 'Kurdish Heritage', title_kr: 'کلتور', title_ar: 'التراث الكردي', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'cultural and heritage museum', description_kr: 'شێخ مەحمود یەکەم مەلیکی کوردوستان', description_ar: 'متحف التراث والثقافة', background_image: '/assets/images/bg-4.jpg', museum_image: '/assets/images/malikshekhmahmud.png', video_url: '/assets/videos/Malikshexmahmud.mp4' },
+  { slide_number: 5, title: 'Prisons', title_kr: 'زیندانیان', title_ar: 'السجون', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'These jails remained intact', description_kr: 'ئەم بەشە تایبەت بووە بۆ هەڵواسین', description_ar: 'ظلت هذه السجون سليمة', background_image: '/assets/images/bg-5.jpg', museum_image: '/assets/images/zindanyakan.png', video_url: '/assets/videos/zindanakan.mp4' },
+  { slide_number: 6, title: 'Mine Museum', title_kr: 'مین و تەقەمەنی', title_ar: 'متحف الألغام', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'dedicated to displaying all types of mines', description_kr: 'ئەم بەشە تایبەتە بە پیشاندان', description_ar: 'مخصص لعرض جميع أنواع الألغام', background_image: '/assets/images/bg-6.jpg', museum_image: '/assets/images/minwtaqamany.png', video_url: '/assets/videos/Min-taqmany.mp4' },
+  { slide_number: 7, title: 'Exodus', title_kr: 'کۆڕەو', title_ar: 'الخروج', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'After the 1991 spring uprising', description_kr: 'دوای ڕاپەڕینی بەهاری ١٩٩١', description_ar: 'بعد انتفاضة ربيع 1991', background_image: '/assets/images/bg-koraw.jpg', museum_image: '/assets/images/koraw.png', video_url: '/assets/videos/koraw.mp4' },
+  { slide_number: 8, title: 'Mirrors', title_kr: 'ئاوێنەکان', title_ar: 'المرايا', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: "It's walls are covered with 182,000 mirrors", description_kr: 'دویوارەکان ڕوپۆشکراووە بە ١٨٢،٠٠٠ پارچە ئاوێنە', description_ar: 'الجدران مغطاة بـ 182000 مرآة', background_image: '/assets/images/bg-awenakan.jpg', museum_image: '/assets/images/awenakan.png', video_url: '/assets/videos/awenakan.mp4' },
+  { slide_number: 9, title: 'Martyrs of ISIS', title_kr: 'شەهیدانی打底', title_ar: 'شهداء حرب تنظيم الدولة', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'In that unwanted war we represented the world', description_kr: 'لەو جەنگە نەخوازراوەدا نوێنەرایەتی جیهانمان کرد', description_ar: 'في تلك الحرب غير المرغوبة مثلنا العالم', background_image: '/assets/images/bg-isis.jpg', museum_image: '/assets/images/isis.png', video_url: '/assets/videos/isis.mp4' },
+  { slide_number: 10, title: 'Exhibition Hall', title_kr: 'گەلەری', title_ar: 'قاعة المعرض', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'Gallery hall for exhibiting works', description_kr: 'هۆڵی گەلەری بۆ نمایشکردنی کاری هونەری', description_ar: 'قاعة المعرض لعرض الأعمال الفنية', background_image: '/assets/images/bg-gallery.jpg', museum_image: '/assets/images/gallaery.png', video_url: '/assets/videos/gallery.mp4' },
+  { slide_number: 11, title: 'Anfal', title_kr: 'ئەنفال', title_ar: 'أنفال', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'dedicated to displaying victims of Anfal', description_kr: 'تایبەتە بە نمایشکردنی ناو و وێنەی قوربانیان', description_ar: 'مخصص لعرض ضحايا أنفال', background_image: '/assets/images/bg-anfal.jpg', museum_image: '/assets/images/anfal.png', video_url: '/assets/videos/anfal.mp4' },
+  { slide_number: 12, title: 'Resistance', title_kr: 'خۆڕاگری', title_ar: 'المقاومة', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'dedicated to political prisoners', description_kr: 'تایبەتە بە ناو وێنەی ئەو زیندانییە سیاسیانە', description_ar: 'مخصص للسجناء السياسيين', background_image: '/assets/images/bg-xoragry.jpg', museum_image: '/assets/images/xoragry.png', video_url: '/assets/videos/balganama.mp4' },
+  { slide_number: 13, title: 'Heavy Weapons', title_kr: 'گۆڕەپانی چەکی قورس', title_ar: 'ساحة الأسلحة الثقيلة', subtitle: 'museum', subtitle_kr: 'مۆزەی', subtitle_ar: 'متحف', description: 'dedicated to displaying tanks and military vehicles', description_kr: 'تایبەتە بە نمایشکردنی ئەو تانک و تۆپ', description_ar: 'مخصص لعرض الدبابات والمركبات العسكرية', background_image: '/assets/images/bg-gorapan.jpg', museum_image: '/assets/images/gorapan.png', video_url: '/assets/videos/red museum.mp4' },
 ]
+
+// Helper function to get localized content with fallback: Arabic → Kurdish → English
+const getLocalizedContent = (slide, field, lang) => {
+  if (lang === 'ar') {
+    // Arabic → Kurdish → English fallback
+    return slide[`${field}_ar`] || slide[`${field}_kr`] || slide[field] || ''
+  } else if (lang === 'kr') {
+    // Kurdish → English fallback
+    return slide[`${field}_kr`] || slide[field] || ''
+  }
+  // Default to English
+  return slide[field] || ''
+}
+
 
 export default function Slider({ currentLang = 'en' }) {
   const [slides, setSlides] = useState([])
@@ -39,8 +53,9 @@ export default function Slider({ currentLang = 'en' }) {
   const [videoModal, setVideoModal] = useState({ open: false, videoUrl: '', title: '' })
   const [playSlider, setPlaySlider] = useState(null)
 
-  const lang = currentLang === 'ku' ? 'kr' : 'en'
+  const lang = currentLang === 'ku' ? 'kr' : currentLang === 'ar' ? 'ar' : 'en'
   const isKurdish = currentLang === 'ku'
+  const isArabic = currentLang === 'ar'
 
   const fetchSlides = useCallback(async () => {
     // Skip if supabase is not configured
@@ -203,44 +218,53 @@ export default function Slider({ currentLang = 'en' }) {
             )}
 
             {/* Text Content Layer - z-[777] absolute container flex flex-col items-center justify-center */}
-            <div className="absolute top-0 left-0 w-full h-screen flex flex-col items-center justify-center z-[777]">
+            <div 
+              className="absolute top-0 left-0 w-full h-screen flex flex-col items-center justify-center z-[777]"
+              dir={isArabic ? 'rtl' : 'ltr'}
+            >
               {/* Caption - NOT TO BE FORGOTTEN - styled to match slide titles */}
               <h3 
                 className="absolute top-[80px] lg:top-[70px]"
                 style={{ 
                   color: '#dc2626', // Red color matching museum theme
                   fontSize: '1.5rem',
-                  fontWeight: isKurdish ? '700' : '700',
-                  letterSpacing: isKurdish ? '0' : '0.2em',
-                  textTransform: isKurdish ? 'none' : 'uppercase',
-                  fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif',
+                  fontWeight: '700',
+                  letterSpacing: isKurdish ? '0' : isArabic ? '0' : '0.2em',
+                  textTransform: isKurdish ? 'none' : isArabic ? 'none' : 'uppercase',
+                  fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : isArabic ? 'Cairo, Tahoma, sans-serif' : 'system-ui, sans-serif',
                   textShadow: '0 2px 10px rgba(0,0,0,0.5)'
                 }}
               >
-                {isKurdish ? 'تا لە یادمان نەچێت' : 'Not To Be Forgotten'}
+                {isKurdish ? 'تا لە یادمان نەچێت' : isArabic ? 'لن ننسى' : 'Not To Be Forgotten'}
               </h3>
               
               {/* Museum Name - position absolute top-[170px] right-[190px] (adjusted for mobile) */}
               <h1 className="museum-name absolute text-white font-bold md:text-6xl drop-shadow-lg max-[400px]:text-[.9em] max-[400px]:top-[100px] max-[400px]:right-[40px] max-[580px]:text-[1em] max-[580px]:top-[160px] max-[580px]:right-[40px] max-[850px]:text-[1em] max-[850px]:top-[150px] lg:top-[170px] lg:right-[190px] max-[990px]:right-[90px] max-[990px]:top-[170px]"
                   style={{ 
-                    textShadow: '0 5px 25px rgba(0,0,0,.5)'
+                    textShadow: '0 5px 25px rgba(0,0,0,.5)',
+                    fontFamily: isArabic ? 'Cairo, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif'
                   }}>
-                {lang === 'kr' ? (slide.title_kr || slide.title) : slide.title}
+                {getLocalizedContent(slide, 'title', lang)}
                 <br />
                 <span className="museum-span text-3xl font-light bg-red-600 px-2">
-                  {lang === 'kr' ? (slide.subtitle_kr || slide.subtitle) : slide.subtitle}
+                  {getLocalizedContent(slide, 'subtitle', lang)}
                 </span>
               </h1>
               
               {/* Paragraph - position bottom-[150px] with semi-transparent background */}
-              <p className="absolute bottom-[80px] lg:bottom-[80px] text-white text-base md:text-xl font-bold max-w-4xl px-4 md:px-12 text-left max-[580px]:text-[.6em] max-[580px]:w-[390px] max-[580px]:text-center"
-                 style={{ 
+              <p 
+                className="absolute bottom-[80px] lg:bottom-[80px] text-white text-base md:text-xl font-bold max-w-4xl px-4 md:px-12 max-[580px]:text-[.6em] max-[580px]:w-[390px] max-[580px]:text-center"
+                style={{ 
                    textShadow: '0 5px 25px rgba(0,0,0,.5)',
-                   backgroundColor: 'rgba(96, 96, 96, 0.412)'
-                 }}>
-                {lang === 'kr' ? (slide.description_kr || slide.description) : slide.description}
+                   backgroundColor: 'rgba(96, 96, 96, 0.412)',
+                   fontFamily: isArabic ? 'Cairo, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif'
+                 }}
+                 dir={isArabic ? 'rtl' : 'ltr'}
+              >
+                {getLocalizedContent(slide, 'description', lang)}
               </p>
             </div>
+
           </div>
         ))}
       </div>

@@ -27,6 +27,7 @@ export default function ContactForm({ currentLang = 'en' }) {
   const [errors, setErrors] = useState({})
 
   const isKurdish = currentLang === 'ku'
+  const isArabic = currentLang === 'ar'
 
   useEffect(() => {
     fetchSettings()
@@ -52,9 +53,11 @@ export default function ContactForm({ currentLang = 'en' }) {
   // Get localized contact info
   const phone = settings?.contact_phone || '+964 0770 000000'
   const email = settings?.contact_email || 'info@amnasuraka.com'
-  const address = isKurdish 
-    ? (settings?.contact_address_kr || 'شاری سلێمانی')
-    : (settings?.contact_address_en || 'Sulaymaniyah, Iraq')
+  const address = isArabic 
+    ? (settings?.address_ar || 'السليمانية، العراق')
+    : isKurdish 
+      ? (settings?.contact_address_kr || 'شاری سلێمانی')
+      : (settings?.contact_address_en || 'Sulaymaniyah, Iraq')
   
   // Get social links from settings
   const socialLinks = settings?.social_json || []
@@ -64,34 +67,42 @@ export default function ContactForm({ currentLang = 'en' }) {
     setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 5000)
   }
 
+  // Helper function for translations
+  const t = (kur, arb, eng) => {
+    if (isArabic) return arb
+    if (isKurdish) return kur
+    return eng
+  }
+
   const validateForm = () => {
     const newErrors = {}
     
     // Check name
     if (!formData.name || formData.name.trim() === '') {
-      newErrors.name = isKurdish ? 'ناوی سیانی پێویستە' : 'Full name is required'
+      newErrors.name = t('ناوی سیانی پێویستە', 'الاسم الكامل مطلوب', 'Full name is required')
     }
     
     // Check phone
     if (!formData.phone || formData.phone.trim() === '') {
-      newErrors.phone = isKurdish ? 'ژمارەی مۆبایل پێویستە' : 'Phone number is required'
+      newErrors.phone = t('ژمارەی مۆبایل پێویستە', 'رقم الهاتف مطلوب', 'Phone number is required')
     }
     
     // Check email
     if (!formData.email || formData.email.trim() === '') {
-      newErrors.email = isKurdish ? 'ئیمەیڵ پێویستە' : 'Email is required'
+      newErrors.email = t('ئیمەیڵ پێویستە', 'البريد الإلكتروني مطلوب', 'Email is required')
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = isKurdish ? 'ئیمەیڵەکەت دروست نیە' : 'Please enter a valid email'
+      newErrors.email = t('ئیمەیڵەکەت دروست نیە', 'الرجاء إدخال بريد إلكتروني صالح', 'Please enter a valid email')
     }
     
     // Check message
     if (!formData.message || formData.message.trim() === '') {
-      newErrors.message = isKurdish ? 'پەیام پێویستە' : 'Message is required'
+      newErrors.message = t('پەیام پێویستە', 'الرسالة مطلوبة', 'Message is required')
     }
     
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -99,7 +110,7 @@ export default function ContactForm({ currentLang = 'en' }) {
     // Validate form before submission
     if (!validateForm()) {
       showToast(
-        isKurdish ? 'تکایە هەموو خانە پڕبکەرەوە' : 'Please fill in all required fields',
+        t('تکایە هەموو خانە پڕبکەرەوە', 'الرجاء ملء جميع الحقول المطلوبة', 'Please fill in all required fields'),
         'error'
       )
       return
@@ -120,15 +131,16 @@ export default function ContactForm({ currentLang = 'en' }) {
 
       if (error) throw error
 
-      showToast(isKurdish ? 'پەیامەکەت بە سەرکەوتوویی نێرا!' : 'Message sent successfully!', 'success')
+      showToast(t('پەیامەکەت بە سەرکەوتوویی نێرا!', 'تم إرسال الرسالة بنجاح!', 'Message sent successfully!'), 'success')
       setFormData({ name: '', phone: '', email: '', message: '' })
       setErrors({})
     } catch (error) {
       console.error('Error:', error)
-      showToast(isKurdish ? 'هەڵەیەک ڕوویدا. تکایە دووبارە هەوڵبدەرەوە.' : 'Error sending message. Please try again.', 'error')
+      showToast(t('هەڵەیەک ڕوویدا. تکایە دووبارە هەوڵبدەرەوە.', 'حدث خطأ. يرجى المحاولة مرة أخرى.', 'Error sending message. Please try again.'), 'error')
     } finally {
       setLoading(false)
     }
+
   }
 
   const handleChange = (e) => {
@@ -144,7 +156,7 @@ export default function ContactForm({ currentLang = 'en' }) {
     <section id="contact" className="py-20 bg-gray-900 text-white">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl font-bold text-center mb-12">
-          {isKurdish ? 'پەیوەندی بکە' : 'Contact Us'}
+          {t('پەیوەندی بکە', 'اتصل بنا', 'Contact Us')}
         </h2>
 
         <div className="max-w-4xl mx-auto">
@@ -171,19 +183,20 @@ export default function ContactForm({ currentLang = 'en' }) {
           )}
 
           {/* Contact Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-6" dir={isArabic ? 'rtl' : 'ltr'}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  <span className="text-red-500">*</span> {isKurdish ? 'ناوی تەواو' : 'Full Name'}
+                  <span className="text-red-500">*</span> {t('ناوی تەواو', 'الاسم الكامل', 'Full Name')}
                 </label>
                 <input
                   type="text"
                   name="name"
-                  placeholder={isKurdish ? 'ناوی سیانی' : 'Your Name'}
+                  placeholder={t('ناوی سیانی', 'اسمك الكامل', 'Your Name')}
                   value={formData.name}
                   onChange={handleChange}
                   required
+                  dir={isArabic ? 'rtl' : 'ltr'}
                   className={`w-full px-4 py-3 bg-white/10 border rounded-lg focus:outline-none focus:border-blue-500 ${
                     errors.name ? 'border-red-500' : 'border-white/20'
                   }`}
@@ -192,15 +205,16 @@ export default function ContactForm({ currentLang = 'en' }) {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  <span className="text-red-500">*</span> {isKurdish ? 'ژمارەی مۆبایل' : 'Phone Number'}
+                  <span className="text-red-500">*</span> {t('ژمارەی مۆبایل', 'رقم الهاتف', 'Phone Number')}
                 </label>
                 <input
                   type="tel"
                   name="phone"
-                  placeholder={isKurdish ? 'ژمارەی مۆبایل' : 'Phone Number'}
+                  placeholder={t('ژمارەی مۆبایل', 'رقم الهاتف', 'Phone Number')}
                   value={formData.phone}
                   onChange={handleChange}
                   required
+                  dir={isArabic ? 'rtl' : 'ltr'}
                   className={`w-full px-4 py-3 bg-white/10 border rounded-lg focus:outline-none focus:border-blue-500 ${
                     errors.phone ? 'border-red-500' : 'border-white/20'
                   }`}
@@ -210,15 +224,16 @@ export default function ContactForm({ currentLang = 'en' }) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">
-                <span className="text-red-500">*</span> {isKurdish ? 'ئیمەیڵ' : 'Email'}
+                <span className="text-red-500">*</span> {t('ئیمەیڵ', 'البريد الإلكتروني', 'Email')}
               </label>
               <input
                 type="email"
                 name="email"
-                placeholder={isKurdish ? 'ئیمەیڵ' : 'Your Email'}
+                placeholder={t('ئیمەیڵ', 'بريدك الإلكتروني', 'Your Email')}
                 value={formData.email}
                 onChange={handleChange}
                 required
+                dir={isArabic ? 'rtl' : 'ltr'}
                 className={`w-full px-4 py-3 bg-white/10 border rounded-lg focus:outline-none focus:border-blue-500 ${
                   errors.email ? 'border-red-500' : 'border-white/20'
                 }`}
@@ -227,15 +242,16 @@ export default function ContactForm({ currentLang = 'en' }) {
             </div>
             <div>
               <label className="block text-sm font-medium mb-2">
-                <span className="text-red-500">*</span> {isKurdish ? 'پەیام' : 'Message'}
+                <span className="text-red-500">*</span> {t('پەیام', 'الرسالة', 'Message')}
               </label>
               <textarea
                 name="message"
                 rows="5"
-                placeholder={isKurdish ? 'پەیام' : 'Your Message'}
+                placeholder={t('پەیام', 'رسالتك', 'Your Message')}
                 value={formData.message}
                 onChange={handleChange}
                 required
+                dir={isArabic ? 'rtl' : 'ltr'}
                 className={`w-full px-4 py-3 bg-white/10 border rounded-lg focus:outline-none focus:border-blue-500 ${
                   errors.message ? 'border-red-500' : 'border-white/20'
                 }`}
@@ -248,11 +264,12 @@ export default function ContactForm({ currentLang = 'en' }) {
               className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg font-semibold transition-colors"
             >
               {loading 
-                ? (isKurdish ? 'ناردن...' : 'Sending...') 
-                : (isKurdish ? 'پەیامەکەت بنێرە' : 'Send Message')
+                ? t('ناردن...', 'جاري الإرسال...', 'Sending...')
+                : t('پەیامەکەت بنێرە', 'إرسال الرسالة', 'Send Message')
               }
             </button>
           </form>
+
 
           {/* Social Media Links - From Database */}
           {socialLinks && socialLinks.length > 0 && (

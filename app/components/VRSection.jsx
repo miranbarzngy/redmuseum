@@ -4,10 +4,25 @@ import { useState } from 'react'
 
 export default function VRSection({ currentLang = 'en' }) {
   const isKurdish = currentLang === 'ku'
+  const isArabic = currentLang === 'ar'
   const [showVideo, setShowVideo] = useState(false)
 
   const handlePlayClick = () => {
     setShowVideo(true)
+  }
+
+  // Get style based on language
+  const getTextStyle = () => {
+    if (isArabic) return { fontFamily: 'Cairo, Tahoma, sans-serif' }
+    if (isKurdish) return { fontFamily: 'UniSalar, Tahoma, sans-serif' }
+    return {}
+  }
+
+  // Translation helper
+  const t = (kur, arb, eng) => {
+    if (isArabic) return arb
+    if (isKurdish) return kur
+    return eng
   }
 
   return (
@@ -16,17 +31,17 @@ export default function VRSection({ currentLang = 'en' }) {
         {/* Title */}
         <h2 
           className="text-4xl font-bold text-center text-white mb-4"
-          style={isKurdish ? { fontFamily: 'UniSalar, Tahoma, sans-serif' } : {}}
+          style={getTextStyle()}
         >
-          {isKurdish ? 'بەشێوەی ٣٦٠ پلە مۆزەخانەکە ببینە' : 'Explore Our Place in 360°'}
+          {t('بەشێوەی ٣٦٠ پلە مۆزەخانەکە ببینە', 'استكشف مكاننا بزاوية 360°', 'Explore Our Place in 360°')}
         </h2>
         
         {/* Description */}
         <p 
           className="text-center text-gray-300 mb-8"
-          style={isKurdish ? { fontFamily: 'UniSalar, Tahoma, sans-serif' } : {}}
+          style={getTextStyle()}
         >
-          {isKurdish ? 'گەشتێکی خەیاڵی لەناو مۆزەخانەکەدا بکە' : 'Experience a virtual tour of our location!'}
+          {t('گەشتێکی خەیاڵی لەناو مۆزەخانەکەدا بکە', 'استمتع بجولة افتراضية في موقعنا!', 'Experience a virtual tour of our location!')}
         </p>
 
         {/* Video Container - Enhanced cropping to completely hide YouTube title */}
@@ -60,7 +75,7 @@ export default function VRSection({ currentLang = 'en' }) {
                 {/* 360° Badge */}
                 <div 
                   className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 rounded-full font-bold text-sm"
-                  style={isKurdish ? { fontFamily: 'UniSalar, Tahoma, sans-serif' } : {}}
+                  style={getTextStyle()}
                 >
                   360°
                 </div>
@@ -82,11 +97,12 @@ export default function VRSection({ currentLang = 'en' }) {
                 <div className="absolute bottom-8 left-0 right-0 text-center">
                   <span 
                     className="inline-block bg-black/60 text-white px-6 py-2 rounded-full text-sm font-medium"
-                    style={isKurdish ? { fontFamily: 'UniSalar, Tahoma, sans-serif' } : {}}
+                    style={getTextStyle()}
                   >
-                    {isKurdish ? 'کلیک بکە بۆ ئەزموون' : 'Click to Explore'}
+                    {t('کلیک بکە بۆ ئەزموون', 'انقر للاستكشاف', 'Click to Explore')}
                   </span>
                 </div>
+
               </div>
             )}
             
@@ -115,11 +131,12 @@ export default function VRSection({ currentLang = 'en' }) {
 
         {/* Additional Info */}
         <div className="mt-8 text-center">
-          <p className="text-gray-400 text-sm">
-            {isKurdish 
-              ? 'مۆزەخانەی نیشتمانی ئەمنە سورەکە - سلێمانی، کوردستان'
-              : 'Amna Suraka National Museum - Sulaymaniyah, Kurdistan'
-            }
+          <p className="text-gray-400 text-sm" style={getTextStyle()}>
+            {t(
+              'مۆزەخانەی نیشتمانی ئەمنە سورەکە - سلێمانی، کوردستان',
+              'متحف أمنة سراكر الوطني - السليمانية، كوردستان',
+              'Amna Suraka National Museum - Sulaymaniyah, Kurdistan'
+            )}
           </p>
         </div>
       </div>

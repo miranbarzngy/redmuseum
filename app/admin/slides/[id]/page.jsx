@@ -16,15 +16,19 @@ export default function SlideForm() {
     slide_number: 1,
     title: '',
     title_kr: '',
+    title_ar: '',
     subtitle: 'museum',
     subtitle_kr: 'مۆزەی',
+    subtitle_ar: 'متحف',
     description: '',
     description_kr: '',
+    description_ar: '',
     background_image: '',
     museum_image: '',
     video_url: '',
     is_active: true
   })
+
 
   useEffect(() => {
     if (!isNew && id) {
@@ -41,7 +45,15 @@ export default function SlideForm() {
         .single()
 
       if (error) throw error
-      if (data) setFormData(data)
+      if (data) {
+        // Ensure all fields are defined (handles case where database columns don't exist yet)
+        setFormData({
+          ...data,
+          title_ar: data.title_ar || '',
+          subtitle_ar: data.subtitle_ar || 'متحف',
+          description_ar: data.description_ar || '',
+        })
+      }
     } catch (error) {
       console.error('Error fetching slide:', error)
       alert('Error loading slide')
@@ -49,6 +61,7 @@ export default function SlideForm() {
       setLoading(false)
     }
   }
+
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -117,8 +130,8 @@ export default function SlideForm() {
           />
         </div>
 
-        {/* English Fields */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Title Fields - All Languages */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Title (English)
@@ -144,10 +157,24 @@ export default function SlideForm() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Title (Arabic)
+            </label>
+            <input
+              type="text"
+              name="title_ar"
+              value={formData.title_ar}
+              onChange={handleChange}
+              dir="rtl"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
+            />
+          </div>
         </div>
 
-        {/* Subtitle */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Subtitle - All Languages */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Subtitle (English)
@@ -172,10 +199,24 @@ export default function SlideForm() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Subtitle (Arabic)
+            </label>
+            <input
+              type="text"
+              name="subtitle_ar"
+              value={formData.subtitle_ar}
+              onChange={handleChange}
+              dir="rtl"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
+            />
+          </div>
         </div>
 
-        {/* Description */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Description - All Languages */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Description (English)
@@ -200,7 +241,22 @@ export default function SlideForm() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description (Arabic)
+            </label>
+            <textarea
+              name="description_ar"
+              value={formData.description_ar}
+              onChange={handleChange}
+              rows="3"
+              dir="rtl"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
+            />
+          </div>
         </div>
+
 
         {/* Image Upload - Background */}
         <ImageUpload

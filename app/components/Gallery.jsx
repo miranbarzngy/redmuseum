@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase-client'
 
 const categoryNames = {
-  visitor: { en: 'Visitor Touring', kr: 'سەردانی میوان' },
-  activity: { en: 'Activities', kr: 'چالاکییەکان' },
-  delegation: { en: 'Official Delegations', kr: 'وەفدی فەرمی' },
-  donation: { en: 'Donations', kr: 'بەخشین' },
+  visitor: { en: 'Visitor Touring', kr: 'سەردانی میوان', ar: 'جولات الزوار' },
+  activity: { en: 'Activities', kr: 'چالاکییەکان', ar: 'الأنشطة' },
+  delegation: { en: 'Official Delegations', kr: 'وەفدی فەرمی', ar: 'الوفود الرسمية' },
+  donation: { en: 'Donations', kr: 'بەخشین', ar: 'التبرعات' },
 }
+
 
 // Helper function to normalize paths
 const normalizePath = (path) => {
@@ -20,9 +21,27 @@ const normalizePath = (path) => {
 
 export default function Gallery({ currentLang = 'en' }) {
   const isKurdish = currentLang === 'ku'
+  const isArabic = currentLang === 'ar'
   const [galleries, setGalleries] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+
+  // Helper function to get localized content with fallback: Arabic → Kurdish → English
+  const getLocalizedContent = (field, fieldAr, fieldKr, fieldEn) => {
+    if (isArabic) {
+      return fieldAr || fieldKr || fieldEn || ''
+    } else if (isKurdish) {
+      return fieldKr || fieldEn || ''
+    }
+    return fieldEn || ''
+  }
+
+  // Get language for category names
+  const getLangKey = () => {
+    if (isArabic) return 'ar'
+    if (isKurdish) return 'kr'
+    return 'en'
+  }
 
   useEffect(() => {
     fetchGallery()
@@ -118,13 +137,14 @@ export default function Gallery({ currentLang = 'en' }) {
       <section id="gallery" className="py-20 bg-gray-100">
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">
-            {isKurdish ? 'گەلەری' : 'Gallery'}
+            {isArabic ? 'المعرض' : isKurdish ? 'گەلەری' : 'Gallery'}
           </h2>
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              {isKurdish ? 'هیچ وێنەیەک لە گەلەریدا نییە.' : 'No images found in the gallery.'}
+              {isArabic ? 'لا توجد صور في المعرض.' : isKurdish ? 'هیچ وێنەیەک لە گەلەریدا نییە.' : 'No images found in the gallery.'}
             </p>
           </div>
+
         </div>
       </section>
     )
@@ -183,15 +203,17 @@ export default function Gallery({ currentLang = 'en' }) {
     <section id="gallery" className="py-20 bg-gray-100">
       <div className="container mx-auto px-4">
         <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">
-          {isKurdish ? 'گەلەری' : 'Gallery'}
+          {isArabic ? 'المعرض' : isKurdish ? 'گەلەری' : 'Gallery'}
         </h2>
+
 
         {galleries.map((gallery) => (
           gallery.images.length > 0 && (
             <div key={gallery.category} className="mb-16">
               <h3 className="text-2xl font-semibold mb-6 text-gray-700 text-center">
-                {categoryNames[gallery.category]?.[isKurdish ? 'kr' : 'en'] || gallery.category}
+                {categoryNames[gallery.category]?.[getLangKey()] || gallery.category}
               </h3>
+
               {renderScrollTrack(gallery)}
             </div>
           )

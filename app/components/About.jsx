@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase-client'
 
 export default function About({ currentLang = 'en' }) {
   const isKurdish = currentLang === 'ku'
+  const isArabic = currentLang === 'ar'
   const [counters, setCounters] = useState({ museums: 0, archives: 0, visitors: 0 })
   const [settings, setSettings] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -82,18 +83,19 @@ export default function About({ currentLang = 'en' }) {
     }, 30)
   }
 
-  // Get localized content
-  const title = settings 
-    ? (isKurdish ? (settings.about_title_kr || 'تا لە یادمان نەچێت') : (settings.about_title_en || 'Not To Be Forgotten'))
-    : (isKurdish ? 'تا لە یادمان نەچێت' : 'Not To Be Forgotten')
-    
-  const description = settings
-    ? (isKurdish 
-        ? (settings.about_text_kr || "سەردانمان بکەن بۆ بینینی چەندین مۆزەی تایبەت بە مێژووی جینۆسایدی کورد. هەر مۆزەیەک پێناسەیە بۆ بەشێک لەو چیرۆکە خۆڕاگرییانەی گەلی کورد. لەگەڵمان بن لە پاراستنی ئەم مێژووە.")
-        : (settings.about_text_en || "Visit us to explore multiple museums dedicated to the profound history of the Kurdish genocide. Each exhibit honors the resilience and stories of the Kurdish people. Join us in preserving this history."))
-    : (isKurdish 
-        ? "سەردانمان بکەن بۆ بینینی چەندین مۆزەی تایبەت بە مێژووی جینۆسایدی کورد. هەر مۆزەیەک پێناسەیە بۆ بەشێک لەو چیرۆکە خۆڕاگرییانەی گەلی کورد. لەگەڵمان بن لە پاراستنی ئەم مێژووە."
-        : "Visit us to explore multiple museums dedicated to the profound history of the Kurdish genocide. Each exhibit honors the resilience and stories of the Kurdish people. Join us in preserving this history.")
+  // Get localized content with fallback: Arabic → Kurdish → English
+  const getLocalizedContent = (field) => {
+    if (!settings) return null
+    if (isArabic) {
+      return settings[`${field}_ar`] || settings[`${field}_kr`] || settings[field] || ''
+    } else if (isKurdish) {
+      return settings[`${field}_kr`] || settings[field] || ''
+    }
+    return settings[field] || ''
+  }
+
+  const title = getLocalizedContent('about_title') || (isKurdish ? 'تا لە یادمان نەچێت' : isArabic ? 'لن ننسى' : 'Not To Be Forgotten')
+  const description = getLocalizedContent('about_text') || (isKurdish ? "سەردانمان بکەن بۆ بینینی چەندین مۆزەی تایبەت بە مێژووی جینۆسایدی کورد. هەر مۆزەیەک پێناسەیە بۆ بەشێک لەو چیرۆکە خۆڕاگرییانەی گەلی کورد. لەگەڵمان بن لە پاراستنی ئەم مێژووە." : isArabic ? "زورنا لاستكشاف المتاحف المخصصة لتاريخ الابادة الجماعية الكردية. كل عرض يكرم صمود وقصص الشعب الكردي. انضموا الينا للحفاظ على هذا التاريخ." : "Visit us to explore multiple museums dedicated to the profound history of the Kurdish genocide. Each exhibit honors the resilience and stories of the Kurdish people. Join us in preserving this history.")
 
   if (loading) {
     return (
@@ -123,7 +125,8 @@ export default function About({ currentLang = 'en' }) {
           {/* Title */}
           <h2 
             className="text-4xl font-bold mb-6 text-gray-800"
-            style={{ fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
+            dir={isArabic ? 'rtl' : 'ltr'}
+            style={{ fontFamily: isArabic ? 'Cairo, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
           >
             {title}
           </h2>
@@ -131,7 +134,8 @@ export default function About({ currentLang = 'en' }) {
           {/* Description */}
           <p 
             className="text-lg text-gray-600 mb-12 leading-relaxed"
-            style={{ fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
+            dir={isArabic ? 'rtl' : 'ltr'}
+            style={{ fontFamily: isArabic ? 'Cairo, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
           >
             {description}
           </p>
@@ -140,18 +144,19 @@ export default function About({ currentLang = 'en' }) {
           <div className="grid grid-cols-3 gap-8">
             <div className="text-center">
               <div className="text-5xl font-bold text-blue-600 mb-2">{counters.museums}</div>
-              <div className="text-gray-600">{isKurdish ? 'مۆزە' : 'Museums'}</div>
+              <div className="text-gray-600">{isArabic ? 'المتاحف' : isKurdish ? 'مۆزە' : 'Museums'}</div>
             </div>
             <div className="text-center">
               <div className="text-5xl font-bold text-blue-600 mb-2">{counters.archives}</div>
-              <div className="text-gray-600">{isKurdish ? 'پارچە ئەرشیف' : 'Archives'}</div>
+              <div className="text-gray-600">{isArabic ? 'الأرشيف' : isKurdish ? 'پارچە ئەرشیف' : 'Archives'}</div>
             </div>
             <div className="text-center">
               <div className="text-5xl font-bold text-blue-600 mb-2">{counters.visitors}</div>
-              <div className="text-gray-600">{isKurdish ? 'سەردانیکەر' : 'Visitors'}</div>
-              <div className="text-sm text-gray-400">{isKurdish ? 'ساڵانە' : 'Yearly'}</div>
+              <div className="text-gray-600">{isArabic ? 'الزوار' : isKurdish ? 'سەردانیکەر' : 'Visitors'}</div>
+              <div className="text-sm text-gray-400">{isArabic ? 'سنوياً' : isKurdish ? 'ساڵانە' : 'Yearly'}</div>
             </div>
           </div>
+
         </div>
       </div>
     </section>

@@ -32,9 +32,12 @@ export default function GalleryManagement() {
   const [formData, setFormData] = useState({
     image_url: '',
     title: '',
+    title_ar: '',
     description: '',
+    description_ar: '',
     display_order: 0
   })
+
 
   useEffect(() => {
     fetchGallery()
@@ -162,10 +165,13 @@ export default function GalleryManagement() {
       category: selectedCategory,
       image_url: formData.image_url,
       title: formData.title || null,
+      title_ar: formData.title_ar || null,
       description: formData.description || null,
+      description_ar: formData.description_ar || null,
       display_order: displayOrder,
       is_active: true
     }
+
 
     try {
       if (editingItem) {
@@ -211,7 +217,9 @@ export default function GalleryManagement() {
     setFormData({
       image_url: item.image_url || '',
       title: item.title || '',
+      title_ar: item.title_ar || '',
       description: item.description || '',
+      description_ar: item.description_ar || '',
       display_order: item.display_order || 0
     })
   }
@@ -223,10 +231,13 @@ export default function GalleryManagement() {
     setFormData({ 
       image_url: '', 
       title: '', 
+      title_ar: '',
       description: '', 
+      description_ar: '',
       display_order: 0 
     })
   }
+
 
   const filteredImages = gallery.filter(img => img.category === selectedCategory)
 
@@ -345,9 +356,9 @@ export default function GalleryManagement() {
               )}
             </div>
 
-            {/* Title */}
+            {/* Title - English */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title (English)</label>
               <input
                 type="text"
                 name="title"
@@ -358,9 +369,24 @@ export default function GalleryManagement() {
               />
             </div>
 
-            {/* Description */}
+            {/* Title - Arabic */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title (Arabic)</label>
+              <input
+                type="text"
+                name="title_ar"
+                value={formData.title_ar}
+                onChange={handleInputChange}
+                placeholder="العنوان بالعربية"
+                dir="rtl"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
+              />
+            </div>
+
+            {/* Description - English */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description (English)</label>
               <textarea
                 name="description"
                 value={formData.description}
@@ -370,6 +396,22 @@ export default function GalleryManagement() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             </div>
+
+            {/* Description - Arabic */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description (Arabic)</label>
+              <textarea
+                name="description_ar"
+                value={formData.description_ar}
+                onChange={handleInputChange}
+                placeholder="الوصف بالعربية"
+                rows="2"
+                dir="rtl"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
+              />
+            </div>
+
 
             {/* Display Order */}
             <div>

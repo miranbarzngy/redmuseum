@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 
 export default function Sidebar({ activeSection = 'home', onSectionClick, currentLang = 'en', onLangChange }) {
   const [hoveredItem, setHoveredItem] = useState(null)
@@ -22,6 +23,76 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
+  // Language options for the switcher - ORDER: Kurdish (top), English (middle), Arabic (bottom)
+  const languages = [
+    { code: 'ku', name: 'کوردی', flag: 'kurdistan', href: '/kurdish' },
+    { code: 'en', name: 'English', flag: 'uk', href: '/' },
+    { code: 'ar', name: 'العربية', flag: 'iraq', href: '/arabic' },
+  ]
+
+  // Flag image URLs for external flags
+  const flagUrls = {
+    kurdistan: '/assets/images/Flag_of_Kurdistan.png',
+    uk: 'https://flagcdn.com/w80/gb.png',
+    iraq: 'https://flagcdn.com/w80/iq.png',
+  }
+
+  // Render flag as circular image with consistent sizing
+  const renderFlag = (flagType) => {
+    const size = 32 // Consistent size for all flags
+    const containerClass = "w-7 h-7"
+    
+    const flagWrapperClass = `${containerClass} aspect-square rounded-full overflow-hidden flex items-center justify-center bg-white`
+    const flagImgClass = "w-full h-full object-cover"
+    
+    switch (flagType) {
+      case 'kurdistan':
+        return (
+          <div className={flagWrapperClass}>
+            <Image 
+              src={flagUrls.kurdistan}
+              alt="Kurdistan" 
+              width={size} 
+              height={size}
+              className={flagImgClass}
+              unoptimized
+            />
+          </div>
+        )
+
+      case 'uk':
+        return (
+          <div className={flagWrapperClass}>
+            <Image 
+              src={flagUrls.uk}
+              alt="United Kingdom" 
+              width={size} 
+              height={size}
+              className={flagImgClass}
+              unoptimized
+            />
+          </div>
+        )
+      case 'iraq':
+        return (
+          <div className={flagWrapperClass}>
+            <Image 
+              src={flagUrls.iraq}
+              alt="Iraq" 
+              width={size} 
+              height={size}
+              className={flagImgClass}
+              unoptimized
+            />
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+
+
   // Get menu items based on language
   const menuItems = currentLang === 'ku'
     ? [
@@ -31,6 +102,15 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
         { id: 'gallery', icon: 'ri-image-line', title: 'گەلەری', href: '/kurdish#gallery' },
         { id: 'archive-section', icon: 'ri-archive-line', title: 'ئەرشیف', href: '/kurdish#archive-section' },
         { id: 'contact', icon: 'ri-contacts-book-3-line', title: 'پەیوەندی', href: '/kurdish#contact' },
+      ]
+    : currentLang === 'ar'
+    ? [
+        { id: 'home', icon: 'ri-home-6-line', title: 'الرئيسية', href: '/arabic' },
+        { id: 'about', icon: 'ri-profile-line', title: 'حول المتحف', href: '/arabic#about' },
+        { id: 'virtual-tour', icon: 'ri-eye-2-line', title: 'جولة ٣٦٠', href: '/arabic#virtual-tour' },
+        { id: 'gallery', icon: 'ri-image-line', title: 'معرض الصور', href: '/arabic#gallery' },
+        { id: 'archive-section', icon: 'ri-archive-line', title: 'الأرشيف', href: '/arabic#archive-section' },
+        { id: 'contact', icon: 'ri-contacts-book-3-line', title: 'اتصل بنا', href: '/arabic#contact' },
       ]
     : [
         { id: 'home', icon: 'ri-home-6-line', title: 'Home', href: '/' },
@@ -72,19 +152,11 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
   }
 
   // Handle language toggle - navigate to correct route
-  const toggleLanguage = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const newLang = currentLang === 'en' ? 'ku' : 'en'
+  const toggleLanguage = (langCode, href) => {
     if (onLangChange) {
-      onLangChange(newLang)
+      onLangChange(langCode)
     }
-    // Navigate to the appropriate page
-    if (newLang === 'ku') {
-      window.location.href = '/kurdish'
-    } else {
-      window.location.href = '/'
-    }
+    window.location.href = href
   }
 
   return (
@@ -103,24 +175,33 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
         }}
       >
         
-        {/* Language Switcher - Flag at top with prominent styling */}
-        <div 
-          className="flex items-center justify-center mb-3 cursor-pointer group"
-          onClick={toggleLanguage}
-          title={currentLang === 'en' ? 'Switch to Kurdish / گۆڕین بە کوردی' : 'Switch to English / گۆڕین بە ئینگلیزی'}
-        >
-          <div className="relative">
-            <img 
-              src={currentLang === 'en' ? '/assets/images/Flag_of_Kurdistan.png' : '/assets/images/english flag.jpg'}
-              alt={currentLang === 'en' ? 'Kurdistan Flag' : 'English Flag'} 
-              className="w-8 h-8 rounded-full object-cover cursor-pointer hover:scale-125 transition-all duration-300 shadow-lg border-2 border-white/30"
-            />
-            {/* Tooltip for language */}
-            <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
-              {currentLang === 'en' ? 'کوردی' : 'English'}
+        {/* Language Switcher - 3 Flags with prominent styling - ORDER: Kurdish, English, Arabic */}
+        <div className="flex flex-col items-center gap-2 mb-2">
+          {languages.map((lang) => (
+            <div 
+              key={lang.code}
+              className="relative cursor-pointer group"
+              onClick={() => toggleLanguage(lang.code, lang.href)}
+              title={lang.name}
+            >
+              <div 
+                className={`transition-all duration-300 hover:scale-125 shadow-lg rounded-full
+                  ${currentLang === lang.code 
+                    ? 'ring-2 ring-red-600 ring-offset-2 ring-offset-black scale-110' 
+                    : ''
+                  }`}
+              >
+                {renderFlag(lang.flag, currentLang === lang.code)}
+              </div>
+
+              {/* Tooltip for language */}
+              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
+                {lang.name}
+              </div>
             </div>
-          </div>
+          ))}
         </div>
+
 
         {/* Divider */}
         <div className="w-10 h-px bg-white/20 mb-2"></div>
@@ -183,17 +264,22 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
 
       {/* Mobile Bottom Bar - appears on small screens */}
       <div className="fixed bottom-0 left-0 right-0 z-[999] bg-black/90 backdrop-blur-md md:hidden flex justify-around items-center py-3 px-4">
-        {/* Mobile Language Toggle */}
-        <button
-          onClick={toggleLanguage}
-          className="flex flex-col items-center"
-        >
-          <img 
-            src={currentLang === 'en' ? '/assets/images/Flag_of_Kurdistan.png' : '/assets/images/english flag.jpg'}
-            alt="Language" 
-            className="w-6 h-6 rounded-full object-cover"
-          />
-        </button>
+        {/* Mobile Language Toggle - 3 Flags - ORDER: Kurdish, English, Arabic */}
+        <div className="flex items-center gap-2">
+          {languages.map((lang) => (
+            <button
+              key={lang.code}
+              onClick={() => toggleLanguage(lang.code, lang.href)}
+              className={`p-0.5 rounded-full transition-all hover:scale-110 ${
+                currentLang === lang.code ? 'ring-2 ring-red-600 ring-offset-1 ring-offset-black' : ''
+              }`}
+            >
+              {renderFlag(lang.flag, currentLang === lang.code)}
+            </button>
+          ))}
+        </div>
+
+
 
         {/* Mobile Nav Items */}
         {menuItems.map((item) => (

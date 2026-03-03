@@ -19,8 +19,11 @@ export default function AboutEditor() {
     id: 1,
     about_title_en: '',
     about_title_kr: '',
+    about_title_ar: '',
     about_text_en: '',
     about_text_kr: '',
+    about_text_ar: '',
+    address_ar: '',
     museums_count: 11,
     archives_count: 1900,
     visitors_count: 900,
@@ -30,6 +33,7 @@ export default function AboutEditor() {
     contact_address_kr: '',
     social_json: []
   })
+
 
   useEffect(() => {
     fetchSettings()
@@ -47,8 +51,11 @@ export default function AboutEditor() {
           id: data.id,
           about_title_en: data.about_title_en || '',
           about_title_kr: data.about_title_kr || '',
+          about_title_ar: data.about_title_ar || '',
           about_text_en: data.about_text_en || '',
           about_text_kr: data.about_text_kr || '',
+          about_text_ar: data.about_text_ar || '',
+          address_ar: data.address_ar || '',
           museums_count: data.museums_count || 11,
           archives_count: data.archives_count || 1900,
           visitors_count: data.visitors_count || 900,
@@ -59,6 +66,7 @@ export default function AboutEditor() {
           social_json: data.social_json || []
         })
       }
+
     } catch (error) {
       console.log('No settings found, using defaults')
     } finally {
@@ -77,8 +85,11 @@ export default function AboutEditor() {
           id: formData.id,
           about_title_en: formData.about_title_en,
           about_title_kr: formData.about_title_kr,
+          about_title_ar: formData.about_title_ar,
           about_text_en: formData.about_text_en,
           about_text_kr: formData.about_text_kr,
+          about_text_ar: formData.about_text_ar,
+          address_ar: formData.address_ar,
           museums_count: formData.museums_count,
           archives_count: formData.archives_count,
           visitors_count: formData.visitors_count,
@@ -101,6 +112,7 @@ export default function AboutEditor() {
       setSaving(false)
     }
   }
+
 
   const handleChange = (e) => {
     const { name, value, type } = e.target
@@ -161,7 +173,7 @@ export default function AboutEditor() {
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">About Content</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Title (English)
@@ -176,7 +188,7 @@ export default function AboutEditor() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                Title (Kurdish / کوردی)
+                Title (Kurdish)
               </label>
               <input
                 type="text"
@@ -188,9 +200,23 @@ export default function AboutEditor() {
                 dir="rtl"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Title (Arabic)
+              </label>
+              <input
+                type="text"
+                name="about_title_ar"
+                value={formData.about_title_ar}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
+                dir="rtl"
+              />
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Description (English)
@@ -205,7 +231,7 @@ export default function AboutEditor() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                Description (Kurdish / کوردی)
+                Description (Kurdish)
               </label>
               <textarea
                 name="about_text_kr"
@@ -217,7 +243,22 @@ export default function AboutEditor() {
                 dir="rtl"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Description (Arabic)
+              </label>
+              <textarea
+                name="about_text_ar"
+                value={formData.about_text_ar}
+                onChange={handleChange}
+                rows="4"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
+                dir="rtl"
+              />
+            </div>
           </div>
+
         </div>
 
         {/* Stats */}
@@ -298,7 +339,7 @@ export default function AboutEditor() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Address (English)
@@ -313,7 +354,7 @@ export default function AboutEditor() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                Address (Kurdish / کوردی)
+                Address (Kurdish)
               </label>
               <input
                 type="text"
@@ -322,9 +363,25 @@ export default function AboutEditor() {
                 onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
+                dir="rtl"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Address (Arabic)
+              </label>
+              <input
+                type="text"
+                name="address_ar"
+                value={formData.address_ar}
+                onChange={handleChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
+                dir="rtl"
               />
             </div>
           </div>
+
         </div>
 
         {/* Social Media Links */}

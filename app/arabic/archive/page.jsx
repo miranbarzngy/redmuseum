@@ -1,15 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase-client'
+import { supabase } from '../../lib/supabase-client'
 import Link from 'next/link'
 
 // Default categories as fallback
 const defaultCategories = [
-  { id: 'all', name_en: 'All', name_ku: 'هەموو', slug: 'all' },
-  { id: 'documents', name_en: 'Documents', name_ku: 'بەڵگەنامەکان', slug: 'documents' },
-  { id: 'letters', name_en: 'Letters', name_ku: 'نامەکان', slug: 'letters' },
-  { id: 'photos', name_en: 'Photos', name_ku: 'وێنە کۆنەکان', slug: 'photos' },
+  { id: 'all', name_en: 'All', name_ar: 'الكل', slug: 'all' },
+  { id: 'documents', name_en: 'Documents', name_ar: 'المستندات', slug: 'documents' },
+  { id: 'letters', name_en: 'Letters', name_ar: 'الرسائل', slug: 'letters' },
+  { id: 'photos', name_en: 'Photos', name_ar: 'الصور القديمة', slug: 'photos' },
 ]
 
 // Map old category strings to slugs for backward compatibility
@@ -27,25 +27,13 @@ const normalizePath = (path) => {
   return `/${path}`
 }
 
-export default function EnglishArchive() {
+export default function ArabicArchive() {
   const [categories, setCategories] = useState([])
   const [archive, setArchive] = useState([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [lightboxItem, setLightboxItem] = useState(null)
-
-  // Language detection (hardcoded for this page since it's English version)
-  const currentLang = 'en'
-  const isKurdish = currentLang === 'ku'
-  const isArabic = currentLang === 'ar'
-
-  // Translation helper
-  const t = (kur, arb, eng) => {
-    if (isArabic) return arb
-    if (isKurdish) return kur
-    return eng
-  }
 
   useEffect(() => {
     fetchCategories()
@@ -67,7 +55,7 @@ export default function EnglishArchive() {
       if (error) throw error
       
       // Add "All" option at the beginning
-      const allOption = { id: 'all', name_en: 'All', name_ku: 'هەموو', slug: 'all' }
+      const allOption = { id: 'all', name_en: 'All', name_ar: 'الكل', slug: 'all' }
       if (data && data.length > 0) {
         setCategories([allOption, ...data])
       } else {
@@ -91,9 +79,9 @@ export default function EnglishArchive() {
         {
           id: '1',
           title_en: 'Anfal Campaign Document',
-          title_ku: 'بەڵگەنامەی ئەنفال',
+          title_ar: 'مستند حملة الأنفال',
           description_en: 'Historical document from the Anfal campaign',
-          description_ku: 'بەڵگەنامەیەکی مێژوویی لە کampaینی ئەنفال',
+          description_ar: 'مستند تاريخي من حملة الأنفال',
           category_id: 'documents',
           category: 'Documents',
           image_url: '/assets/images/anfal.png',
@@ -103,9 +91,9 @@ export default function EnglishArchive() {
         {
           id: '2',
           title_en: 'Letter from 1960s',
-          title_ku: 'نامەیەک لە ساڵانی ١٩٦٠',
+          title_ar: 'رسالة من ستينيات القرن الماضي',
           description_en: 'Rare letter from the 1960s era',
-          description_ku: 'نامەیەکی دەگمەن لە سەردەمی ساڵانی ١٩٦٠',
+          description_ar: 'رسالة نادرة من حقبة ستينيات القرن الماضي',
           category_id: 'letters',
           category: 'Letters',
           image_url: '/assets/images/awenakan.png',
@@ -115,9 +103,9 @@ export default function EnglishArchive() {
         {
           id: '3',
           title_en: 'Old Photo Collection',
-          title_ku: 'کۆمەڵەی وێنە کۆنەکان',
+          title_ar: 'مجموعة الصور القديمة',
           description_en: 'Collection of rare historical photos',
-          description_ku: 'کۆمەڵەیەک لە وێنە مێژووییە دەگمەنەکان',
+          description_ar: 'مجموعة من الصور التاريخية النادرة',
           category_id: 'photos',
           category: 'Photos',
           image_url: '/assets/images/bg-1.jpg',
@@ -171,34 +159,44 @@ export default function EnglishArchive() {
     const matchesCategory = selectedCategory === 'all' || itemCategoryId === selectedCategory
     const matchesSearch = searchQuery === '' || 
       (item.title_en?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.title_ku?.includes(searchQuery)) ||
+      (item.title_ar?.includes(searchQuery)) ||
       (item.description_en?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.description_ku?.includes(searchQuery))
+      (item.description_ar?.includes(searchQuery))
     return matchesCategory && matchesSearch
   })
 
-  // Get category display name in English
+  // Get category display name in Arabic - fallback to English if Arabic is missing
   const getCategoryName = (item) => {
     const itemCategoryId = getItemCategoryId(item)
     if (itemCategoryId) {
       const cat = getCategoryById(itemCategoryId)
-      if (cat) return cat.name_en
+      if (cat) return cat.name_ar || cat.name_en
     }
     // Fallback to old category field
     if (item.category) {
       const slug = categoryStringToSlug[item.category] || item.category.toLowerCase()
       const cat = categories.find(c => c.slug === slug)
-      if (cat) return cat.name_en
+      if (cat) return cat.name_ar || cat.name_en
       return item.category
     }
-    return 'All'
+    return 'الكل'
   }
 
   // Format date
   const formatDate = (dateString) => {
     if (!dateString) return ''
     const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    return date.toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' })
+  }
+
+  // Get title - priority: title_ar > title_ku > title_en
+  const getTitle = (item) => {
+    return item.title_ar || item.title_ku || item.title_en || ''
+  }
+
+  // Get description - priority: description_ar > description_ku > description_en
+  const getDescription = (item) => {
+    return item.description_ar || item.description_ku || item.description_en || ''
   }
 
   if (loading) {
@@ -210,15 +208,15 @@ export default function EnglishArchive() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 text-white font-arabic" dir="rtl">
       {/* Header */}
       <div className="relative py-20 bg-gradient-to-b from-red-900 to-gray-900">
         <div className="container mx-auto px-4 text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Digital Archive
+            الأرشيف الرقمي
           </h1>
           <p className="text-xl text-gray-300">
-            Amna Suraka National Museum
+            متحف أمضى سورەكە الوطني
           </p>
         </div>
       </div>
@@ -232,10 +230,11 @@ export default function EnglishArchive() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search..."
-              className="w-full px-4 py-3 pl-12 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+              placeholder="بحث... (Search)"
+              className="w-full px-4 py-3 pr-12 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
+              dir="rtl"
             />
-            <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -251,8 +250,9 @@ export default function EnglishArchive() {
                     ? 'bg-red-600 text-white'
                     : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 }`}
+                dir="rtl"
               >
-                {cat.name_en}
+                {cat.name_ar || cat.name_en}
               </button>
             ))}
           </div>
@@ -264,38 +264,38 @@ export default function EnglishArchive() {
             {filteredItems.map((item) => (
               <Link 
                 key={item.id} 
-                href={`/archive/${item.id}`}
+                href={`/arabic/archive/${item.id}`}
                 className="block bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-pointer group"
               >
                 {/* Image */}
                 <div className="relative aspect-square">
                   <img
                     src={normalizePath(item.image_url)}
-                    alt={item.title_en || item.title_ku || 'Archive item'}
+                    alt={getTitle(item)}
                     className="w-full h-full object-cover"
                     onError={(e) => {
                       e.target.src = '/assets/images/bg-1.jpg'
                     }}
                   />
                   {/* Category Badge */}
-                  <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+                  <span className="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
                     {getCategoryName(item)}
                   </span>
                   {/* Overlay on hover */}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <span className="text-white text-lg">
-                      View
+                      عرض
                     </span>
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="p-4">
-                  <h3 className="text-lg font-semibold mb-2 truncate">
-                    {item.title_en || item.title_ku}
+                  <h3 className="text-lg font-semibold mb-2 truncate" dir="rtl">
+                    {getTitle(item)}
                   </h3>
-                  <p className="text-gray-400 text-sm line-clamp-2">
-                    {item.description_en || item.description_ku}
+                  <p className="text-gray-400 text-sm line-clamp-2" dir="rtl">
+                    {getDescription(item)}
                   </p>
                   <p className="text-gray-500 text-xs mt-2">
                     {formatDate(item.date_created)}
@@ -306,10 +306,10 @@ export default function EnglishArchive() {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-gray-400 text-xl">
-              No archive items found
+            <p className="text-gray-400 text-xl" dir="rtl">
+              لم يتم العثور على أرشيف
             </p>
-            <p className="text-gray-500 mt-2">Try adjusting your search or filters</p>
+            <p className="text-gray-500 mt-2">No archive items found</p>
           </div>
         )}
       </div>
@@ -327,7 +327,7 @@ export default function EnglishArchive() {
             {/* Close Button */}
             <button
               onClick={() => setLightboxItem(null)}
-              className="absolute top-4 right-4 text-white hover:text-red-500 z-10"
+              className="absolute top-4 left-4 text-white hover:text-red-500 z-10"
             >
               <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -338,7 +338,7 @@ export default function EnglishArchive() {
             <div className="relative">
               <img
                 src={normalizePath(lightboxItem.image_url)}
-                alt={lightboxItem.title_en || lightboxItem.title_ku}
+                alt={getTitle(lightboxItem)}
                 className="w-full max-h-[60vh] object-contain"
                 onError={(e) => {
                   e.target.src = '/assets/images/bg-1.jpg'
@@ -357,12 +357,12 @@ export default function EnglishArchive() {
                 </span>
               </div>
 
-              <h2 className="text-2xl font-bold mb-4">
-                {lightboxItem.title_en || lightboxItem.title_ku}
+              <h2 className="text-2xl font-bold mb-4" dir="rtl">
+                {getTitle(lightboxItem)}
               </h2>
 
-              <p className="text-gray-300 mb-4">
-                {lightboxItem.description_en || lightboxItem.description_ku}
+              <p className="text-gray-300 mb-4" dir="rtl">
+                {getDescription(lightboxItem)}
               </p>
 
               {/* Download Button */}
@@ -376,7 +376,7 @@ export default function EnglishArchive() {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Download PDF
+                  تحميل / Download PDF
                 </a>
               )}
             </div>
@@ -387,13 +387,13 @@ export default function EnglishArchive() {
       {/* Back to Home */}
       <div className="text-center py-8">
         <Link 
-          href="/"
+          href="/arabic"
           className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
-          Back to Home
+          <span>العودة إلى الصفحة الرئيسية</span>
         </Link>
       </div>
     </div>

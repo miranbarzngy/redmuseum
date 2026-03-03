@@ -6,9 +6,9 @@ import { supabase } from '../lib/supabase-client'
 
 // Default categories as fallback
 const defaultCategories = [
-  { id: 'documents', name_en: 'Documents', name_ku: 'بەڵگەنامەکان', slug: 'documents' },
-  { id: 'letters', name_en: 'Letters', name_ku: 'نامەکان', slug: 'letters' },
-  { id: 'photos', name_en: 'Photos', name_ku: 'وێنە کۆنەکان', slug: 'photos' },
+  { id: 'documents', name_en: 'Documents', name_ku: 'بەڵگەنامەکان', name_ar: 'المستندات', slug: 'documents' },
+  { id: 'letters', name_en: 'Letters', name_ku: 'نامەکان', name_ar: 'الرسائل', slug: 'letters' },
+  { id: 'photos', name_en: 'Photos', name_ku: 'وێنە کۆنەکان', name_ar: 'الصور القديمة', slug: 'photos' },
 ]
 
 // Map old category strings to slugs for backward compatibility
@@ -151,18 +151,20 @@ export default function ArchivePreview({ currentLang = 'en' }) {
     return null
   }
 
-  // Get category display name
+  // Get category display name - fallback to English if Arabic is missing
   const getCategoryName = (item) => {
     const itemCategoryId = getItemCategoryId(item)
     if (itemCategoryId) {
       const cat = getCategoryById(itemCategoryId)
       if (cat) {
-        return currentLang === 'ku' ? cat.name_ku : cat.name_en
+        if (currentLang === 'ku') return cat.name_ku || cat.name_en
+        if (currentLang === 'ar') return cat.name_ar || cat.name_en
+        return cat.name_en
       }
     }
     // Fallback
     if (item?.category) {
-      return currentLang === 'ku' ? item.category : item.category
+      return currentLang === 'ku' ? item.category : (currentLang === 'ar' ? item.category : item.category)
     }
     return ''
   }
@@ -171,16 +173,32 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const formatDate = (dateString) => {
     if (!dateString) return ''
     const date = new Date(dateString)
-    return currentLang === 'ku' 
-      ? date.toLocaleDateString('ku-KU', { year: 'numeric', month: 'long', day: 'numeric' })
-      : date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    if (currentLang === 'ku') {
+      return date.toLocaleDateString('ku-KU', { year: 'numeric', month: 'long', day: 'numeric' })
+    }
+    if (currentLang === 'ar') {
+      return date.toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' })
+    }
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
   }
 
-  const archiveLink = currentLang === 'ku' ? '/kurdish/archive' : '/archive'
+  const archiveLink = currentLang === 'ku' ? '/kurdish/archive' : (currentLang === 'ar' ? '/arabic/archive' : '/archive')
 
   // Get the detail page link for an item
   const getDetailLink = (item) => {
-    return currentLang === 'ku' ? `/kurdish/archive/${item.id}` : `/archive/${item.id}`
+    if (currentLang === 'ku') return `/kurdish/archive/${item.id}`
+    if (currentLang === 'ar') return `/arabic/archive/${item.id}`
+    return `/archive/${item.id}`
+  }
+
+  // Get title - priority: title_ar > title_ku > title_en
+  const getTitle = (item) => {
+    return item.title_ar || item.title_ku || item.title_en || ''
+  }
+
+  // Get description - priority: description_ar > description_ku > description_en
+  const getDescription = (item) => {
+    return item.description_ar || item.description_ku || item.description_en || ''
   }
 
   if (loading) {
@@ -200,12 +218,14 @@ export default function ArchivePreview({ currentLang = 'en' }) {
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4" style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}>
-            {currentLang === 'ku' ? 'ئەرشیفی دیجیتاڵی' : 'Digital Archive'}
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4" style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : (currentLang === 'ar' ? 'Cairo, sans-serif' : 'inherit') }}>
+            {currentLang === 'ku' ? 'ئەرشیفی دیجیتاڵی' : (currentLang === 'ar' ? 'الأرشيف الرقمي' : 'Digital Archive')}
           </h2>
-          <p className="text-gray-400" style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}>
+          <p className="text-gray-400" style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : (currentLang === 'ar' ? 'Cairo, sans-serif' : 'inherit') }}>
             {currentLang === 'ku' 
               ? 'بەڵگەنامە و وێنە مێژووییەکان'
+              : currentLang === 'ar'
+              ? 'المستندات التاريخية والصور النادرة'
               : 'Historical Documents & Rare Photos'}
           </p>
         </div>
@@ -232,12 +252,12 @@ export default function ArchivePreview({ currentLang = 'en' }) {
               </div>
 
               {/* Content - Fixed height to match image */}
-              <div className="p-6 md:p-8 flex flex-col justify-center h-[200px] md:h-[400px] overflow-hidden">
-                <h3 className="text-xl md:text-2xl font-bold text-white mb-3 line-clamp-2" style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}>
-                  {currentLang === 'ku' ? archive[currentIndex]?.title_ku : archive[currentIndex]?.title_en}
+              <div className="p-6 md:p-8 flex flex-col justify-center h-[200px] md:h-[400px] overflow-hidden" dir={currentLang === 'ar' ? 'rtl' : 'ltr'}>
+                <h3 className="text-xl md:text-2xl font-bold text-white mb-3 line-clamp-2" style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : (currentLang === 'ar' ? 'Cairo, sans-serif' : 'inherit') }}>
+                  {getTitle(archive[currentIndex])}
                 </h3>
-                <p className="text-gray-300 mb-3 line-clamp-4 text-sm md:text-base" style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}>
-                  {currentLang === 'ku' ? archive[currentIndex]?.description_ku : archive[currentIndex]?.description_en}
+                <p className="text-gray-300 mb-3 line-clamp-4 text-sm md:text-base" style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : (currentLang === 'ar' ? 'Cairo, sans-serif' : 'inherit') }}>
+                  {getDescription(archive[currentIndex])}
                 </p>
                 <p className="text-gray-500 text-sm mt-auto">
                   {formatDate(archive[currentIndex]?.date_created)}
@@ -289,9 +309,9 @@ export default function ArchivePreview({ currentLang = 'en' }) {
           <Link
             href={archiveLink}
             className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors"
-            style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
+            style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : (currentLang === 'ar' ? 'Cairo, sans-serif' : 'inherit') }}
           >
-            {currentLang === 'ku' ? 'بینینی هەموو ئەرشیفەکە' : 'View All Archive'}
+            {currentLang === 'ku' ? 'بینینی هەموو ئەرشیفەکە' : (currentLang === 'ar' ? 'عرض كل الأرشيف' : 'View All Archive')}
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
             </svg>
