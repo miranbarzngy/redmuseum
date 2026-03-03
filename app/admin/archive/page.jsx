@@ -38,8 +38,10 @@ export default function ArchiveManagement() {
   const [formData, setFormData] = useState({
     title_en: '',
     title_ku: '',
+    title_ar: '',
     description_en: '',
     description_ku: '',
+    description_ar: '',
     category_id: '',
     image_url: '',
     file_url: '',
@@ -227,8 +229,10 @@ export default function ArchiveManagement() {
     const data = {
       title_en: formData.title_en || null,
       title_ku: formData.title_ku || null,
+      title_ar: formData.title_ar || null,
       description_en: formData.description_en || null,
       description_ku: formData.description_ku || null,
+      description_ar: formData.description_ar || null,
       category_id: formData.category_id,
       category: categorySlug, // Keep for backward compatibility
       image_url: formData.image_url,
@@ -260,8 +264,10 @@ export default function ArchiveManagement() {
       setFormData({ 
         title_en: '',
         title_ku: '',
+        title_ar: '',
         description_en: '',
         description_ku: '',
+        description_ar: '',
         category_id: '',
         image_url: '',
         file_url: '',
@@ -292,8 +298,10 @@ export default function ArchiveManagement() {
     setFormData({
       title_en: item.title_en || '',
       title_ku: item.title_ku || '',
+      title_ar: item.title_ar || '',
       description_en: item.description_en || '',
       description_ku: item.description_ku || '',
+      description_ar: item.description_ar || '',
       category_id: categoryId || '',
       image_url: item.image_url || '',
       file_url: item.file_url || '',
@@ -307,8 +315,10 @@ export default function ArchiveManagement() {
     setFormData({ 
       title_en: '',
       title_ku: '',
+      title_ar: '',
       description_en: '',
       description_ku: '',
+      description_ar: '',
       category_id: '',
       image_url: '',
       file_url: '',
@@ -484,6 +494,20 @@ export default function ArchiveManagement() {
               />
             </div>
 
+            {/* Title Arabic */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 font-arabic">العنوان (بالعربية)</label>
+              <input
+                type="text"
+                name="title_ar"
+                value={formData.title_ar}
+                onChange={handleInputChange}
+                placeholder="أدخل العنوان بالعربية"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg font-arabic"
+                dir="rtl"
+              />
+            </div>
+
             {/* Description English */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Description (English)</label>
@@ -508,6 +532,20 @@ export default function ArchiveManagement() {
                 rows="2"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
+                dir="rtl"
+              />
+            </div>
+
+            {/* Description Arabic */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 font-arabic">الوصف (بالعربية)</label>
+              <textarea
+                name="description_ar"
+                value={formData.description_ar}
+                onChange={handleInputChange}
+                placeholder="أدخل الوصف بالعربية"
+                rows="2"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg font-arabic"
                 dir="rtl"
               />
             </div>

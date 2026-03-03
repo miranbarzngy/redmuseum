@@ -1,3 +1,8 @@
+/* ============================================
+   Google Fonts - Cairo (Arabic)
+   ============================================ */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -39,6 +44,17 @@ section {
   font-family: 'UniSalar', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
 }
 
+/* Arabic font class */
+.font-arabic {
+  font-family: 'Cairo', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
+}
+
+/* Apply Arabic font to RTL elements for Arabic content */
+[dir="rtl"] .font-arabic,
+.font-arabic {
+  font-family: 'Cairo', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
+}
+
 /* Adjustments for Kurdish text */
 .font-kurdish p,
 .font-kurdish span,
@@ -51,6 +67,23 @@ section {
 .font-kurdish li,
 .font-kurdish label {
   font-family: 'UniSalar', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
+  line-height: 1.6;
+}
+
+/* Adjustments for Arabic text */
+.font-arabic p,
+.font-arabic span,
+.font-arabic h1,
+.font-arabic h2,
+.font-arabic h3,
+.font-arabic h4,
+.font-arabic h5,
+.font-arabic h6,
+.font-arabic li,
+.font-arabic label,
+.font-arabic input,
+.font-arabic textarea {
+  font-family: 'Cairo', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
   line-height: 1.6;
 }
 

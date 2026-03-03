@@ -21,6 +21,7 @@ export default function CategoryManagement() {
   const [formData, setFormData] = useState({
     name_en: '',
     name_ku: '',
+    name_ar: '',
     slug: '',
     display_order: 0
   })
@@ -105,6 +106,7 @@ export default function CategoryManagement() {
     const data = {
       name_en: formData.name_en,
       name_ku: formData.name_ku,
+      name_ar: formData.name_ar || null,
       slug: formData.slug.toLowerCase().replace(/[^a-z0-9-]/g, '-'),
       display_order: parseInt(formData.display_order) || 0
     }
@@ -132,6 +134,7 @@ export default function CategoryManagement() {
       setFormData({ 
         name_en: '',
         name_ku: '',
+        name_ar: '',
         slug: '',
         display_order: 0 
       })
@@ -150,6 +153,7 @@ export default function CategoryManagement() {
     setFormData({
       name_en: category.name_en || '',
       name_ku: category.name_ku || '',
+      name_ar: category.name_ar || '',
       slug: category.slug || '',
       display_order: category.display_order || 0
     })
@@ -177,6 +181,7 @@ export default function CategoryManagement() {
     setFormData({ 
       name_en: '',
       name_ku: '',
+      name_ar: '',
       slug: '',
       display_order: 0 
     })
@@ -262,6 +267,22 @@ export default function CategoryManagement() {
                 style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
                 dir="rtl"
                 required
+              />
+            </div>
+
+            {/* Name Arabic */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1 font-arabic">
+                اسم التصنيف (بالعربية)
+              </label>
+              <input
+                type="text"
+                name="name_ar"
+                value={formData.name_ar}
+                onChange={handleInputChange}
+                placeholder="مثل: مقاطع فيديو"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg font-arabic"
+                dir="rtl"
               />
             </div>
 
