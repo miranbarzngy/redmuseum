@@ -121,12 +121,18 @@ export default function About({ currentLang = 'en' }) {
           </div>
 
           {/* Title */}
-          <h2 className="text-4xl font-bold mb-6 text-gray-800">
+          <h2 
+            className="text-4xl font-bold mb-6 text-gray-800"
+            style={{ fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
+          >
             {title}
           </h2>
 
           {/* Description */}
-          <p className="text-lg text-gray-600 mb-12 leading-relaxed">
+          <p 
+            className="text-lg text-gray-600 mb-12 leading-relaxed"
+            style={{ fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
+          >
             {description}
           </p>
 

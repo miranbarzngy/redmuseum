@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase-client'
 
 const categoryNames = {
-  visitor: { en: 'Visitor Touring', kr: 'سەیرانی میوان' },
+  visitor: { en: 'Visitor Touring', kr: 'سەردانی میوان' },
   activity: { en: 'Activities', kr: 'چالاکییەکان' },
   delegation: { en: 'Official Delegations', kr: 'وەفدی فەرمی' },
   donation: { en: 'Donations', kr: 'بەخشین' },

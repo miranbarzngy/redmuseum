@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import About from './components/About'
+import ArchivePreview from './components/ArchivePreview'
 import ContactForm from './components/ContactForm'
 import Gallery from './components/Gallery'
 import Sidebar from './components/Sidebar'
@@ -60,8 +61,8 @@ export default function Home() {
     // Run once on mount to set initial state
     handleScroll()
 
-    // Exact order: home(0), about(1), virtual-tour(2), gallery(3), contact(4)
-    const sections = ['home', 'about', 'virtual-tour', 'gallery', 'contact']
+    // Exact order: home(0), about(1), virtual-tour(2), gallery(3), archive-section(4), contact(5)
+    const sections = ['home', 'about', 'virtual-tour', 'gallery', 'archive-section', 'contact']
     
     // Track intersection ratios for all sections
     const sectionRatios = {}
@@ -139,6 +140,7 @@ export default function Home() {
       <VRSection currentLang={currentLang} />
       
       <Gallery currentLang={currentLang} />
+      <ArchivePreview currentLang={currentLang} />
       <ContactForm currentLang={currentLang} />
       
       {/* Footer */}

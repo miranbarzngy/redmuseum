@@ -1,29 +1,53 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Sidebar({ activeSection = 'home', onSectionClick, currentLang = 'en', onLangChange }) {
   const [hoveredItem, setHoveredItem] = useState(null)
+  const [currentHash, setCurrentHash] = useState('')
+
+  // Track URL hash changes
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.replace('#', '')
+      if (hash) {
+        setCurrentHash(hash)
+      }
+    }
+
+    // Initial check
+    handleHashChange()
+    
+    window.addEventListener('hashchange', handleHashChange)
+    return () => window.removeEventListener('hashchange', handleHashChange)
+  }, [])
 
   // Get menu items based on language
   const menuItems = currentLang === 'ku'
     ? [
-        { id: 'home', icon: 'ri-home-6-line', title: 'سەرەتا' },
-        { id: 'about', icon: 'ri-profile-line', title: 'دەربارە' },
-        { id: 'virtual-tour', icon: 'ri-eye-2-line', title: 'بینینی ٣٦٠' },
-        { id: 'gallery', icon: 'ri-image-line', title: 'گەلەری' },
-        { id: 'contact', icon: 'ri-contacts-book-3-line', title: 'پەیوەندی' },
+        { id: 'home', icon: 'ri-home-6-line', title: 'سەرەتا', href: '/kurdish' },
+        { id: 'about', icon: 'ri-profile-line', title: 'دەربارە', href: '/kurdish#about' },
+        { id: 'virtual-tour', icon: 'ri-eye-2-line', title: 'بینینی ٣٦٠', href: '/kurdish#virtual-tour' },
+        { id: 'gallery', icon: 'ri-image-line', title: 'گەلەری', href: '/kurdish#gallery' },
+        { id: 'archive-section', icon: 'ri-archive-line', title: 'ئەرشیف', href: '/kurdish#archive-section' },
+        { id: 'contact', icon: 'ri-contacts-book-3-line', title: 'پەیوەندی', href: '/kurdish#contact' },
       ]
     : [
-        { id: 'home', icon: 'ri-home-6-line', title: 'Home' },
-        { id: 'about', icon: 'ri-profile-line', title: 'About' },
-        { id: 'virtual-tour', icon: 'ri-eye-2-line', title: 'VR Tour' },
-        { id: 'gallery', icon: 'ri-image-line', title: 'Gallery' },
-        { id: 'contact', icon: 'ri-contacts-book-3-line', title: 'Contact' },
+        { id: 'home', icon: 'ri-home-6-line', title: 'Home', href: '/' },
+        { id: 'about', icon: 'ri-profile-line', title: 'About', href: '/#about' },
+        { id: 'virtual-tour', icon: 'ri-eye-2-line', title: 'VR Tour', href: '/#virtual-tour' },
+        { id: 'gallery', icon: 'ri-image-line', title: 'Gallery', href: '/#gallery' },
+        { id: 'archive-section', icon: 'ri-archive-line', title: 'Archive', href: '/#archive-section' },
+        { id: 'contact', icon: 'ri-contacts-book-3-line', title: 'Contact', href: '/#contact' },
       ]
 
-  // Get index from array - ensures correct mapping
-  const currentIndex = menuItems.findIndex(item => item.id === activeSection)
+  // Determine if an item is active - check both activeSection prop and currentHash
+  const isActive = (itemId) => {
+    return activeSection === itemId || currentHash === itemId
+  }
+
+  // Get index from array - ensures correct mapping using isActive
+  const currentIndex = menuItems.findIndex(item => isActive(item.id))
   
   // Calculate top position for indicator
   const getIndicatorTop = () => {
@@ -32,13 +56,13 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
   }
 
   // Handle click - set active immediately and scroll with offset
-  const handleClick = (sectionId) => {
+  const handleClick = (item) => {
     if (onSectionClick) {
-      onSectionClick(sectionId)
+      onSectionClick(item.id)
     }
     
     // Smooth scroll with offset to account for header (80px)
-    const element = document.getElementById(sectionId)
+    const element = document.getElementById(item.id)
     if (element) {
       window.scrollTo({
         top: element.offsetTop - 80,
@@ -125,14 +149,14 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
                 className="group relative h-[70px] w-[60px] list-none flex items-center justify-center cursor-pointer"
                 onMouseEnter={() => setHoveredItem(item.id)}
                 onMouseLeave={() => setHoveredItem(null)}
-                onClick={() => handleClick(item.id)}
+                onClick={() => handleClick(item)}
               >
                 <span 
                   className="transition-all duration-300 flex items-center justify-center"
                   style={{ 
                     fontSize: '26px',
-                    color: activeSection === item.id ? '#ffffff' : 'rgba(255,255,255,0.5)',
-                    transform: activeSection === item.id ? 'scale(1.15)' : 'scale(1)',
+                    color: isActive(item.id) ? '#ffffff' : 'rgba(255,255,255,0.5)',
+                    transform: isActive(item.id) ? 'scale(1.15)' : 'scale(1)',
                   }}
                 >
                   <i className={item.icon}></i>
@@ -175,13 +199,13 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
         {menuItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => handleClick(item.id)}
+            onClick={() => handleClick(item)}
             className="flex flex-col items-center"
           >
             <span 
               className="text-xl"
               style={{ 
-                color: activeSection === item.id ? '#dc2626' : 'rgba(255,255,255,0.6)',
+                color: isActive(item.id) ? '#dc2626' : 'rgba(255,255,255,0.6)',
               }}
             >
               <i className={item.icon}></i>
