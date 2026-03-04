@@ -186,8 +186,8 @@ export default function Slider({ currentLang = 'en' }) {
 
   return (
     <section id="home" className="relative w-full h-screen overflow-hidden">
-      {/* Bottom gradient overlay */}
-      <div className="absolute bottom-0 left-0 w-full h-[30%] bg-gradient-to-t from-black to-transparent z-[778]"></div>
+      {/* Bottom gradient overlay - more subtle with smoother transition */}
+      <div className="absolute bottom-0 left-0 w-full h-[35%] bg-gradient-to-t from-black/60 via-black/20 to-transparent z-[778]"></div>
       
       {/* Main Slide */}
       <div className="relative w-full h-full">
@@ -239,9 +239,9 @@ export default function Slider({ currentLang = 'en' }) {
               </h3>
               
               {/* Museum Name - position absolute top-[170px] right-[190px] (adjusted for mobile) */}
-              <h1 className="museum-name absolute text-white font-bold md:text-6xl drop-shadow-lg max-[400px]:text-[.9em] max-[400px]:top-[100px] max-[400px]:right-[40px] max-[580px]:text-[1em] max-[580px]:top-[160px] max-[580px]:right-[40px] max-[850px]:text-[1em] max-[850px]:top-[150px] lg:top-[170px] lg:right-[190px] max-[990px]:right-[90px] max-[990px]:top-[170px]"
+              <h1 className="museum-name absolute text-white font-bold md:text-6xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] max-[400px]:text-[.9em] max-[400px]:top-[100px] max-[400px]:right-[40px] max-[580px]:text-[1em] max-[580px]:top-[160px] max-[580px]:right-[40px] max-[850px]:text-[1em] max-[850px]:top-[150px] lg:top-[170px] lg:right-[190px] max-[990px]:right-[90px] max-[990px]:top-[170px]"
                   style={{ 
-                    textShadow: '0 5px 25px rgba(0,0,0,.5)',
+                    textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
                     fontFamily: isArabic ? 'Cairo, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif'
                   }}>
                 {getLocalizedContent(slide, 'title', lang)}
@@ -251,13 +251,14 @@ export default function Slider({ currentLang = 'en' }) {
                 </span>
               </h1>
               
-              {/* Paragraph - position bottom-[150px] with semi-transparent background */}
+              {/* Paragraph - enhanced for better readability with higher contrast background */}
               <p 
-                className="absolute bottom-[80px] lg:bottom-[80px] text-white text-base md:text-xl font-bold max-w-4xl px-4 md:px-12 max-[580px]:text-[.6em] max-[580px]:w-[390px] max-[580px]:text-center"
+                className="absolute bottom-16 lg:bottom-20 text-white text-lg md:text-2xl font-semibold max-w-4xl px-6 md:px-16 py-3 md:py-4 rounded-lg max-[580px]:text-base max-[580px]:w-[90%] max-[580px]:text-center leading-relaxed"
                 style={{ 
-                   textShadow: '0 5px 25px rgba(0,0,0,.5)',
-                   backgroundColor: 'rgba(96, 96, 96, 0.412)',
-                   fontFamily: isArabic ? 'Cairo, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif'
+                   textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
+                   backgroundColor: 'rgba(0, 0, 0, 0.75)',
+                   fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : isArabic ? 'Cairo, Tahoma, sans-serif' : 'system-ui, sans-serif',
+                   lineHeight: isKurdish ? '1.8' : '1.6'
                  }}
                  dir={isArabic ? 'rtl' : 'ltr'}
               >
