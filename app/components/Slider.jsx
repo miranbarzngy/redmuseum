@@ -246,7 +246,7 @@ export default function Slider({ currentLang = 'en' }) {
                   }}>
                 {getLocalizedContent(slide, 'title', lang)}
                 <br />
-                <span className="museum-span text-3xl font-light bg-red-600 px-2">
+                <span className="museum-span text-3xl font-light bg-red-600 px-2" dir={isKurdish || isArabic ? 'rtl' : 'ltr'}>
                   {getLocalizedContent(slide, 'subtitle', lang)}
                 </span>
               </h1>
