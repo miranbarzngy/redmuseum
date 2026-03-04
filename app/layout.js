@@ -1,5 +1,6 @@
 import './globals.css'
 import { Metadata } from 'next'
+import TrackerWrapper from './components/TrackerWrapper'
 
 export const metadata = {
   title: 'Amnasuraka National Museum',
@@ -20,6 +21,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className="antialiased">
+        <TrackerWrapper />
         {children}
       </body>
     </html>
