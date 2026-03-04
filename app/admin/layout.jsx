@@ -105,9 +105,6 @@ export default function AdminLayout({ children }) {
           <Link href="/admin/archive" className={`block px-6 py-3 hover:bg-gray-800 ${pathname === '/admin/archive' ? 'bg-gray-800 border-l-4 border-blue-500' : ''}`}>
             📁 Archive
           </Link>
-          <Link href="/admin/visitors" className={`block px-6 py-3 hover:bg-gray-800 ${pathname === '/admin/visitors' ? 'bg-gray-800 border-l-4 border-blue-500' : ''}`}>
-            👥 Visitors
-          </Link>
         </nav>
 
         <div className="absolute bottom-0 left-0 right-0 p-6">
