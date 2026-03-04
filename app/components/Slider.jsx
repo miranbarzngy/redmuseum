@@ -269,19 +269,27 @@ export default function Slider({ currentLang = 'en' }) {
         ))}
       </div>
 
-      {/* Navigation Arrows - styled according to original CSS */}
-      <div className="absolute bottom-[30px] right-[100px] flex gap-[70px] z-[888] max-[990px]:bottom-[30px] max-[990px]:right-auto max-[990px]:left-0 max-[990px]:w-full max-[990px]:justify-center max-[990px]:gap-[60px] max-[580px]:bottom-[35px] max-[580px]:right-0 max-[580px]:left-auto max-[580px]:w-1/2 max-[580px]:gap-[40px] max-[400px]:gap-[10px] max-[400px]:bottom-[30px]">
+      {/* Navigation Arrows - styled according to original CSS - always LTR for arrow icons */}
+      <div dir="ltr" className="absolute bottom-[30px] right-[100px] flex gap-[70px] z-[888] max-[990px]:bottom-[30px] max-[990px]:right-auto max-[990px]:left-0 max-[990px]:w-full max-[990px]:justify-center max-[990px]:gap-[60px] max-[580px]:bottom-[35px] max-[580px]:right-0 max-[580px]:left-auto max-[580px]:w-1/2 max-[580px]:gap-[40px] max-[400px]:gap-[10px] max-[400px]:bottom-[30px]">
         <button
           onClick={prevSlide}
           className="text-[#bfbfbf] text-[0.8em] font-semibold flex items-center justify-center cursor-pointer select-none transition-colors duration-300 hover:text-[#ff0000]"
+          aria-label={isKurdish ? 'سلایپەکەوە' : isArabic ? 'الشريحة السابقة' : 'Previous slide'}
         >
+          {/* RemixIcon arrow */}
           <i className="ri-arrow-left-s-line text-2xl"></i>
+          {/* Fallback text for when icon doesn't load */}
+          <span className="ml-1 text-sm hidden">←</span>
         </button>
         <button
           onClick={nextSlide}
           className="text-[#bfbfbf] text-[0.8em] font-semibold flex items-center justify-center cursor-pointer select-none transition-colors duration-300 hover:text-[#ff0000]"
+          aria-label={isKurdish ? 'سلایپێکەوە' : isArabic ? 'الشريحة التالية' : 'Next slide'}
         >
+          {/* RemixIcon arrow */}
           <i className="ri-arrow-right-s-line text-2xl"></i>
+          {/* Fallback text for when icon doesn't load */}
+          <span className="mr-1 text-sm hidden">→</span>
         </button>
       </div>
 

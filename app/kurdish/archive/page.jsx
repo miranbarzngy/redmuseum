@@ -1,8 +1,8 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase-client'
-import Link from 'next/link'
 
 // Default categories as fallback
 const defaultCategories = [
@@ -199,6 +199,17 @@ export default function KurdishArchive() {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white font-kurdish" dir="rtl">
+      {/* Sticky Home Button */}
+      <Link 
+        href="/kurdish"
+        className="fixed bottom-6 left-6 z-40 bg-red-600 hover:bg-red-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110"
+        title="گەڕانەوە بۆ سەرەتا"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+      </Link>
+
       {/* Header */}
       <div className="relative py-20 bg-gradient-to-b from-red-900 to-gray-900">
         <div className="container mx-auto px-4 text-center">
@@ -274,7 +285,7 @@ export default function KurdishArchive() {
                   {/* Overlay on hover */}
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                     <span className="text-white text-lg" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                      بینینکردن
+                      بینین
                     </span>
                   </div>
                 </div>
@@ -286,9 +297,6 @@ export default function KurdishArchive() {
                   </h3>
                   <p className="text-gray-400 text-sm line-clamp-2" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
                     {item.description_ku || item.description_en}
-                  </p>
-                  <p className="text-gray-500 text-xs mt-2">
-                    {formatDate(item.date_created)}
                   </p>
                 </div>
               </Link>
@@ -341,9 +349,6 @@ export default function KurdishArchive() {
               <div className="flex items-center gap-2 mb-4">
                 <span className="bg-red-600 text-white text-sm px-3 py-1 rounded">
                   {getCategoryName(lightboxItem)}
-                </span>
-                <span className="text-gray-400 text-sm">
-                  {formatDate(lightboxItem.date_created)}
                 </span>
               </div>
 
