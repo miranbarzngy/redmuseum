@@ -7,10 +7,16 @@ const nextConfig = {
         hostname: 'bjuxbgoilihbtnifbihv.supabase.co',
       },
     ],
-  },
-  // Disable image optimization
-  images: {
     unoptimized: true,
+  },
+  async redirects() {
+    return [
+      {
+        source: '/',
+        destination: '/kurdish',
+        permanent: true,
+      },
+    ]
   },
   async headers() {
     return [
