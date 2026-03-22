@@ -22,6 +22,7 @@ export default function Home() {
     // If no preference or preference is Kurdish, redirect to Kurdish
     if (!savedLang || savedLang === 'ku') {
       router.push('/kurdish')
+      return // Exit early to prevent rendering
     } else {
       setCurrentLang(savedLang)
     }
