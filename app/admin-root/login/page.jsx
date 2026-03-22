@@ -51,13 +51,8 @@ export default function AdminLogin() {
 
       if (signInError) throw signInError
 
-      if (data.user) {
-        // Hardcoded success redirect with manual cookie setting
-        if (data.session && data.session.access_token) {
-          document.cookie = "sb-access-token=" + data.session.access_token + "; path=/; max-age=3600";
-        }
-        window.location.replace('/admin/dashboard');
-      }
+      // Force a full page reload to ensure cookies are properly set
+      window.location.href = '/admin/dashboard'
     } catch (err) {
       setError(err.message)
     } finally {

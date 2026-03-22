@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '../../lib/supabase-client'
+import { supabase } from '../lib/supabase-client'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
@@ -56,10 +56,13 @@ export default function AdminLogin() {
         if (data.session && data.session.access_token) {
           document.cookie = "sb-access-token=" + data.session.access_token + "; path=/; max-age=3600";
         }
-        window.location.replace('/admin/dashboard');
+        window.location.replace('/admin/slides');
+      } else {
+        setError("Authentication failed - no user data")
       }
     } catch (err) {
       setError(err.message)
+      alert(err.message)
     } finally {
       setLoading(false)
     }

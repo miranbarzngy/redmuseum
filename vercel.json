@@ -28,7 +28,7 @@
       ]
     },
     {
-      "source": "/assets/images/**",
+      "source": "/assets/images/:path*",
       "headers": [
         {
           "key": "Cache-Control",
@@ -37,7 +37,7 @@
       ]
     },
     {
-      "source": "/assets/videos/**",
+      "source": "/assets/videos/:path*",
       "headers": [
         {
           "key": "Cache-Control",

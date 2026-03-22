@@ -29,6 +29,7 @@ export default function AdminLayout({ children }) {
             router.push('/admin/login')
           }
         } else {
+          console.log("Session found:", session.user);
           setUser(session.user)
         }
       } catch (error) {
