@@ -43,7 +43,7 @@ export default function ReservationPage() {
         <div className="text-center">
           <i className="ri-error-warning-line text-6xl text-red-500 mb-4 block" />
           <h1 className="text-2xl font-bold mb-2">Reservation Not Found</h1>
-          <p className="text-gray-400 mb-6">ناسنامەی داواکاری دۆزرایەوە نا</p>
+          <p className="text-gray-400 mb-6" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>ناسنامەی داواکاری دۆزرایەوە نا</p>
           <Link href="/kurdish" className="px-6 py-3 bg-red-600 hover:bg-red-500 rounded-lg text-sm font-semibold transition-colors">
             Go Home
           </Link>
@@ -70,7 +70,12 @@ export default function ReservationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white px-4 py-12">
+    <div className="min-h-screen bg-[#0a0a0a] text-white px-4 py-12 font-kurdish" dir="rtl">
+      <style>{`
+        .font-kurdish, .font-kurdish * {
+          font-family: 'UniSalar', Tahoma, sans-serif !important;
+        }
+      `}</style>
       <div className="max-w-lg mx-auto">
 
         {/* Header */}

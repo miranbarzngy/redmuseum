@@ -153,37 +153,37 @@ export default function ContactForm({ currentLang = 'en' }) {
   }
 
   return (
-    <section id="contact" className="py-20 bg-gray-900 text-white">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-12">
+    <section id="contact" className="py-10 md:py-20 bg-gray-900 text-white">
+      <div className="container mx-auto pl-[72px] pr-4 md:px-4">
+        <h2 className="text-2xl md:text-4xl font-bold text-center mb-8 md:mb-12">
           {t('پەیوەندی بکە', 'اتصل بنا', 'Contact Us')}
         </h2>
 
         <div className="max-w-4xl mx-auto">
           {/* Contact Info - Now from database */}
           {settingsLoading ? (
-            <div className="flex justify-center mb-12">
+            <div className="flex justify-center mb-8 md:mb-12">
               <div className="w-8 h-8 border-3 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            <div className="grid grid-cols-3 gap-2 md:gap-8 mb-8 md:mb-12">
               <div className="text-center">
-                <i className="ri-phone-line text-3xl mb-4 text-blue-400"></i>
-                <p>{phone}</p>
+                <i className="ri-phone-line text-xl md:text-3xl mb-1 md:mb-4 text-blue-400 block"></i>
+                <p className="text-xs md:text-base break-all">{phone}</p>
               </div>
               <div className="text-center">
-                <i className="ri-mail-line text-3xl mb-4 text-blue-400"></i>
-                <p>{email}</p>
+                <i className="ri-mail-line text-xl md:text-3xl mb-1 md:mb-4 text-blue-400 block"></i>
+                <p className="text-xs md:text-base break-all">{email}</p>
               </div>
               <div className="text-center">
-                <i className="ri-map-pin-line text-3xl mb-4 text-blue-400"></i>
-                <p>{address}</p>
+                <i className="ri-map-pin-line text-xl md:text-3xl mb-1 md:mb-4 text-blue-400 block"></i>
+                <p className="text-xs md:text-base">{address}</p>
               </div>
             </div>
           )}
 
           {/* Contact Form */}
-          <form onSubmit={handleSubmit} className="space-y-6" dir={isArabic ? 'rtl' : 'ltr'}>
+          <form onSubmit={handleSubmit} className="space-y-6" dir={isArabic || isKurdish ? 'rtl' : 'ltr'}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium mb-2">

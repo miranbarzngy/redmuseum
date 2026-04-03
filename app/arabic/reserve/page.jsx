@@ -1,5 +1,5 @@
 import ReservePageContent from '../../components/ReservePageContent'
 
 export default function Page() {
-  return <ReservePageContent initialLang="ku" />
+  return <ReservePageContent initialLang="ar" />
 }

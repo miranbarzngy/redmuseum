@@ -33,8 +33,7 @@ export async function POST(request) {
 
   const { error } = await supabase
     .from('site_settings')
-    .update({ value: String(value), updated_at: new Date().toISOString() })
-    .eq('key', key)
+    .upsert({ key, value: String(value), updated_at: new Date().toISOString() }, { onConflict: 'key' })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ ok: true })

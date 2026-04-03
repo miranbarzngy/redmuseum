@@ -99,8 +99,8 @@ export default function About({ currentLang = 'en' }) {
 
   if (loading) {
     return (
-      <section id="about" className="py-20 bg-white">
-        <div className="container mx-auto px-4">
+      <section id="about" className="py-12 md:py-20 bg-white">
+        <div className="container mx-auto pl-[72px] pr-4 md:px-4">
           <div className="flex items-center justify-center h-64">
             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
           </div>

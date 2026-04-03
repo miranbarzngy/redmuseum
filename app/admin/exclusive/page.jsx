@@ -301,7 +301,10 @@ export default function ExclusiveAdmin() {
 
               {/* Image */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Image
+                  <span className="ml-2 text-xs font-normal text-gray-400">Recommended: A4 landscape (297 × 210 mm)</span>
+                </label>
                 <input
                   type="file"
                   accept="image/*"

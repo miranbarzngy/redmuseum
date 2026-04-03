@@ -122,30 +122,18 @@ export default function Gallery({ currentLang = 'en' }) {
 
   if (loading) {
     return (
-      <section id="gallery" className="py-20 bg-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-center">
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        </div>
+      <section id="gallery" className="min-h-screen bg-gray-100 flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </section>
     )
   }
 
   if (galleries.length === 0 || galleries.every(g => g.images.length === 0)) {
     return (
-      <section id="gallery" className="py-20 bg-gray-100">
-        <div className="container mx-auto px-4">
-          <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">
-            {isArabic ? 'المعرض' : isKurdish ? 'گەلەری' : 'Gallery'}
-          </h2>
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">
-              {isArabic ? 'لا توجد صور في المعرض.' : isKurdish ? 'هیچ وێنەیەک لە گەلەریدا نییە.' : 'No images found in the gallery.'}
-            </p>
-          </div>
-
-        </div>
+      <section id="gallery" className="min-h-screen bg-gray-100 flex items-center justify-center pl-[72px] md:pl-0">
+        <p className="text-gray-500 text-lg">
+          {isArabic ? 'لا توجد صور في المعرض.' : isKurdish ? 'هیچ وێنەیەک لە گەلەریدا نییە.' : 'No images found in the gallery.'}
+        </p>
       </section>
     )
   }
@@ -163,10 +151,10 @@ export default function Gallery({ currentLang = 'en' }) {
   // Render scroll track with images
   const renderScrollTrack = (gallery) => {
     const animation = getScrollAnimation(gallery.category)
-    
+
     return (
       <div className="w-full overflow-hidden" dir="ltr">
-        <div 
+        <div
           className="scroll-track"
           style={{
             animation: `${animation} ${gallery.images.length * 5}s linear infinite`,
@@ -176,7 +164,7 @@ export default function Gallery({ currentLang = 'en' }) {
         >
           {/* First set */}
           {gallery.images.map((img, imgIndex) => (
-            <div key={`first-${img.id || imgIndex}`} className="flex-shrink-0 w-64 h-48">
+            <div key={`first-${img.id || imgIndex}`} className="flex-shrink-0 w-36 h-32 md:w-64 md:h-48">
               <img
                 src={img.image_url}
                 alt={img.title || `${gallery.category} ${imgIndex + 1}`}
@@ -186,7 +174,7 @@ export default function Gallery({ currentLang = 'en' }) {
           ))}
           {/* Duplicate for seamless loop */}
           {gallery.images.map((img, imgIndex) => (
-            <div key={`second-${img.id || imgIndex}`} className="flex-shrink-0 w-64 h-48">
+            <div key={`second-${img.id || imgIndex}`} className="flex-shrink-0 w-36 h-32 md:w-64 md:h-48">
               <img
                 src={img.image_url}
                 alt={img.title || `${gallery.category} ${imgIndex + 1}`}
@@ -200,23 +188,19 @@ export default function Gallery({ currentLang = 'en' }) {
   }
 
   return (
-    <section id="gallery" className="py-20 bg-gray-100">
-      <div className="container mx-auto px-4">
-        <h2 className="text-4xl font-bold text-center mb-12 text-gray-800">
-          {isArabic ? 'المعرض' : isKurdish ? 'گەلەری' : 'Gallery'}
-        </h2>
+    <section id="gallery" className="md:py-20 bg-gray-100 flex flex-col min-h-screen md:min-h-0">
+      <h2 className="text-xl md:text-4xl font-bold text-center py-3 md:mb-8 text-gray-800">
+        {isArabic ? 'المعرض' : isKurdish ? 'گەلەری' : 'Gallery'}
+      </h2>
 
-
-        {galleries.map((gallery) => (
-          gallery.images.length > 0 && (
-            <div key={gallery.category} className="mb-16">
-              <h3 className="text-2xl font-semibold mb-6 text-gray-700 text-center">
-                {categoryNames[gallery.category]?.[getLangKey()] || gallery.category}
-              </h3>
-
-              {renderScrollTrack(gallery)}
-            </div>
-          )
+      <div className="flex-1 flex flex-col md:block md:container md:mx-auto md:px-4">
+        {galleries.filter(g => g.images.length > 0).map((gallery) => (
+          <div key={gallery.category} className="flex-1 flex flex-col justify-center md:mb-16">
+            <h3 className="text-sm md:text-2xl font-semibold py-1 md:mb-6 text-gray-700 text-center">
+              {categoryNames[gallery.category]?.[getLangKey()] || gallery.category}
+            </h3>
+            {renderScrollTrack(gallery)}
+          </div>
         ))}
       </div>
     </section>

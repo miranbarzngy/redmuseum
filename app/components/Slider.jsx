@@ -213,7 +213,7 @@ export default function Slider({ currentLang = 'en' }) {
               <img
                 src={slide.museum_image}
                 alt=""
-                className="absolute top-0 left-0 w-full h-screen object-contain pointer-events-none z-[776] md:translate-y-[75px]"
+                className="absolute top-0 left-0 w-full h-screen object-contain pointer-events-none z-[776] scale-150 md:scale-100 md:translate-y-[75px]"
               />
             )}
 
@@ -240,13 +240,14 @@ export default function Slider({ currentLang = 'en' }) {
               
               {/* Museum Name - position absolute top-[170px] right-[190px] (adjusted for mobile) */}
               <h1 className="museum-name absolute text-white font-bold md:text-6xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] max-[400px]:text-[.9em] max-[400px]:top-[100px] max-[400px]:right-[40px] max-[580px]:text-[1em] max-[580px]:top-[160px] max-[580px]:right-[40px] max-[850px]:text-[1em] max-[850px]:top-[150px] lg:top-[170px] lg:right-[190px] max-[990px]:right-[90px] max-[990px]:top-[170px]"
-                  style={{ 
+                  dir={isKurdish || isArabic ? 'rtl' : 'ltr'}
+                  style={{
                     textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
                     fontFamily: isArabic ? 'Cairo, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif'
                   }}>
                 {getLocalizedContent(slide, 'title', lang)}
                 <br />
-                <span className="museum-span text-3xl font-light bg-red-600 px-2">
+                <span className="museum-span text-sm md:text-xl font-light bg-red-600 px-2">
                   {getLocalizedContent(slide, 'subtitle', lang)}
                 </span>
               </h1>

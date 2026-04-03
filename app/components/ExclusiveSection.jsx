@@ -16,17 +16,15 @@ function DateDisplay({ dateStr, lang }) {
 
   return (
     <div className="flex flex-col items-center mt-3" dir="ltr">
-      <div className="relative rounded-md overflow-hidden h-16 md:h-20 flex items-center px-5 gap-3">
+      <div className="relative rounded-md overflow-hidden h-7 md:h-12 flex items-center px-3 md:px-5 gap-2 md:gap-3">
         {/* Single shared background — top/bottom halves */}
-        <div className="absolute top-0 left-0 right-0 h-1/2 bg-[#1a1a1a]" />
-        <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-[#111111]" />
-        <div className="absolute top-1/2 left-0 right-0 h-[2px] bg-black z-10" />
+        <div className="absolute inset-0 rounded-md" style={{ background: 'radial-gradient(ellipse at center, #cc0000 0%, #4a0000 100%)' }} />
         {/* Content */}
-        <span className="relative z-20 text-white font-mono font-bold text-2xl md:text-3xl tabular-nums">{dd}</span>
-        <span className="relative z-20 text-white/50 font-bold text-xl select-none">/</span>
-        <span className="relative z-20 text-white font-mono font-bold text-2xl md:text-3xl tabular-nums">{mm}</span>
-        <span className="relative z-20 text-white/50 font-bold text-xl select-none">/</span>
-        <span className="relative z-20 text-white font-mono font-bold text-2xl md:text-3xl tabular-nums">{yyyy}</span>
+        <span className="relative z-20 text-white font-mono font-bold text-sm md:text-xl tabular-nums">{dd}</span>
+        <span className="relative z-20 text-white/50 font-bold text-xs md:text-base select-none">/</span>
+        <span className="relative z-20 text-white font-mono font-bold text-sm md:text-xl tabular-nums">{mm}</span>
+        <span className="relative z-20 text-white/50 font-bold text-xs md:text-base select-none">/</span>
+        <span className="relative z-20 text-white font-mono font-bold text-sm md:text-xl tabular-nums">{yyyy}</span>
       </div>
       <span className="text-[10px] uppercase tracking-widest text-[#c8a96e] font-medium mt-2">{label}</span>
     </div>
@@ -38,14 +36,14 @@ const flipStyles = `
   .flip-card { perspective: 400px; }
   .flip-top {
     position: absolute; top: 0; left: 0; right: 0; height: 50%;
-    background: #1a1a1a; border-radius: 6px 6px 0 0;
+    background: radial-gradient(ellipse at center, #cc0000 0%, #4a0000 100%); border-radius: 6px 6px 0 0;
     overflow: hidden; transform-origin: bottom;
     backface-visibility: hidden;
     display: flex; align-items: flex-end; justify-content: center;
   }
   .flip-bottom {
     position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
-    background: #111111; border-radius: 0 0 6px 6px;
+    background: radial-gradient(ellipse at center, #cc0000 0%, #4a0000 100%); border-radius: 0 0 6px 6px;
     overflow: hidden; transform-origin: top;
     backface-visibility: hidden;
     display: flex; align-items: flex-start; justify-content: center;
@@ -56,7 +54,7 @@ const flipStyles = `
   /* Flap that animates — top half folding down */
   .flip-flap {
     position: absolute; top: 0; left: 0; right: 0; height: 50%;
-    background: #1a1a1a; border-radius: 6px 6px 0 0;
+    background: radial-gradient(ellipse at center, #cc0000 0%, #4a0000 100%); border-radius: 6px 6px 0 0;
     overflow: hidden; transform-origin: bottom;
     animation: flipDown 0.45s ease-in-out forwards;
     z-index: 30;
@@ -73,7 +71,7 @@ const flipStyles = `
   /* Bottom reveal that appears after flap passes */
   .flip-reveal {
     position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
-    background: #111111; border-radius: 0 0 6px 6px;
+    background: radial-gradient(ellipse at center, #cc0000 0%, #4a0000 100%); border-radius: 0 0 6px 6px;
     overflow: hidden; transform-origin: top;
     animation: flipReveal 0.45s ease-in-out forwards;
     z-index: 25;
@@ -89,7 +87,7 @@ const flipStyles = `
   /* Center divider */
   .flip-divider {
     position: absolute; top: 50%; left: 0; right: 0;
-    height: 2px; background: black; z-index: 40;
+    height: 2px; background: rgba(0,0,0,0.4); z-index: 40;
     transform: translateY(-50%);
   }
 `
@@ -110,8 +108,8 @@ function FlipCard({ value }) {
     return () => clearTimeout(t)
   }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const size = 'w-24 h-28 md:w-32 md:h-36'
-  const textSize = 'text-5xl md:text-6xl'
+  const size = 'w-14 h-16 md:w-24 md:h-28 lg:w-32 lg:h-36'
+  const textSize = 'text-2xl md:text-5xl lg:text-6xl'
 
   return (
     <div className={`relative ${size} flip-card`} style={{ perspective: 400 }}>
@@ -177,15 +175,15 @@ function Countdown({ targetTime, lang }) {
   return (
     <>
       <style>{flipStyles}</style>
-      <div className="flex items-center gap-2 md:gap-4" dir="ltr">
+      <div className="flex items-center gap-1 md:gap-2 lg:gap-4" dir="ltr">
         {units.map((val, i) => (
-          <div key={i} className="flex items-center gap-2 md:gap-4">
-            <div className="flex flex-col items-center gap-3">
+          <div key={i} className="flex items-center gap-1 md:gap-2 lg:gap-4">
+            <div className="flex flex-col items-center gap-1 md:gap-3">
               <FlipCard value={val} />
-              <span className="text-xs md:text-sm uppercase tracking-widest text-[#c8a96e] font-semibold">{labels[i]}</span>
+              <span className="text-[9px] md:text-xs lg:text-sm uppercase tracking-wide md:tracking-widest text-[#c8a96e] font-semibold">{labels[i]}</span>
             </div>
             {i < 3 && (
-              <span className="text-white/60 font-bold text-4xl md:text-5xl mb-8 select-none">:</span>
+              <span className="text-white/60 font-bold text-2xl md:text-4xl lg:text-5xl mb-4 md:mb-8 select-none">:</span>
             )}
           </div>
         ))}
@@ -277,15 +275,15 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
         <div className="absolute inset-0 bg-gradient-to-br from-red-900/30 via-black to-black" />
       )}
 
-      <div className="relative z-10 max-w-7xl mx-auto px-6 py-16 min-h-screen flex flex-col justify-center">
+      <div className="relative z-10 max-w-7xl mx-auto pl-[72px] pr-4 md:px-6 py-8 md:py-16 min-h-screen flex flex-col justify-center">
 
         {/* Section label */}
-        <div className="text-center mb-10">
-          <span className="inline-block text-xs font-bold uppercase tracking-[0.3em] text-red-400 bg-red-600/10 border border-red-600/30 px-4 py-1.5 rounded-full mb-5">
+        <div className="text-center mb-6 md:mb-10">
+          <span className="inline-block text-xs font-bold uppercase tracking-[0.3em] text-red-400 bg-red-600/10 border border-red-600/30 px-4 py-1.5 rounded-full mb-4 md:mb-5">
             ⭐&nbsp;{lang === 'ku' ? 'تایبەت' : lang === 'ar' ? 'حصري' : 'Exclusive'}
           </span>
           <h2
-            className="text-4xl md:text-5xl font-bold leading-tight"
+            className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight"
             style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
             dir={isRtl ? 'rtl' : 'ltr'}
           >
@@ -294,11 +292,28 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
           <div className="w-20 h-1 bg-red-600 mx-auto mt-5" />
         </div>
 
-        {/* Content grid */}
-        <div className="grid md:grid-cols-2 gap-10 items-center">
+        {/* Content grid — image left, info right on md+ */}
+        <div className="flex flex-col md:flex-row gap-8 items-start">
+
+          {/* Image — A4 landscape ratio, full width on mobile, left column on md+ */}
+          <div className="relative w-full md:w-1/2 shrink-0 rounded-2xl overflow-hidden" style={{ aspectRatio: '297/210' }}>
+            {slide.image_url ? (
+              <Image
+                src={slide.image_url}
+                alt={getText(slide, 'title')}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-br from-red-900/30 to-black/60 flex items-center justify-center rounded-2xl border border-red-600/20">
+                <span className="text-8xl opacity-20">⭐</span>
+              </div>
+            )}
+          </div>
 
           {/* Info side */}
-          <div className="space-y-6 order-2 md:order-1" dir={isRtl ? 'rtl' : 'ltr'}>
+          <div className="space-y-4 md:space-y-6 flex-1" dir={isRtl ? 'rtl' : 'ltr'}>
 
 
             {/* Description */}
@@ -368,23 +383,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
 
           </div>
 
-          {/* Image side */}
-          <div className="relative h-72 md:h-[60vh] lg:h-[70vh] rounded-2xl overflow-hidden order-1 md:order-2">
-            {slide.image_url ? (
-              <Image
-                src={slide.image_url}
-                alt={getText(slide, 'title')}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-red-900/30 to-black/60 flex items-center justify-center rounded-2xl border border-red-600/20">
-                <span className="text-8xl opacity-20">⭐</span>
-              </div>
-            )}
-          </div>
-        </div>
+        </div>{/* end flex row */}
 
         {/* Slide dots */}
         {slides.length > 1 && (

@@ -23,10 +23,25 @@ export default function VisitorsPage() {
   const [qrModal, setQrModal] = useState(null)
   const [showTab, setShowTab] = useState(true)
   const [tabToggling, setTabToggling] = useState(false)
+  const [availableDays, setAvailableDays] = useState(['1','2','3','4','5'])
+  const [availableHours, setAvailableHours] = useState({ start: '09:00', end: '17:00' })
+  const [savingSchedule, setSavingSchedule] = useState(false)
+  const [scheduleMsg, setScheduleMsg] = useState('')
+
+  const DAYS = [
+    { val: '0', label: 'Sunday' },
+    { val: '1', label: 'Monday' },
+    { val: '2', label: 'Tuesday' },
+    { val: '3', label: 'Wednesday' },
+    { val: '4', label: 'Thursday' },
+    { val: '5', label: 'Friday' },
+    { val: '6', label: 'Saturday' },
+  ]
 
   useEffect(() => {
     fetchReservations()
     fetchTabSetting()
+    fetchSchedule()
     const supabase = getSupabaseClient()
     if (!supabase) return
     const channel = supabase
@@ -37,6 +52,34 @@ export default function VisitorsPage() {
       .subscribe()
     return () => supabase.removeChannel(channel)
   }, [])
+
+  const fetchSchedule = async () => {
+    const [daysRes, hoursRes] = await Promise.all([
+      fetch('/api/settings?key=available_days').then(r => r.json()),
+      fetch('/api/settings?key=available_hours').then(r => r.json()),
+    ])
+    if (daysRes.value) try { setAvailableDays(JSON.parse(daysRes.value)) } catch {}
+    if (hoursRes.value) try { setAvailableHours(JSON.parse(hoursRes.value)) } catch {}
+  }
+
+  const saveSchedule = async () => {
+    setSavingSchedule(true)
+    const [r1, r2] = await Promise.all([
+      fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'available_days', value: JSON.stringify(availableDays) }) }),
+      fetch('/api/settings', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'available_hours', value: JSON.stringify(availableHours) }) }),
+    ])
+    setSavingSchedule(false)
+    setScheduleMsg(r1.ok && r2.ok ? 'Saved!' : 'Error saving')
+    setTimeout(() => setScheduleMsg(''), 3000)
+  }
+
+  const toggleDay = (val) => {
+    setAvailableDays(prev =>
+      prev.includes(val) ? prev.filter(d => d !== val) : [...prev, val]
+    )
+  }
 
   const fetchTabSetting = async () => {
     const res = await fetch('/api/settings?key=show_visitor_tab')
@@ -128,6 +171,72 @@ export default function VisitorsPage() {
         >
           <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${showTab ? 'translate-x-8' : 'translate-x-1'}`} />
         </button>
+      </div>
+
+      {/* Availability Schedule */}
+      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
+        <div>
+          <p className="font-semibold text-gray-800">Visitor Availability Schedule</p>
+          <p className="text-sm text-gray-500 mt-0.5">Set which days and hours visitors can book</p>
+        </div>
+
+        {/* Days */}
+        <div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Available Days</p>
+          <div className="flex flex-wrap gap-2">
+            {DAYS.map(day => (
+              <button
+                key={day.val}
+                onClick={() => toggleDay(day.val)}
+                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  availableDays.includes(day.val)
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {day.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Hours */}
+        <div className="flex items-center gap-4 flex-wrap">
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Open From</p>
+            <input
+              type="time"
+              value={availableHours.start}
+              onChange={e => setAvailableHours(p => ({ ...p, start: e.target.value }))}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Open Until</p>
+            <input
+              type="time"
+              value={availableHours.end}
+              onChange={e => setAvailableHours(p => ({ ...p, end: e.target.value }))}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        </div>
+
+        {/* Save */}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={saveSchedule}
+            disabled={savingSchedule}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
+          >
+            {savingSchedule ? 'Saving…' : 'Save Schedule'}
+          </button>
+          {scheduleMsg && (
+            <span className={`text-sm font-medium ${scheduleMsg === 'Saved!' ? 'text-green-600' : 'text-red-600'}`}>
+              {scheduleMsg}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Stats */}

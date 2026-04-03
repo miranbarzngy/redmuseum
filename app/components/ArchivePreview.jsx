@@ -214,8 +214,8 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   }
 
   return (
-    <section id="archive-section" className="py-16 bg-gray-900">
-      <div className="container mx-auto px-4">
+    <section id="archive-section" className="py-10 md:py-16 bg-gray-900">
+      <div className="container mx-auto pl-[72px] pr-4 md:px-4">
         {/* Section Header */}
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4" style={{ fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : (currentLang === 'ar' ? 'Cairo, sans-serif' : 'inherit') }}>

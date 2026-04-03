@@ -26,8 +26,8 @@ export default function VRSection({ currentLang = 'en' }) {
   }
 
   return (
-    <section id="virtual-tour" className="py-20 bg-gray-900">
-      <div className="container mx-auto px-4">
+    <section id="virtual-tour" className="py-12 md:py-20 bg-gray-900">
+      <div className="container mx-auto pl-[72px] pr-4 md:px-4">
         {/* Title */}
         <h2 
           className="text-4xl font-bold text-center text-white mb-4"
