@@ -29,7 +29,6 @@ export default function AdminLayout({ children }) {
             router.push('/admin/login')
           }
         } else {
-          console.log("Session found:", session.user);
           setUser(session.user)
         }
       } catch (error) {
@@ -105,6 +104,15 @@ export default function AdminLayout({ children }) {
           </Link>
           <Link href="/admin/archive" className={`block px-6 py-3 hover:bg-gray-800 ${pathname === '/admin/archive' ? 'bg-gray-800 border-l-4 border-blue-500' : ''}`}>
             📁 Archive
+          </Link>
+          <Link href="/admin/activities" className={`block px-6 py-3 hover:bg-gray-800 ${pathname === '/admin/activities' ? 'bg-gray-800 border-l-4 border-blue-500' : ''}`}>
+            📅 Activities
+          </Link>
+          <Link href="/admin/exclusive" className={`block px-6 py-3 hover:bg-gray-800 ${pathname === '/admin/exclusive' ? 'bg-gray-800 border-l-4 border-blue-500' : ''}`}>
+            ⭐ Exclusive
+          </Link>
+          <Link href="/admin/visitors" className={`block px-6 py-3 hover:bg-gray-800 ${pathname === '/admin/visitors' ? 'bg-gray-800 border-l-4 border-blue-500' : ''}`}>
+            🎟️ Visitors
           </Link>
         </nav>
 

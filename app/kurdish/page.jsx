@@ -8,6 +8,7 @@ import ArchivePreview from '../components/ArchivePreview'
 import VRSection from '../components/VRSection'
 import Gallery from '../components/Gallery'
 import ContactForm from '../components/ContactForm'
+import ExclusiveSection from '../components/ExclusiveSection'
 
 export default function KurdishPage() {
   const [activeSection, setActiveSection] = useState('home')
@@ -73,8 +74,8 @@ export default function KurdishPage() {
     window.addEventListener('scroll', handleScroll)
     handleScroll()
 
-    // Exact order: home, about, virtual-tour, gallery, archive-section, contact
-    const sections = ['home', 'about', 'virtual-tour', 'gallery', 'archive-section', 'contact']
+    // Exact order: home, about, virtual-tour, gallery, archive-section, exclusive-section, contact
+    const sections = ['home', 'about', 'virtual-tour', 'gallery', 'archive-section', 'exclusive-section', 'contact']
     
     const sectionRatios = {}
     sections.forEach(id => sectionRatios[id] = 0)
@@ -145,6 +146,7 @@ export default function KurdishPage() {
       
       <Gallery currentLang={currentLang} />
       <ArchivePreview currentLang={currentLang} />
+      <ExclusiveSection currentLang={currentLang} />
       <ContactForm currentLang={currentLang} />
       
       {/* Footer */}

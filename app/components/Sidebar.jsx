@@ -2,10 +2,39 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
+import { getSupabaseClient } from '../lib/supabase-client'
 
 export default function Sidebar({ activeSection = 'home', onSectionClick, currentLang = 'en', onLangChange }) {
   const [hoveredItem, setHoveredItem] = useState(null)
   const [currentHash, setCurrentHash] = useState('')
+  const [showExclusive, setShowExclusive] = useState(false)
+  const [showVisitorTab, setShowVisitorTab] = useState(true)
+
+  // Fetch tab visibility and subscribe to realtime changes
+  useEffect(() => {
+    const supabase = getSupabaseClient()
+    if (!supabase) return
+
+    // Initial fetches
+    supabase.from('exclusive_events').select('is_active').limit(1).maybeSingle()
+      .then(({ data }) => { if (data) setShowExclusive(data.is_active) })
+      .catch(() => {})
+    fetch('/api/settings?key=show_visitor_tab')
+      .then(r => r.json())
+      .then(json => { if (json.value !== null && json.value !== undefined) setShowVisitorTab(json.value === 'true') })
+      .catch(() => {})
+
+    // Realtime subscriptions
+    const channel = supabase
+      .channel('sidebar-settings')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'exclusive_events' },
+        ({ new: row }) => { if (row?.is_active !== undefined) setShowExclusive(row.is_active) })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'site_settings' },
+        ({ new: row }) => { if (row?.key === 'show_visitor_tab') setShowVisitorTab(row.value === 'true') })
+      .subscribe()
+
+    return () => supabase.removeChannel(channel)
+  }, [])
 
   // Track URL hash changes
   useEffect(() => {
@@ -93,8 +122,14 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
 
 
 
-  // Get menu items based on language
-  const menuItems = currentLang === 'ku'
+  const exclusiveItem = currentLang === 'ku'
+    ? { id: 'exclusive-section', icon: 'ri-star-line', title: 'تایبەت', href: '/kurdish#exclusive-section' }
+    : currentLang === 'ar'
+    ? { id: 'exclusive-section', icon: 'ri-star-line', title: 'حصري', href: '/arabic#exclusive-section' }
+    : { id: 'exclusive-section', icon: 'ri-star-line', title: 'Exclusive', href: '/#exclusive-section' }
+
+  // Get menu items based on language, inserting exclusive between archive and contact when active
+  const baseItems = currentLang === 'ku'
     ? [
         { id: 'home', icon: 'ri-home-6-line', title: 'سەرەتا', href: '/kurdish' },
         { id: 'about', icon: 'ri-profile-line', title: 'دەربارە', href: '/kurdish#about' },
@@ -121,6 +156,23 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
         { id: 'contact', icon: 'ri-contacts-book-3-line', title: 'Contact', href: '/#contact' },
       ]
 
+  const reserveItem = currentLang === 'ku'
+    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'داواکاری سەردان', href: '/kurdish/reserve' }
+    : currentLang === 'ar'
+    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'حجز زيارة', href: '/arabic/reserve' }
+    : { id: 'reserve', icon: 'ri-calendar-check-line', title: 'Reserve a Visit', href: '/reserve' }
+
+  const menuItems = [
+    ...(showExclusive
+      ? [
+          ...baseItems.slice(0, 5),   // home → archive
+          exclusiveItem,
+          ...baseItems.slice(5),       // contact
+        ]
+      : baseItems),
+    ...(showVisitorTab ? [reserveItem] : []),
+  ]
+
   // Determine if an item is active - check both activeSection prop and currentHash
   const isActive = (itemId) => {
     return activeSection === itemId || currentHash === itemId
@@ -137,10 +189,16 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
 
   // Handle click - set active immediately and scroll with offset
   const handleClick = (item) => {
+    // If the href is a full page route (not a hash link), navigate directly
+    if (item.href && !item.href.includes('#')) {
+      window.location.href = item.href
+      return
+    }
+
     if (onSectionClick) {
       onSectionClick(item.id)
     }
-    
+
     // Smooth scroll with offset to account for header (80px)
     const element = document.getElementById(item.id)
     if (element) {
@@ -176,11 +234,11 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
       >
         
         {/* Language Switcher - 3 Flags with prominent styling - ORDER: Kurdish, English, Arabic */}
-        <div className="flex flex-col items-center gap-2 mb-2">
+        <div className="flex flex-col items-center">
           {languages.map((lang) => (
-            <div 
+            <div
               key={lang.code}
-              className="relative cursor-pointer group"
+              className="h-[70px] w-[60px] flex items-center justify-center relative cursor-pointer group"
               onClick={() => toggleLanguage(lang.code, lang.href)}
               title={lang.name}
             >
@@ -204,7 +262,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
 
 
         {/* Divider */}
-        <div className="w-10 h-px bg-white/20 mb-2"></div>
+        <div className="w-10 h-px bg-white/20"></div>
 
         {/* Menu Container */}
         <div className="relative flex flex-col items-center">
