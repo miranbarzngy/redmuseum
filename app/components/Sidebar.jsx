@@ -4,27 +4,74 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getSupabaseClient } from '../lib/supabase-client'
 
+const SETTING_KEYS = ['show_visitor_tab','show_about','show_gallery','show_archive','show_messages','show_exclusive']
+
+const DEFAULT_SECTION_ORDER = ['slides','about','virtual-tour','gallery','archive','exclusive','messages','reserve']
+
+// Maps section-order admin key → sidebar item id
+const ORDER_TO_SIDEBAR_ID = {
+  slides:         'home',
+  about:          'about',
+  'virtual-tour': 'virtual-tour',
+  gallery:        'gallery',
+  archive:        'archive-section',
+  exclusive:      'exclusive-section',
+  messages:       'contact',
+  reserve:        'reserve',
+}
+
 export default function Sidebar({ activeSection = 'home', onSectionClick, currentLang = 'en', onLangChange }) {
   const [hoveredItem, setHoveredItem] = useState(null)
   const [currentHash, setCurrentHash] = useState('')
   const [showExclusive, setShowExclusive] = useState(false)
-  const [showVisitorTab, setShowVisitorTab] = useState(true)
+  const [sectionVis, setSectionVis] = useState({
+    show_visitor_tab: true,
+    show_about: true,
+    show_gallery: true,
+    show_archive: true,
+    show_messages: true,
+    show_exclusive: true,
+  })
+  const [sectionOrder, setSectionOrder] = useState(DEFAULT_SECTION_ORDER)
   const [isExpanded, setIsExpanded] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => setMounted(true), [])
 
-  // Fetch tab visibility and subscribe to realtime changes
+  const updateVis = (key, val) => setSectionVis(p => ({ ...p, [key]: val }))
+
+  // Fetch all section visibility settings and subscribe to realtime changes
   useEffect(() => {
     const supabase = getSupabaseClient()
     if (!supabase) return
 
+    // Exclusive events (DB-driven)
     supabase.from('exclusive_events').select('is_active').limit(1).maybeSingle()
       .then(({ data }) => { if (data) setShowExclusive(data.is_active) })
       .catch(() => {})
-    fetch('/api/settings?key=show_visitor_tab')
+
+    // site_settings visibility keys
+    SETTING_KEYS.forEach(key => {
+      fetch(`/api/settings?key=${key}`)
+        .then(r => r.json())
+        .then(json => { if (json.value !== null && json.value !== undefined) updateVis(key, json.value === 'true') })
+        .catch(() => {})
+    })
+
+    // section order
+    fetch('/api/settings?key=section_order')
       .then(r => r.json())
-      .then(json => { if (json.value !== null && json.value !== undefined) setShowVisitorTab(json.value === 'true') })
+      .then(json => {
+        if (json.value) {
+          try {
+            const parsed = JSON.parse(json.value)
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              const missing = DEFAULT_SECTION_ORDER.filter(id => !parsed.includes(id))
+              setSectionOrder([...parsed, ...missing])
+            }
+          } catch {}
+        }
+      })
       .catch(() => {})
 
     const channel = supabase
@@ -32,7 +79,19 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
       .on('postgres_changes', { event: '*', schema: 'public', table: 'exclusive_events' },
         ({ new: row }) => { if (row?.is_active !== undefined) setShowExclusive(row.is_active) })
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'site_settings' },
-        ({ new: row }) => { if (row?.key === 'show_visitor_tab') setShowVisitorTab(row.value === 'true') })
+        ({ new: row }) => {
+          if (!row?.key) return
+          if (SETTING_KEYS.includes(row.key)) updateVis(row.key, row.value === 'true')
+          if (row.key === 'section_order') {
+            try {
+              const parsed = JSON.parse(row.value)
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                const missing = DEFAULT_SECTION_ORDER.filter(id => !parsed.includes(id))
+                setSectionOrder([...parsed, ...missing])
+              }
+            } catch {}
+          }
+        })
       .subscribe()
 
     return () => supabase.removeChannel(channel)
@@ -101,16 +160,44 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
       ]
 
   const reserveItem = currentLang === 'ku'
-    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'داواکاری سەردان', href: '/kurdish/reserve' }
+    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'داواکاری سەردان', href: '/kurdish#reserve' }
     : currentLang === 'ar'
-    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'حجز زيارة',       href: '/arabic/reserve' }
-    : { id: 'reserve', icon: 'ri-calendar-check-line', title: 'Reserve a Visit', href: '/reserve' }
+    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'حجز زيارة',       href: '/arabic#reserve' }
+    : { id: 'reserve', icon: 'ri-calendar-check-line', title: 'Reserve a Visit', href: '/#reserve' }
 
+  // IDs that map to a site_settings key (home and virtual-tour are always shown)
+  const sectionKeyMap = {
+    about:           'show_about',
+    gallery:         'show_gallery',
+    'archive-section': 'show_archive',
+    contact:         'show_messages',
+  }
+
+  const filteredBase = baseItems.filter(item => {
+    const key = sectionKeyMap[item.id]
+    return !key || sectionVis[key] !== false
+  })
+
+  const showExclusiveItem = showExclusive && sectionVis.show_exclusive !== false
+
+  // Build a pool of all visible items keyed by sidebar id
+  const itemPool = {
+    ...Object.fromEntries(filteredBase.map(item => [item.id, item])),
+    ...(showExclusiveItem ? { 'exclusive-section': exclusiveItem } : {}),
+    ...(sectionVis.show_visitor_tab ? { reserve: reserveItem } : {}),
+  }
+
+  // Sort by section_order: home always first, then follow the saved order
+  const orderedSidebarIds = [
+    'home',
+    ...sectionOrder
+      .map(k => ORDER_TO_SIDEBAR_ID[k])
+      .filter(id => id && id !== 'home'),
+  ]
   const menuItems = [
-    ...(showExclusive
-      ? [...baseItems.slice(0, 5), exclusiveItem, ...baseItems.slice(5)]
-      : baseItems),
-    ...(showVisitorTab ? [reserveItem] : []),
+    ...orderedSidebarIds.map(id => itemPool[id]).filter(Boolean),
+    // Any item not covered by the order mapping (safety net)
+    ...Object.values(itemPool).filter(item => !orderedSidebarIds.includes(item.id)),
   ]
 
   const isActive = (itemId) => activeSection === itemId || currentHash === itemId

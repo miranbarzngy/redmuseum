@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase-client'
 import Link from 'next/link'
+import VisibilityToggle from '../components/VisibilityToggle'
 
 // Default categories as fallback
 const defaultCategories = [
@@ -384,6 +385,10 @@ export default function ArchiveManagement() {
           </svg>
           Manage Categories
         </Link>
+      </div>
+
+      <div className="mb-6">
+        <VisibilityToggle settingKey="show_archive" label="Archive Section" />
       </div>
 
       {/* Category Tabs */}

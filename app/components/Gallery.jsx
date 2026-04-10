@@ -193,7 +193,7 @@ export default function Gallery({ currentLang = 'en' }) {
         {isArabic ? 'المعرض' : isKurdish ? 'گەلەری' : 'Gallery'}
       </h2>
 
-      <div className="flex-1 flex flex-col md:block md:container md:mx-auto md:px-4">
+      <div className="flex-1 flex flex-col md:block w-full">
         {galleries.filter(g => g.images.length > 0).map((gallery) => (
           <div key={gallery.category} className="flex-1 flex flex-col justify-center md:mb-16">
             <h3 className="text-sm md:text-2xl font-semibold py-1 md:mb-6 text-gray-700 text-center">

@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { getSupabaseClient } from '../../lib/supabase-client'
 import Image from 'next/image'
+import VisibilityToggle from '../components/VisibilityToggle'
 
 export default function ActivitiesPage() {
   const [activities, setActivities] = useState([])
@@ -175,6 +176,7 @@ export default function ActivitiesPage() {
 
   return (
     <div className="space-y-6">
+      <VisibilityToggle settingKey="show_activities" label="Activities Section" />
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold text-gray-900">Activities Management</h1>
         <button

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '../../lib/supabase-client'
+import VisibilityToggle from '../components/VisibilityToggle'
 
 export default function SlidesManagement() {
   const [slides, setSlides] = useState([])
@@ -93,6 +94,10 @@ export default function SlidesManagement() {
         >
           <span>➕</span> Add New Slide
         </Link>
+      </div>
+
+      <div className="mb-6">
+        <VisibilityToggle settingKey="show_slides" label="Slides / Homepage Slider" />
       </div>
 
       {/* Search */}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase-client'
+import VisibilityToggle from '../components/VisibilityToggle'
 
 // Available social platforms with their icon class names (Remix Icon)
 const SOCIAL_PLATFORMS = [
@@ -167,6 +168,10 @@ export default function AboutEditor() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">About Section</h1>
+
+      <div className="mb-6">
+        <VisibilityToggle settingKey="show_about" label="About Section" />
+      </div>
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* About Section */}

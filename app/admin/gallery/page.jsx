@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase-client'
+import VisibilityToggle from '../components/VisibilityToggle'
 
 const categories = [
   { id: 'visitor', name: 'Visitor Touring', folder: 'Vistor Touring' },
@@ -252,6 +253,10 @@ export default function GalleryManagement() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Gallery Management</h1>
+
+      <div className="mb-6">
+        <VisibilityToggle settingKey="show_gallery" label="Gallery Section" />
+      </div>
 
       {/* Category Tabs */}
       <div className="flex flex-wrap gap-2 mb-6">

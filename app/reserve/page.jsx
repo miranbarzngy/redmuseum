@@ -1,5 +1,5 @@
-import ReservePageContent from '../components/ReservePageContent'
+import { redirect } from 'next/navigation'
 
 export default function Page() {
-  return <ReservePageContent initialLang="en" />
+  redirect('/kurdish')
 }

@@ -108,8 +108,8 @@ function FlipCard({ value }) {
     return () => clearTimeout(t)
   }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const size = 'w-14 h-16 md:w-24 md:h-28 lg:w-32 lg:h-36'
-  const textSize = 'text-2xl md:text-5xl lg:text-6xl'
+  const size = 'w-12 h-14 md:w-16 md:h-20 lg:w-24 lg:h-28 xl:w-32 xl:h-36'
+  const textSize = 'text-xl md:text-3xl lg:text-5xl xl:text-6xl'
 
   return (
     <div className={`relative ${size} flip-card`} style={{ perspective: 400 }}>
@@ -175,15 +175,15 @@ function Countdown({ targetTime, lang }) {
   return (
     <>
       <style>{flipStyles}</style>
-      <div className="flex items-center gap-1 md:gap-2 lg:gap-4" dir="ltr">
+      <div className="flex items-center gap-1 md:gap-2 lg:gap-3 xl:gap-4" dir="ltr">
         {units.map((val, i) => (
-          <div key={i} className="flex items-center gap-1 md:gap-2 lg:gap-4">
-            <div className="flex flex-col items-center gap-1 md:gap-3">
+          <div key={i} className="flex items-center gap-1 md:gap-2 lg:gap-3 xl:gap-4">
+            <div className="flex flex-col items-center gap-1 md:gap-2 lg:gap-3">
               <FlipCard value={val} />
-              <span className="text-[9px] md:text-xs lg:text-sm uppercase tracking-wide md:tracking-widest text-[#c8a96e] font-semibold">{labels[i]}</span>
+              <span className="text-[9px] md:text-[10px] lg:text-xs xl:text-sm uppercase tracking-wide text-[#c8a96e] font-semibold">{labels[i]}</span>
             </div>
             {i < 3 && (
-              <span className="text-white/60 font-bold text-2xl md:text-4xl lg:text-5xl mb-4 md:mb-8 select-none">:</span>
+              <span className="text-white/60 font-bold text-xl md:text-2xl lg:text-4xl xl:text-5xl mb-3 md:mb-5 lg:mb-8 select-none">:</span>
             )}
           </div>
         ))}
@@ -275,7 +275,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
         <div className="absolute inset-0 bg-gradient-to-br from-red-900/30 via-black to-black" />
       )}
 
-      <div className="relative z-10 max-w-7xl mx-auto pl-[72px] pr-4 md:px-6 py-8 md:py-16 min-h-screen flex flex-col justify-center">
+      <div className="relative z-10 max-w-7xl mx-auto pl-[72px] pr-4 md:pl-[80px] md:pr-6 lg:px-10 py-8 md:py-12 lg:py-16 min-h-screen flex flex-col justify-center">
 
         {/* Section label */}
         <div className="text-center mb-6 md:mb-10">
@@ -292,11 +292,11 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
           <div className="w-20 h-1 bg-red-600 mx-auto mt-5" />
         </div>
 
-        {/* Content grid — image left, info right on md+ */}
-        <div className="flex flex-col md:flex-row gap-8 items-start">
+        {/* Content grid — image left, info right on lg+ */}
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
 
-          {/* Image — A4 landscape ratio, full width on mobile, left column on md+ */}
-          <div className="relative w-full md:w-1/2 shrink-0 rounded-2xl overflow-hidden" style={{ aspectRatio: '297/210' }}>
+          {/* Image — A4 landscape ratio, full width on mobile/tablet, left column on lg+ */}
+          <div className="relative w-full lg:w-1/2 shrink-0 rounded-2xl overflow-hidden" style={{ aspectRatio: '297/210' }}>
             {slide.image_url ? (
               <Image
                 src={slide.image_url}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase-client'
+import VisibilityToggle from '../components/VisibilityToggle'
 
 export default function MessagesManagement() {
   const [messages, setMessages] = useState([])
@@ -93,6 +94,10 @@ export default function MessagesManagement() {
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Messages</h1>
+
+      <div className="mb-6">
+        <VisibilityToggle settingKey="show_messages" label="Contact / Messages Section" />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Messages List */}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { getSupabaseClient } from '../../lib/supabase-client'
 import Image from 'next/image'
+import VisibilityToggle from '../components/VisibilityToggle'
 
 const EMPTY_SLIDE = {
   title_ku: '', title_en: '', title_ar: '',
@@ -199,6 +200,7 @@ export default function ExclusiveAdmin() {
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Exclusive Event Management</h1>
+      <VisibilityToggle settingKey="show_exclusive" label="Exclusive Section" />
 
       {message && (
         <div className={`p-4 rounded-lg text-sm font-medium ${message.includes('Error') ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'}`}>
