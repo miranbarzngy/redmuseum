@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 
-const SECTIONS = ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','activities','section_order','users']
+const SECTIONS = ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','section_order','users']
 const ACTIONS = ['view','edit','delete']
 
 const EMPTY_PERMS = () =>

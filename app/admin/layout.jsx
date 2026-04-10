@@ -14,7 +14,6 @@ const ROUTE_SECTION = {
   about: 'about',
   gallery: 'gallery',
   archive: 'archive',
-  activities: 'activities',
   exclusive: 'exclusive',
   visitors: 'visitors',
   users: 'users',
@@ -30,7 +29,7 @@ export default function AdminLayout({ children }) {
   const pathname = usePathname()
 
   const FULL_PERMS = Object.fromEntries(
-    ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','activities','users','section_order']
+    ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','users','section_order']
       .map(s => [s, { view: true, edit: true, delete: true }])
   )
 
@@ -149,7 +148,6 @@ export default function AdminLayout({ children }) {
     { section: 'about',      href: '/admin/about',      icon: 'ℹ️', label: 'About',       exact: true },
     { section: 'gallery',    href: '/admin/gallery',    icon: '🖼️', label: 'Gallery',     exact: true },
     { section: 'archive',    href: '/admin/archive',    icon: '📁', label: 'Archive',     exact: true },
-    { section: 'activities', href: '/admin/activities', icon: '📅', label: 'Activities',  exact: true },
     { section: 'exclusive',  href: '/admin/exclusive',  icon: '⭐', label: 'Exclusive',   exact: true },
     { section: 'visitors',      href: '/admin/visitors',      icon: '🎟️', label: 'Visitors',       exact: true },
     { section: 'section_order', href: '/admin/section-order', icon: '↕️',  label: 'Section Order',  exact: true },
