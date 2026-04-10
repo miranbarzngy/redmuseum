@@ -554,7 +554,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             </div>
 
             {field('note',
-              t('تێبینی (ئارەزووی تایبەت)', 'ملاحظة (اختياري)', 'Note (optional)', lang),
+              t('تێبینی (ئارەزوو مەندانە)', 'ملاحظة (اختياري)', 'Note (optional)', lang),
               'textarea',
               { placeholder: t('هەر تێبینییەک...', 'أي ملاحظات...', 'Any notes...', lang) }
             )}
