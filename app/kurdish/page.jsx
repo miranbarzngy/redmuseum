@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMuseumName } from '../lib/useMuseumName'
 import About from '../components/About'
 import ArchivePreview from '../components/ArchivePreview'
@@ -70,6 +70,10 @@ export function KurdishPageContent({ initialSection = null }) {
   const [sectionOrder, setSectionOrder] = useState(DEFAULT_ORDER)
   const [dataReady, setDataReady] = useState(false)
   const museumName = useMuseumName()
+  // Ref tracks current section without triggering observer re-setup
+  const activeSectionRef = useRef(initialSection || 'home')
+  // Gate: block URL updates until initial scroll-to-section has completed
+  const urlGateRef = useRef(!initialSection)
 
   useEffect(() => {
     const savedLang = localStorage.getItem('museum-lang')
@@ -83,20 +87,26 @@ export function KurdishPageContent({ initialSection = null }) {
 
   // Scroll to initialSection once data has loaded and DOM is ready
   useEffect(() => {
-    if (!dataReady || !initialSection) return
+    if (!dataReady) return
+    if (!initialSection) { urlGateRef.current = true; return }
     const tryScroll = (attempts = 0) => {
       if (initialSection === 'home') {
         window.scrollTo({ top: 0, behavior: 'instant' })
         setActiveSection('home')
+        activeSectionRef.current = 'home'
         window.history.replaceState(null, '', '/kurdish/slides')
+        urlGateRef.current = true
         return
       }
       const el = document.getElementById(initialSection)
       if (el) {
         window.scrollTo({ top: el.offsetTop - 80, behavior: 'instant' })
         setActiveSection(initialSection)
+        activeSectionRef.current = initialSection
         const url = ELEMENT_URL[initialSection]
         if (url) window.history.replaceState(null, '', url)
+        // Open gate after scroll settles so observer doesn't override the position
+        setTimeout(() => { urlGateRef.current = true }, 600)
       } else if (attempts < 20) {
         setTimeout(() => tryScroll(attempts + 1), 100)
       }
@@ -126,33 +136,36 @@ export function KurdishPageContent({ initialSection = null }) {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '')
-      if (hash) setActiveSection(hash)
+      if (hash) { setActiveSection(hash); activeSectionRef.current = hash }
     }
     window.addEventListener('hashchange', handleHashChange)
     if (window.location.hash) handleHashChange()
 
     const handleScroll = () => {
+      if (!urlGateRef.current) return
       if (window.scrollY < 100) {
         setActiveSection('home')
+        activeSectionRef.current = 'home'
         window.history.replaceState(null, '', '/kurdish/slides')
       }
     }
-    window.addEventListener('scroll', handleScroll)
-    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
 
     const observableIds = ['about', 'virtual-tour', 'gallery', 'archive-section', 'exclusive-section', 'showcase', 'contact', 'reserve']
     const sectionRatios = {}
     observableIds.forEach(id => sectionRatios[id] = 0)
 
     const observer = new IntersectionObserver((entries) => {
+      if (!urlGateRef.current) return
       if (window.scrollY < 100) return
       entries.forEach(entry => { sectionRatios[entry.target.id] = entry.intersectionRatio })
-      let maxRatio = 0, maxSection = activeSection
+      let maxRatio = 0, maxSection = activeSectionRef.current
       observableIds.forEach(id => {
         if (sectionRatios[id] > maxRatio) { maxRatio = sectionRatios[id]; maxSection = id }
       })
       if (maxRatio > 0.1) {
         setActiveSection(maxSection)
+        activeSectionRef.current = maxSection
         const url = ELEMENT_URL[maxSection]
         if (url && window.location.pathname !== url) window.history.replaceState(null, '', url)
       }
@@ -166,12 +179,9 @@ export function KurdishPageContent({ initialSection = null }) {
     return () => {
       window.removeEventListener('hashchange', handleHashChange)
       window.removeEventListener('scroll', handleScroll)
-      observableIds.forEach(id => {
-        const el = document.getElementById(id)
-        if (el) observer.unobserve(el)
-      })
+      observer.disconnect()
     }
-  }, [activeSection])
+  }, [])
 
   const sectionComponents = {
     slides:         vis.show_slides             ? <Slider key="slides" currentLang={currentLang} />                                 : null,

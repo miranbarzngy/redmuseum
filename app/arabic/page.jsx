@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useMuseumName } from '../lib/useMuseumName'
 import Sidebar from '../components/Sidebar'
 import Slider from '../components/Slider'
@@ -69,6 +69,8 @@ export function ArabicPageContent({ initialSection = null }) {
   const [sectionOrder, setSectionOrder] = useState(DEFAULT_ORDER)
   const [dataReady, setDataReady] = useState(false)
   const museumName = useMuseumName()
+  const activeSectionRef = useRef(initialSection || 'home')
+  const urlGateRef = useRef(!initialSection)
 
   useEffect(() => {
     const savedLang = localStorage.getItem('museum-lang')
@@ -82,20 +84,25 @@ export function ArabicPageContent({ initialSection = null }) {
 
   // Scroll to initialSection once data and DOM are ready
   useEffect(() => {
-    if (!dataReady || !initialSection) return
+    if (!dataReady) return
+    if (!initialSection) { urlGateRef.current = true; return }
     const tryScroll = (attempts = 0) => {
       if (initialSection === 'home') {
         window.scrollTo({ top: 0, behavior: 'instant' })
         setActiveSection('home')
+        activeSectionRef.current = 'home'
         window.history.replaceState(null, '', '/arabic/slides')
+        urlGateRef.current = true
         return
       }
       const el = document.getElementById(initialSection)
       if (el) {
         window.scrollTo({ top: el.offsetTop - 80, behavior: 'instant' })
         setActiveSection(initialSection)
+        activeSectionRef.current = initialSection
         const url = ELEMENT_URL[initialSection]
         if (url) window.history.replaceState(null, '', url)
+        setTimeout(() => { urlGateRef.current = true }, 600)
       } else if (attempts < 20) {
         setTimeout(() => tryScroll(attempts + 1), 100)
       }
@@ -125,33 +132,36 @@ export function ArabicPageContent({ initialSection = null }) {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '')
-      if (hash) setActiveSection(hash)
+      if (hash) { setActiveSection(hash); activeSectionRef.current = hash }
     }
     window.addEventListener('hashchange', handleHashChange)
     if (window.location.hash) handleHashChange()
 
     const handleScroll = () => {
+      if (!urlGateRef.current) return
       if (window.scrollY < 100) {
         setActiveSection('home')
+        activeSectionRef.current = 'home'
         window.history.replaceState(null, '', '/arabic/slides')
       }
     }
-    window.addEventListener('scroll', handleScroll)
-    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
 
     const observableIds = ['about', 'virtual-tour', 'gallery', 'archive-section', 'exclusive-section', 'showcase', 'contact', 'reserve']
     const sectionRatios = {}
     observableIds.forEach(id => sectionRatios[id] = 0)
 
     const observer = new IntersectionObserver((entries) => {
+      if (!urlGateRef.current) return
       if (window.scrollY < 100) return
       entries.forEach(entry => { sectionRatios[entry.target.id] = entry.intersectionRatio })
-      let maxRatio = 0, maxSection = activeSection
+      let maxRatio = 0, maxSection = activeSectionRef.current
       observableIds.forEach(id => {
         if (sectionRatios[id] > maxRatio) { maxRatio = sectionRatios[id]; maxSection = id }
       })
       if (maxRatio > 0.1) {
         setActiveSection(maxSection)
+        activeSectionRef.current = maxSection
         const url = ELEMENT_URL[maxSection]
         if (url && window.location.pathname !== url) window.history.replaceState(null, '', url)
       }
@@ -165,12 +175,9 @@ export function ArabicPageContent({ initialSection = null }) {
     return () => {
       window.removeEventListener('hashchange', handleHashChange)
       window.removeEventListener('scroll', handleScroll)
-      observableIds.forEach(id => {
-        const el = document.getElementById(id)
-        if (el) observer.unobserve(el)
-      })
+      observer.disconnect()
     }
-  }, [activeSection])
+  }, [])
 
   const sectionComponents = {
     slides:         vis.show_slides             ? <Slider key="slides" currentLang={currentLang} />                                 : null,
