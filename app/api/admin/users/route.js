@@ -1,15 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { getSessionUser } from '../../../lib/api-auth'
 
 function getAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY
+  const key = process.env.SUPABASE_SERVICE_KEY
   if (!url || !key) return null
   return createClient(url, key, { auth: { persistSession: false } })
 }
 
 // GET — list all auth users
-export async function GET() {
+export async function GET(request) {
+  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
@@ -19,6 +21,7 @@ export async function GET() {
   const users = data.users.map(u => ({
     id: u.id,
     email: u.email,
+    full_name: u.user_metadata?.full_name || '',
     role: u.user_metadata?.role || 'viewer',
     is_active: !u.banned_until || new Date(u.banned_until) < new Date(),
     created_at: u.created_at,
@@ -30,16 +33,17 @@ export async function GET() {
 
 // POST — create a new user
 export async function POST(request) {
+  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
-  const { email, password, role } = await request.json()
+  const { email, password, role, full_name } = await request.json()
   if (!email || !password) return NextResponse.json({ error: 'Email and password required' }, { status: 400 })
 
   const { data, error } = await supabase.auth.admin.createUser({
     email,
     password,
-    user_metadata: { role: role || 'viewer' },
+    user_metadata: { role: role || 'viewer', full_name: full_name || '' },
     email_confirm: true,
   })
 
@@ -49,16 +53,21 @@ export async function POST(request) {
 
 // PATCH — update user (email, password, role, active status)
 export async function PATCH(request) {
+  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
-  const { id, email, password, role, is_active } = await request.json()
+  const { id, email, password, role, full_name, is_active } = await request.json()
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
 
   const updates = {}
   if (email) updates.email = email
   if (password) updates.password = password
-  if (role) updates.user_metadata = { role }
+  if (role !== undefined || full_name !== undefined) {
+    updates.user_metadata = {}
+    if (role !== undefined) updates.user_metadata.role = role
+    if (full_name !== undefined) updates.user_metadata.full_name = full_name
+  }
   if (typeof is_active === 'boolean') {
     updates.ban_duration = is_active ? 'none' : '87600h'
   }
@@ -74,8 +83,8 @@ export async function PATCH(request) {
         {
           method: 'POST',
           headers: {
-            'apikey': process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY,
-            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY}`,
+            'apikey': process.env.SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_KEY}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ scope: 'global' }),
@@ -88,6 +97,7 @@ export async function PATCH(request) {
     user: {
       id: data.user.id,
       email: data.user.email,
+      full_name: data.user.user_metadata?.full_name || '',
       role: data.user.user_metadata?.role || 'viewer',
       is_active: !data.user.banned_until || new Date(data.user.banned_until) < new Date(),
     }
@@ -96,6 +106,7 @@ export async function PATCH(request) {
 
 // DELETE — delete a user by id in query param
 export async function DELETE(request) {
+  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 

@@ -57,7 +57,7 @@ section {
 
 /* Adjustments for Kurdish text */
 .font-kurdish p,
-.font-kurdish span,
+.font-kurdish span:not(.flip-digit),
 .font-kurdish h1,
 .font-kurdish h2,
 .font-kurdish h3,

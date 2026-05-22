@@ -1,14 +1,16 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { getSessionUser } from '../../../lib/api-auth'
 
 function getAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_KEY || process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY
+  const key = process.env.SUPABASE_SERVICE_KEY
   if (!url || !key) return null
   return createClient(url, key, { auth: { persistSession: false } })
 }
 
-export async function GET() {
+export async function GET(request) {
+  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
   const { data, error } = await supabase.from('admin_roles').select('*').order('created_at', { ascending: true })
@@ -17,6 +19,7 @@ export async function GET() {
 }
 
 export async function POST(request) {
+  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
   const { name, description, permissions } = await request.json()
@@ -30,6 +33,7 @@ export async function POST(request) {
 }
 
 export async function PATCH(request) {
+  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
   const { id, name, description, permissions } = await request.json()
@@ -44,6 +48,7 @@ export async function PATCH(request) {
 }
 
 export async function DELETE(request) {
+  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
   const id = new URL(request.url).searchParams.get('id')

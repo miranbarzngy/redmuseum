@@ -1,14 +1,15 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { Upload, Trash2, Loader2, ImageIcon } from 'lucide-react'
 import { supabase } from '../lib/supabase-client'
 
-export default function ImageUpload({ 
-  label, 
-  value, 
-  onChange, 
+export default function ImageUpload({
+  label,
+  value,
+  onChange,
   folder = 'slides',
-  accept = "image/*"
+  accept = 'image/*',
 }) {
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState(value)
@@ -17,45 +18,29 @@ export default function ImageUpload({
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-
     setPreview(URL.createObjectURL(file))
     await uploadFile(file)
   }
 
   const uploadFile = async (file) => {
-    if (!supabase) {
-      alert('Supabase not configured')
-      return
-    }
-
+    if (!supabase) { alert('Supabase not configured'); return }
     setUploading(true)
     try {
       const fileExt = file.name.split('.').pop()
       const fileName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${fileExt}`
       const filePath = `${folder}/${fileName}`
 
-      // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from('museum-images')
         .upload(filePath, file)
-
       if (error) throw error
 
-      // Get public URL
       const { data: urlData } = supabase.storage
         .from('museum-images')
         .getPublicUrl(filePath)
 
       const publicUrl = urlData.publicUrl
-      
-      // Add to images table for tracking
-      await supabase.from('images').insert({
-        filename: fileName,
-        path: filePath,
-        url: publicUrl,
-        folder: folder
-      })
-
+      await supabase.from('images').insert({ filename: fileName, path: filePath, url: publicUrl, folder })
       onChange(publicUrl)
       setPreview(publicUrl)
     } catch (error) {
@@ -68,13 +53,9 @@ export default function ImageUpload({
 
   const handleRemove = async () => {
     if (!value) return
-    
     try {
-      // Extract path from URL
       const path = value.split('/storage/v1/object/public/museum-images/')?.[1]
-      if (path) {
-        await supabase.storage.from('museum-images').remove([path])
-      }
+      if (path) await supabase.storage.from('museum-images').remove([path])
       onChange('')
       setPreview('')
     } catch (error) {
@@ -83,60 +64,55 @@ export default function ImageUpload({
   }
 
   return (
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label}
-      </label>
-      
-      <div className="flex items-center gap-3">
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
         <input
           type="text"
           value={value}
-          onChange={(e) => {
-            onChange(e.target.value)
-            setPreview(e.target.value)
-          }}
+          onChange={(e) => { onChange(e.target.value); setPreview(e.target.value) }}
           placeholder="/assets/images/bg-1.jpg"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="flex-1 px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 bg-gray-50/50"
         />
-        
-        <input
-          type="file"
-          ref={fileInputRef}
-          accept={accept}
-          onChange={handleFileChange}
-          className="hidden"
-        />
-        
+
+        <input type="file" ref={fileInputRef} accept={accept} onChange={handleFileChange} className="hidden" />
+
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-br from-blue-600 to-blue-800 text-white text-sm font-medium rounded-xl hover:from-blue-700 hover:to-blue-900 disabled:opacity-60 transition-all shadow-md shadow-blue-900/30 shrink-0"
         >
-          {uploading ? 'Uploading...' : '📤 Upload'}
+          {uploading
+            ? <><Loader2 size={15} className="animate-spin" /> Uploading…</>
+            : <><Upload size={15} /> Upload</>
+          }
         </button>
 
         {value && (
           <button
             type="button"
             onClick={handleRemove}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-red-600 to-red-800 text-white rounded-xl hover:from-red-700 hover:to-red-900 transition-all shadow-md shadow-red-900/30 shrink-0"
+            title="Remove image"
           >
-            🗑️
+            <Trash2 size={15} />
           </button>
         )}
       </div>
 
-      {/* Preview */}
-      {(preview || value) && (
-        <div className="mt-2 relative inline-block">
+      {(preview || value) ? (
+        <div className="relative inline-block">
           <img
             src={preview || value}
             alt="Preview"
-            className="h-20 w-auto rounded border"
+            className="h-24 w-auto rounded-xl border border-gray-200 object-cover shadow-sm"
             onError={() => setPreview('')}
           />
+        </div>
+      ) : (
+        <div className="flex items-center gap-2 h-16 px-4 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 text-sm">
+          <ImageIcon size={16} />
+          <span>No image selected</span>
         </div>
       )}
     </div>

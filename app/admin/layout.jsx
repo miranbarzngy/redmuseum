@@ -1,10 +1,40 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import {
+  LayoutDashboard,
+  Monitor,
+  Mail,
+  Landmark,
+  Frame,
+  ScrollText,
+  Crown,
+  Ticket,
+  Layers,
+  ShieldCheck,
+  Globe,
+  LayoutGrid,
+  LogOut,
+} from 'lucide-react'
 import { supabase } from '../lib/supabase-client'
 import { AdminContext } from './AdminContext'
+
+const BASE_NAV = [
+  { section: 'dashboard',     href: '/admin/dashboard',      Icon: LayoutDashboard, label: 'Dashboard',      exact: true,  grad: 'from-slate-600 to-slate-800',     shadow: 'shadow-slate-950/60'   },
+  { section: 'slides',        href: '/admin/slides',         Icon: Monitor,         label: 'Slides',         exact: false, grad: 'from-blue-700 to-blue-900',       shadow: 'shadow-blue-950/60'    },
+  { section: 'messages',      href: '/admin/messages',       Icon: Mail,            label: 'Messages',       exact: true,  grad: 'from-teal-600 to-teal-900',       shadow: 'shadow-teal-950/60'    },
+  { section: 'about',         href: '/admin/about',          Icon: Landmark,        label: 'About',          exact: true,  grad: 'from-amber-600 to-amber-800',     shadow: 'shadow-amber-950/60'   },
+  { section: 'gallery',       href: '/admin/gallery',        Icon: Frame,           label: 'Gallery',        exact: true,  grad: 'from-rose-700 to-rose-900',       shadow: 'shadow-rose-950/60'    },
+  { section: 'archive',       href: '/admin/archive',        Icon: ScrollText,      label: 'Archive',        exact: true,  grad: 'from-stone-600 to-stone-800',     shadow: 'shadow-stone-950/60'   },
+  { section: 'exclusive',     href: '/admin/exclusive',      Icon: Crown,           label: 'Exclusive',      exact: true,  grad: 'from-yellow-600 to-amber-700',    shadow: 'shadow-yellow-950/60'  },
+  { section: 'visitors',      href: '/admin/visitors',       Icon: Ticket,          label: 'Visitors',       exact: true,  grad: 'from-indigo-600 to-indigo-900',   shadow: 'shadow-indigo-950/60'  },
+  { section: 'section_order', href: '/admin/section-order',  Icon: Layers,          label: 'Section Order',  exact: true,  grad: 'from-emerald-700 to-emerald-900', shadow: 'shadow-emerald-950/60' },
+  { section: 'showcase_cards',href: '/admin/showcase-cards', Icon: LayoutGrid,      label: 'Social Media Post', exact: true,  grad: 'from-fuchsia-600 to-fuchsia-900', shadow: 'shadow-fuchsia-950/60' },
+  { section: 'languages',     href: '/admin/languages',      Icon: Globe,           label: 'Languages',      exact: true,  grad: 'from-sky-600 to-sky-900',         shadow: 'shadow-sky-950/60'     },
+  { section: 'users',         href: '/admin/users',          Icon: ShieldCheck,     label: 'Users & Roles',  exact: true,  grad: 'from-violet-700 to-violet-900',   shadow: 'shadow-violet-950/60'  },
+]
 
 // Map each route segment → permission section
 const ROUTE_SECTION = {
@@ -18,6 +48,8 @@ const ROUTE_SECTION = {
   visitors: 'visitors',
   users: 'users',
   'section-order': 'section_order',
+  languages: 'languages',
+  'showcase-cards': 'showcase_cards',
 }
 
 export default function AdminLayout({ children }) {
@@ -25,11 +57,14 @@ export default function AdminLayout({ children }) {
   const [userPerms, setUserPerms] = useState(null)
   const [loading, setLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [navOrder, setNavOrder] = useState(null)
+  const dragIdx = useRef(null)
+  const overIdx = useRef(null)
   const router = useRouter()
   const pathname = usePathname()
 
   const FULL_PERMS = Object.fromEntries(
-    ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','users','section_order']
+    ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','users','section_order','languages','showcase_cards']
       .map(s => [s, { view: true, edit: true, delete: true }])
   )
 
@@ -123,8 +158,23 @@ export default function AdminLayout({ children }) {
     }
   }, [userPerms, pathname, router])
 
+  // Load saved nav order from localStorage — must be before any early returns
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('admin-nav-order')
+      if (saved) {
+        const order = JSON.parse(saved)
+        const sorted = [...BASE_NAV].sort((a, b) => order.indexOf(a.section) - order.indexOf(b.section))
+        setNavOrder(sorted)
+      } else {
+        setNavOrder(BASE_NAV)
+      }
+    } catch { setNavOrder(BASE_NAV) }
+  }, [])
+
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    await fetch('/api/admin/auth', { method: 'DELETE' })
     router.push('/admin/login')
   }
 
@@ -141,18 +191,23 @@ export default function AdminLayout({ children }) {
 
   if (pathname === '/admin/login') return children
 
-  const navLinks = [
-    { section: 'dashboard',  href: '/admin/dashboard',  icon: '📊', label: 'Dashboard',   exact: true },
-    { section: 'slides',     href: '/admin/slides',     icon: '🎠', label: 'Slides',      exact: false },
-    { section: 'messages',   href: '/admin/messages',   icon: '💬', label: 'Messages',    exact: true },
-    { section: 'about',      href: '/admin/about',      icon: 'ℹ️', label: 'About',       exact: true },
-    { section: 'gallery',    href: '/admin/gallery',    icon: '🖼️', label: 'Gallery',     exact: true },
-    { section: 'archive',    href: '/admin/archive',    icon: '📁', label: 'Archive',     exact: true },
-    { section: 'exclusive',  href: '/admin/exclusive',  icon: '⭐', label: 'Exclusive',   exact: true },
-    { section: 'visitors',      href: '/admin/visitors',      icon: '🎟️', label: 'Visitors',       exact: true },
-    { section: 'section_order', href: '/admin/section-order', icon: '↕️',  label: 'Section Order',  exact: true },
-    { section: 'users',         href: '/admin/users',         icon: '👤', label: 'Users & Roles',  exact: true },
-  ]
+  const navLinks = navOrder || BASE_NAV
+
+  const handleDragStart = (i) => { dragIdx.current = i }
+  const handleDragOver  = (e, i) => { e.preventDefault(); overIdx.current = i }
+  const handleDrop      = () => {
+    const from = dragIdx.current
+    const to   = overIdx.current
+    if (from === null || to === null || from === to) return
+    const updated = [...navLinks]
+    const [moved] = updated.splice(from, 1)
+    updated.splice(to, 0, moved)
+    setNavOrder(updated)
+    localStorage.setItem('admin-nav-order', JSON.stringify(updated.map(l => l.section)))
+    dragIdx.current = null
+    overIdx.current = null
+  }
+  const handleDragEnd = () => { dragIdx.current = null; overIdx.current = null }
 
   const isActive = (link) => link.exact ? pathname === link.href : pathname.startsWith(link.href)
 
@@ -208,30 +263,75 @@ export default function AdminLayout({ children }) {
             ✕
           </button>
 
-          <nav className="mt-6 lg:mt-6 pt-16 lg:pt-0 overflow-y-auto h-[calc(100%-120px)]">
+          <nav className="mt-6 lg:mt-6 pt-16 lg:pt-0 overflow-y-auto h-[calc(100%-160px)]">
             {!userPerms && (
               <div className="px-6 py-4 flex items-center gap-2 text-gray-500 text-sm">
                 <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
                 Loading…
               </div>
             )}
-            {navLinks.map(link => can(link.section) && (
-              <Link
+            {navLinks.map((link, i) => can(link.section) && (
+              <div
                 key={link.href}
-                href={link.href}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-6 py-3 hover:bg-gray-800 transition-colors text-sm ${
-                  isActive(link) ? 'bg-gray-800 border-l-4 border-blue-500 pl-5' : ''
-                }`}
+                draggable
+                onDragStart={() => handleDragStart(i)}
+                onDragOver={e => handleDragOver(e, i)}
+                onDrop={handleDrop}
+                onDragEnd={handleDragEnd}
+                className="group/drag relative mx-3 mb-0.5"
+                style={{ cursor: 'grab' }}
               >
-                <span>{link.icon}</span>
-                <span>{link.label}</span>
-              </Link>
+                {/* Drop indicator */}
+                <div className="absolute -top-0.5 left-0 right-0 h-0.5 rounded-full bg-blue-400 opacity-0 group-hover/drag:opacity-0 transition-opacity pointer-events-none" />
+
+                <Link
+                  href={link.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-150 text-sm font-medium ${
+                    isActive(link)
+                      ? 'bg-white/10 text-white'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+                  draggable={false}
+                >
+                  <span className={`w-9 h-9 rounded-xl bg-gradient-to-br ${link.grad} flex items-center justify-center shrink-0 shadow-lg ${link.shadow}`}>
+                    <link.Icon size={17} strokeWidth={2} className="text-white" />
+                  </span>
+                  <span>{link.label}</span>
+                  {isActive(link) && (
+                    <span className="ml-auto w-1.5 h-1.5 rounded-full bg-white/60" />
+                  )}
+                  <i className="ri-draggable text-gray-600 group-hover/drag:text-gray-400 ml-auto text-base transition-colors" />
+                </Link>
+              </div>
             ))}
           </nav>
 
-          <div className="absolute bottom-0 left-0 right-0 p-4">
-            <button onClick={handleLogout} className="w-full bg-red-600 hover:bg-red-700 py-2 rounded-lg transition-colors text-sm font-semibold">
+          <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2.5">
+            {/* User info card */}
+            {user && (
+              <div className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 flex items-center gap-3">
+                <span className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow shadow-violet-950/40">
+                  {user.user_metadata?.full_name
+                    ? user.user_metadata.full_name.trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+                    : user.email?.[0]?.toUpperCase() || '?'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-white truncate leading-tight">
+                    {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                  </p>
+                  <span className="inline-block mt-0.5 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-violet-500/20 text-violet-300 capitalize leading-none">
+                    {user.user_metadata?.role || 'viewer'}
+                  </span>
+                </div>
+              </div>
+            )}
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center justify-center gap-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white py-2.5 rounded-xl transition-all duration-150 text-sm font-medium border border-red-600/30 hover:border-red-600"
+            >
+              <LogOut size={16} strokeWidth={2} />
               Logout
             </button>
           </div>

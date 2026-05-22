@@ -4,147 +4,56 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase-client'
 
-// Default categories as fallback
 const defaultCategories = [
-  { id: 'all', name_en: 'All', name_ku: 'هەموو', slug: 'all' },
+  { id: 'all',       name_en: 'All',       name_ku: 'هەموو',         slug: 'all'       },
   { id: 'documents', name_en: 'Documents', name_ku: 'بەڵگەنامەکان', slug: 'documents' },
-  { id: 'letters', name_en: 'Letters', name_ku: 'نامەکان', slug: 'letters' },
-  { id: 'photos', name_en: 'Photos', name_ku: 'وێنە کۆنەکان', slug: 'photos' },
+  { id: 'letters',   name_en: 'Letters',   name_ku: 'نامەکان',       slug: 'letters'   },
+  { id: 'photos',    name_en: 'Photos',    name_ku: 'وێنە کۆنەکان', slug: 'photos'    },
 ]
 
-// Map old category strings to slugs for backward compatibility
-const categoryStringToSlug = {
-  'Documents': 'documents',
-  'Letters': 'letters',
-  'Photos': 'photos'
-}
+const categoryStringToSlug = { Documents: 'documents', Letters: 'letters', Photos: 'photos' }
 
-// Helper function to normalize paths
 const normalizePath = (path) => {
   if (!path) return null
   if (path.startsWith('http://') || path.startsWith('https://')) return path
-  if (path.startsWith('/')) return path
-  return `/${path}`
+  return path.startsWith('/') ? path : `/${path}`
 }
+
+const KU = { fontFamily: 'UniSalar, Tahoma, sans-serif' }
 
 export default function KurdishArchive() {
   const [categories, setCategories] = useState([])
-  const [archive, setArchive] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [archive, setArchive]       = useState([])
+  const [loading, setLoading]       = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [lightboxItem, setLightboxItem] = useState(null)
 
-  useEffect(() => {
-    fetchCategories()
-  }, [])
+  useEffect(() => { fetchCategories() }, [])
+  useEffect(() => { fetchArchive() }, [])
 
   const fetchCategories = async () => {
-    if (!supabase) {
-      console.error('Supabase not configured')
-      setCategories(defaultCategories)
-      return
-    }
-
+    if (!supabase) { setCategories(defaultCategories); return }
     try {
-      const { data, error } = await supabase
-        .from('archive_categories')
-        .select('*')
-        .order('display_order', { ascending: true })
-
+      const { data, error } = await supabase.from('archive_categories').select('*').order('display_order', { ascending: true })
       if (error) throw error
-      
-      // Add "All" option at the beginning
       const allOption = { id: 'all', name_en: 'All', name_ku: 'هەموو', slug: 'all' }
-      if (data && data.length > 0) {
-        setCategories([allOption, ...data])
-      } else {
-        setCategories(defaultCategories)
-      }
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-      setCategories(defaultCategories)
-    }
+      setCategories(data?.length ? [allOption, ...data] : defaultCategories)
+    } catch { setCategories(defaultCategories) }
   }
-
-  useEffect(() => {
-    fetchArchive()
-  }, [])
 
   const fetchArchive = async () => {
-    if (!supabase) {
-      console.error('Supabase not configured')
-      // Use sample data for demo
-      setArchive([
-        {
-          id: '1',
-          title_en: 'Anfal Campaign Document',
-          title_ku: 'بەڵگەنامەی ئەنفال',
-          description_en: 'Historical document from the Anfal campaign',
-          description_ku: 'بەڵگەنامەیەکی مێژوویی لە کampaینی ئەنفال',
-          category_id: 'documents',
-          category: 'Documents',
-          image_url: '/assets/images/anfal.png',
-          file_url: null,
-          date_created: new Date().toISOString()
-        },
-        {
-          id: '2',
-          title_en: 'Letter from 1960s',
-          title_ku: 'نامەیەک لە ساڵانی ١٩٦٠',
-          description_en: 'Rare letter from the 1960s era',
-          description_ku: 'نامەیەکی دەگمەن لە سەردەمی ساڵانی ١٩٦٠',
-          category_id: 'letters',
-          category: 'Letters',
-          image_url: '/assets/images/awenakan.png',
-          file_url: null,
-          date_created: new Date().toISOString()
-        },
-        {
-          id: '3',
-          title_en: 'Old Photo Collection',
-          title_ku: 'کۆمەڵەی وێنە کۆنەکان',
-          description_en: 'Collection of rare historical photos',
-          description_ku: 'کۆمەڵەیەک لە وێنە مێژووییە دەگمەنەکان',
-          category_id: 'photos',
-          category: 'Photos',
-          image_url: '/assets/images/bg-1.jpg',
-          file_url: null,
-          date_created: new Date().toISOString()
-        }
-      ])
-      setLoading(false)
-      return
-    }
-
+    if (!supabase) { setLoading(false); return }
     try {
       const { data, error } = await supabase
-        .from('digital_archive')
-        .select('*')
-        .eq('is_active', true)
-        .order('display_order', { ascending: true })
-
+        .from('digital_archive').select('*').eq('is_active', true).order('display_order', { ascending: true })
       if (error) throw error
       setArchive(data || [])
-    } catch (error) {
-      console.error('Error fetching archive:', error)
-    } finally {
-      setLoading(false)
-    }
+    } catch {}
+    finally { setLoading(false) }
   }
 
-  // Get category by ID
-  const getCategoryById = (categoryId) => {
-    return categories.find(c => c.id === categoryId)
-  }
-
-  // Get the effective category ID from an item (handles both old and new format)
   const getItemCategoryId = (item) => {
-    // First check new category_id field
-    if (item.category_id) {
-      return item.category_id
-    }
-    // Fallback to old category field
+    if (item.category_id) return item.category_id
     if (item.category) {
       const slug = categoryStringToSlug[item.category] || item.category.toLowerCase()
       const cat = categories.find(c => c.slug === slug)
@@ -153,245 +62,220 @@ export default function KurdishArchive() {
     return null
   }
 
-  // Filter archive items
-  const filteredItems = archive.filter(item => {
-    const itemCategoryId = getItemCategoryId(item)
-    const matchesCategory = selectedCategory === 'all' || itemCategoryId === selectedCategory
-    const matchesSearch = searchQuery === '' || 
-      (item.title_en?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.title_ku?.includes(searchQuery)) ||
-      (item.description_en?.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (item.description_ku?.includes(searchQuery))
-    return matchesCategory && matchesSearch
-  })
-
-  // Get category display name in Kurdish
   const getCategoryName = (item) => {
-    const itemCategoryId = getItemCategoryId(item)
-    if (itemCategoryId) {
-      const cat = getCategoryById(itemCategoryId)
-      if (cat) return cat.name_ku
+    const id = getItemCategoryId(item)
+    if (id) {
+      const cat = categories.find(c => c.id === id)
+      if (cat && cat.id !== 'all') return cat.name_ku
     }
-    // Fallback to old category field
     if (item.category) {
       const slug = categoryStringToSlug[item.category] || item.category.toLowerCase()
       const cat = categories.find(c => c.slug === slug)
       if (cat) return cat.name_ku
       return item.category
     }
-    return 'هەموو'
+    return ''
   }
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return ''
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ku-KU', { year: 'numeric', month: 'long', day: 'numeric' })
-  }
+  const filteredItems = archive.filter(item => {
+    const itemCategoryId = getItemCategoryId(item)
+    const matchesCategory = selectedCategory === 'all' || itemCategoryId === selectedCategory
+    const q = searchQuery.toLowerCase()
+    const matchesSearch = !searchQuery ||
+      item.title_en?.toLowerCase().includes(q) ||
+      item.title_ku?.includes(searchQuery) ||
+      item.description_en?.toLowerCase().includes(q) ||
+      item.description_ku?.includes(searchQuery)
+    return matchesCategory && matchesSearch
+  })
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
-  }
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0a' }}>
+      <div className="w-12 h-12 border-2 border-[#c8a96e] border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white font-kurdish" dir="rtl">
-      {/* Sticky Home Button */}
-      <Link 
-        href="/kurdish"
-        className="fixed bottom-6 left-6 z-40 bg-red-600 hover:bg-red-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110"
-        title="گەڕانەوە بۆ سەرەتا"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-        </svg>
-      </Link>
+    <div className="min-h-screen" style={{ background: '#0a0a0a' }} dir="rtl">
 
-      {/* Header */}
-      <div className="relative py-20 bg-gradient-to-b from-red-900 to-gray-900">
-        <div className="container mx-auto px-4 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-            ئەرشیفی دیجیتاڵی
-          </h1>
-          <p className="text-xl text-gray-300" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-            مۆزەخانەی نیشتمانی ئەمنە سورەکە
-          </p>
+      {/* Hero header */}
+      <div className="relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #2a0000 0%, #0a0a0a 100%)' }}>
+        {/* Subtle texture overlay */}
+        <div className="absolute inset-0 opacity-20"
+          style={{ backgroundImage: 'radial-gradient(circle at 30% 50%, rgba(200,169,110,0.15) 0%, transparent 60%), radial-gradient(circle at 70% 50%, rgba(122,0,0,0.3) 0%, transparent 60%)' }} />
+
+        {/* Gold top line */}
+        <div className="absolute top-0 left-0 right-0 h-px"
+          style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
+
+        <div className="relative px-4 md:px-8 lg:px-16 py-20 text-center">
+          {/* Icon */}
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6"
+            style={{ background: 'rgba(122,0,0,0.3)', border: '1px solid rgba(200,169,110,0.3)' }}>
+            <i className="ri-archive-line text-3xl" style={{ color: '#c8a96e' }} />
+          </div>
+
+          {/* Decorative line */}
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #cc0000)' }} />
+            <h1 className="text-4xl md:text-5xl font-black text-white" style={KU}>ئەرشیفی دیجیتاڵی</h1>
+            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #cc0000)' }} />
+          </div>
+          <p className="text-white/60 text-lg" style={KU}>مۆزەخانەی نیشتمانی ئەمنە سورەکە</p>
+
+          {/* Stats strip */}
+          <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(200,169,110,0.15)', color: 'rgba(255,255,255,0.5)', ...KU }}>
+            <i className="ri-file-list-3-line text-[#c8a96e]" />
+            {archive.length} ئەرشیف
+          </div>
         </div>
+
+        {/* Gold bottom line */}
+        <div className="absolute bottom-0 left-0 right-0 h-px"
+          style={{ background: 'linear-gradient(to right, transparent, rgba(200,169,110,0.3), transparent)' }} />
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        {/* Search and Filter Section */}
-        <div className="mb-8 space-y-4">
-          {/* Search Bar */}
-          <div className="relative max-w-md mx-auto">
+      <div className="px-4 md:px-8 lg:px-16 py-10">
+
+        {/* Search + filter row */}
+        <div className="flex flex-col md:flex-row items-center gap-4 mb-10">
+
+          {/* Search */}
+          <div className="relative w-full md:max-w-sm">
+            <i className="ri-search-line absolute right-4 top-1/2 -translate-y-1/2 text-[#c8a96e]" />
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               placeholder="گەڕان... (Search)"
-              className="w-full px-4 py-3 pl-12 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-red-500"
-              style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
+              className="w-full pr-11 pl-4 py-3 text-sm text-white placeholder-white/30 rounded-2xl focus:outline-none transition-all"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(200,169,110,0.2)', ...KU }}
+              onFocus={e => e.target.style.borderColor = 'rgba(200,169,110,0.5)'}
+              onBlur={e => e.target.style.borderColor = 'rgba(200,169,110,0.2)'}
             />
-            <svg className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
           </div>
 
-          {/* Category Filters */}
-          <div className="flex flex-wrap justify-center gap-2">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2 rounded-lg transition-all ${
-                  selectedCategory === cat.id
-                    ? 'bg-red-600 text-white'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-                style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
-              >
-                {cat.name_ku}
-              </button>
-            ))}
+          {/* Category pills */}
+          <div className="flex flex-wrap justify-center md:justify-start gap-2">
+            {categories.map(cat => {
+              const isActive = selectedCategory === cat.id
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className="px-4 py-2 rounded-full text-sm font-semibold transition-all"
+                  style={{
+                    ...KU,
+                    background: isActive ? '#7a0000' : 'rgba(255,255,255,0.05)',
+                    border: `1px solid ${isActive ? 'rgba(200,169,110,0.4)' : 'rgba(255,255,255,0.1)'}`,
+                    color: '#fff',
+                    boxShadow: isActive ? '0 4px 16px rgba(122,0,0,0.4)' : 'none',
+                  }}
+                >
+                  {cat.name_ku}
+                </button>
+              )
+            })}
           </div>
         </div>
 
-        {/* Archive Grid */}
+        {/* Grid */}
         {filteredItems.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredItems.map((item) => (
-              <Link 
-                key={item.id} 
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {filteredItems.map(item => (
+              <Link
+                key={item.id}
                 href={`/kurdish/archive/${item.id}`}
-                className="block bg-gray-800 rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all hover:scale-105 cursor-pointer group"
+                className="group relative flex flex-col rounded-2xl overflow-hidden transition-all duration-300"
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(200,169,110,0.12)',
+                  boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,169,110,0.35)'; e.currentTarget.style.boxShadow = '0 8px 40px rgba(122,0,0,0.2)' }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(200,169,110,0.12)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.3)' }}
               >
+                {/* Gold top accent */}
+                <div className="absolute top-0 left-0 right-0 h-px z-10"
+                  style={{ background: 'linear-gradient(to right, transparent, rgba(200,169,110,0.4), transparent)' }} />
+
                 {/* Image */}
-                <div className="relative aspect-square">
+                <div className="relative aspect-square overflow-hidden bg-[#0d0d0d]">
                   <img
                     src={normalizePath(item.image_url)}
-                    alt={item.title_ku || item.title_en || 'Archive item'}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.target.src = '/assets/images/bg-1.jpg'
-                    }}
+                    alt={item.title_ku || item.title_en || ''}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
                   />
-                  {/* Category Badge */}
-                  <span className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
-                    {getCategoryName(item)}
-                  </span>
-                  {/* Overlay on hover */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <span className="text-white text-lg" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                    style={{ background: 'rgba(10,10,10,0.7)' }}>
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white"
+                      style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.4)', ...KU }}>
+                      <i className="ri-eye-line text-[#c8a96e]" />
                       بینین
-                    </span>
+                    </div>
                   </div>
+                  {/* Category badge */}
+                  {getCategoryName(item) && (
+                    <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold text-white z-10"
+                      style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.3)', ...KU }}>
+                      {getCategoryName(item)}
+                    </span>
+                  )}
                 </div>
 
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="text-lg font-semibold mb-2 truncate" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
+                {/* Card body */}
+                <div className="p-4 flex flex-col gap-1.5 flex-1">
+                  <h3 className="text-base font-bold text-white leading-snug line-clamp-2" style={KU}>
                     {item.title_ku || item.title_en}
                   </h3>
-                  <p className="text-gray-400 text-sm line-clamp-2" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                    {item.description_ku || item.description_en}
-                  </p>
+                  {(item.description_ku || item.description_en) && (
+                    <p className="text-xs text-white line-clamp-2 leading-relaxed" style={KU}>
+                      {item.description_ku || item.description_en}
+                    </p>
+                  )}
+                  {/* Arrow */}
+                  <div className="mt-auto pt-2 flex items-center justify-between">
+                    <span className="text-[11px]" style={{ color: 'rgba(200,169,110,0.5)', ...KU }}>بینینی زیاتر</span>
+                    <i className="ri-arrow-left-line text-[#c8a96e] text-sm transition-transform duration-200 group-hover:-translate-x-1" />
+                  </div>
                 </div>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-xl" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-              هیچ ئەرشیفێک نەدۆزرایەوە
-            </p>
-            <p className="text-gray-500 mt-2">No archive items found</p>
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5"
+              style={{ background: 'rgba(122,0,0,0.15)', border: '1px solid rgba(200,169,110,0.15)' }}>
+              <i className="ri-file-search-line text-3xl" style={{ color: '#c8a96e' }} />
+            </div>
+            <p className="text-white/50 text-lg mb-1" style={KU}>هیچ ئەرشیفێک نەدۆزرایەوە</p>
+            <p className="text-white/25 text-sm">No archive items found</p>
           </div>
         )}
-      </div>
 
-      {/* Lightbox Modal */}
-      {lightboxItem && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setLightboxItem(null)}
-        >
-          <div 
-            className="bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setLightboxItem(null)}
-              className="absolute top-4 right-4 text-white hover:text-red-500 z-10"
-            >
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-
-            {/* Image */}
-            <div className="relative">
-              <img
-                src={normalizePath(lightboxItem.image_url)}
-                alt={lightboxItem.title_ku || lightboxItem.title_en}
-                className="w-full max-h-[60vh] object-contain"
-                onError={(e) => {
-                  e.target.src = '/assets/images/bg-1.jpg'
-                }}
-              />
-            </div>
-
-            {/* Details */}
-            <div className="p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="bg-red-600 text-white text-sm px-3 py-1 rounded">
-                  {getCategoryName(lightboxItem)}
-                </span>
-              </div>
-
-              <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                {lightboxItem.title_ku || lightboxItem.title_en}
-              </h2>
-
-              <p className="text-gray-300 mb-4" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                {lightboxItem.description_ku || lightboxItem.description_en}
-              </p>
-
-              {/* Download Button */}
-              {lightboxItem.file_url && (
-                <a
-                  href={normalizePath(lightboxItem.file_url)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
-                  style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  داگرتن / Download PDF
-                </a>
-              )}
-            </div>
-          </div>
+        {/* Back to home */}
+        <div className="flex justify-center mt-14">
+          <Link href="/kurdish"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold text-white transition-all"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', ...KU }}>
+            <i className="ri-arrow-right-line text-[#c8a96e]" />
+            گەڕانەوە بۆ سەرەتا
+          </Link>
         </div>
-      )}
 
-      {/* Back to Home */}
-      <div className="text-center py-8">
-        <Link 
-          href="/kurdish"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>گەڕانەوە بۆ سەرەتا</span>
-        </Link>
       </div>
+
+      {/* Fixed home button */}
+      <Link href="/kurdish"
+        className="fixed bottom-6 left-6 z-40 w-12 h-12 flex items-center justify-center rounded-full text-white transition-all shadow-lg"
+        style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.4)', boxShadow: '0 4px 20px rgba(122,0,0,0.5)' }}
+        title="گەڕانەوە بۆ سەرەتا">
+        <i className="ri-home-5-line text-lg" />
+      </Link>
+
     </div>
   )
 }

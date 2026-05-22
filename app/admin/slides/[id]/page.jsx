@@ -2,18 +2,58 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import {
+  ArrowLeft,
+  Type,
+  ImageIcon,
+  Video,
+  Settings2,
+  Globe,
+  CheckCircle2,
+  Loader2,
+} from 'lucide-react'
 import { supabase } from '../../../lib/supabase-client'
 import ImageUpload from '../../../components/ImageUpload'
+
+function SectionCard({ icon: Icon, title, grad, shadow, children }) {
+  return (
+    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
+        <span className={`w-8 h-8 rounded-lg bg-gradient-to-br ${grad} flex items-center justify-center shadow ${shadow}`}>
+          <Icon size={15} strokeWidth={2} className="text-white" />
+        </span>
+        <h2 className="font-semibold text-gray-800">{title}</h2>
+      </div>
+      <div className="p-6">{children}</div>
+    </div>
+  )
+}
+
+const langCols = [
+  { key: '',     label: 'English', badge: 'bg-blue-100 text-blue-700',   dir: 'ltr', font: undefined },
+  { key: '_kr',  label: 'Kurdish', badge: 'bg-emerald-100 text-emerald-700', dir: 'ltr', font: undefined },
+  { key: '_ar',  label: 'Arabic',  badge: 'bg-amber-100 text-amber-700', dir: 'rtl', font: 'Cairo, Tahoma, sans-serif' },
+]
+
+function LangBadge({ label, cls }) {
+  return (
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${cls}`}>
+      <Globe size={11} />
+      {label}
+    </span>
+  )
+}
+
+const inputCls = 'w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 bg-gray-50/50 transition-colors'
 
 export default function SlideForm() {
   const { id } = useParams()
   const router = useRouter()
   const isNew = id === 'new'
-  
+
   const [loading, setLoading] = useState(!isNew)
   const [saving, setSaving] = useState(false)
   const [formData, setFormData] = useState({
-    slide_number: 1,
     title: '',
     title_kr: '',
     title_ar: '',
@@ -26,27 +66,18 @@ export default function SlideForm() {
     background_image: '',
     museum_image: '',
     video_url: '',
-    is_active: true
+    is_active: true,
   })
 
-
   useEffect(() => {
-    if (!isNew && id) {
-      fetchSlide()
-    }
+    if (!isNew && id) fetchSlide()
   }, [id, isNew])
 
   const fetchSlide = async () => {
     try {
-      const { data, error } = await supabase
-        .from('slides')
-        .select('*')
-        .eq('id', id)
-        .single()
-
+      const { data, error } = await supabase.from('slides').select('*').eq('id', id).single()
       if (error) throw error
       if (data) {
-        // Ensure all fields are defined (handles case where database columns don't exist yet)
         setFormData({
           ...data,
           title_ar: data.title_ar || '',
@@ -62,27 +93,18 @@ export default function SlideForm() {
     }
   }
 
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setSaving(true)
-
     try {
       if (isNew) {
-        const { error } = await supabase
-          .from('slides')
-          .insert([formData])
-        
+        const { count } = await supabase.from('slides').select('*', { count: 'exact', head: true })
+        const { error } = await supabase.from('slides').insert([{ ...formData, slide_number: (count || 0) + 1 }])
         if (error) throw error
       } else {
-        const { error } = await supabase
-          .from('slides')
-          .update(formData)
-          .eq('id', id)
-        
+        const { error } = await supabase.from('slides').update(formData).eq('id', id)
         if (error) throw error
       }
-
       router.push('/admin/slides')
     } catch (error) {
       alert('Error saving slide: ' + error.message)
@@ -93,234 +115,184 @@ export default function SlideForm() {
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }))
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">
-        {isNew ? 'Add New Slide' : 'Edit Slide'}
-      </h1>
-
-      <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow p-6 space-y-6">
-        {/* Slide Number */}
+    <div className="max-w-5xl">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <button
+          type="button"
+          onClick={() => router.push('/admin/slides')}
+          className="flex items-center justify-center w-9 h-9 rounded-xl border border-gray-200 hover:bg-gray-100 transition-colors text-gray-500"
+        >
+          <ArrowLeft size={17} />
+        </button>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Slide Number
+          <p className="text-xs text-gray-400 font-medium uppercase tracking-wider mb-0.5">Slides</p>
+          <h1 className="text-2xl font-bold text-gray-900">{isNew ? 'Add New Slide' : 'Edit Slide'}</h1>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-5">
+
+        {/* Content Section */}
+        <SectionCard icon={Type} title="Content" grad="from-blue-700 to-blue-900" shadow="shadow-blue-950/40">
+          {/* Language column headers */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+            {langCols.map(l => (
+              <LangBadge key={l.key} label={l.label} cls={l.badge} />
+            ))}
+          </div>
+
+          {/* Title */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {langCols.map(l => (
+              <div key={l.key}>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Title</label>
+                <input
+                  type="text"
+                  name={`title${l.key}`}
+                  value={formData[`title${l.key}`]}
+                  onChange={handleChange}
+                  required={l.key === ''}
+                  dir={l.dir}
+                  style={l.font ? { fontFamily: l.font } : {}}
+                  className={inputCls}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Subtitle */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            {langCols.map(l => (
+              <div key={l.key}>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Subtitle</label>
+                <input
+                  type="text"
+                  name={`subtitle${l.key}`}
+                  value={formData[`subtitle${l.key}`]}
+                  onChange={handleChange}
+                  dir={l.dir}
+                  style={l.font ? { fontFamily: l.font } : {}}
+                  className={inputCls}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Description */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {langCols.map(l => (
+              <div key={l.key}>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Description</label>
+                <textarea
+                  name={`description${l.key}`}
+                  value={formData[`description${l.key}`]}
+                  onChange={handleChange}
+                  rows={3}
+                  dir={l.dir}
+                  style={l.font ? { fontFamily: l.font } : {}}
+                  className={inputCls}
+                />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
+
+        {/* Media Section */}
+        <SectionCard icon={ImageIcon} title="Media" grad="from-rose-700 to-rose-900" shadow="shadow-rose-950/40">
+          <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Background Image</label>
+              <ImageUpload
+                label=""
+                value={formData.background_image}
+                onChange={(url) => setFormData(prev => ({ ...prev, background_image: url }))}
+                folder="slides"
+              />
+            </div>
+
+            <div className="border-t border-gray-100 pt-5">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Museum Image</label>
+              <ImageUpload
+                label=""
+                value={formData.museum_image}
+                onChange={(url) => setFormData(prev => ({ ...prev, museum_image: url }))}
+                folder="museum"
+              />
+            </div>
+
+            <div className="border-t border-gray-100 pt-5">
+              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <Video size={15} className="text-gray-400" />
+                Video URL
+              </label>
+              <input
+                type="text"
+                name="video_url"
+                value={formData.video_url}
+                onChange={handleChange}
+                placeholder="/assets/videos/peshmarga.mp4"
+                className={inputCls}
+              />
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* Settings Section */}
+        <SectionCard icon={Settings2} title="Settings" grad="from-slate-600 to-slate-800" shadow="shadow-slate-950/40">
+          <label className="flex items-center gap-3 cursor-pointer group w-fit">
+            <div className="relative">
+              <input
+                type="checkbox"
+                name="is_active"
+                id="is_active"
+                checked={formData.is_active}
+                onChange={handleChange}
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-blue-600 transition-colors" />
+              <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm transition-transform peer-checked:translate-x-5" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-800">Active</p>
+              <p className="text-xs text-gray-400">Show this slide on the website</p>
+            </div>
           </label>
-          <input
-            type="number"
-            name="slide_number"
-            value={formData.slide_number}
-            onChange={handleChange}
-            min="1"
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        </SectionCard>
 
-        {/* Title Fields - All Languages */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title (English)
-            </label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title (Kurdish)
-            </label>
-            <input
-              type="text"
-              name="title_kr"
-              value={formData.title_kr}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title (Arabic)
-            </label>
-            <input
-              type="text"
-              name="title_ar"
-              value={formData.title_ar}
-              onChange={handleChange}
-              dir="rtl"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
-            />
-          </div>
-        </div>
-
-        {/* Subtitle - All Languages */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Subtitle (English)
-            </label>
-            <input
-              type="text"
-              name="subtitle"
-              value={formData.subtitle}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Subtitle (Kurdish)
-            </label>
-            <input
-              type="text"
-              name="subtitle_kr"
-              value={formData.subtitle_kr}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Subtitle (Arabic)
-            </label>
-            <input
-              type="text"
-              name="subtitle_ar"
-              value={formData.subtitle_ar}
-              onChange={handleChange}
-              dir="rtl"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
-            />
-          </div>
-        </div>
-
-        {/* Description - All Languages */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description (English)
-            </label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="3"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description (Kurdish)
-            </label>
-            <textarea
-              name="description_kr"
-              value={formData.description_kr}
-              onChange={handleChange}
-              rows="3"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description (Arabic)
-            </label>
-            <textarea
-              name="description_ar"
-              value={formData.description_ar}
-              onChange={handleChange}
-              rows="3"
-              dir="rtl"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
-            />
-          </div>
-        </div>
-
-
-        {/* Image Upload - Background */}
-        <ImageUpload
-          label="Background Image"
-          value={formData.background_image}
-          onChange={(url) => setFormData(prev => ({ ...prev, background_image: url }))}
-          folder="slides"
-        />
-
-        {/* Image Upload - Museum */}
-        <ImageUpload
-          label="Museum Image"
-          value={formData.museum_image}
-          onChange={(url) => setFormData(prev => ({ ...prev, museum_image: url }))}
-          folder="museum"
-        />
-
-        {/* Video URL */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Video URL
-          </label>
-          <input
-            type="text"
-            name="video_url"
-            value={formData.video_url}
-            onChange={handleChange}
-            placeholder="/assets/videos/peshmarga.mp4"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Active Status */}
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            name="is_active"
-            id="is_active"
-            checked={formData.is_active}
-            onChange={handleChange}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <label htmlFor="is_active" className="text-sm font-medium text-gray-700">
-            Active (show on website)
-          </label>
-        </div>
-
-        {/* Submit Buttons */}
-        <div className="flex justify-end gap-4 pt-4">
+        {/* Action Buttons */}
+        <div className="flex justify-end gap-3 pt-2">
           <button
             type="button"
             onClick={() => router.push('/admin/slides')}
-            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+            className="px-5 py-2.5 text-sm font-medium border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors text-gray-700"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:bg-gray-400"
+            className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white rounded-xl disabled:opacity-60 transition-all shadow-lg shadow-blue-900/30"
           >
-            {saving ? 'Saving...' : isNew ? 'Create Slide' : 'Save Changes'}
+            {saving
+              ? <><Loader2 size={15} className="animate-spin" /> Saving…</>
+              : <><CheckCircle2 size={15} /> {isNew ? 'Create Slide' : 'Save Changes'}</>
+            }
           </button>
         </div>
+
       </form>
     </div>
   )

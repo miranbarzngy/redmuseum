@@ -1,6 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import {
+  ShieldCheck, Users, Key, UserPlus, Pencil, Trash2,
+  ChevronRight, CheckCircle2, Loader2, X, Plus,
+  AtSign, UserRound,
+} from 'lucide-react'
 
 const SECTIONS = ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','section_order','users']
 const ACTIONS = ['view','edit','delete']
@@ -8,32 +13,34 @@ const ACTIONS = ['view','edit','delete']
 const EMPTY_PERMS = () =>
   Object.fromEntries(SECTIONS.map(s => [s, { view: false, edit: false, delete: false }]))
 
+const inputCls = 'w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-400 text-gray-800 placeholder-gray-400'
+
 // ── Permission Matrix ─────────────────────────────────────
 function PermMatrix({ perms, onChange, disabled }) {
   const p = { ...EMPTY_PERMS(), ...perms }
   const set = (section, action, val) => {
     const next = { ...p, [section]: { ...p[section], [action]: val } }
-    // if edit/delete enabled, view must be on
     if ((action === 'edit' || action === 'delete') && val) next[section].view = true
-    // if view disabled, disable edit+delete
     if (action === 'view' && !val) { next[section].edit = false; next[section].delete = false }
     onChange(next)
   }
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs border border-gray-200 rounded-lg overflow-hidden">
-        <thead className="bg-gray-50">
+    <div className="overflow-x-auto rounded-xl border border-gray-100">
+      <table className="w-full text-xs">
+        <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider w-28">Section</th>
+            <th className="px-3 py-2.5 text-left font-semibold text-gray-400 uppercase tracking-wider w-32">Section</th>
             {ACTIONS.map(a => (
-              <th key={a} className="px-3 py-2 text-center font-semibold text-gray-500 uppercase tracking-wider capitalize">{a}</th>
+              <th key={a} className={`px-3 py-2.5 text-center font-semibold uppercase tracking-wider ${
+                a === 'view' ? 'text-emerald-600' : a === 'edit' ? 'text-indigo-600' : 'text-red-500'
+              }`}>{a}</th>
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
-          {SECTIONS.map(s => (
-            <tr key={s} className="hover:bg-gray-50">
-              <td className="px-3 py-2 font-medium text-gray-700 capitalize">{s}</td>
+        <tbody className="divide-y divide-gray-50">
+          {SECTIONS.map((s, i) => (
+            <tr key={s} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}>
+              <td className="px-3 py-2 font-medium text-gray-600 capitalize">{s.replace('_', ' ')}</td>
               {ACTIONS.map(a => (
                 <td key={a} className="px-3 py-2 text-center">
                   <input
@@ -41,7 +48,9 @@ function PermMatrix({ perms, onChange, disabled }) {
                     checked={!!p[s]?.[a]}
                     disabled={disabled}
                     onChange={e => set(s, a, e.target.checked)}
-                    className="w-4 h-4 accent-blue-600 cursor-pointer disabled:opacity-40"
+                    className={`w-4 h-4 cursor-pointer disabled:opacity-40 rounded ${
+                      a === 'view' ? 'accent-emerald-600' : a === 'edit' ? 'accent-indigo-600' : 'accent-red-500'
+                    }`}
                   />
                 </td>
               ))}
@@ -59,27 +68,30 @@ function RolesList({ roles, deletingRole, onEdit, onDelete }) {
   const toggle = (id) => setExpanded(p => ({ ...p, [id]: !p[id] }))
 
   return (
-    <div className="divide-y divide-gray-100">
+    <div className="divide-y divide-gray-50">
       {roles.map(role => (
         <div key={role.id}>
-          {/* Header row — always visible */}
-          <div className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 cursor-pointer"
-            onClick={() => toggle(role.id)}>
+          <div
+            className="flex items-center justify-between px-5 py-4 hover:bg-gray-50/60 cursor-pointer transition-colors"
+            onClick={() => toggle(role.id)}
+          >
             <div className="flex items-center gap-3 min-w-0">
-              <span className={`text-gray-400 text-xs transition-transform duration-200 ${expanded[role.id] ? 'rotate-90' : ''}`}>▶</span>
+              <ChevronRight
+                size={14}
+                className={`text-gray-400 transition-transform duration-200 shrink-0 ${expanded[role.id] ? 'rotate-90' : ''}`}
+              />
               <span className="font-semibold text-gray-800 capitalize">{role.name}</span>
               {role.description && <span className="text-xs text-gray-400 truncate">{role.description}</span>}
-              {/* Permission summary badges */}
               {!expanded[role.id] && (
-                <div className="flex gap-1 ml-2 flex-wrap">
+                <div className="flex gap-1 ml-1 flex-wrap">
                   {['view','edit','delete'].map(action => {
                     const count = Object.values(role.permissions || {}).filter(p => p[action]).length
                     if (!count) return null
                     return (
                       <span key={action} className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                        action === 'view' ? 'bg-green-100 text-green-700'
-                        : action === 'edit' ? 'bg-blue-100 text-blue-700'
-                        : 'bg-red-100 text-red-700'
+                        action === 'view'   ? 'bg-emerald-100 text-emerald-700'
+                        : action === 'edit' ? 'bg-indigo-100 text-indigo-700'
+                        : 'bg-red-100 text-red-600'
                       }`}>
                         {action} ×{count}
                       </span>
@@ -88,18 +100,26 @@ function RolesList({ roles, deletingRole, onEdit, onDelete }) {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-3 shrink-0" onClick={e => e.stopPropagation()}>
-              <button onClick={() => onEdit(role)} className="text-blue-500 hover:text-blue-700 text-xs font-semibold">Edit</button>
-              <button onClick={() => onDelete(role.id)} disabled={deletingRole === role.id}
-                className="text-red-500 hover:text-red-700 text-xs font-semibold disabled:opacity-40">
-                {deletingRole === role.id ? 'Deleting…' : 'Delete'}
+            <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
+              <button
+                onClick={() => onEdit(role)}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium transition-colors"
+              >
+                <Pencil size={11} /> Edit
+              </button>
+              <button
+                onClick={() => onDelete(role.id)}
+                disabled={deletingRole === role.id}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors disabled:opacity-40"
+              >
+                <Trash2 size={11} /> {deletingRole === role.id ? 'Deleting…' : 'Delete'}
               </button>
             </div>
           </div>
 
-          {/* Expanded permissions matrix */}
           {expanded[role.id] && (
-            <div className="px-6 pb-5 bg-gray-50 border-t border-gray-100">
+            <div className="px-5 pb-5 bg-gray-50/60 border-t border-gray-100">
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider py-3">Permissions Matrix</p>
               <PermMatrix perms={role.permissions} onChange={() => {}} disabled />
             </div>
           )}
@@ -134,43 +154,45 @@ function EditRoleModal({ role, onClose, onSaved }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h3 className="font-bold text-gray-800">Edit Role</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
+        <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
+          <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-violet-900 flex items-center justify-center shadow shadow-violet-950/30">
+            <Key size={14} strokeWidth={1.8} className="text-white" />
+          </span>
+          <h3 className="font-bold text-gray-900 flex-1">Edit Role</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+            <X size={16} />
+          </button>
         </div>
-        <form onSubmit={save} className="p-6 space-y-4">
+        <form onSubmit={save} className="p-6 space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Name</label>
-              <input
-                value={form.name} required
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Name</label>
+              <input value={form.name} required
                 onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                className={inputCls} />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Description</label>
-              <input
-                value={form.description}
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Description</label>
+              <input value={form.description}
                 onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+                className={inputCls} />
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Permissions</label>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Permissions</label>
             <PermMatrix perms={form.permissions} onChange={p => setForm(prev => ({ ...prev, permissions: p }))} />
           </div>
           {err && <p className="text-red-500 text-sm">{err}</p>}
           <div className="flex gap-3 pt-1">
             <button type="submit" disabled={saving}
-              className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg">
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-br from-violet-600 to-violet-800 hover:from-violet-700 hover:to-violet-900 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all">
+              {saving ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
               {saving ? 'Saving…' : 'Save Changes'}
             </button>
             <button type="button" onClick={onClose}
-              className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg">
+              className="flex-1 py-2.5 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors">
               Cancel
             </button>
           </div>
@@ -182,7 +204,7 @@ function EditRoleModal({ role, onClose, onSaved }) {
 
 // ── Edit User Modal ───────────────────────────────────────
 function EditUserModal({ user, roles, onClose, onSaved }) {
-  const [form, setForm] = useState({ email: user.email, password: '', role: user.role })
+  const [form, setForm] = useState({ email: user.email, full_name: user.full_name || '', password: '', role: user.role })
   const [saving, setSaving] = useState(false)
   const [err, setErr] = useState('')
 
@@ -190,7 +212,7 @@ function EditUserModal({ user, roles, onClose, onSaved }) {
 
   const save = async (e) => {
     e.preventDefault(); setSaving(true); setErr('')
-    const body = { id: user.id, email: form.email, role: form.role }
+    const body = { id: user.id, email: form.email, role: form.role, full_name: form.full_name }
     if (form.password) body.password = form.password
     const res = await fetch('/api/admin/users', {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
@@ -202,49 +224,64 @@ function EditUserModal({ user, roles, onClose, onSaved }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h3 className="font-bold text-gray-800">Edit User</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">×</button>
+        <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-100">
+          <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-violet-900 flex items-center justify-center shadow shadow-violet-950/30">
+            <Pencil size={14} strokeWidth={1.8} className="text-white" />
+          </span>
+          <h3 className="font-bold text-gray-900 flex-1">Edit User</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+            <X size={16} />
+          </button>
         </div>
         <form onSubmit={save} className="p-6 space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Email</label>
-            <input type="email" required value={form.email}
-              onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Full Name</label>
+              <input type="text" value={form.full_name}
+                onChange={e => setForm(p => ({ ...p, full_name: e.target.value }))}
+                placeholder="Full Name"
+                className={inputCls} />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
+              <input type="email" required value={form.email}
+                onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                className={inputCls} />
+            </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
               New Password <span className="text-gray-400 normal-case font-normal">(leave blank to keep current)</span>
             </label>
             <input type="password" value={form.password}
               onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
               placeholder="••••••••"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className={inputCls} />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Role</label>
+            <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Role</label>
             <select value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              className={inputCls}>
               {roles.map(r => <option key={r.id} value={r.name}>{r.name} — {r.description}</option>)}
             </select>
           </div>
           {selectedRole && (
             <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Role Permissions (read-only)</label>
+              <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Role Permissions (read-only)</label>
               <PermMatrix perms={selectedRole.permissions} onChange={() => {}} disabled />
             </div>
           )}
           {err && <p className="text-red-500 text-sm">{err}</p>}
           <div className="flex gap-3 pt-1">
             <button type="submit" disabled={saving}
-              className="flex-1 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg">
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-br from-violet-600 to-violet-800 hover:from-violet-700 hover:to-violet-900 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-all">
+              {saving ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
               {saving ? 'Saving…' : 'Save Changes'}
             </button>
             <button type="button" onClick={onClose}
-              className="flex-1 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg">
+              className="flex-1 py-2.5 border border-gray-200 text-gray-600 text-sm font-semibold rounded-xl hover:bg-gray-50 transition-colors">
               Cancel
             </button>
           </div>
@@ -262,7 +299,7 @@ export default function UsersPage() {
   const [loadingUsers, setLoadingUsers] = useState(true)
   const [loadingRoles, setLoadingRoles] = useState(true)
 
-  const [userForm, setUserForm] = useState({ email: '', password: '', role: '' })
+  const [userForm, setUserForm] = useState({ email: '', full_name: '', password: '', role: '' })
   const [userMsg, setUserMsg] = useState({ text: '', ok: true })
   const [savingUser, setSavingUser] = useState(false)
   const [deletingUser, setDeletingUser] = useState(null)
@@ -298,7 +335,6 @@ export default function UsersPage() {
 
   useEffect(() => { fetchUsers(); fetchRoles() }, [])
 
-  // ── User actions ──────────────────────────────────────────
   const createUser = async (e) => {
     e.preventDefault()
     setSavingUser(true)
@@ -309,7 +345,7 @@ export default function UsersPage() {
     setSavingUser(false)
     if (!res.ok) { flash(setUserMsg, json.error, false); return }
     flash(setUserMsg, `User ${json.user.email} created`)
-    setUserForm(p => ({ ...p, email: '', password: '' }))
+    setUserForm(p => ({ ...p, email: '', full_name: '', password: '' }))
     fetchUsers()
   }
 
@@ -338,7 +374,6 @@ export default function UsersPage() {
     flash(setUserMsg, 'User updated')
   }
 
-  // ── Role actions ──────────────────────────────────────────
   const createRole = async (e) => {
     e.preventDefault()
     setSavingRole(true)
@@ -367,115 +402,196 @@ export default function UsersPage() {
     flash(setRoleMsg, 'Role updated')
   }
 
+  const TABS = [
+    { id: 'users', label: 'Users',  Icon: Users },
+    { id: 'roles', label: 'Roles',  Icon: Key },
+  ]
+
   return (
-    <div>
+    <div className="max-w-5xl">
       {editingUser && <EditUserModal user={editingUser} roles={roles} onClose={() => setEditingUser(null)} onSaved={onUserSaved} />}
       {editingRole && <EditRoleModal role={editingRole} onClose={() => setEditingRole(null)} onSaved={onRoleSaved} />}
 
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">User & Role Management</h1>
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-8">
+        <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-600 to-violet-900 flex items-center justify-center shadow-lg shadow-violet-950/40">
+          <ShieldCheck size={20} strokeWidth={1.8} className="text-white" />
+        </span>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">User & Role Management</h1>
+          <p className="text-sm text-gray-400 mt-0.5">Manage admin users and their permissions</p>
+        </div>
+      </div>
 
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-lg w-fit">
-        {['users','roles'].map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-6 py-2 rounded-md text-sm font-semibold transition-colors ${
-              tab === t ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>
-            {t === 'users' ? '👤 Users' : '🔑 Roles'}
+      {/* Tabs */}
+      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
+        {TABS.map(({ id, label, Icon }) => (
+          <button key={id} onClick={() => setTab(id)}
+            className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+              tab === id
+                ? 'bg-white text-gray-900 shadow-sm'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}>
+            <Icon size={14} />
+            {label}
           </button>
         ))}
       </div>
 
       {/* ── USERS TAB ──────────────────────────────────────── */}
       {tab === 'users' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-base font-semibold text-gray-800 mb-4">Create New User</h2>
-            <form onSubmit={createUser} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="space-y-5">
+
+          {/* Create User */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+              <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-violet-900 flex items-center justify-center shadow shadow-violet-950/30">
+                <UserPlus size={14} strokeWidth={1.8} className="text-white" />
+              </span>
+              <h2 className="font-semibold text-gray-800 text-sm">Create New User</h2>
+            </div>
+            <form onSubmit={createUser} className="p-5 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Email</label>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Full Name</label>
+                  <input type="text" value={userForm.full_name}
+                    onChange={e => setUserForm(p => ({ ...p, full_name: e.target.value }))}
+                    placeholder="Full Name"
+                    className={inputCls} />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
                   <input type="email" required value={userForm.email}
                     onChange={e => setUserForm(p => ({ ...p, email: e.target.value }))}
                     placeholder="user@example.com"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Password</label>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Password</label>
                   <input type="password" required value={userForm.password}
                     onChange={e => setUserForm(p => ({ ...p, password: e.target.value }))}
                     placeholder="Min 6 characters"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Role</label>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Role</label>
                   <select value={userForm.role} onChange={e => setUserForm(p => ({ ...p, role: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    className={inputCls}>
                     {roles.map(r => <option key={r.id} value={r.name}>{r.name} — {r.description}</option>)}
                   </select>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <button type="submit" disabled={savingUser}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg">
+                  className="flex items-center gap-2 px-5 py-2 bg-gradient-to-br from-violet-600 to-violet-800 hover:from-violet-700 hover:to-violet-900 disabled:opacity-50 text-white text-sm font-semibold rounded-xl shadow shadow-violet-950/20 transition-all">
+                  {savingUser ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
                   {savingUser ? 'Creating…' : 'Create User'}
                 </button>
-                {userMsg.text && <span className={`text-sm font-medium ${userMsg.ok ? 'text-green-600' : 'text-red-600'}`}>{userMsg.text}</span>}
+                {userMsg.text && (
+                  <span className={`text-sm font-medium ${userMsg.ok ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {userMsg.text}
+                  </span>
+                )}
               </div>
             </form>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-gray-800">All Users</h2>
-              <span className="text-xs text-gray-400">{users.length} total</span>
+          {/* All Users */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-100">
+              <Users size={14} className="text-violet-600" />
+              <h2 className="font-semibold text-gray-800 text-sm">All Users</h2>
+              {users.length > 0 && (
+                <span className="ml-auto bg-violet-100 text-violet-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {users.length}
+                </span>
+              )}
             </div>
             {loadingUsers ? (
-              <div className="p-8 text-center text-gray-400 text-sm">Loading…</div>
+              <div className="flex items-center justify-center p-10">
+                <div className="w-7 h-7 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+              </div>
             ) : users.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-sm">No users found</div>
+              <div className="py-14 text-center text-gray-400 text-sm">No users found</div>
             ) : (
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                  <tr>
-                    <th className="px-6 py-3 text-left">Email</th>
-                    <th className="px-6 py-3 text-left">Role</th>
-                    <th className="px-6 py-3 text-left">Status</th>
-                    <th className="px-6 py-3 text-left">Created</th>
-                    <th className="px-6 py-3 text-left">Last Sign In</th>
-                    <th className="px-6 py-3 text-left">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {users.map(u => (
-                    <tr key={u.id} className={`hover:bg-gray-50 ${!u.is_active ? 'opacity-60' : ''}`}>
-                      <td className="px-6 py-3 font-medium text-gray-800">{u.email}</td>
-                      <td className="px-6 py-3">
-                        <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 capitalize">{u.role}</span>
-                      </td>
-                      <td className="px-6 py-3">
-                        <button onClick={() => toggleActive(u)} disabled={togglingUser === u.id}
-                          title={u.is_active ? 'Click to deactivate' : 'Click to activate'}
-                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-40 ${u.is_active ? 'bg-green-500' : 'bg-gray-300'}`}>
-                          <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${u.is_active ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
-                        <span className={`ml-2 text-xs font-medium ${u.is_active ? 'text-green-600' : 'text-gray-400'}`}>
-                          {togglingUser === u.id ? '…' : u.is_active ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 text-gray-500">{u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
-                      <td className="px-6 py-3 text-gray-500">{u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString() : 'Never'}</td>
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-3">
-                          <button onClick={() => setEditingUser(u)} className="text-blue-500 hover:text-blue-700 text-xs font-semibold">Edit</button>
-                          <button onClick={() => deleteUser(u.id)} disabled={deletingUser === u.id}
-                            className="text-red-500 hover:text-red-700 text-xs font-semibold disabled:opacity-40">
-                            {deletingUser === u.id ? 'Deleting…' : 'Delete'}
-                          </button>
-                        </div>
-                      </td>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      {['Name', 'Email', 'Role', 'Status', 'Created', 'Last Sign In', 'Actions'].map(h => (
+                        <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {users.map(u => (
+                      <tr key={u.id} className={`hover:bg-gray-50/60 transition-colors ${!u.is_active ? 'opacity-60' : ''}`}>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-2">
+                            <span className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                              {u.full_name ? u.full_name.trim().split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase() : <UserRound size={13} />}
+                            </span>
+                            <span className="font-medium text-gray-900 whitespace-nowrap">{u.full_name || <span className="text-gray-400 italic">—</span>}</span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3 text-gray-600 text-sm">
+                          <div className="flex items-center gap-1.5">
+                            <AtSign size={11} className="text-gray-400 shrink-0" />
+                            {u.email}
+                          </div>
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 capitalize">
+                            {u.role}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => toggleActive(u)}
+                              disabled={togglingUser === u.id}
+                              title={u.is_active ? 'Click to deactivate' : 'Click to activate'}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-40 ${
+                                u.is_active ? 'bg-emerald-500' : 'bg-gray-300'
+                              }`}
+                            >
+                              <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${
+                                u.is_active ? 'translate-x-6' : 'translate-x-1'
+                              }`} />
+                            </button>
+                            <span className={`text-xs font-medium ${u.is_active ? 'text-emerald-600' : 'text-gray-400'}`}>
+                              {togglingUser === u.id ? '…' : u.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-5 py-3 text-gray-500 text-xs whitespace-nowrap">
+                          {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
+                        </td>
+                        <td className="px-5 py-3 text-gray-500 text-xs whitespace-nowrap">
+                          {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString() : 'Never'}
+                        </td>
+                        <td className="px-5 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => setEditingUser(u)}
+                              className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium transition-colors"
+                            >
+                              <Pencil size={11} /> Edit
+                            </button>
+                            <button
+                              onClick={() => deleteUser(u.id)}
+                              disabled={deletingUser === u.id}
+                              className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors disabled:opacity-40"
+                            >
+                              <Trash2 size={11} /> {deletingUser === u.id ? '…' : 'Delete'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         </div>
@@ -483,52 +599,71 @@ export default function UsersPage() {
 
       {/* ── ROLES TAB ──────────────────────────────────────── */}
       {tab === 'roles' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-base font-semibold text-gray-800 mb-4">Create New Role</h2>
-            <form onSubmit={createRole} className="space-y-4">
+        <div className="space-y-5">
+
+          {/* Create Role */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+              <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-violet-600 to-violet-900 flex items-center justify-center shadow shadow-violet-950/30">
+                <Plus size={14} strokeWidth={2} className="text-white" />
+              </span>
+              <h2 className="font-semibold text-gray-800 text-sm">Create New Role</h2>
+            </div>
+            <form onSubmit={createRole} className="p-5 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Role Name</label>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Role Name</label>
                   <input type="text" required value={roleForm.name}
                     onChange={e => setRoleForm(p => ({ ...p, name: e.target.value }))}
                     placeholder="e.g. moderator"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className={inputCls} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Description</label>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Description</label>
                   <input type="text" value={roleForm.description}
                     onChange={e => setRoleForm(p => ({ ...p, description: e.target.value }))}
                     placeholder="What can this role do?"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    className={inputCls} />
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Permissions</label>
+                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Permissions</label>
                 <PermMatrix perms={roleForm.permissions} onChange={p => setRoleForm(prev => ({ ...prev, permissions: p }))} />
               </div>
               <div className="flex items-center gap-3">
                 <button type="submit" disabled={savingRole}
-                  className="px-5 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg">
+                  className="flex items-center gap-2 px-5 py-2 bg-gradient-to-br from-violet-600 to-violet-800 hover:from-violet-700 hover:to-violet-900 disabled:opacity-50 text-white text-sm font-semibold rounded-xl shadow shadow-violet-950/20 transition-all">
+                  {savingRole ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
                   {savingRole ? 'Creating…' : 'Create Role'}
                 </button>
-                {roleMsg.text && <span className={`text-sm font-medium ${roleMsg.ok ? 'text-green-600' : 'text-red-600'}`}>{roleMsg.text}</span>}
+                {roleMsg.text && (
+                  <span className={`text-sm font-medium ${roleMsg.ok ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {roleMsg.text}
+                  </span>
+                )}
               </div>
             </form>
           </div>
 
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-gray-800">All Roles</h2>
-              <span className="text-xs text-gray-400">{roles.length} roles</span>
+          {/* All Roles */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-100">
+              <Key size={14} className="text-violet-600" />
+              <h2 className="font-semibold text-gray-800 text-sm">All Roles</h2>
+              {roles.length > 0 && (
+                <span className="ml-auto bg-violet-100 text-violet-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                  {roles.length}
+                </span>
+              )}
             </div>
             {loadingRoles ? (
-              <div className="p-8 text-center text-gray-400 text-sm">Loading…</div>
+              <div className="flex items-center justify-center p-10">
+                <div className="w-7 h-7 border-4 border-violet-600 border-t-transparent rounded-full animate-spin" />
+              </div>
             ) : roles.length === 0 ? (
-              <div className="p-8 text-center text-gray-400 text-sm">No roles found. Run the SQL migration first.</div>
+              <div className="py-14 text-center text-gray-400 text-sm">No roles found. Run the SQL migration first.</div>
             ) : (
-              <RolesList roles={roles} editingRole={editingRole} deletingRole={deletingRole}
-                onEdit={setEditingRole} onDelete={deleteRole} />
+              <RolesList roles={roles} deletingRole={deletingRole} onEdit={setEditingRole} onDelete={deleteRole} />
             )}
           </div>
         </div>

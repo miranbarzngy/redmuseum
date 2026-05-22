@@ -1,167 +1,213 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  rectSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import {
+  Frame,
+  Plus,
+  Pencil,
+  Trash2,
+  GripVertical,
+  Upload,
+  Loader2,
+  Globe,
+  ImageIcon,
+  CheckCircle2,
+  X,
+  Users,
+  Zap,
+  Award,
+  Heart,
+} from 'lucide-react'
 import { supabase } from '../../lib/supabase-client'
 import VisibilityToggle from '../components/VisibilityToggle'
 
 const categories = [
-  { id: 'visitor', name: 'Visitor Touring', folder: 'Vistor Touring' },
-  { id: 'activity', name: 'Activity', folder: 'Activity' },
-  { id: 'delegation', name: 'Official Delegation Visit', folder: 'official delegation visit' },
-  { id: 'donation', name: 'Donation', folder: 'donation' },
+  { id: 'visitor',    name: 'Visitor Touring',           Icon: Users  },
+  { id: 'activity',  name: 'Activity',                   Icon: Zap    },
+  { id: 'delegation',name: 'Official Delegation Visit',  Icon: Award  },
+  { id: 'donation',  name: 'Donation',                   Icon: Heart  },
 ]
 
-// Helper function to normalize paths
 const normalizePath = (path) => {
   if (!path) return null
-  // If already a full URL (http/https), don't modify
   if (path.startsWith('http://') || path.startsWith('https://')) return path
-  // If already has leading slash, return as is
   if (path.startsWith('/')) return path
-  // Otherwise add leading slash for relative paths
   return `/${path}`
+}
+
+const inputCls = 'w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 bg-gray-50/50 transition-colors'
+
+const langCols = [
+  { suffix: '',    label: 'English', badge: 'bg-blue-100 text-blue-700',        dir: 'ltr', font: undefined },
+  { suffix: '_ar', label: 'Arabic',  badge: 'bg-amber-100 text-amber-700',      dir: 'rtl', font: 'Cairo, Tahoma, sans-serif' },
+]
+
+function LangBadge({ label, cls }) {
+  return (
+    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${cls}`}>
+      <Globe size={11} />{label}
+    </span>
+  )
+}
+
+function SortableCard({ img, onEdit, onDelete }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: img.id })
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : 'auto',
+    position: isDragging ? 'relative' : 'static',
+  }
+
+  return (
+    <div ref={setNodeRef} style={style} className="group bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+      <div className="relative aspect-square">
+        <img
+          src={normalizePath(img.image_url)}
+          alt={img.title || 'Gallery image'}
+          className="w-full h-full object-cover"
+          onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
+        />
+        {/* Drag handle */}
+        <button
+          {...attributes}
+          {...listeners}
+          className="absolute top-2 left-2 bg-black/50 hover:bg-black/70 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+          title="Drag to reorder"
+        >
+          <GripVertical size={14} />
+        </button>
+        {/* Action overlay */}
+        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+        <div className="absolute bottom-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => onEdit(img)}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-white text-blue-700 text-xs font-semibold rounded-lg shadow hover:bg-blue-50 transition-colors"
+          >
+            <Pencil size={11} /> Edit
+          </button>
+          <button
+            onClick={() => onDelete(img.id)}
+            className="flex items-center gap-1 px-2.5 py-1.5 bg-white text-red-600 text-xs font-semibold rounded-lg shadow hover:bg-red-50 transition-colors"
+          >
+            <Trash2 size={11} /> Del
+          </button>
+        </div>
+      </div>
+      <div className="px-3 py-2.5">
+        <p className="font-medium text-sm text-gray-800 truncate">{img.title || 'Untitled'}</p>
+      </div>
+    </div>
+  )
 }
 
 export default function GalleryManagement() {
   const [gallery, setGallery] = useState([])
   const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState('visitor')
   const [editingItem, setEditingItem] = useState(null)
   const [isAdding, setIsAdding] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [formData, setFormData] = useState({ image_url: '', title: '', title_ar: '', description: '', description_ar: '' })
 
-  const [formData, setFormData] = useState({
-    image_url: '',
-    title: '',
-    title_ar: '',
-    description: '',
-    description_ar: '',
-    display_order: 0
-  })
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  )
 
-
-  useEffect(() => {
-    fetchGallery()
-  }, [])
+  useEffect(() => { fetchGallery() }, [])
 
   const fetchGallery = async () => {
-    if (!supabase) {
-      console.error('Supabase not configured')
-      setLoading(false)
-      return
-    }
-
+    if (!supabase) { setLoading(false); return }
     try {
-      const { data, error } = await supabase
-        .from('gallery')
-        .select('*')
-        .order('display_order', { ascending: true })
-
+      const { data, error } = await supabase.from('gallery').select('*').order('display_order', { ascending: true })
       if (error) throw error
-      console.log('Gallery fetched:', data?.length || 0)
       setGallery(data || [])
     } catch (error) {
       console.error('Error fetching gallery:', error)
-    } finally {
-      setLoading(false)
-    }
+    } finally { setLoading(false) }
+  }
+
+  const filteredImages = gallery.filter(img => img.category === selectedCategory)
+
+  const handleDragEnd = async (event) => {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const oldIndex = filteredImages.findIndex(img => img.id === active.id)
+    const newIndex = filteredImages.findIndex(img => img.id === over.id)
+    const reordered = arrayMove(filteredImages, oldIndex, newIndex)
+    setGallery(prev => {
+      const others = prev.filter(img => img.category !== selectedCategory)
+      return [...others, ...reordered]
+    })
+    setSaving(true)
+    try {
+      const updates = reordered.map((img, i) => supabase.from('gallery').update({ display_order: i + 1 }).eq('id', img.id))
+      const results = await Promise.all(updates)
+      const failed = results.find(r => r.error)
+      if (failed) throw failed.error
+    } catch (error) {
+      alert('Error saving order: ' + error.message)
+      fetchGallery()
+    } finally { setSaving(false) }
   }
 
   const deleteImage = async (id) => {
     if (!confirm('Are you sure you want to delete this image?')) return
-
     try {
-      const { error } = await supabase
-        .from('gallery')
-        .delete()
-        .eq('id', id)
-
+      const { error } = await supabase.from('gallery').delete().eq('id', id)
       if (error) throw error
-      fetchGallery()
+      setGallery(prev => prev.filter(img => img.id !== id))
     } catch (error) {
       alert('Error deleting image: ' + error.message)
     }
   }
 
-  // Handle file upload to Supabase Storage
   const handleFileUpload = async (file) => {
     if (!file) return null
-    
     setUploading(true)
-    
     try {
-      // Generate unique filename
       const fileExt = file.name.split('.').pop()
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
       const filePath = `gallery/${selectedCategory}/${fileName}`
-      
-      // Upload to Supabase Storage
-      const { data, error } = await supabase.storage
-        .from('museum-images')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        })
-
-      if (error) {
-        console.error('Upload error:', error)
-        throw error
-      }
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from('museum-images')
-        .getPublicUrl(filePath)
-
-      const publicUrl = urlData.publicUrl
-      console.log('Uploaded to:', publicUrl)
-      
-      return publicUrl
+      const { error } = await supabase.storage.from('museum-images').upload(filePath, file, { cacheControl: '3600', upsert: false })
+      if (error) throw error
+      const { data: urlData } = supabase.storage.from('museum-images').getPublicUrl(filePath)
+      return urlData.publicUrl
     } catch (error) {
-      console.error('Error uploading file:', error)
       alert('Error uploading file: ' + error.message)
       return null
-    } finally {
-      setUploading(false)
-    }
+    } finally { setUploading(false) }
   }
 
-  // Handle input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'display_order' ? parseInt(value) || 0 : value
-    }))
-  }
-
-  // Handle file selection
   const handleFileSelect = async (e) => {
     const file = e.target.files?.[0]
     if (!file) return
-
-    // First, try to upload to Supabase Storage
-    const uploadedUrl = await handleFileUpload(file)
-    
-    if (uploadedUrl) {
-      setFormData(prev => ({
-        ...prev,
-        image_url: uploadedUrl
-      }))
-    }
+    const url = await handleFileUpload(file)
+    if (url) setFormData(prev => ({ ...prev, image_url: url }))
   }
 
   const handleSave = async (e) => {
     e.preventDefault()
-    
-    if (!formData.image_url) {
-      alert('Please select or upload an image')
-      return
-    }
-
-    // Ensure display_order is a number
-    const displayOrder = parseInt(formData.display_order) || 0
-
+    if (!formData.image_url) { alert('Please select or upload an image'); return }
     const data = {
       category: selectedCategory,
       image_url: formData.image_url,
@@ -169,283 +215,195 @@ export default function GalleryManagement() {
       title_ar: formData.title_ar || null,
       description: formData.description || null,
       description_ar: formData.description_ar || null,
-      display_order: displayOrder,
-      is_active: true
+      display_order: editingItem ? editingItem.display_order : filteredImages.length + 1,
+      is_active: true,
     }
-
-
     try {
       if (editingItem) {
-        // Update existing record
-        const { error } = await supabase
-          .from('gallery')
-          .update(data)
-          .eq('id', editingItem.id)
-        
+        const { error } = await supabase.from('gallery').update(data).eq('id', editingItem.id)
         if (error) throw error
-        console.log('Image updated successfully')
       } else {
-        // Insert new record
-        const { error } = await supabase
-          .from('gallery')
-          .insert([data])
-        
+        const { error } = await supabase.from('gallery').insert([data])
         if (error) throw error
-        console.log('Image added successfully')
       }
-      
-      // Reset form and refresh list
-      setEditingItem(null)
-      setIsAdding(false)
-      setFormData({ 
-        image_url: '', 
-        title: '', 
-        description: '', 
-        display_order: 0 
-      })
-      
-      // Refresh gallery list
+      handleCancel()
       fetchGallery()
     } catch (error) {
       alert('Error saving: ' + error.message)
     }
   }
 
-  // Handle edit button click
   const handleEdit = (item) => {
     setEditingItem(item)
     setIsAdding(true)
-    setFormData({
-      image_url: item.image_url || '',
-      title: item.title || '',
-      title_ar: item.title_ar || '',
-      description: item.description || '',
-      description_ar: item.description_ar || '',
-      display_order: item.display_order || 0
-    })
+    setFormData({ image_url: item.image_url || '', title: item.title || '', title_ar: item.title_ar || '', description: item.description || '', description_ar: item.description_ar || '' })
   }
 
-  // Handle cancel
   const handleCancel = () => {
     setEditingItem(null)
     setIsAdding(false)
-    setFormData({ 
-      image_url: '', 
-      title: '', 
-      title_ar: '',
-      description: '', 
-      description_ar: '',
-      display_order: 0 
-    })
+    setFormData({ image_url: '', title: '', title_ar: '', description: '', description_ar: '' })
   }
-
-
-  const filteredImages = gallery.filter(img => img.category === selectedCategory)
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-rose-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
-  return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Gallery Management</h1>
+  const activeCat = categories.find(c => c.id === selectedCategory)
 
-      <div className="mb-6">
+  return (
+    <div className="max-w-6xl">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center gap-4">
+          <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-700 to-rose-900 flex items-center justify-center shadow-lg shadow-rose-950/40">
+            <Frame size={20} strokeWidth={1.8} className="text-white" />
+          </span>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Gallery Management</h1>
+            <p className="text-sm text-gray-400 mt-0.5">{filteredImages.length} images in {activeCat?.name}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {saving && (
+            <span className="flex items-center gap-2 text-sm text-gray-400">
+              <Loader2 size={14} className="animate-spin text-rose-500" /> Saving order…
+            </span>
+          )}
+          <button
+            onClick={() => { setIsAdding(true); setEditingItem(null); setFormData({ image_url: '', title: '', title_ar: '', description: '', description_ar: '' }) }}
+            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-br from-rose-700 to-rose-900 hover:from-rose-800 hover:to-rose-950 text-white rounded-xl shadow-lg shadow-rose-950/30 transition-all"
+          >
+            <Plus size={16} /> Add New Image
+          </button>
+        </div>
+      </div>
+
+      {/* Visibility toggle */}
+      <div className="mb-5">
         <VisibilityToggle settingKey="show_gallery" label="Gallery Section" />
       </div>
 
       {/* Category Tabs */}
       <div className="flex flex-wrap gap-2 mb-6">
-        {categories.map((cat) => (
+        {categories.map(cat => (
           <button
             key={cat.id}
-            onClick={() => {
-              setSelectedCategory(cat.id)
-              setEditingItem(null)
-              setIsAdding(false)
-              setFormData({ 
-                image_url: '', 
-                title: '', 
-                description: '', 
-                display_order: 0 
-              })
-            }}
-            className={`px-4 py-2 rounded-lg ${
+            onClick={() => { setSelectedCategory(cat.id); handleCancel() }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
               selectedCategory === cat.id
-                ? 'bg-blue-600 text-white'
-                : 'bg-white text-gray-700 hover:bg-gray-100'
+                ? 'bg-gradient-to-br from-rose-700 to-rose-900 text-white shadow-md shadow-rose-950/30'
+                : 'bg-white border border-gray-200 text-gray-600 hover:border-rose-300 hover:text-rose-700'
             }`}
           >
+            <cat.Icon size={14} />
             {cat.name}
           </button>
         ))}
       </div>
 
-      {/* Add Button */}
-      <div className="mb-6">
-        <button
-          onClick={() => {
-            setIsAdding(true)
-            setEditingItem(null)
-            setFormData({ 
-              image_url: '', 
-              title: '', 
-              description: '', 
-              display_order: filteredImages.length + 1 
-            })
-          }}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-        >
-          ➕ Add New Image
-        </button>
-      </div>
-
-      {/* Add/Edit Form */}
-      {(isAdding || editingItem) && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">
-            {editingItem ? 'Edit Image' : 'Add New Image'}
-          </h2>
-          <form onSubmit={handleSave} className="space-y-4">
-            {/* Category Display */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-              <input
-                type="text"
-                value={categories.find(c => c.id === selectedCategory)?.name || selectedCategory}
-                disabled
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100"
-              />
+      {/* Add / Edit Form */}
+      {isAdding && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center gap-3">
+              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-700 to-rose-900 flex items-center justify-center shadow shadow-rose-950/40">
+                {editingItem ? <Pencil size={14} className="text-white" /> : <Plus size={14} className="text-white" />}
+              </span>
+              <h2 className="font-semibold text-gray-800">{editingItem ? 'Edit Image' : 'Add New Image'}</h2>
             </div>
+            <button onClick={handleCancel} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
 
-            {/* Image Upload */}
+          <form onSubmit={handleSave} className="p-6 space-y-5">
+            {/* Image upload */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+              <label className="block text-xs font-medium text-gray-500 mb-2">Image</label>
               <div className="flex gap-2">
                 <input
                   type="text"
-                  name="image_url"
                   value={formData.image_url}
-                  onChange={handleInputChange}
+                  onChange={e => setFormData(prev => ({ ...prev, image_url: e.target.value }))}
                   placeholder="Enter image URL or upload a file"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                  className={inputCls}
                 />
-                <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
-                  📤 Upload
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileSelect}
-                    className="hidden"
-                    disabled={uploading}
-                  />
+                <label className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl cursor-pointer shrink-0 transition-all shadow-md ${
+                  uploading
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : 'bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white shadow-blue-900/30'
+                }`}>
+                  {uploading ? <><Loader2 size={14} className="animate-spin" /> Uploading…</> : <><Upload size={14} /> Upload</>}
+                  <input type="file" accept="image/*" onChange={handleFileSelect} className="hidden" disabled={uploading} />
                 </label>
               </div>
-              {uploading && (
-                <p className="text-blue-600 mt-2">Uploading...</p>
-              )}
-              {(formData.image_url) && (
+              {formData.image_url ? (
                 <img
                   src={normalizePath(formData.image_url)}
                   alt="Preview"
-                  className="mt-2 h-32 w-auto rounded border object-cover"
-                  onError={(e) => {
-                    console.log('Preview image failed to load')
-                    e.target.style.display = 'none'
-                  }}
+                  className="mt-3 h-28 w-auto rounded-xl border border-gray-200 object-cover shadow-sm"
+                  onError={e => { e.target.style.display = 'none' }}
                 />
+              ) : (
+                <div className="mt-3 flex items-center gap-2 h-16 px-4 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 text-sm">
+                  <ImageIcon size={16} /> No image selected
+                </div>
               )}
             </div>
 
-            {/* Title - English */}
+            {/* Title & Description — language columns */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title (English)</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleInputChange}
-                placeholder="Enter image title"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
+              <div className="grid grid-cols-2 gap-4 mb-2">
+                {langCols.map(l => <LangBadge key={l.suffix} label={l.label} cls={l.badge} />)}
+              </div>
+              <div className="grid grid-cols-2 gap-4 mb-3">
+                {langCols.map(l => (
+                  <div key={l.suffix}>
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Title</label>
+                    <input
+                      type="text"
+                      value={formData[`title${l.suffix}`]}
+                      onChange={e => setFormData(prev => ({ ...prev, [`title${l.suffix}`]: e.target.value }))}
+                      dir={l.dir}
+                      style={l.font ? { fontFamily: l.font } : {}}
+                      className={inputCls}
+                    />
+                  </div>
+                ))}
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {langCols.map(l => (
+                  <div key={l.suffix}>
+                    <label className="block text-xs font-medium text-gray-500 mb-1.5">Description</label>
+                    <textarea
+                      value={formData[`description${l.suffix}`]}
+                      onChange={e => setFormData(prev => ({ ...prev, [`description${l.suffix}`]: e.target.value }))}
+                      rows={2}
+                      dir={l.dir}
+                      style={l.font ? { fontFamily: l.font } : {}}
+                      className={inputCls}
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Title - Arabic */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title (Arabic)</label>
-              <input
-                type="text"
-                name="title_ar"
-                value={formData.title_ar}
-                onChange={handleInputChange}
-                placeholder="العنوان بالعربية"
-                dir="rtl"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
-              />
-            </div>
-
-            {/* Description - English */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description (English)</label>
-              <textarea
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                placeholder="Enter image description"
-                rows="2"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-
-            {/* Description - Arabic */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description (Arabic)</label>
-              <textarea
-                name="description_ar"
-                value={formData.description_ar}
-                onChange={handleInputChange}
-                placeholder="الوصف بالعربية"
-                rows="2"
-                dir="rtl"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-                style={{ fontFamily: 'Cairo, Tahoma, sans-serif' }}
-              />
-            </div>
-
-
-            {/* Display Order */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Display Order</label>
-              <input
-                type="number"
-                name="display_order"
-                value={formData.display_order}
-                onChange={handleInputChange}
-                min="0"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-2">
+            <div className="flex justify-end gap-3 pt-1">
+              <button type="button" onClick={handleCancel} className="px-4 py-2.5 text-sm font-medium border border-gray-200 rounded-xl hover:bg-gray-50 text-gray-700 transition-colors">
+                Cancel
+              </button>
               <button
                 type="submit"
                 disabled={uploading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gradient-to-br from-rose-700 to-rose-900 hover:from-rose-800 hover:to-rose-950 text-white rounded-xl disabled:opacity-60 shadow-lg shadow-rose-950/30 transition-all"
               >
-                {uploading ? 'Uploading...' : 'Save'}
-              </button>
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Cancel
+                <CheckCircle2 size={15} />
+                {editingItem ? 'Save Changes' : 'Add Image'}
               </button>
             </div>
           </form>
@@ -453,45 +411,23 @@ export default function GalleryManagement() {
       )}
 
       {/* Images Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {filteredImages.map((img) => (
-          <div key={img.id} className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="relative aspect-square">
-              <img
-                src={normalizePath(img.image_url)}
-                alt={img.title || 'Gallery image'}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  // Use a valid fallback image
-                  e.target.src = '/assets/images/bg-1.jpg'
-                }}
-              />
-            </div>
-            <div className="p-3">
-              <h3 className="font-medium text-sm truncate">{img.title || 'Untitled'}</h3>
-              <p className="text-xs text-gray-500">Order: {img.display_order}</p>
-              <div className="flex gap-2 mt-2">
-                <button
-                  onClick={() => handleEdit(img)}
-                  className="text-blue-600 text-sm hover:underline"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => deleteImage(img.id)}
-                  className="text-red-600 text-sm hover:underline"
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={filteredImages.map(img => img.id)} strategy={rectSortingStrategy}>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {filteredImages.map(img => (
+              <SortableCard key={img.id} img={img} onEdit={handleEdit} onDelete={deleteImage} />
+            ))}
           </div>
-        ))}
-      </div>
+        </SortableContext>
+      </DndContext>
 
-      {filteredImages.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          No images in this category. Click "Add New Image" to add one.
+      {filteredImages.length === 0 && !isAdding && (
+        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+          <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-700 to-rose-900 flex items-center justify-center shadow-lg shadow-rose-950/40 mb-4">
+            <Frame size={24} strokeWidth={1.6} className="text-white" />
+          </span>
+          <p className="text-sm font-medium text-gray-500">No images in this category</p>
+          <p className="text-xs text-gray-400 mt-1">Click "Add New Image" to get started</p>
         </div>
       )}
     </div>

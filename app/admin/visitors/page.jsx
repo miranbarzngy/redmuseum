@@ -3,17 +3,40 @@
 import { useState, useEffect } from 'react'
 import { getSupabaseClient } from '../../lib/supabase-client'
 import { QRCodeSVG } from 'qrcode.react'
+import QRCode from 'qrcode'
+import {
+  Users, CalendarDays, Clock, Search, X, QrCode, Printer,
+  CheckCircle2, Trash2, Filter, SlidersHorizontal, UserCheck,
+  Users2, Hourglass, Check, RefreshCw,
+} from 'lucide-react'
 
 const STATUS_STYLES = {
-  pending:  'bg-yellow-100 text-yellow-800',
-  approved: 'bg-blue-100 text-blue-800',
-  visited:  'bg-green-100 text-green-800',
+  pending:  'bg-amber-100 text-amber-800',
+  approved: 'bg-indigo-100 text-indigo-800',
+  visited:  'bg-emerald-100 text-emerald-800',
 }
 
 const STATUS_LABELS = {
   pending:  'Pending',
   approved: 'Approved',
   visited:  'Visited',
+}
+
+function Toggle({ checked, onChange, disabled }) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      disabled={disabled}
+      className={`relative inline-flex h-7 w-13 w-[52px] items-center rounded-full transition-colors focus:outline-none disabled:opacity-60 ${
+        checked ? 'bg-indigo-600' : 'bg-gray-300'
+      }`}
+    >
+      <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${
+        checked ? 'translate-x-[28px]' : 'translate-x-1'
+      }`} />
+    </button>
+  )
 }
 
 export default function VisitorsPage() {
@@ -25,8 +48,6 @@ export default function VisitorsPage() {
   const [filterTo, setFilterTo] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
 
-  const today = new Date().toISOString().split('T')[0]
-  const firstOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0]
   const [showTab, setShowTab] = useState(true)
   const [tabToggling, setTabToggling] = useState(false)
   const [availableDays, setAvailableDays] = useState(['1','2','3','4','5'])
@@ -102,11 +123,8 @@ export default function VisitorsPage() {
       body: JSON.stringify({ key: 'show_visitor_tab', value: String(newVal) }),
     })
     const json = await res.json()
-    if (!res.ok) {
-      alert('Failed to save: ' + (json.error || 'Unknown error'))
-    } else {
-      setShowTab(newVal)
-    }
+    if (!res.ok) alert('Failed to save: ' + (json.error || 'Unknown error'))
+    else setShowTab(newVal)
     setTabToggling(false)
   }
 
@@ -153,199 +171,237 @@ export default function VisitorsPage() {
   const hasFilters = search || filterFrom || filterTo || filterStatus
   const clearFilters = () => { setSearch(''); setFilterFrom(''); setFilterTo(''); setFilterStatus('') }
 
-  const printGuest = (r) => {
+  const printGuest = async (r) => {
     const origin = window.location.origin
-    const logoUrl = `${origin}/assets/images/logonav.png`
-    const statusColor = { pending: '#92400e', approved: '#1d4ed8', visited: '#166534' }
-    const statusBg   = { pending: '#fef3c7', approved: '#dbeafe', visited: '#dcfce7' }
+    const ref = r.id.slice(0, 8).toUpperCase()
+    const statusKu  = { pending: 'چاوەڕوانکراو', approved: 'پەسەندکراو', visited: 'سەردانکراو', cancelled: 'هەڵوەشاوەتەوە' }
+    const statusEn  = { pending: 'Pending', approved: 'Approved', visited: 'Visited', cancelled: 'Cancelled' }
+    const statusColor = { pending: '#92400e', approved: '#1d4ed8', visited: '#166534', cancelled: '#991b1b' }
+    const statusBg    = { pending: '#fef9ec', approved: '#eff6ff', visited: '#f0fdf4', cancelled: '#fff1f2' }
+    const statusDot   = { pending: '#f59e0b', approved: '#3b82f6', visited: '#10b981', cancelled: '#ef4444' }
+    const dateFormatted = new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' })
+    const timeFormatted = (() => {
+      const t = r.time?.slice(0,5)
+      if (!t) return '—'
+      const [h, m] = t.split(':').map(Number)
+      const ampm = h >= 12 ? 'PM' : 'AM'
+      const h12 = h % 12 || 12
+      return `${String(h12).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ampm}`
+    })()
+    const qrTarget = `${origin}/reservation/${r.id}`
+    // Convert logo and QR to data URLs before opening window — avoids cross-origin/timing issues
+    const logoUrl = await fetch(`${origin}/favicon-32x32.png`)
+      .then(res => res.blob())
+      .then(blob => new Promise(resolve => { const fr = new FileReader(); fr.onload = () => resolve(fr.result); fr.readAsDataURL(blob) }))
+    const qrDataUrl = await QRCode.toDataURL(qrTarget, { width: 220, margin: 1, errorCorrectionLevel: 'H', color: { dark: '#111111', light: '#ffffff' } })
+
     const html = `<!DOCTYPE html>
-<html lang="en">
+<html lang="ku" dir="rtl">
 <head>
 <meta charset="UTF-8"/>
-<title>Visitor Pass — ${r.name}</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"><\/script>
+<title>فۆڕمی سەردانکاران — ${r.name}</title>
 <style>
+  @font-face { font-family:'UniSalar'; src:url('${origin}/fonts/UniSalar.otf') format('opentype'); font-display:block; }
   @page { size: A4 portrait; margin: 0; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { width: 210mm; }
   body {
-    font-family: 'Segoe UI', Arial, sans-serif;
-    width: 210mm; height: 297mm;
-    display: flex; flex-direction: column;
-    background: #fff; color: #111;
+    width: 210mm; min-height: 297mm;
+    font-family: 'UniSalar', Tahoma, Arial, sans-serif;
+    background: #fff; color: #000;
     -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    display: flex; flex-direction: column;
   }
 
-  /* ── Top bar — solid museum red ── */
-  .top-bar { height: 10px; background: #c0001a; }
+  /* ── Gold top bar ── */
+  .gold-bar { height: 6px; background: linear-gradient(90deg,#7a0000,#c8a96e,#7a0000); flex-shrink:0; }
 
   /* ── Header ── */
   .header {
-    padding: 20px 36px 18px;
-    background: #111;
-    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink:0; padding:14px 28px;
+    background:#7a0000;
+    display:flex; align-items:center; justify-content:space-between;
   }
-  .logo-wrap img { height: 54px; width: auto; object-fit: contain; display: block; }
-  .doc-label { text-align: right; }
-  .doc-label .tag {
-    display: inline-block;
-    background: #c0001a;
-    color: #fff; font-size: 9pt; font-weight: 800;
-    padding: 5px 18px; border-radius: 4px; letter-spacing: 1.5px;
-    text-transform: uppercase;
+  .logo-side { display:flex; align-items:center; gap:12px; }
+  .logo-box {
+    width:46px; height:46px; border-radius:8px;
+    overflow:hidden; flex-shrink:0;
+    background:#fff; padding:3px;
+    border:1.5px solid rgba(255,255,255,0.35);
   }
-  .doc-label .id { font-size: 7.5pt; color: #888; margin-top: 6px; font-family: monospace; }
+  .logo-box img { width:100%; height:100%; object-fit:contain; display:block; }
+  .museum-name { color:#fff; font-family:'UniSalar',Tahoma,sans-serif; font-size:11pt; font-weight:700; line-height:1.4; }
+  .museum-sub  { color:rgba(255,255,255,0.55); font-family:'UniSalar',Tahoma,sans-serif; font-size:7pt; margin-top:1px; }
+  .pass-label  { text-align:left; }
+  .pass-ku     { font-family:'UniSalar',Tahoma,sans-serif; font-size:7.5pt; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:3px; }
+  .pass-title  { font-family:'UniSalar',Tahoma,sans-serif; font-size:17pt; font-weight:900; letter-spacing:0.2em; color:#fff; line-height:1; }
+  .pass-ref    { font-family:'Courier New',Courier,monospace; font-size:7pt; color:rgba(255,255,255,0.45); margin-top:4px; letter-spacing:0.06em; }
 
-  /* ── Red divider line ── */
-  .red-line { height: 3px; background: #c0001a; }
+  /* ── Status bar ── */
+  .status-bar {
+    flex-shrink:0; padding:7px 28px;
+    display:flex; align-items:center; gap:8px;
+    background:${statusBg[r.status]||'#fef9ec'};
+    border-bottom:1px solid ${statusDot[r.status]||'#f59e0b'}50;
+  }
+  .status-dot  { width:9px; height:9px; border-radius:50%; background:${statusDot[r.status]||'#f59e0b'}; flex-shrink:0; }
+  .status-text { font-family:'UniSalar',Tahoma,sans-serif; font-size:9.5pt; font-weight:700; color:#000; }
 
-  /* ── Body ── */
-  .body { flex: 1; padding: 28px 36px 20px; }
-
+  /* ── Details section ── */
+  .details {
+    flex-shrink:0; padding:14px 28px 10px;
+    border-bottom:1px solid #e0e0e0; direction:rtl;
+  }
+  .spacer { flex:1; }
   .section-title {
-    font-size: 7.5pt; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 1.5px; color: #c0001a; margin-bottom: 12px;
-    display: flex; align-items: center; gap: 8px;
+    font-family:'UniSalar',Tahoma,sans-serif;
+    font-size:12pt; font-weight:800; color:#000;
+    margin-bottom:10px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
   }
-  .section-title::after { content: ''; flex: 1; height: 1px; background: #e5e7eb; }
-
-  /* Info grid */
-  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 20px; }
-  .info-card {
-    background: #fafafa; border: 1px solid #e5e7eb;
-    border-left: 3px solid #c0001a;
-    border-radius: 6px; padding: 11px 14px;
+  .section-title .en { color:#000; opacity:0.5; font-size:10.5pt; font-family:'UniSalar',Tahoma,sans-serif; }
+  .fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 28px; }
+  .field { padding:7px 0; border-bottom:1px solid #ebebeb; display:flex; flex-direction:column; align-items:center; text-align:center; }
+  .field:last-child { border-bottom:none; }
+  .field.full-width { grid-column:1 / -1; }
+  .field .lbl {
+    font-family:'UniSalar',Tahoma,sans-serif;
+    font-size:10.5pt; color:#000; opacity:0.55;
+    margin-bottom:2px; display:flex; align-items:center; justify-content:center; gap:4px;
   }
-  .info-card.full { grid-column: 1 / -1; }
-  .info-card .lbl {
-    font-size: 6.5pt; font-weight: 800; text-transform: uppercase;
-    letter-spacing: 0.8px; color: #999; margin-bottom: 4px;
-  }
-  .info-card .val { font-size: 13.5pt; font-weight: 800; color: #111; line-height: 1.2; }
-  .info-card .val.mono { font-family: monospace; font-size: 12pt; }
-  .info-card .val.italic { font-size: 11pt; font-weight: 400; font-style: italic; color: #444; }
-
-  .status-badge {
-    display: inline-block; padding: 4px 16px;
-    border-radius: 4px; font-size: 10pt; font-weight: 800; letter-spacing: 0.3px;
-  }
-
-  /* ── Dashed divider ── */
-  .divider { border: none; border-top: 1px dashed #ddd; margin: 22px 0; }
+  .field .lbl .en { font-family:'UniSalar',Tahoma,sans-serif; }
+  .field .val { font-family:'UniSalar',Tahoma,sans-serif; font-size:18pt; font-weight:700; color:#000; line-height:1.3; text-align:center; }
+  .field .val.mono { font-family:'Courier New',Courier,monospace; font-size:16.5pt; direction:ltr; text-align:center; }
+  .field .val.sm { font-family:'UniSalar',Tahoma,sans-serif; font-size:15pt; font-weight:400; color:#000; text-align:center; }
 
   /* ── QR section ── */
-  .qr-section { display: flex; flex-direction: column; align-items: center; gap: 10px; }
-  .qr-outer {
-    padding: 16px; background: #fff;
-    border: 2px solid #111; border-radius: 10px;
-    box-shadow: 4px 4px 0px #c0001a;
+  .qr-section {
+    flex-shrink:0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
+    background:#fff; padding:20px 0;
   }
-  .qr-label { font-size: 8pt; color: #888; letter-spacing: 0.4px; }
-  .qr-id { font-size: 8.5pt; font-family: monospace; color: #c0001a; font-weight: 700; letter-spacing: 0.5px; }
+  .qr-wrapper { position:relative; display:inline-block; }
+  .qr-frame {
+    padding:3px; border-radius:16px;
+    background:linear-gradient(135deg,#7a0000 0%,#c8a96e 50%,#7a0000 100%);
+    box-shadow:0 8px 32px rgba(122,0,0,0.22), 0 2px 8px rgba(200,169,110,0.15);
+  }
+  .qr-inner { background:#fff; border-radius:13px; padding:13px; }
+  .qr-frame img { display:block; width:190px; height:190px; }
+  .qr-caption {
+    font-family:'UniSalar',Tahoma,sans-serif;
+    font-size:9pt; color:#000; text-align:center; line-height:1.8;
+  }
+  .qr-caption .en { font-family:'UniSalar',Tahoma,sans-serif; font-size:7.5pt; display:block; color:#000; opacity:0.5; }
+  .qr-ref {
+    font-family:'Courier New',Courier,monospace; font-size:8.5pt; font-weight:700;
+    color:#7a0000; letter-spacing:0.1em; text-align:center;
+    padding:5px 16px; border-radius:20px;
+    background:linear-gradient(135deg,#7a000012,#c8a96e20);
+    border:1px solid #c8a96e60;
+  }
+
+  /* ── Tear line ── */
+  .tear { flex-shrink:0; display:flex; align-items:center; padding:0 8px; }
+  .tear-circle { width:16px; height:16px; border-radius:50%; background:#e8e8e8; border:1px solid #d5d5d5; flex-shrink:0; }
+  .tear-line   { flex:1; border-top:2px dashed #d5d5d5; }
 
   /* ── Footer ── */
   .footer {
-    padding: 12px 36px; background: #111;
-    display: flex; align-items: center; justify-content: space-between;
+    flex-shrink:0; padding:10px 28px; background:#111;
+    display:flex; align-items:center; justify-content:space-between; direction:rtl;
   }
-  .footer-brand { font-size: 8pt; font-weight: 700; color: #fff; }
-  .footer-note  { font-size: 7pt; color: #888; }
-  .bottom-bar { height: 6px; background: #c0001a; }
-
-  @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-  }
+  .footer-ku   { font-family:'UniSalar',Tahoma,sans-serif; font-size:8.5pt; font-weight:700; color:#fff; }
+  .footer-en   { font-family:'UniSalar',Tahoma,sans-serif; font-size:6.5pt; color:rgba(255,255,255,0.45); margin-top:2px; }
+  .bottom-bar  { flex-shrink:0; height:6px; background:linear-gradient(90deg,#7a0000,#c8a96e,#7a0000); }
 </style>
 </head>
 <body>
-<div class="top-bar"></div>
 
-<!-- Header -->
+<div class="gold-bar"></div>
+
 <div class="header">
-  <div class="logo-wrap">
-    <img src="${logoUrl}" alt="Amna Suraka Museum" />
+  <div class="logo-side">
+    <div class="logo-box"><img src="${logoUrl}" alt="M"/></div>
+    <div>
+      <div class="museum-name">مۆزەخانەی نیشتمانی ئەمنە سورەکە</div>
+      <div class="museum-sub">Amna Suraka National Museum</div>
+    </div>
   </div>
-  <div class="doc-label">
-    <div class="tag">Visitor Pass</div>
-    <div class="id">REF: ${r.id.slice(0, 8).toUpperCase()}</div>
+  <div class="pass-label">
+    <div class="pass-ku">فۆڕمی سەردانکاران</div>
+    <div class="pass-title">VISITOR PASS</div>
+    <div class="pass-ref">REF: ${ref}</div>
   </div>
 </div>
-<div class="red-line"></div>
 
-<!-- Body -->
-<div class="body">
-  <p class="section-title">Reservation Details</p>
+<div class="status-bar">
+  <div class="status-dot"></div>
+  <div class="status-text">${statusKu[r.status]||statusKu.pending}&nbsp;&nbsp;·&nbsp;&nbsp;${statusEn[r.status]||statusEn.pending}</div>
+</div>
 
-  <div class="info-grid">
-    <div class="info-card full">
-      <div class="lbl">Full Name</div>
+<div class="details">
+  <div class="section-title">وردەکاری داواکاری <span class="en">· Reservation Details</span></div>
+  <div class="fields-grid">
+    <div class="field">
+      <div class="lbl">ناوی تەواو <span class="en">· Full Name</span></div>
       <div class="val">${r.name}</div>
     </div>
-    <div class="info-card">
-      <div class="lbl">Phone Number</div>
-      <div class="val mono" dir="ltr">${r.phone}</div>
+    <div class="field">
+      <div class="lbl">ژمارەی مۆبایل <span class="en">· Phone Number</span></div>
+      <div class="val mono">${r.phone}</div>
     </div>
-    <div class="info-card">
-      <div class="lbl">Number of Guests</div>
-      <div class="val">${r.guest_count} ${Number(r.guest_count) === 1 ? 'Person' : 'People'}</div>
+    <div class="field">
+      <div class="lbl">ژمارەی میوان <span class="en">· Number of Guests</span></div>
+      <div class="val">${r.guest_count} کەس</div>
     </div>
-    <div class="info-card">
-      <div class="lbl">Visit Date</div>
-      <div class="val">${r.date}</div>
+    <div class="field">
+      <div class="lbl">بەرواری سەردان <span class="en">· Visit Date</span></div>
+      <div class="val mono">${dateFormatted}</div>
     </div>
-    <div class="info-card">
-      <div class="lbl">Visit Time</div>
-      <div class="val">${r.time?.slice(0, 5) || '—'}</div>
+    <div class="field full-width">
+      <div class="lbl">کاتی سەردان <span class="en">· Visit Time</span></div>
+      <div class="val mono">${timeFormatted}</div>
     </div>
-    <div class="info-card">
-      <div class="lbl">Status</div>
-      <div class="val">
-        <span class="status-badge" style="color:${statusColor[r.status]};background:${statusBg[r.status]}">
-          ${STATUS_LABELS[r.status]}
-        </span>
-      </div>
-    </div>
-    ${r.note ? `
-    <div class="info-card full">
-      <div class="lbl">Note</div>
-      <div class="val italic">${r.note}</div>
-    </div>` : ''}
-  </div>
+    ${r.note?`<div class="field full-width"><div class="lbl">تێبینی <span class="en">· Note</span></div><div class="val sm">${r.note}</div></div>`:''}
 
-  <hr class="divider"/>
-
-  <!-- QR Code -->
-  <div class="qr-section">
-    <p class="section-title" style="width:100%;justify-content:center;gap:10px">
-      <span style="flex:1;height:1px;background:#e5e7eb;display:block"></span>
-      Scan to Verify
-      <span style="flex:1;height:1px;background:#e5e7eb;display:block"></span>
-    </p>
-    <div class="qr-outer">
-      <canvas id="qr-canvas"></canvas>
-    </div>
-    <div class="qr-label">Official Reservation QR Code</div>
-    <div class="qr-id">RESERVATION · ${r.id.slice(0, 8).toUpperCase()}</div>
   </div>
 </div>
 
-<!-- Footer -->
+<div class="spacer"></div>
+
+<div class="qr-section">
+  <div class="qr-wrapper">
+    <div class="qr-frame">
+      <div class="qr-inner"><img src="${qrDataUrl}" alt="QR Code"/></div>
+    </div>
+  </div>
+  <div class="qr-caption">
+    سکان بکە بۆ پشتڕاستکردنەوە
+    <span class="en">Scan to Verify</span>
+  </div>
+  <div class="qr-ref">RESERVATION · ${ref}</div>
+</div>
+
+<div class="tear">
+  <div class="tear-circle"></div>
+  <div class="tear-line"></div>
+  <div class="tear-circle"></div>
+</div>
+
 <div class="footer">
-  <div class="footer-brand">Amna Suraka National Museum — Sulaymaniyah, Kurdistan</div>
-  <div class="footer-note">Present this pass upon arrival · For official use only</div>
+  <div>
+    <div class="footer-ku">مۆزەخانەی نیشتمانی ئەمنە سورەکە — سلێمانی، کوردستان</div>
+    <div class="footer-en">Amna Suraka National Museum — Sulaymaniyah, Kurdistan</div>
+  </div>
+
 </div>
 <div class="bottom-bar"></div>
 
-<script>
-  QRCode.toCanvas(
-    document.getElementById('qr-canvas'),
-    'RESERVATION:${r.id}',
-    { width: 190, margin: 1, color: { dark: '#111111', light: '#ffffff' } },
-    function(err) { if (!err) setTimeout(() => window.print(), 350); }
-  );
-<\/script>
+<script>window.onload = () => setTimeout(() => window.print(), 200);<\/script>
 </body>
 </html>`
-    const win = window.open('', '_blank', 'width=850,height=750')
+    const win = window.open('', '_blank', 'width=820,height=1200')
     win.document.write(html)
     win.document.close()
   }
@@ -356,10 +412,8 @@ export default function VisitorsPage() {
     const now = new Date()
     const printDate = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
     const printTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
-
     const statusColor = { pending: '#92400e', approved: '#1d4ed8', visited: '#166534' }
     const statusBg   = { pending: '#fef3c7', approved: '#dbeafe', visited: '#dcfce7' }
-
     const rows = filtered.map((r, i) => `
       <tr class="${i % 2 === 0 ? 'row-even' : 'row-odd'}">
         <td class="num">${i + 1}</td>
@@ -369,13 +423,8 @@ export default function VisitorsPage() {
         <td class="center">${r.date}</td>
         <td class="center">${r.time?.slice(0, 5) || '—'}</td>
         <td class="note">${r.note || '—'}</td>
-        <td class="center">
-          <span class="badge" style="color:${statusColor[r.status]};background:${statusBg[r.status]}">
-            ${STATUS_LABELS[r.status]}
-          </span>
-        </td>
+        <td class="center"><span class="badge" style="color:${statusColor[r.status]};background:${statusBg[r.status]}">${STATUS_LABELS[r.status]}</span></td>
       </tr>`).join('')
-
     const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -386,31 +435,21 @@ export default function VisitorsPage() {
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 9pt; color: #111; background: #fff;
     -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-
-  /* ── Top red bar ── */
   .top-bar { height: 6px; background: #c0001a; margin: -12mm -14mm 0; }
-
-  /* ── Header ── */
   .header { display: flex; align-items: center; justify-content: space-between;
     padding: 12px 0 12px; border-bottom: 2px solid #111; margin-bottom: 12px; }
   .logo-wrap img { height: 46px; width: auto; object-fit: contain; }
   .header-right { text-align: right; font-size: 7.5pt; color: #666; line-height: 1.7; }
   .header-right strong { color: #111; }
-
-  /* ── Title bar ── */
   .title-bar { background: #111; color: #fff; padding: 8px 14px; margin-bottom: 12px;
     display: flex; align-items: center; justify-content: space-between; border-left: 5px solid #c0001a; }
   .title-bar h1 { font-size: 12pt; font-weight: 800; letter-spacing: 0.5px; }
   .title-bar span { font-size: 8pt; color: #aaa; }
-
-  /* ── Summary cards ── */
   .summary { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-bottom: 12px; }
   .card { border-radius: 6px; padding: 8px 10px; border: 1px solid #e5e7eb; text-align: center; border-top: 3px solid #c0001a; }
   .card .val { font-size: 18pt; font-weight: 900; line-height: 1.1; color: #111; }
   .card .lbl { font-size: 6.5pt; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; color: #888; }
   .card-guests .val { color: #c0001a; }
-
-  /* ── Table ── */
   table { width: 100%; border-collapse: collapse; font-size: 8pt; }
   thead tr { background: #111; color: #fff; }
   thead th { padding: 7px 8px; text-align: left; font-weight: 700; font-size: 7pt; text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap; }
@@ -424,8 +463,6 @@ export default function VisitorsPage() {
   .row-odd  { background: #fafafa; }
   tr:last-child td { border-bottom: 3px solid #c0001a; }
   .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 7pt; font-weight: 700; white-space: nowrap; }
-
-  /* ── Footer ── */
   .footer { margin-top: 12px; border-top: 2px solid #111; padding-top: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 7pt; color: #888; }
   .footer-brand { font-weight: 700; color: #111; }
   .footer-red { color: #c0001a; font-weight: 700; }
@@ -433,62 +470,43 @@ export default function VisitorsPage() {
 </head>
 <body>
 <div class="top-bar"></div>
-
-<!-- Header -->
 <div class="header">
-  <div class="logo-wrap">
-    <img src="${logoUrl}" alt="Amna Suraka Museum" />
-  </div>
+  <div class="logo-wrap"><img src="${logoUrl}" alt="Amna Suraka Museum" /></div>
   <div class="header-right">
     <div><strong>Printed:</strong> ${printDate} at ${printTime}</div>
     <div><strong>Total Records:</strong> ${filtered.length}</div>
   </div>
 </div>
-
-<!-- Title bar -->
 <div class="title-bar">
-  <h1>🎟️ Visitor Reservations Report</h1>
+  <h1>Visitor Reservations Report</h1>
   <span>${search ? `Filtered: "${search}"` : 'All Reservations'}</span>
 </div>
-
-<!-- Summary -->
 <div class="summary">
-  <div class="card">          <div class="val">${counts.total}</div>    <div class="lbl">Total</div></div>
+  <div class="card"><div class="val">${counts.total}</div><div class="lbl">Total</div></div>
   <div class="card card-guests"><div class="val">${reservations.reduce((s,r)=>s+(Number(r.guest_count)||0),0)}</div><div class="lbl">Guests</div></div>
-  <div class="card">          <div class="val">${counts.pending}</div>  <div class="lbl">Pending</div></div>
-  <div class="card">          <div class="val">${counts.approved}</div> <div class="lbl">Approved</div></div>
-  <div class="card">          <div class="val">${counts.visited}</div>  <div class="lbl">Visited</div></div>
+  <div class="card"><div class="val">${counts.pending}</div><div class="lbl">Pending</div></div>
+  <div class="card"><div class="val">${counts.approved}</div><div class="lbl">Approved</div></div>
+  <div class="card"><div class="val">${counts.visited}</div><div class="lbl">Visited</div></div>
 </div>
-
-<!-- Table -->
 <table>
   <thead>
     <tr>
-      <th class="num">#</th>
-      <th>Name</th>
-      <th class="center">Guests</th>
-      <th>Phone</th>
-      <th class="center">Date</th>
-      <th class="center">Time</th>
-      <th>Note</th>
-      <th class="center">Status</th>
+      <th class="num">#</th><th>Name</th><th class="center">Guests</th>
+      <th>Phone</th><th class="center">Date</th><th class="center">Time</th>
+      <th>Note</th><th class="center">Status</th>
     </tr>
   </thead>
   <tbody>
     ${rows || '<tr><td colspan="8" style="text-align:center;padding:20px;color:#aaa">No reservations found.</td></tr>'}
   </tbody>
 </table>
-
-<!-- Footer -->
 <div class="footer">
   <div class="footer-brand">Amna Suraka National Museum · <span class="footer-red">Red Security</span> · Sulaymaniyah, Kurdistan</div>
   <div>Confidential — for internal use only</div>
 </div>
-
 <script>window.onload = () => { window.print(); }<\/script>
 </body>
 </html>`
-
     const win = window.open('', '_blank', 'width=900,height=700')
     win.document.write(html)
     win.document.close()
@@ -502,162 +520,195 @@ export default function VisitorsPage() {
     visited: reservations.filter(r => r.status === 'visited').length,
   }
 
+  const inputCls = 'w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400 text-gray-800 placeholder-gray-400'
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+        <div className="w-10 h-10 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Visitor Reservations</h1>
+    <div className="max-w-6xl space-y-6">
+
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-900 flex items-center justify-center shadow-lg shadow-indigo-950/40">
+            <Users size={20} strokeWidth={1.8} className="text-white" />
+          </span>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Visitor Reservations</h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {reservations.length === 0 ? 'No reservations' : `${reservations.length} reservation${reservations.length !== 1 ? 's' : ''} total`}
+            </p>
+          </div>
+        </div>
+        {filtered.length > 0 && (
+          <button
+            onClick={printGuests}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-gradient-to-br from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white rounded-xl shadow-md shadow-slate-950/30 transition-all"
+          >
+            <Printer size={14} />
+            Print All
+          </button>
+        )}
       </div>
 
-      <div className="space-y-6">
-
       {/* Sidebar Tab Visibility Toggle */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-center justify-between">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
         <div>
           <p className="font-semibold text-gray-800">Sidebar Tab Visibility</p>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-400 mt-0.5">
             {showTab ? 'Visitor Booking tab is visible on the public site' : 'Visitor Booking tab is hidden from the public site'}
           </p>
         </div>
-        <button
-          onClick={toggleTab}
-          disabled={tabToggling}
-          className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none disabled:opacity-60 ${showTab ? 'bg-green-500' : 'bg-gray-300'}`}
-        >
-          <span className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-md transition-transform ${showTab ? 'translate-x-8' : 'translate-x-1'}`} />
-        </button>
+        <Toggle checked={showTab} onChange={toggleTab} disabled={tabToggling} />
       </div>
 
       {/* Availability Schedule */}
-      <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
-        <div>
-          <p className="font-semibold text-gray-800">Visitor Availability Schedule</p>
-          <p className="text-sm text-gray-500 mt-0.5">Set which days and hours visitors can book</p>
-        </div>
-
-        {/* Days */}
-        <div>
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Available Days</p>
-          <div className="flex flex-wrap gap-2">
-            {DAYS.map(day => (
-              <button
-                key={day.val}
-                onClick={() => toggleDay(day.val)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  availableDays.includes(day.val)
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
-              >
-                {day.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Hours */}
-        <div className="flex items-center gap-4 flex-wrap">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-gray-100">
+          <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-900 flex items-center justify-center shadow shadow-indigo-950/30">
+            <CalendarDays size={14} strokeWidth={1.8} className="text-white" />
+          </span>
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Open From</p>
-            <input
-              type="time"
-              value={availableHours.start}
-              onChange={e => setAvailableHours(p => ({ ...p, start: e.target.value }))}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Open Until</p>
-            <input
-              type="time"
-              value={availableHours.end}
-              onChange={e => setAvailableHours(p => ({ ...p, end: e.target.value }))}
-              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
+            <p className="font-semibold text-gray-800 text-sm">Visitor Availability Schedule</p>
+            <p className="text-xs text-gray-400">Set which days and hours visitors can book</p>
           </div>
         </div>
 
-        {/* Save */}
-        <div className="flex items-center gap-3">
-          <button
-            onClick={saveSchedule}
-            disabled={savingSchedule}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg transition-colors"
-          >
-            {savingSchedule ? 'Saving…' : 'Save Schedule'}
-          </button>
-          {scheduleMsg && (
-            <span className={`text-sm font-medium ${scheduleMsg === 'Saved!' ? 'text-green-600' : 'text-red-600'}`}>
-              {scheduleMsg}
-            </span>
-          )}
+        <div className="p-5 space-y-5">
+          {/* Days */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5">Available Days</p>
+            <div className="flex flex-wrap gap-2">
+              {DAYS.map(day => (
+                <button
+                  key={day.val}
+                  onClick={() => toggleDay(day.val)}
+                  className={`px-3.5 py-1.5 rounded-xl text-sm font-medium transition-colors ${
+                    availableDays.includes(day.val)
+                      ? 'bg-gradient-to-br from-indigo-600 to-indigo-800 text-white shadow shadow-indigo-950/20'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  {day.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Hours */}
+          <div className="flex items-end gap-6 flex-wrap">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <Clock size={11} /> Open From
+              </p>
+              <input
+                type="time"
+                value={availableHours.start}
+                onChange={e => setAvailableHours(p => ({ ...p, start: e.target.value }))}
+                className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+              />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <Clock size={11} /> Open Until
+              </p>
+              <input
+                type="time"
+                value={availableHours.end}
+                onChange={e => setAvailableHours(p => ({ ...p, end: e.target.value }))}
+                className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white"
+              />
+            </div>
+          </div>
+
+          {/* Save */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={saveSchedule}
+              disabled={savingSchedule}
+              className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-gradient-to-br from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 disabled:opacity-50 text-white rounded-xl shadow shadow-indigo-950/20 transition-all"
+            >
+              {savingSchedule ? <RefreshCw size={13} className="animate-spin" /> : <CheckCircle2 size={13} />}
+              {savingSchedule ? 'Saving…' : 'Save Schedule'}
+            </button>
+            {scheduleMsg && (
+              <span className={`text-sm font-medium ${scheduleMsg === 'Saved!' ? 'text-emerald-600' : 'text-red-600'}`}>
+                {scheduleMsg}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
         {[
-          { label: 'Total',        value: counts.total,    color: 'bg-gray-50 border-gray-200',     text: 'text-gray-800' },
-          { label: 'Total Guests', value: counts.guests,   color: 'bg-purple-50 border-purple-200', text: 'text-purple-700' },
-          { label: 'Pending',      value: counts.pending,  color: 'bg-yellow-50 border-yellow-200', text: 'text-yellow-700' },
-          { label: 'Approved',     value: counts.approved, color: 'bg-blue-50 border-blue-200',     text: 'text-blue-700' },
-          { label: 'Visited',      value: counts.visited,  color: 'bg-green-50 border-green-200',   text: 'text-green-700' },
+          { label: 'Total',        value: counts.total,    icon: Users,       grad: 'from-slate-600 to-slate-800',   shadow: 'shadow-slate-950/30',   text: 'text-slate-700',   bg: 'bg-slate-50 border-slate-100' },
+          { label: 'Total Guests', value: counts.guests,   icon: Users2,      grad: 'from-violet-600 to-violet-800', shadow: 'shadow-violet-950/30',  text: 'text-violet-700',  bg: 'bg-violet-50 border-violet-100' },
+          { label: 'Pending',      value: counts.pending,  icon: Hourglass,   grad: 'from-amber-500 to-amber-700',   shadow: 'shadow-amber-950/30',   text: 'text-amber-700',   bg: 'bg-amber-50 border-amber-100' },
+          { label: 'Approved',     value: counts.approved, icon: UserCheck,   grad: 'from-indigo-600 to-indigo-800', shadow: 'shadow-indigo-950/30',  text: 'text-indigo-700',  bg: 'bg-indigo-50 border-indigo-100' },
+          { label: 'Visited',      value: counts.visited,  icon: CheckCircle2,grad: 'from-emerald-600 to-emerald-800',shadow:'shadow-emerald-950/30', text: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-100' },
         ].map(s => (
-          <div key={s.label} className={`rounded-xl border p-4 ${s.color}`}>
-            <p className="text-sm text-gray-500 font-medium">{s.label}</p>
-            <p className={`text-3xl font-black mt-1 ${s.text}`}>{s.value}</p>
+          <div key={s.label} className={`rounded-2xl border p-4 ${s.bg}`}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-medium text-gray-500">{s.label}</p>
+              <span className={`w-7 h-7 rounded-lg bg-gradient-to-br ${s.grad} flex items-center justify-center shadow ${s.shadow}`}>
+                <s.icon size={13} strokeWidth={1.8} className="text-white" />
+              </span>
+            </div>
+            <p className={`text-3xl font-black ${s.text}`}>{s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
-        {/* Row 1: search + status */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
         <div className="flex gap-3 flex-wrap">
           <div className="relative flex-1 min-w-[160px]">
-            <i className="ri-search-line absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               placeholder="Search by name or phone..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm bg-white"
             />
           </div>
-          <select
-            value={filterStatus}
-            onChange={e => setFilterStatus(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700"
-          >
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="visited">Visited</option>
-          </select>
+          <div className="relative">
+            <SlidersHorizontal size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <select
+              value={filterStatus}
+              onChange={e => setFilterStatus(e.target.value)}
+              className="pl-8 pr-4 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white text-gray-700 appearance-none"
+            >
+              <option value="">All Statuses</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="visited">Visited</option>
+            </select>
+          </div>
         </div>
-        {/* Row 2: date range + clear */}
         <div className="flex gap-3 flex-wrap items-center">
           <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">From</label>
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">From</label>
             <input type="date" value={filterFrom} onChange={e => setFilterFrom(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" />
           </div>
           <div className="flex items-center gap-2 flex-1 min-w-[200px]">
-            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">To</label>
+            <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">To</label>
             <input type="date" value={filterTo} min={filterFrom} onChange={e => setFilterTo(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-white" />
           </div>
           {hasFilters && (
             <button onClick={clearFilters}
-              className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors whitespace-nowrap">
-              <i className="ri-close-line" /> Clear
+              className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition-colors whitespace-nowrap">
+              <X size={13} /> Clear
             </button>
           )}
           {hasFilters && (
@@ -669,86 +720,95 @@ export default function VisitorsPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-xl shadow overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              {['Name', 'Guests', 'Phone', 'Date', 'Time', 'Note', 'Status', 'Created', 'Actions'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {filtered.length === 0 && (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="flex items-center gap-2 px-5 py-3.5 border-b border-gray-100">
+          <Filter size={14} className="text-indigo-600" />
+          <h2 className="font-semibold text-gray-800 text-sm">Reservations</h2>
+          {filtered.length > 0 && (
+            <span className="ml-auto bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">
+              {filtered.length}
+            </span>
+          )}
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <td colSpan={9} className="px-4 py-12 text-center text-gray-400">
-                  {search ? 'No results found.' : 'No reservations yet.'}
-                </td>
+                {['Name', 'Guests', 'Phone', 'Date', 'Time', 'Note', 'Status', 'Created', 'Actions'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
+                ))}
               </tr>
-            )}
-            {filtered.map(r => (
-              <tr key={r.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{r.name}</td>
-                <td className="px-4 py-3 text-gray-600 text-center">{r.guest_count}</td>
-                <td className="px-4 py-3 text-gray-600 whitespace-nowrap" dir="ltr">{r.phone}</td>
-                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{r.date}</td>
-                <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{r.time?.slice(0, 5)}</td>
-                <td className="px-4 py-3 text-gray-400 max-w-[150px] truncate">{r.note || '—'}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${STATUS_STYLES[r.status]}`}>
-                    {STATUS_LABELS[r.status]}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-400 whitespace-nowrap text-xs">
-                  {new Date(r.created_at).toLocaleDateString()}
-                </td>
-                <td className="px-4 py-3 whitespace-nowrap">
-                  <div className="flex items-center gap-1.5">
-                    {/* QR */}
-                    <button
-                      onClick={() => setQrModal(r)}
-                      className="px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md text-xs font-medium transition-colors flex items-center gap-1"
-                    >
-                      <i className="ri-qr-code-line" /> QR
-                    </button>
-                    {/* Print */}
-                    <button
-                      onClick={() => printGuest(r)}
-                      className="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-900 text-white rounded-md text-xs font-medium transition-colors flex items-center gap-1"
-                    >
-                      🖨️ Print
-                    </button>
-                    {/* Approve */}
-                    {r.status === 'pending' && (
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="px-4 py-14 text-center text-gray-400">
+                    <span className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-indigo-900 flex items-center justify-center shadow-lg shadow-indigo-950/40 mx-auto mb-3">
+                      <Users size={20} strokeWidth={1.6} className="text-white" />
+                    </span>
+                    <p className="text-sm font-medium text-gray-500">{search ? 'No results found.' : 'No reservations yet.'}</p>
+                  </td>
+                </tr>
+              )}
+              {filtered.map(r => (
+                <tr key={r.id} className="hover:bg-gray-50/60 transition-colors">
+                  <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">{r.name}</td>
+                  <td className="px-4 py-3 text-gray-600 text-center font-medium">{r.guest_count}</td>
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap" dir="ltr">{r.phone}</td>
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{r.date}</td>
+                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{r.time?.slice(0, 5)}</td>
+                  <td className="px-4 py-3 text-gray-400 max-w-[130px] truncate italic">{r.note || '—'}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${STATUS_STYLES[r.status]}`}>
+                      {STATUS_LABELS[r.status]}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-400 whitespace-nowrap text-xs">
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
                       <button
-                        onClick={() => updateStatus(r.id, 'approved')}
-                        className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-md text-xs font-medium transition-colors"
+                        onClick={() => setQrModal(r)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors"
                       >
-                        Approve
+                        <QrCode size={12} /> QR
                       </button>
-                    )}
-                    {/* Mark Visited */}
-                    {r.status === 'approved' && (
                       <button
-                        onClick={() => updateStatus(r.id, 'visited')}
-                        className="px-2.5 py-1.5 bg-green-50 hover:bg-green-100 text-green-700 rounded-md text-xs font-medium transition-colors whitespace-nowrap"
+                        onClick={() => printGuest(r)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-br from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white rounded-lg text-xs font-medium transition-all"
                       >
-                        ✓ Visited
+                        <Printer size={12} /> Print
                       </button>
-                    )}
-                    {/* Delete */}
-                    <button
-                      onClick={() => handleDelete(r.id)}
-                      className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-md text-xs font-medium transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                      {r.status === 'pending' && (
+                        <button
+                          onClick={() => updateStatus(r.id, 'approved')}
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium transition-colors"
+                        >
+                          <Check size={12} /> Approve
+                        </button>
+                      )}
+                      {r.status === 'approved' && (
+                        <button
+                          onClick={() => updateStatus(r.id, 'visited')}
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
+                        >
+                          <CheckCircle2 size={12} /> Visited
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleDelete(r.id)}
+                        className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors"
+                      >
+                        <Trash2 size={12} /> Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* QR Modal */}
@@ -761,22 +821,25 @@ export default function VisitorsPage() {
             className="bg-white rounded-2xl shadow-2xl flex flex-col w-[90%] max-w-md"
             onClick={e => e.stopPropagation()}
           >
-            {/* Header */}
-            <div className="flex justify-between items-center px-5 py-4 border-b border-gray-100">
-              <h2 className="text-lg font-bold text-gray-900">Visitor QR Code</h2>
+            {/* Modal header */}
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-gray-100">
+              <span className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-900 flex items-center justify-center shadow shadow-indigo-950/30">
+                <QrCode size={14} strokeWidth={1.8} className="text-white" />
+              </span>
+              <h2 className="text-base font-bold text-gray-900 flex-1">Visitor QR Code</h2>
               <button
                 onClick={() => setQrModal(null)}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors text-xl"
+                className="w-8 h-8 flex items-center justify-center rounded-xl hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                <i className="ri-close-line" />
+                <X size={16} />
               </button>
             </div>
 
-            {/* QR Code — scales with container */}
+            {/* QR Code */}
             <div className="flex justify-center px-5 pt-5 pb-4">
               <div className="bg-white p-3 rounded-xl border border-gray-200 shadow-sm w-full max-w-[240px] aspect-square flex items-center justify-center">
                 <QRCodeSVG
-                  value={`RESERVATION:${qrModal.id}`}
+                  value={`${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${qrModal.id}`}
                   size="100%"
                   style={{ width: '100%', height: '100%', maxWidth: 210, maxHeight: 210 }}
                   bgColor="#ffffff"
@@ -798,7 +861,7 @@ export default function VisitorsPage() {
                 ['ID',     qrModal.id.slice(0, 8).toUpperCase()],
               ].map(([label, val]) => (
                 <div key={label} className="flex items-center justify-between gap-4 text-sm">
-                  <span className="text-gray-500 shrink-0">{label}</span>
+                  <span className="text-gray-400 shrink-0">{label}</span>
                   <span className="font-semibold text-gray-900 text-right break-all">{val}</span>
                 </div>
               ))}
@@ -809,17 +872,17 @@ export default function VisitorsPage() {
               {qrModal.status === 'pending' && (
                 <button
                   onClick={() => { updateStatus(qrModal.id, 'approved'); setQrModal(p => ({ ...p, status: 'approved' })) }}
-                  className="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-br from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white rounded-xl text-sm font-semibold transition-all"
                 >
-                  Approve
+                  <Check size={14} /> Approve
                 </button>
               )}
               {qrModal.status === 'approved' && (
                 <button
                   onClick={() => { updateStatus(qrModal.id, 'visited'); setQrModal(p => ({ ...p, status: 'visited' })) }}
-                  className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-sm font-semibold transition-colors"
+                  className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white rounded-xl text-sm font-semibold transition-all"
                 >
-                  ✓ Mark as Visited
+                  <CheckCircle2 size={14} /> Mark as Visited
                 </button>
               )}
               <button
@@ -832,7 +895,7 @@ export default function VisitorsPage() {
           </div>
         </div>
       )}
-      </div>
+
     </div>
   )
 }

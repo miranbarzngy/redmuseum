@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { getSupabaseClient } from '../lib/supabase-client'
 
-const SETTING_KEYS = ['show_visitor_tab','show_about','show_gallery','show_archive','show_messages','show_exclusive']
+const SETTING_KEYS = ['show_visitor_tab','show_about','show_gallery','show_archive','show_messages','show_exclusive','show_english','show_arabic','show_showcase']
 
-const DEFAULT_SECTION_ORDER = ['slides','about','virtual-tour','gallery','archive','exclusive','messages','reserve']
+const DEFAULT_SECTION_ORDER = ['slides','about','virtual-tour','gallery','archive','exclusive','showcase','messages','reserve']
 
 // Maps section-order admin key → sidebar item id
 const ORDER_TO_SIDEBAR_ID = {
@@ -16,6 +16,7 @@ const ORDER_TO_SIDEBAR_ID = {
   gallery:        'gallery',
   archive:        'archive-section',
   exclusive:      'exclusive-section',
+  showcase:       'showcase',
   messages:       'contact',
   reserve:        'reserve',
 }
@@ -31,6 +32,9 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     show_archive: true,
     show_messages: true,
     show_exclusive: true,
+    show_english: true,
+    show_arabic: true,
+    show_showcase: true,
   })
   const [sectionOrder, setSectionOrder] = useState(DEFAULT_SECTION_ORDER)
   const [isExpanded, setIsExpanded] = useState(false)
@@ -108,11 +112,12 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     return () => window.removeEventListener('hashchange', handleHashChange)
   }, [])
 
-  const languages = [
-    { code: 'ku', name: 'کوردی',    flag: 'kurdistan', href: '/kurdish' },
-    { code: 'en', name: 'English',  flag: 'uk',        href: '/' },
-    { code: 'ar', name: 'العربية', flag: 'iraq',      href: '/arabic' },
+  const allLanguages = [
+    { code: 'ku', name: 'کوردی',    flag: 'kurdistan', href: '/kurdish', visKey: null },
+    { code: 'en', name: 'English',  flag: 'uk',        href: '/',        visKey: 'show_english' },
+    { code: 'ar', name: 'العربية', flag: 'iraq',      href: '/arabic',  visKey: 'show_arabic' },
   ]
+  const languages = allLanguages.filter(l => !l.visKey || sectionVis[l.visKey] !== false)
 
   const flagUrls = {
     kurdistan: '/assets/images/Flag_of_Kurdistan.png',
@@ -139,6 +144,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
         { id: 'virtual-tour',    icon: 'ri-eye-2-line',           title: 'بینینی ٣٦٠', href: '/kurdish#virtual-tour' },
         { id: 'gallery',         icon: 'ri-image-line',           title: 'گەلەری',     href: '/kurdish#gallery' },
         { id: 'archive-section', icon: 'ri-archive-line',         title: 'ئەرشیف',    href: '/kurdish#archive-section' },
+        { id: 'showcase',        icon: 'ri-layout-grid-line',     title: 'کارتەکان',  href: '/kurdish#showcase' },
         { id: 'contact',         icon: 'ri-contacts-book-3-line', title: 'پەیوەندی',  href: '/kurdish#contact' },
       ]
     : currentLang === 'ar'
@@ -148,15 +154,17 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
         { id: 'virtual-tour',    icon: 'ri-eye-2-line',           title: 'جولة ٣٦٠',  href: '/arabic#virtual-tour' },
         { id: 'gallery',         icon: 'ri-image-line',           title: 'معرض الصور', href: '/arabic#gallery' },
         { id: 'archive-section', icon: 'ri-archive-line',         title: 'الأرشيف',   href: '/arabic#archive-section' },
+        { id: 'showcase',        icon: 'ri-layout-grid-line',     title: 'البطاقات',  href: '/arabic#showcase' },
         { id: 'contact',         icon: 'ri-contacts-book-3-line', title: 'اتصل بنا',  href: '/arabic#contact' },
       ]
     : [
-        { id: 'home',            icon: 'ri-home-6-line',          title: 'Home',    href: '/' },
-        { id: 'about',           icon: 'ri-profile-line',         title: 'About',   href: '/#about' },
-        { id: 'virtual-tour',    icon: 'ri-eye-2-line',           title: 'VR Tour', href: '/#virtual-tour' },
-        { id: 'gallery',         icon: 'ri-image-line',           title: 'Gallery', href: '/#gallery' },
-        { id: 'archive-section', icon: 'ri-archive-line',         title: 'Archive', href: '/#archive-section' },
-        { id: 'contact',         icon: 'ri-contacts-book-3-line', title: 'Contact', href: '/#contact' },
+        { id: 'home',            icon: 'ri-home-6-line',          title: 'Home',      href: '/' },
+        { id: 'about',           icon: 'ri-profile-line',         title: 'About',     href: '/#about' },
+        { id: 'virtual-tour',    icon: 'ri-eye-2-line',           title: 'VR Tour',   href: '/#virtual-tour' },
+        { id: 'gallery',         icon: 'ri-image-line',           title: 'Gallery',   href: '/#gallery' },
+        { id: 'archive-section', icon: 'ri-archive-line',         title: 'Archive',   href: '/#archive-section' },
+        { id: 'showcase',        icon: 'ri-layout-grid-line',     title: 'Showcase',  href: '/#showcase' },
+        { id: 'contact',         icon: 'ri-contacts-book-3-line', title: 'Contact',   href: '/#contact' },
       ]
 
   const reserveItem = currentLang === 'ku'
@@ -170,6 +178,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     about:           'show_about',
     gallery:         'show_gallery',
     'archive-section': 'show_archive',
+    showcase:        'show_showcase',
     contact:         'show_messages',
   }
 
@@ -220,7 +229,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     window.location.href = href
   }
 
-  // Active items for collapsed view
+  // Active items for collapsed view — fall back to Kurdish if current lang is hidden
   const activeLang = languages.find(l => l.code === currentLang) || languages[0]
   const activeItem = menuItems.find(item => isActive(item.id)) || menuItems[0]
 

@@ -51,12 +51,14 @@ export default function AdminLogin() {
 
       if (signInError) throw signInError
 
-      if (data.user) {
-        // Hardcoded success redirect with manual cookie setting
-        if (data.session && data.session.access_token) {
-          document.cookie = "sb-access-token=" + data.session.access_token + "; path=/; max-age=3600";
-        }
-        window.location.replace('/admin/dashboard');
+      if (data.user && data.session?.access_token) {
+        // Set HttpOnly session cookie server-side
+        await fetch('/api/admin/auth', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ access_token: data.session.access_token }),
+        })
+        window.location.replace('/admin/dashboard')
       }
     } catch (err) {
       setError(err.message)

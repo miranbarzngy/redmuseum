@@ -5,27 +5,22 @@ import { useParams } from 'next/navigation'
 import { supabase } from '../../../lib/supabase-client'
 import Link from 'next/link'
 
-// Default categories as fallback
 const defaultCategories = [
   { id: 'documents', name_en: 'Documents', name_ku: 'بەڵگەنامەکان', slug: 'documents' },
-  { id: 'letters', name_en: 'Letters', name_ku: 'نامەکان', slug: 'letters' },
-  { id: 'photos', name_en: 'Photos', name_ku: 'وێنە کۆنەکان', slug: 'photos' },
+  { id: 'letters',   name_en: 'Letters',   name_ku: 'نامەکان',       slug: 'letters'   },
+  { id: 'photos',    name_en: 'Photos',    name_ku: 'وێنە کۆنەکان',  slug: 'photos'    },
 ]
 
-// Map old category strings to slugs for backward compatibility
-const categoryStringToSlug = {
-  'Documents': 'documents',
-  'Letters': 'letters',
-  'Photos': 'photos'
-}
+const categoryStringToSlug = { Documents: 'documents', Letters: 'letters', Photos: 'photos' }
 
-// Helper function to normalize paths
 const normalizePath = (path) => {
   if (!path) return null
   if (path.startsWith('http://') || path.startsWith('https://')) return path
-  if (path.startsWith('/')) return path
-  return `/${path}`
+  return path.startsWith('/') ? path : `/${path}`
 }
+
+const KU = { fontFamily: 'UniSalar, Tahoma, sans-serif' }
+const AR = { fontFamily: 'Cairo, Tahoma, sans-serif' }
 
 export default function KurdishArchiveDetail() {
   const params = useParams()
@@ -33,74 +28,42 @@ export default function KurdishArchiveDetail() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [categories, setCategories] = useState([])
+  const [activeLang, setActiveLang] = useState('ku')
 
+  useEffect(() => { fetchCategories() }, [])
+  useEffect(() => { if (params?.id) fetchItem(params.id) }, [params?.id])
+  useEffect(() => { if (item) document.title = item.title_ku || item.title_en || 'Archive Item' }, [item])
+
+  // Set default lang to first available when item loads
   useEffect(() => {
-    fetchCategories()
-  }, [])
+    if (!item) return
+    if (item.description_ku?.trim()) setActiveLang('ku')
+    else if (item.description_ar?.trim()) setActiveLang('ar')
+    else if (item.description_en?.trim()) setActiveLang('en')
+  }, [item])
 
   const fetchCategories = async () => {
-    if (!supabase) {
-      setCategories(defaultCategories)
-      return
-    }
-
+    if (!supabase) { setCategories(defaultCategories); return }
     try {
-      const { data, error } = await supabase
-        .from('archive_categories')
-        .select('*')
-        .order('display_order', { ascending: true })
-
+      const { data, error } = await supabase.from('archive_categories').select('*').order('display_order', { ascending: true })
       if (error) throw error
       setCategories(data || defaultCategories)
-    } catch (error) {
-      console.error('Error fetching categories:', error)
-      setCategories(defaultCategories)
-    }
+    } catch { setCategories(defaultCategories) }
   }
-
-  useEffect(() => {
-    if (params?.id) {
-      fetchItem(params.id)
-    }
-  }, [params?.id])
 
   const fetchItem = async (id) => {
-    setLoading(true)
-    setError(null)
-
-    if (!supabase) {
-      setError('Supabase not configured')
-      setLoading(false)
-      return
-    }
-
+    setLoading(true); setError(null)
+    if (!supabase) { setError('Supabase not configured'); setLoading(false); return }
     try {
-      const { data, error } = await supabase
-        .from('digital_archive')
-        .select('*')
-        .eq('id', id)
-        .single()
-
+      const { data, error } = await supabase.from('digital_archive').select('*').eq('id', id).single()
       if (error) throw error
       setItem(data)
-    } catch (error) {
-      console.error('Error fetching archive item:', error)
-      setError('Archive item not found')
-    } finally {
-      setLoading(false)
-    }
+    } catch { setError('Archive item not found') }
+    finally { setLoading(false) }
   }
 
-  // Get category by ID
-  const getCategoryById = (categoryId) => {
-    return categories.find(c => c.id === categoryId)
-  }
-
-  // Get the effective category ID from an item
   const getItemCategoryId = (item) => {
-    if (item?.category_id) {
-      return item.category_id
-    }
+    if (item?.category_id) return item.category_id
     if (item?.category) {
       const slug = categoryStringToSlug[item.category] || item.category.toLowerCase()
       const cat = categories.find(c => c.slug === slug)
@@ -109,11 +72,10 @@ export default function KurdishArchiveDetail() {
     return null
   }
 
-  // Get category display name in Kurdish
   const getCategoryName = (item) => {
-    const itemCategoryId = getItemCategoryId(item)
-    if (itemCategoryId) {
-      const cat = getCategoryById(itemCategoryId)
+    const id = getItemCategoryId(item)
+    if (id) {
+      const cat = categories.find(c => c.id === id)
       if (cat) return cat.name_ku
     }
     if (item?.category) {
@@ -125,159 +87,204 @@ export default function KurdishArchiveDetail() {
     return ''
   }
 
-  // Format date
   const formatDate = (dateString) => {
     if (!dateString) return ''
-    const date = new Date(dateString)
-    return date.toLocaleDateString('ku-KU', { year: 'numeric', month: 'long', day: 'numeric' })
+    const d = new Date(dateString)
+    return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`
   }
 
-  // Set page metadata
-  useEffect(() => {
-    if (item) {
-      document.title = item.title_ku || item.title_en || 'Archive Item'
-    }
-  }, [item])
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0a' }}>
+      <div className="w-12 h-12 border-2 border-[#c8a96e] border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    )
-  }
-
-  if (error || !item) {
-    return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center" dir="rtl">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-white mb-4" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-            ئەرشیفەکە نەدۆزرایەوە
-          </h1>
-          <p className="text-gray-400 mb-6">Archive item not found</p>
-          <Link
-            href="/kurdish/archive"
-            className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg transition-colors"
-            style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            گەڕانەوە بۆ ئەرشیف
-          </Link>
+  if (error || !item) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0a0a' }} dir="rtl">
+      <div className="text-center">
+        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-5"
+          style={{ background: 'rgba(122,0,0,0.2)', border: '1px solid rgba(200,169,110,0.2)' }}>
+          <i className="ri-file-search-line text-3xl" style={{ color: '#c8a96e' }} />
         </div>
+        <h1 className="text-2xl font-bold text-white mb-2" style={KU}>ئەرشیفەکە نەدۆزرایەوە</h1>
+        <p className="text-white/40 mb-8 text-sm">Archive item not found</p>
+        <Link href="/kurdish/archive"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-semibold text-sm"
+          style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.3)', ...KU }}>
+          <i className="ri-arrow-right-line" />
+          گەڕانەوە بۆ ئەرشیف
+        </Link>
       </div>
-    )
-  }
+    </div>
+  )
+
+  // Build available language tabs — only include if content is non-empty
+  const langTabs = [
+    item.description_ku?.trim() && { key: 'ku', label: 'کوردی',   font: KU, dir: 'rtl', text: item.description_ku },
+    item.description_ar?.trim() && { key: 'ar', label: 'عربی',    font: AR, dir: 'rtl', text: item.description_ar },
+    item.description_en?.trim() && { key: 'en', label: 'English', font: {},  dir: 'ltr', text: item.description_en },
+  ].filter(Boolean)
+
+  const activeLangData = langTabs.find(t => t.key === activeLang) || langTabs[0]
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white" dir="rtl">
-      {/* Header */}
-      <div className="relative py-12 bg-gradient-to-b from-red-900 to-gray-900">
-        <div className="container mx-auto px-4">
-          {/* Back Button */}
-          <Link
-            href="/kurdish/archive"
-            className="inline-flex items-center gap-2 text-gray-300 hover:text-white transition-colors mb-4"
-            style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            گەڕانەوە بۆ ئەرشیف
-          </Link>
-          
-          <h1 className="text-3xl md:text-4xl font-bold" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-            {item.title_ku || item.title_en}
-          </h1>
+    <div className="min-h-screen" style={{ background: '#0a0a0a' }} dir="rtl">
+
+      {/* Sticky top nav */}
+      <div className="sticky top-0 z-30 px-4 md:px-8 lg:px-16 py-4 flex items-center justify-between"
+        style={{ background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(200,169,110,0.1)' }}>
+        <Link href="/kurdish/archive"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
+          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', ...KU }}>
+          <i className="ri-arrow-right-line text-[#c8a96e]" />
+          گەڕانەوە بۆ ئەرشیف
+        </Link>
+        <div className="flex items-center gap-2 text-white text-xs" style={KU}>
+          <span>ئەرشیف</span>
+          <i className="ri-arrow-left-s-line" />
+          <span className="truncate max-w-[200px]">{item.title_ku || item.title_en}</span>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="px-4 md:px-8 lg:px-16 py-12">
         <div className="max-w-4xl mx-auto">
-          {/* Category Badge */}
-          <div className="mb-6">
-            <span className="bg-red-600 text-white text-sm px-4 py-2 rounded inline-block" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-              {getCategoryName(item)}
-            </span>
-            {item.date_created && (
-              <span className="text-gray-400 mr-4" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                {formatDate(item.date_created)}
-              </span>
-            )}
+
+          {/* Title header */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="flex-1 h-px" style={{ background: 'linear-gradient(to left, rgba(200,169,110,0.4), transparent)' }} />
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#c8a96e' }} />
+              <div className="flex-1 h-px" style={{ background: 'linear-gradient(to right, rgba(200,169,110,0.4), transparent)' }} />
+            </div>
+
+            <div className="flex items-center gap-3 flex-wrap mb-4">
+              {getCategoryName(item) && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white"
+                  style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.3)', ...KU }}>
+                  <i className="ri-archive-line text-[#c8a96e] text-[10px]" />
+                  {getCategoryName(item)}
+                </span>
+              )}
+              {item.date_created && (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', ...KU }}>
+                  <i className="ri-calendar-line text-[#c8a96e] text-[10px]" />
+                  {formatDate(item.date_created)}
+                </span>
+              )}
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-black text-white leading-snug" style={KU}>
+              {item.title_ku || item.title_en}
+            </h1>
           </div>
 
-          {/* Full Image - Using object-contain to show 100% of document */}
-          <div className="bg-gray-800 rounded-xl overflow-hidden shadow-2xl mb-8">
-            <div className="relative w-full h-[300px] md:h-[500px] lg:h-[600px] flex items-center justify-center bg-zinc-900/50 p-4">
+          {/* Image card */}
+          <div className="rounded-2xl overflow-hidden mb-8 relative"
+            style={{
+              border: '1px solid rgba(200,169,110,0.2)',
+              boxShadow: '0 0 0 1px rgba(200,169,110,0.06), 0 32px 80px rgba(0,0,0,0.7)',
+              background: '#0d0d0d',
+            }}>
+            <div className="absolute top-0 left-0 right-0 h-px z-10"
+              style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
+            <div className="relative w-full flex items-center justify-center p-6 md:p-10"
+              style={{ minHeight: 320 }}>
               <img
                 src={normalizePath(item.image_url)}
                 alt={item.title_ku || item.title_en}
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  e.target.src = '/assets/images/bg-1.jpg'
-                }}
+                className="max-w-full max-h-[560px] object-contain rounded-xl"
+                style={{ boxShadow: '0 8px 40px rgba(0,0,0,0.6)' }}
+                onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
               />
             </div>
           </div>
 
-          {/* Full Description */}
-          <div className="bg-gray-800 rounded-xl p-6 md:p-8">
-            <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-              {item.title_ku || item.title_en}
-            </h2>
-            
-            {item.description_ku && (
-              <div className="mb-6">
-                <p className="text-gray-300 text-lg leading-relaxed whitespace-pre-wrap" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }} dir="rtl">
-                  {item.description_ku}
-                </p>
-              </div>
-            )}
-            
-            {item.description_en && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-400 mb-2">English:</h3>
-                <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
-                  {item.description_en}
-                </p>
-              </div>
-            )}
+          {/* Language-switching info card */}
+          {langTabs.length > 0 && (
+            <div className="rounded-2xl overflow-hidden mb-8 relative"
+              style={{
+                background: 'rgba(255,255,255,0.03)',
+                border: '1px solid rgba(200,169,110,0.15)',
+                boxShadow: '0 4px 32px rgba(0,0,0,0.4)',
+              }}>
+              {/* Gold top accent */}
+              <div className="absolute top-0 left-0 right-0 h-px"
+                style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
 
-            {/* Download PDF Button */}
-            {item.file_url && (
-              <div className="mt-8 pt-6 border-t border-gray-700">
-                <a
-                  href={normalizePath(item.file_url)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg transition-colors"
-                  style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  داگرتن / Download PDF
-                </a>
+              {/* Language tab bar */}
+              <div className="flex items-stretch border-b" style={{ borderColor: 'rgba(200,169,110,0.12)' }}>
+                {langTabs.map((tab, i) => {
+                  const isActive = activeLang === tab.key
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setActiveLang(tab.key)}
+                      className="relative flex-1 flex items-center justify-center gap-2 py-4 px-4 text-sm font-bold transition-all duration-200"
+                      style={{
+                        ...tab.font,
+                        color: '#fff',
+                        background: isActive ? 'rgba(122,0,0,0.25)' : 'transparent',
+                        borderLeft: i > 0 ? '1px solid rgba(200,169,110,0.1)' : 'none',
+                      }}
+                    >
+                      {/* Active indicator bar */}
+                      {isActive && (
+                        <span className="absolute bottom-0 left-1/4 right-1/4 h-0.5 rounded-full"
+                          style={{ background: '#c8a96e' }} />
+                      )}
+                      {/* Language dot */}
+                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style={{ background: isActive ? '#c8a96e' : 'rgba(255,255,255,0.2)' }} />
+                      {tab.label}
+                    </button>
+                  )
+                })}
               </div>
-            )}
-          </div>
 
-          {/* Back to Archive Button */}
-          <div className="mt-8 text-center">
-            <Link
-              href="/kurdish/archive"
-              className="inline-flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors"
-              style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
+              {/* Description content */}
+              {activeLangData && (
+                <div className="p-6 md:p-10" dir={activeLangData.dir}>
+                  <p
+                    className="text-base md:text-lg leading-loose text-white whitespace-pre-wrap"
+                    style={{ ...activeLangData.font, minHeight: 80 }}
+                  >
+                    {activeLangData.text}
+                  </p>
+                </div>
+              )}
+
+              {/* Download PDF */}
+              {item.file_url && (
+                <div className="px-6 md:px-10 pb-6 pt-0">
+                  <div className="h-px mb-6" style={{ background: 'rgba(200,169,110,0.1)' }} />
+                  <a
+                    href={normalizePath(item.file_url)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl text-sm font-semibold text-white"
+                    style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.3)', ...KU }}>
+                    <i className="ri-download-2-line" />
+                    داگرتن / Download PDF
+                  </a>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Bottom back button */}
+          <div className="flex justify-center">
+            <Link href="/kurdish/archive"
+              className="inline-flex items-center gap-2 px-7 py-3 rounded-2xl text-sm font-semibold text-white"
+              style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.3)', boxShadow: '0 4px 20px rgba(122,0,0,0.3)', ...KU }}>
+              <i className="ri-arrow-right-line" />
               بینینی هەموو ئەرشیفەکە
             </Link>
           </div>
+
         </div>
       </div>
+
     </div>
   )
 }

@@ -5,9 +5,7 @@ export async function GET(request, context) {
   const { id } = await context.params
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const serviceKey =
-    process.env.SUPABASE_SERVICE_KEY ||
-    process.env.NEXT_PUBLIC_SUPABASE_SERVICE_KEY
+  const serviceKey = process.env.SUPABASE_SERVICE_KEY
 
   if (!supabaseUrl || !serviceKey) {
     return NextResponse.json({ error: 'Not configured' }, { status: 500 })

@@ -1,7 +1,24 @@
-import { redirect } from 'next/navigation'
+'use client'
 
-// Catch-all: /kurdish/about, /kurdish/gallery, etc.
-// Redirect to the Kurdish homepage — the sidebar URL-on-scroll handles the rest
+import { useParams } from 'next/navigation'
+import { KurdishPageContent } from '../page'
+
+// Maps URL slug → HTML element ID used in the page
+const SLUG_TO_ID = {
+  slides:         'home',
+  about:          'about',
+  'virtual-tour': 'virtual-tour',
+  gallery:        'gallery',
+  archive:        'archive-section',
+  exclusive:      'exclusive-section',
+  showcase:       'showcase',
+  contact:        'contact',
+  reserve:        'reserve',
+}
+
 export default function KurdishCatchAll() {
-  redirect('/kurdish')
+  const params = useParams()
+  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug
+  const initialSection = SLUG_TO_ID[slug] || null
+  return <KurdishPageContent initialSection={initialSection} />
 }
