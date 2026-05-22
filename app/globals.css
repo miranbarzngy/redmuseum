@@ -2,6 +2,7 @@
    Google Fonts - Cairo (Arabic)
    ============================================ */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -31,6 +32,8 @@ section {
   font-weight: normal;
   font-style: normal;
   font-display: swap;
+  /* Exclude ASCII digits so they always render in Western (Latin) form */
+  unicode-range: U+0020-002F, U+003A-U+FEFF;
 }
 
 /* Kurdish font class */
@@ -156,6 +159,13 @@ body {
   .toast-error {
     @apply bg-red-500;
   }
+}
+
+/* Force Western (Latin) digits — Roboto Mono is a Latin-only font, no Arabic digit substitution */
+.latin-id {
+  font-family: 'Roboto Mono', 'Courier New', Courier, monospace !important;
+  direction: ltr !important;
+  unicode-bidi: bidi-override !important;
 }
 
 /* Gallery infinite scroll styles - Single row horizontal */

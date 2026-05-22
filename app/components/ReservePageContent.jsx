@@ -187,64 +187,144 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
   // ── Success screen ───────────────────────────────────────────
   if (reservation) {
+    const resId = '#' + reservation.id.slice(0, 8).toUpperCase()
+
     const successContent = (
-      <div className={inline ? 'max-w-md mx-auto text-center py-8' : 'max-w-md w-full text-center'}>
-        {/* Check icon */}
-        <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
-          style={{ background: 'rgba(34,197,94,0.15)', border: '1px solid rgba(34,197,94,0.3)' }}>
-          <i className="ri-checkbox-circle-line text-green-400 text-4xl" />
-        </div>
-        <h1 className="text-2xl font-black text-white mb-2" style={{ fontFamily: fontStyle(lang) }}>
-          {t('داواکارییەکەت تۆمارکرا!', 'تم تسجيل طلبك!', 'Reservation Submitted!', lang)}
-        </h1>
-        <p className="text-white/60 mb-8 text-sm" style={{ fontFamily: fontStyle(lang) }}>
-          {t('تکایە ئەم کیوئارکۆدە وەک پشکنین لە دەرگای مۆزەخانەکە پیشان بدە', 'يرجى إظهار رمز QR هذا عند مدخل المتحف للتحقق', 'Please show this QR code at the museum entrance for verification', lang)}
-        </p>
-        {/* QR */}
-        <div className="rounded-2xl p-6 mx-auto w-fit mb-6 shadow-2xl" ref={qrRef}
-          style={{ background: '#fff', border: `2px solid ${GOLD}` }}>
-          <QRCodeSVG value={`${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${reservation.id}`} size={200} bgColor="#ffffff" fgColor="#0a0a0a" level="H" />
-        </div>
-        {/* Details card */}
-        <div className="rounded-2xl p-5 mb-6 text-left relative overflow-hidden"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(200,169,110,0.2)' }}
-          dir={isRtl ? 'rtl' : 'ltr'}>
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
-          <div className="space-y-2.5 text-sm">
-            {[
-              { label: t('ناو','الاسم','Name',lang),                   val: reservation.name },
-              { label: t('ژمارەی میوان','عدد الضيوف','Guests',lang),   val: reservation.guest_count },
-              { label: t('بەروار','التاريخ','Date',lang),               val: reservation.date },
-              { label: t('کات','الوقت','Time',lang),                    val: (reservation.time || '').slice(0, 5) },
-              { label: t('ناسنامەی داواکاری','معرف الحجز','Reservation ID',lang), val: reservation.id.slice(0,8).toUpperCase(), mono: true },
-            ].map(({ label, val, mono }) => (
-              <div key={label} className="flex justify-between gap-4">
-                <span className="text-white/50" style={{ fontFamily: fontStyle(lang) }}>{label}</span>
-                <span className="text-white font-semibold" dir="ltr" style={{ fontFamily: mono ? 'monospace' : fontStyle(lang) }}>{val}</span>
+      <div className={inline ? 'max-w-lg mx-auto py-10' : 'max-w-lg w-full'}>
+        <style>{`.res-id{font-family:'Roboto Mono','Courier New',Courier,monospace!important;direction:ltr!important;unicode-bidi:bidi-override!important;letter-spacing:.05em}`}</style>
+
+        {/* Top gold accent */}
+        <div className="h-px mb-10" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
+
+        {/* Success icon */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative mb-6">
+            {/* Outer gold ring */}
+            <div className="w-28 h-28 rounded-full flex items-center justify-center"
+              style={{ border: `1px solid rgba(200,169,110,0.25)`, background: 'rgba(200,169,110,0.04)' }}>
+              {/* Inner green ring */}
+              <div className="w-20 h-20 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(34,197,94,0.12)', border: '1.5px solid rgba(34,197,94,0.4)' }}>
+                <i className="ri-checkbox-circle-fill text-green-400 text-4xl" />
               </div>
-            ))}
+            </div>
+            {/* Decorative dots */}
+            <div className="absolute top-1 right-1 w-2 h-2 rounded-full" style={{ background: GOLD, opacity: 0.6 }} />
+            <div className="absolute bottom-1 left-1 w-1.5 h-1.5 rounded-full" style={{ background: GOLD, opacity: 0.4 }} />
           </div>
+
+          {/* Title with decorative lines */}
+          <div className="flex items-center justify-center gap-4 mb-3 w-full">
+            <span className="block flex-1 max-w-[60px] h-px rounded-full" style={{ background: 'linear-gradient(to right, transparent, #cc0000)' }} />
+            <h1 className="text-2xl md:text-3xl font-black text-white text-center" style={{ fontFamily: fontStyle(lang) }}>
+              {t('داواکارییەکەت تۆمارکرا!', 'تم تسجيل طلبك!', 'Reservation Submitted!', lang)}
+            </h1>
+            <span className="block flex-1 max-w-[60px] h-px rounded-full" style={{ background: 'linear-gradient(to left, transparent, #cc0000)' }} />
+          </div>
+
+          {/* Gold diamond divider */}
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="h-px w-10" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
+            <div className="w-1.5 h-1.5 rotate-45" style={{ background: GOLD }} />
+            <div className="h-px w-10" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
+          </div>
+
+          <p className="text-white text-sm text-center leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
+            {t('تکایە ئەم کیوئارکۆدە وەک پشکنین لە دەرگای مۆزەخانەکە پیشان بدە', 'يرجى إظهار رمز QR هذا عند مدخل المتحف للتحقق', 'Please show this QR code at the museum entrance for verification', lang)}
+          </p>
         </div>
+
+        {/* QR card */}
+        <div className="rounded-2xl overflow-hidden mb-6 relative"
+          style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(200,169,110,0.2)`, boxShadow: '0 16px 60px rgba(0,0,0,0.6)' }}>
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
+
+          {/* QR header strip */}
+          <div className="px-6 pt-5 pb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+                style={{ background: 'rgba(122,0,0,0.4)', border: '1px solid rgba(200,169,110,0.25)' }}>
+                <i className="ri-qr-code-line text-sm" style={{ color: GOLD }} />
+              </div>
+              <span className="text-xs font-bold text-white/50 uppercase tracking-widest">QR Code</span>
+            </div>
+            <bdo dir="ltr" className="res-id text-xs text-white/25">{resId}</bdo>
+          </div>
+
+          {/* QR itself */}
+          <div className="flex justify-center px-6 pb-5" ref={qrRef}>
+            <div className="rounded-2xl p-4 shadow-2xl" style={{ background: '#fff', border: `1.5px solid rgba(200,169,110,0.35)` }}>
+              <QRCodeSVG value={`${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${reservation.id}`} size={190} bgColor="#ffffff" fgColor="#0a0a0a" level="H" />
+            </div>
+          </div>
+
+          <div className="h-px mx-6" style={{ background: 'rgba(200,169,110,0.08)' }} />
+
+          {/* Details inside QR card */}
+          <div className="px-6 py-5" dir={isRtl ? 'rtl' : 'ltr'}>
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { icon: 'ri-user-line',     label: t('ناو','الاسم','Name',lang),                val: reservation.name,                        span: true, numeric: false },
+                { icon: 'ri-calendar-line', label: t('بەروار','التاريخ','Date',lang),            val: reservation.date,                                    numeric: true  },
+                { icon: 'ri-time-line',     label: t('کات','الوقت','Time',lang),                 val: (reservation.time || '').slice(0, 5),                numeric: true  },
+                { icon: 'ri-group-line',    label: t('میوان','الضيوف','Guests',lang),             val: reservation.guest_count,                             numeric: true  },
+              ].map(({ icon, label, val, span, numeric }) => (
+                <div key={label}
+                  className={`rounded-xl px-3 py-2.5 ${span ? 'col-span-2' : ''}`}
+                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <i className={`${icon} text-[10px]`} style={{ color: GOLD }} />
+                    <span className="text-[10px] text-white/70 uppercase tracking-wider" style={{ fontFamily: fontStyle(lang) }}>{label}</span>
+                  </div>
+                  {numeric
+                    ? <bdo dir="ltr" className="res-id text-white font-bold text-sm block">{val}</bdo>
+                    : <p className="text-white font-bold text-sm" style={{ fontFamily: fontStyle(lang) }}>{val}</p>
+                  }
+                </div>
+              ))}
+            </div>
+
+            {/* Reservation ID row */}
+            <div className="mt-3 flex items-center justify-between px-3 py-2.5 rounded-xl"
+              style={{ background: 'rgba(200,169,110,0.06)', border: '1px solid rgba(200,169,110,0.12)' }}>
+              <span className="text-[10px] text-white/70 uppercase tracking-wider flex items-center gap-1.5" style={{ fontFamily: fontStyle(lang) }}>
+                <i className="ri-fingerprint-line text-[10px]" style={{ color: GOLD }} />
+                {t('ناسنامەی داواکاری','معرف الحجز','Reservation ID',lang)}
+              </span>
+              <bdo dir="ltr" className="res-id text-sm font-bold" style={{ color: GOLD }}>{resId}</bdo>
+            </div>
+          </div>
+
+          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, rgba(200,169,110,0.2), transparent)` }} />
+        </div>
+
         {/* Actions */}
-        <div className="flex gap-3 justify-center flex-wrap">
+        <div className="flex gap-3 flex-wrap">
           <button onClick={downloadQR}
-            className="flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-2xl transition-all"
-            style={{ background: RED, border: `1px solid rgba(200,169,110,0.35)`, fontFamily: fontStyle(lang) }}>
-            <i className="ri-download-line" />{t('داونلۆدی QR','تحميل QR','Download QR',lang)}
+            className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
+            style={{ background: RED, border: `1px solid rgba(200,169,110,0.35)`, boxShadow: '0 4px 20px rgba(122,0,0,0.35)', fontFamily: fontStyle(lang) }}>
+            <i className="ri-download-2-line text-base" style={{ color: GOLD }} />
+            {t('داونلۆدی QR','تحميل QR','Download QR',lang)}
           </button>
           <button onClick={() => { setReservation(null); setForm(EMPTY) }}
-            className="flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-2xl transition-all"
-            style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', fontFamily: fontStyle(lang) }}>
-            <i className="ri-add-line" />{t('داواکارییەکی تر','حجز آخر','Another Booking',lang)}
+            className="flex items-center justify-center gap-2 px-5 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
+            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: fontStyle(lang) }}>
+            <i className="ri-add-line" />
+            {t('داواکارییەکی تر','حجز آخر','New Booking',lang)}
           </button>
           {!inline && (
             <Link href={homeHref}
-              className="flex items-center gap-2 px-5 py-2.5 text-white text-sm font-bold rounded-2xl transition-all"
-              style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.12)', fontFamily: fontStyle(lang) }}>
-              <i className="ri-home-line" />{t('سەرەتا','الرئيسية','Home',lang)}
+              className="flex items-center justify-center gap-2 px-5 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
+              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: fontStyle(lang) }}>
+              <i className="ri-home-5-line" />
+              {t('سەرەتا','الرئيسية','Home',lang)}
             </Link>
           )}
         </div>
+
+        {/* Bottom gold accent */}
+        <div className="h-px mt-10" style={{ background: `linear-gradient(to right, transparent, rgba(200,169,110,0.2), transparent)` }} />
+
       </div>
     )
 
