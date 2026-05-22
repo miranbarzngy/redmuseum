@@ -85,19 +85,14 @@ export function KurdishPageContent({ initialSection = null }) {
     })
   }, [])
 
-  // Scroll to initialSection once data has loaded and DOM is ready
+  // Scroll to initialSection immediately on mount — sections are already rendered
+  // (vis defaults to all-visible, so elements are in DOM right away)
   useEffect(() => {
-    if (!dataReady) return
-    if (!initialSection) { urlGateRef.current = true; return }
+    if (!initialSection || initialSection === 'home') {
+      urlGateRef.current = true
+      return
+    }
     const tryScroll = (attempts = 0) => {
-      if (initialSection === 'home') {
-        window.scrollTo({ top: 0, behavior: 'instant' })
-        setActiveSection('home')
-        activeSectionRef.current = 'home'
-        window.history.replaceState(null, '', '/kurdish/slides')
-        urlGateRef.current = true
-        return
-      }
       const el = document.getElementById(initialSection)
       if (el) {
         window.scrollTo({ top: el.offsetTop - 80, behavior: 'instant' })
@@ -105,14 +100,18 @@ export function KurdishPageContent({ initialSection = null }) {
         activeSectionRef.current = initialSection
         const url = ELEMENT_URL[initialSection]
         if (url) window.history.replaceState(null, '', url)
-        // Open gate after scroll settles so observer doesn't override the position
         setTimeout(() => { urlGateRef.current = true }, 600)
-      } else if (attempts < 20) {
-        setTimeout(() => tryScroll(attempts + 1), 100)
+      } else if (attempts < 25) {
+        setTimeout(() => tryScroll(attempts + 1), 50)
       }
     }
     tryScroll()
-  }, [dataReady, initialSection])
+  }, [])
+
+  // Open gate when data is ready for no-initialSection path
+  useEffect(() => {
+    if (dataReady && !initialSection) urlGateRef.current = true
+  }, [dataReady])
 
   useEffect(() => {
     if (currentLang === 'ku') {

@@ -231,7 +231,12 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
 
   // Active items for collapsed view — fall back to Kurdish if current lang is hidden
   const activeLang = languages.find(l => l.code === currentLang) || languages[0]
-  const activeItem = menuItems.find(item => isActive(item.id)) || menuItems[0]
+  // Fall back to known section definitions before resorting to home,
+  // so the correct icon shows while DB data (showExclusive, etc.) is still loading
+  const activeItem = menuItems.find(item => isActive(item.id))
+    || (activeSection === 'exclusive-section' ? exclusiveItem : null)
+    || (activeSection === 'reserve' ? reserveItem : null)
+    || menuItems[0]
 
   const sideStyle = {
     left: 0,

@@ -82,19 +82,13 @@ export function ArabicPageContent({ initialSection = null }) {
     })
   }, [])
 
-  // Scroll to initialSection once data and DOM are ready
+  // Scroll to initialSection immediately on mount
   useEffect(() => {
-    if (!dataReady) return
-    if (!initialSection) { urlGateRef.current = true; return }
+    if (!initialSection || initialSection === 'home') {
+      urlGateRef.current = true
+      return
+    }
     const tryScroll = (attempts = 0) => {
-      if (initialSection === 'home') {
-        window.scrollTo({ top: 0, behavior: 'instant' })
-        setActiveSection('home')
-        activeSectionRef.current = 'home'
-        window.history.replaceState(null, '', '/arabic/slides')
-        urlGateRef.current = true
-        return
-      }
       const el = document.getElementById(initialSection)
       if (el) {
         window.scrollTo({ top: el.offsetTop - 80, behavior: 'instant' })
@@ -103,12 +97,16 @@ export function ArabicPageContent({ initialSection = null }) {
         const url = ELEMENT_URL[initialSection]
         if (url) window.history.replaceState(null, '', url)
         setTimeout(() => { urlGateRef.current = true }, 600)
-      } else if (attempts < 20) {
-        setTimeout(() => tryScroll(attempts + 1), 100)
+      } else if (attempts < 25) {
+        setTimeout(() => tryScroll(attempts + 1), 50)
       }
     }
     tryScroll()
-  }, [dataReady, initialSection])
+  }, [])
+
+  useEffect(() => {
+    if (dataReady && !initialSection) urlGateRef.current = true
+  }, [dataReady])
 
   useEffect(() => {
     if (currentLang === 'ar') {
