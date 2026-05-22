@@ -5,6 +5,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import QRCode from 'qrcode'
 import { useEffect, useRef, useState } from 'react'
 import { getSupabaseClient } from '../lib/supabase-client'
+import { useMuseumName } from '../lib/useMuseumName'
 import Sidebar from './Sidebar'
 
 const t = (ku, ar, en, lang) =>
@@ -36,6 +37,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   const [availableDays, setAvailableDays]   = useState(['1','2','3','4','5'])
   const [availableHours, setAvailableHours] = useState({ start: '09:00', end: '17:00' })
   const qrRef = useRef(null)
+  const museumName = useMuseumName()
 
   const [trackPhone, setTrackPhone]     = useState('')
   const [trackLoading, setTrackLoading] = useState(false)
@@ -344,39 +346,50 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
         </div>
 
         {/* QR card */}
-        <div className="rounded-2xl overflow-hidden mb-6 relative"
-          style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid rgba(200,169,110,0.2)`, boxShadow: '0 16px 60px rgba(0,0,0,0.6)' }}>
-          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
+        <div className="rounded-2xl overflow-hidden mb-6" style={{ boxShadow: '0 16px 60px rgba(0,0,0,0.7)', border: `1px solid rgba(200,169,110,0.25)` }}>
 
-          {/* QR header strip */}
-          <div className="px-6 pt-5 pb-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: 'rgba(122,0,0,0.4)', border: '1px solid rgba(200,169,110,0.25)' }}>
-                <i className="ri-qr-code-line text-sm" style={{ color: GOLD }} />
-              </div>
-              <span className="text-xs font-bold text-white/50 uppercase tracking-widest">QR Code</span>
+          {/* ── Museum banner (matches download image) ── */}
+          <div className="flex items-center justify-between px-5 py-0" style={{ background: '#6b0000', minHeight: 72 }}>
+            {/* Text block */}
+            <div className="flex flex-col" style={{ direction: 'rtl' }}>
+              <span className="font-bold text-white text-sm leading-tight" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
+                {museumName.kr}
+              </span>
+              <span className="text-white/60 text-[10px] mt-0.5">{museumName.en}</span>
             </div>
-            <bdo dir="ltr" className="res-id text-xs text-white/25">{resId}</bdo>
+            {/* Logo icon */}
+            <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 ms-3"
+              style={{ background: '#fff', padding: 3, border: '1.5px solid rgba(255,255,255,0.3)' }}>
+              <img src="/android-chrome-192x192.png" alt="logo" className="w-full h-full object-cover rounded-lg" />
+            </div>
           </div>
 
+          {/* Gold separator */}
+          <div className="h-[3px]" style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
+
+          {/* Reservation ID bar */}
+          <div className="flex items-center justify-center py-3.5" style={{ background: RED }}>
+            <bdo dir="ltr" className="res-id text-white font-bold text-lg tracking-widest">{resId}</bdo>
+          </div>
+
+          {/* Gold separator */}
+          <div className="h-[3px]" style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
+
           {/* QR itself */}
-          <div className="flex justify-center px-6 pb-5" ref={qrRef}>
+          <div className="flex justify-center px-6 py-6" ref={qrRef} style={{ background: '#111' }}>
             <div className="rounded-2xl p-4 shadow-2xl" style={{ background: '#fff', border: `1.5px solid rgba(200,169,110,0.35)` }}>
               <QRCodeSVG value={`${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${reservation.id}`} size={190} bgColor="#ffffff" fgColor="#0a0a0a" level="H" />
             </div>
           </div>
 
-          <div className="h-px mx-6" style={{ background: 'rgba(200,169,110,0.08)' }} />
-
-          {/* Details inside QR card */}
-          <div className="px-6 py-5" dir={isRtl ? 'rtl' : 'ltr'}>
-            <div className="grid grid-cols-2 gap-3">
+          {/* Details */}
+          <div className="px-5 pb-5 pt-1" style={{ background: '#111' }} dir={isRtl ? 'rtl' : 'ltr'}>
+            <div className="grid grid-cols-2 gap-2.5">
               {[
-                { icon: 'ri-user-line',     label: t('ناو','الاسم','Name',lang),                val: reservation.name,                        span: true, numeric: false },
-                { icon: 'ri-calendar-line', label: t('بەروار','التاريخ','Date',lang),            val: reservation.date,                                    numeric: true  },
-                { icon: 'ri-time-line',     label: t('کات','الوقت','Time',lang),                 val: (reservation.time || '').slice(0, 5),                numeric: true  },
-                { icon: 'ri-group-line',    label: t('میوان','الضيوف','Guests',lang),             val: reservation.guest_count,                             numeric: true  },
+                { icon: 'ri-user-line',     label: t('ناو','الاسم','Name',lang),    val: reservation.name,                     span: true, numeric: false },
+                { icon: 'ri-calendar-line', label: t('بەروار','التاريخ','Date',lang), val: reservation.date,                                numeric: true  },
+                { icon: 'ri-time-line',     label: t('کات','الوقت','Time',lang),     val: (reservation.time || '').slice(0, 5),            numeric: true  },
+                { icon: 'ri-group-line',    label: t('میوان','الضيوف','Guests',lang), val: reservation.guest_count,                         numeric: true  },
               ].map(({ icon, label, val, span, numeric }) => (
                 <div key={label}
                   className={`rounded-xl px-3 py-2.5 ${span ? 'col-span-2' : ''}`}
@@ -394,8 +407,8 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             </div>
 
             {/* Reservation ID row */}
-            <div className="mt-3 flex items-center justify-between px-3 py-2.5 rounded-xl"
-              style={{ background: 'rgba(200,169,110,0.06)', border: '1px solid rgba(200,169,110,0.12)' }}>
+            <div className="mt-2.5 flex items-center justify-between px-3 py-2.5 rounded-xl"
+              style={{ background: 'rgba(200,169,110,0.06)', border: '1px solid rgba(200,169,110,0.15)' }}>
               <span className="text-[10px] text-white/70 uppercase tracking-wider flex items-center gap-1.5" style={{ fontFamily: fontStyle(lang) }}>
                 <i className="ri-fingerprint-line text-[10px]" style={{ color: GOLD }} />
                 {t('ناسنامەی داواکاری','معرف الحجز','Reservation ID',lang)}
@@ -404,7 +417,8 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             </div>
           </div>
 
-          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, rgba(200,169,110,0.2), transparent)` }} />
+          {/* Gold bottom bar */}
+          <div className="h-[5px]" style={{ background: 'linear-gradient(to right, #7a0000, #c8a96e, #7a0000)' }} />
         </div>
 
         {/* Actions */}
