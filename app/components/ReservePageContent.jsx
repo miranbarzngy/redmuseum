@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { QRCodeSVG } from 'qrcode.react'
+import QRCode from 'qrcode'
 import { useEffect, useRef, useState } from 'react'
 import { getSupabaseClient } from '../lib/supabase-client'
 import Sidebar from './Sidebar'
@@ -111,21 +112,129 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     } finally { setLoading(false) }
   }
 
-  const downloadQR = () => {
-    const svg = qrRef.current?.querySelector('svg')
-    if (!svg) return
-    const svgStr = new XMLSerializer().serializeToString(svg)
+  const downloadQR = async () => {
+    // Fetch museum name from settings
+    let museumNameKr = 'مۆزەخانەی نیشتمانی ئەمنە سورەکە'
+    let museumNameEn = 'Amna Suraka National Museum'
+    try {
+      const sb = getSupabaseClient()
+      if (sb) {
+        const { data: s } = await sb.from('settings').select('museum_name_kr,museum_name_en').single()
+        if (s?.museum_name_kr) museumNameKr = s.museum_name_kr
+        if (s?.museum_name_en) museumNameEn = s.museum_name_en
+      }
+    } catch {}
+
+    // Load UniSalar font
+    let uniSalarLoaded = false
+    try {
+      const ff = new FontFace('UniSalar', 'url(/fonts/UniSalar.otf)')
+      await ff.load(); document.fonts.add(ff); uniSalarLoaded = true
+    } catch {}
+    const kuFont = uniSalarLoaded ? 'UniSalar, Tahoma, sans-serif' : 'Tahoma, sans-serif'
+
+    // Load museum icon
+    const logoImg = await new Promise(resolve => {
+      const img = new Image(); img.onload = () => resolve(img); img.onerror = () => resolve(null)
+      img.src = '/android-chrome-192x192.png'
+    })
+
+    // Generate QR as image
+    const qrUrl = `${window.location.origin}/reservation/${reservation.id}`
+    const qrDataUrl = await QRCode.toDataURL(qrUrl, { width: 464, margin: 2, errorCorrectionLevel: 'H', color: { dark: '#0a0a0a', light: '#ffffff' } })
+    const qrImg = await new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = qrDataUrl })
+
+    // Canvas dimensions
+    const W = 520, LOGO_H = 80, GOLD_H = 3, TITLE_H = 56, PAD = 28
+    const QR_SIZE = W - PAD * 2
+    const FOOTER_H = 96
+    const H = LOGO_H + GOLD_H + TITLE_H + GOLD_H + QR_SIZE + FOOTER_H + 5
+
     const canvas = document.createElement('canvas')
-    canvas.width = 300; canvas.height = 300
+    canvas.width = W; canvas.height = H
     const ctx = canvas.getContext('2d')
-    const img = new window.Image()
-    img.onload = () => {
-      ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 300, 300); ctx.drawImage(img, 0, 0, 300, 300)
-      const a = document.createElement('a')
-      a.download = `reservation-${reservation.id.slice(0, 8)}.png`
-      a.href = canvas.toDataURL('image/png'); a.click()
+
+    // White base
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H)
+
+    // ── Logo banner (dark red) ──
+    ctx.fillStyle = '#6b0000'; ctx.fillRect(0, 0, W, LOGO_H)
+
+    // Measure text to center group
+    const ICON_SIZE = 44, GAP = 14
+    ctx.font = `bold 15px ${kuFont}`
+    const titleW = ctx.measureText(museumNameKr).width
+    ctx.font = '11px Arial, sans-serif'
+    const subW = ctx.measureText(museumNameEn).width
+    const textBlockW = Math.max(titleW, subW)
+    const groupStartX = (W - (textBlockW + GAP + ICON_SIZE)) / 2
+    const ICON_X = groupStartX + textBlockW + GAP
+    const ICON_Y = (LOGO_H - ICON_SIZE) / 2
+
+    // Logo icon with white rounded box
+    if (logoImg) {
+      const BP = 3
+      ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.roundRect(ICON_X - BP, ICON_Y - BP, ICON_SIZE + BP * 2, ICON_SIZE + BP * 2, 8); ctx.fill()
+      ctx.save(); ctx.beginPath(); ctx.roundRect(ICON_X - BP, ICON_Y - BP, ICON_SIZE + BP * 2, ICON_SIZE + BP * 2, 8); ctx.clip()
+      ctx.drawImage(logoImg, ICON_X - BP, ICON_Y - BP, ICON_SIZE + BP * 2, ICON_SIZE + BP * 2); ctx.restore()
     }
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgStr)))
+
+    // Museum name text
+    const textRightX = groupStartX + textBlockW
+    ctx.fillStyle = '#ffffff'; ctx.font = `bold 15px ${kuFont}`; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.direction = 'rtl'
+    ctx.fillText(museumNameKr, textRightX, LOGO_H / 2 - 11)
+    ctx.direction = 'ltr'; ctx.font = '11px Arial, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.textAlign = 'right'
+    ctx.fillText(museumNameEn, textRightX, LOGO_H / 2 + 11)
+
+    // ── Gold separator ──
+    let y = LOGO_H
+    const drawGold = () => {
+      const g = ctx.createLinearGradient(0, 0, W, 0)
+      g.addColorStop(0, 'transparent'); g.addColorStop(0.5, '#c8a96e'); g.addColorStop(1, 'transparent')
+      ctx.fillStyle = g; ctx.fillRect(0, y, W, GOLD_H); y += GOLD_H
+    }
+    drawGold()
+
+    // ── Reservation ID bar (museum red) ──
+    ctx.fillStyle = '#7a0000'; ctx.fillRect(0, y, W, TITLE_H)
+    const resId = '#' + reservation.id.slice(0, 8).toUpperCase()
+    ctx.fillStyle = '#ffffff'; ctx.font = `bold 20px 'Courier New', Courier, monospace`
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'
+    ctx.fillText(resId, W / 2, y + TITLE_H / 2)
+    y += TITLE_H
+
+    // ── Gold separator ──
+    drawGold()
+
+    // ── QR code ──
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(PAD, y, QR_SIZE, QR_SIZE)
+    ctx.drawImage(qrImg, PAD, y, QR_SIZE, QR_SIZE)
+    y += QR_SIZE
+
+    // ── Footer ──
+    ctx.fillStyle = '#111111'; ctx.fillRect(0, y, W, FOOTER_H)
+    const fMid = y + FOOTER_H / 2
+    ctx.fillStyle = '#ffffff'; ctx.font = `bold 15px ${kuFont}`
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'rtl'
+    ctx.fillText(reservation.name, W / 2, fMid - 18)
+    ctx.direction = 'ltr'; ctx.font = '12px Arial, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.55)'
+    ctx.fillText(`${reservation.date}  ·  ${(reservation.time || '').slice(0, 5)}  ·  ${reservation.guest_count} guests`, W / 2, fMid + 4)
+    // Gold accent line in footer
+    const ag = ctx.createLinearGradient(0, 0, W, 0)
+    ag.addColorStop(0, 'transparent'); ag.addColorStop(0.5, '#c8a96e'); ag.addColorStop(1, 'transparent')
+    ctx.fillStyle = ag; ctx.fillRect(0, y + FOOTER_H - 24, W, 1)
+    ctx.fillStyle = 'rgba(200,169,110,0.45)'; ctx.font = '10px Arial'; ctx.textAlign = 'center'
+    ctx.fillText(museumNameEn, W / 2, y + FOOTER_H - 10)
+
+    // ── Gold bottom bar ──
+    const bg = ctx.createLinearGradient(0, 0, W, 0)
+    bg.addColorStop(0, '#7a0000'); bg.addColorStop(0.5, '#c8a96e'); bg.addColorStop(1, '#7a0000')
+    ctx.fillStyle = bg; ctx.fillRect(0, y + FOOTER_H, W, 5)
+
+    // Download
+    const a = document.createElement('a')
+    a.download = `reservation-qr-${reservation.id.slice(0, 8)}.png`
+    a.href = canvas.toDataURL('image/png'); a.click()
   }
 
   const homeHref = lang === 'ar' ? '/arabic' : lang === 'ku' ? '/kurdish' : '/'
