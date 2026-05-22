@@ -29,7 +29,7 @@ export async function POST(request) {
   if (nameStr.length < 2 || nameStr.length > 100) {
     return NextResponse.json({ error: 'Name must be 2–100 characters' }, { status: 400 })
   }
-  if (!/^[\d\s+\-().]{7,20}$/.test(phoneStr)) {
+  if (!/^[\d\s+\-().]{6,20}$/.test(phoneStr)) {
     return NextResponse.json({ error: 'Invalid phone number' }, { status: 400 })
   }
   if (!Number.isInteger(guestNum) || guestNum < 1 || guestNum > 500) {

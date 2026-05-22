@@ -1,10 +1,13 @@
 import './globals.css'
-import { Metadata } from 'next'
+import { getMuseumName } from './lib/getMuseumName'
 
-export const metadata = {
-  title: 'Amnasuraka National Museum',
-  description: 'Amna Suraka (Red Prison) National Museum - Not To Be Forgotten',
-  keywords: ['museum', 'Kurdistan', 'Amna Suraka', 'Sulaimani', 'genocide', 'history'],
+export async function generateMetadata() {
+  const name = await getMuseumName()
+  return {
+    title: name.en,
+    description: `${name.en} (Red Prison) - Not To Be Forgotten`,
+    keywords: ['museum', 'Kurdistan', 'Amna Suraka', 'Sulaimani', 'genocide', 'history'],
+  }
 }
 
 export default function RootLayout({ children }) {

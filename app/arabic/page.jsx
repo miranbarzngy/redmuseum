@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useMuseumName } from '../lib/useMuseumName'
 import Sidebar from '../components/Sidebar'
 import Slider from '../components/Slider'
 import About from '../components/About'
@@ -67,6 +68,7 @@ export function ArabicPageContent({ initialSection = null }) {
   const [vis, setVis] = useState(Object.fromEntries(SECTION_KEYS.map(k => [k, true])))
   const [sectionOrder, setSectionOrder] = useState(DEFAULT_ORDER)
   const [dataReady, setDataReady] = useState(false)
+  const museumName = useMuseumName()
 
   useEffect(() => {
     const savedLang = localStorage.getItem('museum-lang')
@@ -192,7 +194,7 @@ export function ArabicPageContent({ initialSection = null }) {
       />
       {sectionOrder.map(id => sectionComponents[id] ?? null)}
       <footer className="py-6 bg-black text-white text-center">
-        <p>© ٢٠٢٥ المتحف الوطني أمضى سورەكە. جميع الحقوق محفوظة.</p>
+        <p>{`© ٢٠٢٥ ${museumName.ar}. جميع الحقوق محفوظة.`}</p>
       </footer>
     </main>
   )

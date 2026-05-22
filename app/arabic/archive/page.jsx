@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase-client'
+import { useMuseumName } from '../../lib/useMuseumName'
 
 const defaultCategories = [
   { id: 'all',       name_en: 'All',       name_ar: 'الكل',          slug: 'all'       },
@@ -27,6 +28,7 @@ export default function ArabicArchive() {
   const [loading, setLoading]       = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const museumName = useMuseumName()
 
   useEffect(() => { fetchCategories() }, [])
   useEffect(() => { fetchArchive() }, [])
@@ -120,7 +122,7 @@ export default function ArabicArchive() {
             <h1 className="text-4xl md:text-5xl font-black text-white" style={AR}>الأرشيف الرقمي</h1>
             <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #cc0000)' }} />
           </div>
-          <p className="text-white/60 text-lg" style={AR}>متحف أمنة سراكر الوطني</p>
+          <p className="text-white/60 text-lg" style={AR}>{museumName.ar}</p>
 
           <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(200,169,110,0.15)', color: 'rgba(255,255,255,0.5)', ...AR }}>

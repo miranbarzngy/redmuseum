@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase-client'
+import { useMuseumName } from '../../lib/useMuseumName'
 
 const defaultCategories = [
   { id: 'all',       name_en: 'All',       name_ku: 'هەموو',         slug: 'all'       },
@@ -27,6 +28,7 @@ export default function KurdishArchive() {
   const [loading, setLoading]       = useState(true)
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const museumName = useMuseumName()
 
   useEffect(() => { fetchCategories() }, [])
   useEffect(() => { fetchArchive() }, [])
@@ -121,7 +123,7 @@ export default function KurdishArchive() {
             <h1 className="text-4xl md:text-5xl font-black text-white" style={KU}>ئەرشیفی دیجیتاڵی</h1>
             <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #cc0000)' }} />
           </div>
-          <p className="text-white/60 text-lg" style={KU}>مۆزەخانەی نیشتمانی ئەمنە سورەکە</p>
+          <p className="text-white/60 text-lg" style={KU}>{museumName.kr}</p>
 
           {/* Stats strip */}
           <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm"

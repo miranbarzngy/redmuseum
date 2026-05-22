@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../lib/supabase-client'
 import { AdminContext } from './AdminContext'
+import { useMuseumName } from '../lib/useMuseumName'
 
 const BASE_NAV = [
   { section: 'dashboard',     href: '/admin/dashboard',      Icon: LayoutDashboard, label: 'Dashboard',      exact: true,  grad: 'from-slate-600 to-slate-800',     shadow: 'shadow-slate-950/60'   },
@@ -62,6 +63,7 @@ export default function AdminLayout({ children }) {
   const overIdx = useRef(null)
   const router = useRouter()
   const pathname = usePathname()
+  const museumName = useMuseumName()
 
   const FULL_PERMS = Object.fromEntries(
     ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','users','section_order','languages','showcase_cards']
@@ -228,7 +230,7 @@ export default function AdminLayout({ children }) {
           </button>
           <div className="text-center">
             <p className="text-sm font-bold leading-tight">Admin Panel</p>
-            <p className="text-xs text-gray-400">Amna Suraka Museum</p>
+            <p className="text-xs text-gray-400">{museumName.en}</p>
           </div>
           <button onClick={handleLogout} className="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors font-semibold">
             Logout

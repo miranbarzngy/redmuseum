@@ -1,9 +1,13 @@
 import '../globals.css'
+import { getMuseumName } from '../lib/getMuseumName'
 
-export const metadata = {
-  title: 'المتحف الوطني أمضى سورەكە',
-  description: 'متحف أمضى سورەكە (السجن الأحمر) - لعدم النسيان',
-  keywords: ['متحف', 'كوردستان', 'أمضى سورەكە', 'السليمانية', 'كوة', 'تاريخ'],
+export async function generateMetadata() {
+  const name = await getMuseumName()
+  return {
+    title: name.ar,
+    description: `${name.ar} (السجن الأحمر) - لعدم النسيان`,
+    keywords: ['متحف', 'كوردستان', 'أمضى سورەكە', 'السليمانية', 'كوة', 'تاريخ'],
+  }
 }
 
 export default function ArabicLayout({ children }) {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useMuseumName } from '../lib/useMuseumName'
 import About from '../components/About'
 import ArchivePreview from '../components/ArchivePreview'
 import ContactForm from '../components/ContactForm'
@@ -68,6 +69,7 @@ export function KurdishPageContent({ initialSection = null }) {
   const [vis, setVis] = useState(Object.fromEntries(SECTION_KEYS.map(k => [k, true])))
   const [sectionOrder, setSectionOrder] = useState(DEFAULT_ORDER)
   const [dataReady, setDataReady] = useState(false)
+  const museumName = useMuseumName()
 
   useEffect(() => {
     const savedLang = localStorage.getItem('museum-lang')
@@ -193,7 +195,7 @@ export function KurdishPageContent({ initialSection = null }) {
       />
       {sectionOrder.map(id => sectionComponents[id] ?? null)}
       <footer className="py-6 bg-black text-white text-center">
-        <p>{currentLang === 'ku' ? '© ٢٠٢٦ مۆزەخانەی نیشتمانی ئەمنە سورەکە. هەموو مافەکان پارێزراوە.' : '© 2025 Amna Suraka National Museum. All rights reserved.'}</p>
+        <p>{currentLang === 'ku' ? `© ٢٠٢٦ ${museumName.kr}. هەموو مافەکان پارێزراوە.` : `© 2025 ${museumName.en}. All rights reserved.`}</p>
       </footer>
     </main>
   )

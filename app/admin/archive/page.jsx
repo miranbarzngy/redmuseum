@@ -36,7 +36,7 @@ import {
   X,
   FileArchive,
 } from 'lucide-react'
-import { supabase } from '../../lib/supabase-client'
+import { supabase, getSupabaseClient } from '../../lib/supabase-client'
 import VisibilityToggle from '../components/VisibilityToggle'
 import QRCode from 'qrcode'
 
@@ -61,7 +61,19 @@ const downloadQR = async (item) => {
   const url = `${window.location.origin}/kurdish/archive/${item.id}`
   const label = item.title_ku || item.title_en || 'Archive Item'
 
-  // Load UniSalar font for Kurdish text
+  // Fetch museum name from settings
+  let museumNameKr = 'مۆزەخانەی نیشتمانی ئەمنە سورەکە'
+  let museumNameEn = 'Amna Suraka National Museum'
+  try {
+    const sb = getSupabaseClient()
+    if (sb) {
+      const { data: settings } = await sb.from('settings').select('museum_name_kr,museum_name_en').single()
+      if (settings?.museum_name_kr) museumNameKr = settings.museum_name_kr
+      if (settings?.museum_name_en) museumNameEn = settings.museum_name_en
+    }
+  } catch {}
+
+  // Load UniSalar font
   let uniSalarLoaded = false
   try {
     const fontFace = new FontFace('UniSalar', 'url(/fonts/UniSalar.otf)')
@@ -69,74 +81,149 @@ const downloadQR = async (item) => {
     document.fonts.add(fontFace)
     uniSalarLoaded = true
   } catch {}
-
   const kuFont = uniSalarLoaded ? 'UniSalar, Tahoma, sans-serif' : 'Tahoma, sans-serif'
 
-  // --- sizes ---
-  const W = 480, PAD = 28, QR_SIZE = W - PAD * 2
-  const HEADER_H = 64, FOOTER_H = 90
-  const H = HEADER_H + QR_SIZE + FOOTER_H
+  // Load museum square icon
+  const logoImg = await new Promise(resolve => {
+    const img = new Image()
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(null)
+    img.src = '/android-chrome-192x192.png'
+  })
+
+  // --- canvas dimensions ---
+  const W = 520
+  const LOGO_H = 80        // museum logo banner
+  const GOLD_LINE = 3      // gold separator
+  const TITLE_H = 56       // archive item title bar
+  const PAD = 28
+  const QR_SIZE = W - PAD * 2
+  const FOOTER_H = 90
+  const H = LOGO_H + GOLD_LINE + TITLE_H + GOLD_LINE + QR_SIZE + FOOTER_H + 5
 
   const canvas = document.createElement('canvas')
   canvas.width = W; canvas.height = H
   const ctx = canvas.getContext('2d')
 
-  // White background
+  // ── White base ──
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, W, H)
 
-  // Museum red header bar
-  ctx.fillStyle = '#7a0000'
-  ctx.fillRect(0, 0, W, HEADER_H)
+  // ── Logo banner (dark red bg) ──
+  ctx.fillStyle = '#6b0000'
+  ctx.fillRect(0, 0, W, LOGO_H)
 
-  // Gold accent line under header
-  ctx.fillStyle = '#c8a96e'
-  ctx.fillRect(0, HEADER_H, W, 2)
+  // Measure text widths to center the group (text + icon) horizontally
+  const ICON_SIZE = 44
+  const GAP = 14
+  ctx.font = `bold 15px ${kuFont}`
+  const titleW = ctx.measureText(museumNameKr).width
+  ctx.font = '11px Arial, sans-serif'
+  const subW = ctx.measureText(museumNameEn).width
+  const textBlockW = Math.max(titleW, subW)
+  const totalGroupW = textBlockW + GAP + ICON_SIZE
+  const groupStartX = (W - totalGroupW) / 2   // left edge of text block
+  const ICON_X = groupStartX + textBlockW + GAP
+  const ICON_Y = (LOGO_H - ICON_SIZE) / 2
 
-  // Header title in Kurdish (UniSalar)
+  // Logo icon — white background box, logo fills the box
+  if (logoImg) {
+    const BOX_PAD = 3
+    const BOX_X = ICON_X - BOX_PAD
+    const BOX_Y = ICON_Y - BOX_PAD
+    const BOX_W = ICON_SIZE + BOX_PAD * 2
+    const BOX_H = ICON_SIZE + BOX_PAD * 2
+    // White fill
+    ctx.fillStyle = '#ffffff'
+    ctx.beginPath()
+    ctx.roundRect(BOX_X, BOX_Y, BOX_W, BOX_H, 8)
+    ctx.fill()
+    // Clip to rounded box so logo doesn't bleed outside corners
+    ctx.save()
+    ctx.beginPath()
+    ctx.roundRect(BOX_X, BOX_Y, BOX_W, BOX_H, 8)
+    ctx.clip()
+    ctx.drawImage(logoImg, BOX_X, BOX_Y, BOX_W, BOX_H)
+    ctx.restore()
+  }
+
+  // Kurdish title — right-aligned to the right edge of the text block
+  const textRightX = groupStartX + textBlockW
   ctx.fillStyle = '#ffffff'
-  ctx.font = `bold 18px ${kuFont}`
+  ctx.font = `bold 15px ${kuFont}`
+  ctx.textAlign = 'right'
+  ctx.textBaseline = 'middle'
+  ctx.direction = 'rtl'
+  ctx.fillText(museumNameKr, textRightX, LOGO_H / 2 - 11)
+  ctx.direction = 'ltr'
+  // English subtitle
+  ctx.font = '11px Arial, sans-serif'
+  ctx.fillStyle = 'rgba(255,255,255,0.65)'
+  ctx.textAlign = 'right'
+  ctx.fillText(museumNameEn, textRightX, LOGO_H / 2 + 11)
+
+  // ── Gold separator ──
+  let y = LOGO_H
+  const grad1 = ctx.createLinearGradient(0, 0, W, 0)
+  grad1.addColorStop(0, 'transparent')
+  grad1.addColorStop(0.5, '#c8a96e')
+  grad1.addColorStop(1, 'transparent')
+  ctx.fillStyle = grad1
+  ctx.fillRect(0, y, W, GOLD_LINE)
+  y += GOLD_LINE
+
+  // ── Archive item title bar (museum red) ──
+  ctx.fillStyle = '#7a0000'
+  ctx.fillRect(0, y, W, TITLE_H)
+  ctx.fillStyle = '#ffffff'
+  ctx.font = `bold 17px ${kuFont}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.direction = 'rtl'
-  const maxLen = 36
+  const maxLen = 38
   const displayLabel = label.length > maxLen ? label.slice(0, maxLen) + '…' : label
-  ctx.fillText(displayLabel, W / 2, HEADER_H / 2)
+  ctx.fillText(displayLabel, W / 2, y + TITLE_H / 2)
   ctx.direction = 'ltr'
+  y += TITLE_H
 
-  // QR code
+  // ── Gold separator ──
+  const grad2 = ctx.createLinearGradient(0, 0, W, 0)
+  grad2.addColorStop(0, 'transparent')
+  grad2.addColorStop(0.5, '#c8a96e')
+  grad2.addColorStop(1, 'transparent')
+  ctx.fillStyle = grad2
+  ctx.fillRect(0, y, W, GOLD_LINE)
+  y += GOLD_LINE
+
+  // ── QR code ──
   const qrCanvas = document.createElement('canvas')
   await QRCode.toCanvas(qrCanvas, url, {
     width: QR_SIZE, margin: 1,
     color: { dark: '#1a0a0a', light: '#ffffff' },
     errorCorrectionLevel: 'H',
   })
-  ctx.drawImage(qrCanvas, PAD, HEADER_H + 2)
+  ctx.drawImage(qrCanvas, PAD, y)
+  y += QR_SIZE
 
-  // Footer background
+  // ── Footer ──
   ctx.fillStyle = '#fafafa'
-  ctx.fillRect(0, HEADER_H + 2 + QR_SIZE, W, FOOTER_H)
-
-  // Gold top line on footer
-  ctx.fillStyle = 'rgba(200,169,110,0.6)'
-  ctx.fillRect(0, HEADER_H + 2 + QR_SIZE, W, 1.5)
-
-  const footerY = HEADER_H + 2 + QR_SIZE + FOOTER_H / 2 + 2
-
-  // "سکان بکە" in UniSalar
+  ctx.fillRect(0, y, W, FOOTER_H)
+  ctx.fillStyle = 'rgba(200,169,110,0.5)'
+  ctx.fillRect(0, y, W, 1.5)
   ctx.fillStyle = '#000000'
   ctx.font = `bold 26px ${kuFont}`
   ctx.textAlign = 'center'
-  ctx.direction = 'rtl'
   ctx.textBaseline = 'middle'
-  ctx.fillText('سکان بکە', W / 2, footerY)
+  ctx.direction = 'rtl'
+  ctx.fillText('سکان بکە', W / 2, y + FOOTER_H / 2)
   ctx.direction = 'ltr'
+  y += FOOTER_H
 
-  // Bottom gold accent bar
+  // ── Bottom gold bar ──
   ctx.fillStyle = '#c8a96e'
-  ctx.fillRect(0, H - 5, W, 5)
+  ctx.fillRect(0, y, W, 5)
 
-  // Trigger download
+  // ── Download ──
   const link = document.createElement('a')
   link.download = `qr-archive-${item.id}.png`
   link.href = canvas.toDataURL('image/png')

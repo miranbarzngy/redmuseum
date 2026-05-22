@@ -195,22 +195,52 @@ export default function VisitorsPage() {
       .then(blob => new Promise(resolve => { const fr = new FileReader(); fr.onload = () => resolve(fr.result); fr.readAsDataURL(blob) }))
     const qrDataUrl = await QRCode.toDataURL(qrTarget, { width: 220, margin: 1, errorCorrectionLevel: 'H', color: { dark: '#111111', light: '#ffffff' } })
 
+    // Fetch address and museum name from settings
+    let addrKu = 'سلێمانی، کوردستان، عێراق'
+    let addrEn = 'Sulaymaniyah, Kurdistan, Iraq'
+    let museumNameKr = 'مۆزەخانەی نیشتمانی ئەمنە سورەکە'
+    let museumNameEn = 'Amna Suraka National Museum'
+    try {
+      const sb = getSupabaseClient()
+      if (sb) {
+        const { data: settings } = await sb.from('settings').select('contact_address_kr,contact_address_en,museum_name_kr,museum_name_en').single()
+        if (settings?.contact_address_kr) addrKu = settings.contact_address_kr
+        if (settings?.contact_address_en) addrEn = settings.contact_address_en
+        if (settings?.museum_name_kr) museumNameKr = settings.museum_name_kr
+        if (settings?.museum_name_en) museumNameEn = settings.museum_name_en
+      }
+    } catch {}
+
     const html = `<!DOCTYPE html>
 <html lang="ku" dir="rtl">
 <head>
 <meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>فۆڕمی سەردانکاران — ${r.name}</title>
 <style>
   @font-face { font-family:'UniSalar'; src:url('${origin}/fonts/UniSalar.otf') format('opentype'); font-display:block; }
-  @page { size: A4 portrait; margin: 0; }
+  @page { size: A4 portrait !important; margin: 0 !important; }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html { width: 210mm; }
+  html, body {
+    width: 210mm !important; height: 297mm !important;
+    margin: 0 !important; padding: 0 !important;
+    overflow: hidden !important;
+    background-color: #ffffff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
   body {
-    width: 210mm; min-height: 297mm;
     font-family: 'UniSalar', Tahoma, Arial, sans-serif;
-    background: #fff; color: #000;
-    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+    color: #000;
+  }
+  .page-wrapper {
+    width: 210mm; height: 297mm;
+    box-sizing: border-box;
+    position: relative;
+    background: white;
     display: flex; flex-direction: column;
+    overflow: hidden;
+    page-break-after: always;
   }
 
   /* ── Gold top bar ── */
@@ -317,6 +347,7 @@ export default function VisitorsPage() {
 </style>
 </head>
 <body>
+<div class="page-wrapper">
 
 <div class="gold-bar"></div>
 
@@ -324,8 +355,8 @@ export default function VisitorsPage() {
   <div class="logo-side">
     <div class="logo-box"><img src="${logoUrl}" alt="M"/></div>
     <div>
-      <div class="museum-name">مۆزەخانەی نیشتمانی ئەمنە سورەکە</div>
-      <div class="museum-sub">Amna Suraka National Museum</div>
+      <div class="museum-name">${museumNameKr}</div>
+      <div class="museum-sub">${museumNameEn}</div>
     </div>
   </div>
   <div class="pass-label">
@@ -391,24 +422,33 @@ export default function VisitorsPage() {
 
 <div class="footer">
   <div>
-    <div class="footer-ku">مۆزەخانەی نیشتمانی ئەمنە سورەکە — سلێمانی، کوردستان</div>
-    <div class="footer-en">Amna Suraka National Museum — Sulaymaniyah, Kurdistan</div>
+    <div class="footer-ku">${museumNameKr} — ${addrKu}</div>
+    <div class="footer-en">${museumNameEn} — ${addrEn}</div>
   </div>
 
 </div>
 <div class="bottom-bar"></div>
 
+</div><!-- .page-wrapper -->
 <script>window.onload = () => setTimeout(() => window.print(), 200);<\/script>
 </body>
 </html>`
-    const win = window.open('', '_blank', 'width=820,height=1200')
+    const win = window.open('', '_blank', 'width=794,height=1095')
     win.document.write(html)
     win.document.close()
   }
 
-  const printGuests = () => {
+  const printGuests = async () => {
     const origin = window.location.origin
     const logoUrl = `${origin}/assets/images/logonav.png`
+    let museumNameEn = 'Amna Suraka National Museum'
+    try {
+      const sb = getSupabaseClient()
+      if (sb) {
+        const { data: settings } = await sb.from('settings').select('museum_name_en').single()
+        if (settings?.museum_name_en) museumNameEn = settings.museum_name_en
+      }
+    } catch {}
     const now = new Date()
     const printDate = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })
     const printTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
@@ -429,7 +469,7 @@ export default function VisitorsPage() {
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<title>Visitor Reservations — Amna Suraka Museum</title>
+<title>Visitor Reservations — ${museumNameEn}</title>
 <style>
   @page { size: A4 landscape; margin: 12mm 14mm 12mm 14mm; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -471,7 +511,7 @@ export default function VisitorsPage() {
 <body>
 <div class="top-bar"></div>
 <div class="header">
-  <div class="logo-wrap"><img src="${logoUrl}" alt="Amna Suraka Museum" /></div>
+  <div class="logo-wrap"><img src="${logoUrl}" alt="${museumNameEn}" /></div>
   <div class="header-right">
     <div><strong>Printed:</strong> ${printDate} at ${printTime}</div>
     <div><strong>Total Records:</strong> ${filtered.length}</div>
@@ -501,7 +541,7 @@ export default function VisitorsPage() {
   </tbody>
 </table>
 <div class="footer">
-  <div class="footer-brand">Amna Suraka National Museum · <span class="footer-red">Red Security</span> · Sulaymaniyah, Kurdistan</div>
+  <div class="footer-brand">${museumNameEn} · <span class="footer-red">Red Security</span> · Sulaymaniyah, Kurdistan</div>
   <div>Confidential — for internal use only</div>
 </div>
 <script>window.onload = () => { window.print(); }<\/script>

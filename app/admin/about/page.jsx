@@ -69,6 +69,7 @@ export default function AboutEditor() {
   const [saved, setSaved] = useState(false)
   const [formData, setFormData] = useState({
     id: 1,
+    museum_name_en: '', museum_name_kr: '', museum_name_ar: '',
     about_title_en: '', about_title_kr: '', about_title_ar: '',
     about_text_en: '',  about_text_kr: '',  about_text_ar: '',
     address_ar: '',
@@ -86,6 +87,9 @@ export default function AboutEditor() {
       if (data) {
         setFormData({
           id: data.id,
+          museum_name_en: data.museum_name_en || '',
+          museum_name_kr: data.museum_name_kr || '',
+          museum_name_ar: data.museum_name_ar || '',
           about_title_en: data.about_title_en || '',
           about_title_kr: data.about_title_kr || '',
           about_title_ar: data.about_title_ar || '',
@@ -176,6 +180,29 @@ export default function AboutEditor() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+
+        {/* Museum Name */}
+        <SectionCard icon={Building2} title="Museum Name" grad="from-rose-700 to-rose-900" shadow="shadow-rose-950/40">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+            {langCols.map(l => <LangBadge key={l.suffix} label={l.label} cls={l.badge} />)}
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {langCols.map(l => (
+              <div key={l.suffix}>
+                <input
+                  type="text"
+                  name={`museum_name${l.suffix}`}
+                  value={formData[`museum_name${l.suffix}`]}
+                  onChange={handleChange}
+                  dir={l.dir}
+                  style={l.font ? { fontFamily: l.font } : {}}
+                  placeholder={l.label + ' museum name'}
+                  className={inputCls}
+                />
+              </div>
+            ))}
+          </div>
+        </SectionCard>
 
         {/* About Content */}
         <SectionCard icon={Landmark} title="About Content" grad="from-amber-600 to-amber-800" shadow="shadow-amber-950/40">
