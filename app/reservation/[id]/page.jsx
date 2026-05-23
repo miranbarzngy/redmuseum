@@ -1,9 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { QRCodeSVG } from 'qrcode.react'
-import Link from 'next/link'
+import { useEffect, useState } from 'react'
 
 const STATUS = {
   pending:   { ku: 'چاوەڕوانکراو', en: 'Pending',   bg: '#fef9ec', color: '#92400e', border: '#f59e0b', dot: '#f59e0b' },
@@ -87,24 +87,24 @@ export default function ReservationPage() {
         <div className="pass-card w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden">
 
           {/* ── Header ── */}
-          <div className="bg-[#7a0000] text-white px-7 py-5">
-            <div className="flex items-center justify-between">
+          <div className="bg-[#7a0000] text-white px-4 sm:px-7 py-4 sm:py-5">
+            <div className="flex items-center justify-between gap-2">
 
               {/* Logo left */}
-              <div className="flex items-center gap-3">
-                <div className="w-11 h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-black text-xl shadow-inner">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-black text-lg sm:text-xl shadow-inner shrink-0">
                   M
                 </div>
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/60">Official Pass</p>
-                  <p className="text-xs font-semibold text-white/80" style={KU}>مۆزەخانەی ئەمنە سورەکە</p>
+                <div className="min-w-0">
+                  <p className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] text-white/60">Official Pass</p>
+                  <p className="text-[11px] sm:text-xs font-semibold text-white/80 truncate" style={KU}>مۆزەخانەی ئەمنە سورەکە</p>
                 </div>
               </div>
 
               {/* Pass type right */}
-              <div className="text-right">
-                <p className="text-[9px] tracking-[0.3em] text-white/50 uppercase mb-0.5" style={KU}>پاسی سەردانکار</p>
-                <p className="text-base font-black tracking-[0.25em] uppercase">VISITOR PASS</p>
+              <div className="text-right shrink-0">
+                <p className="text-[8px] sm:text-[9px] tracking-[0.2em] sm:tracking-[0.3em] text-white/50 uppercase mb-0.5" style={KU}>فۆڕمی سەردانکاران</p>
+                <p className="text-sm sm:text-base font-black tracking-[0.1em] sm:tracking-[0.25em] uppercase">VISITOR PASS</p>
                 <p className="text-[10px] font-mono text-white/60 mt-0.5">REF: {ref}</p>
               </div>
 
@@ -116,7 +116,7 @@ export default function ReservationPage() {
 
           {/* ── Status banner ── */}
           <div
-            className="px-7 py-2.5 flex items-center gap-2.5"
+            className="px-4 sm:px-7 py-2.5 flex items-center gap-2.5"
             style={{ background: s.bg, borderBottom: `1px solid ${s.border}33` }}
           >
             <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: s.dot }} />
@@ -131,11 +131,11 @@ export default function ReservationPage() {
           <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-0">
 
             {/* Left: details */}
-            <div className="px-7 py-6 border-b md:border-b-0 md:border-l border-gray-100">
-              <h2 className="text-[10px] font-bold uppercase tracking-[0.25em] text-red-700 mb-3 flex items-center gap-2" style={KU}>
-                <span className="w-3 h-px bg-red-600 block" />
+            <div className="px-4 sm:px-7 py-4 sm:py-6 border-b md:border-b-0 md:border-r border-gray-100">
+              <h2 className="text-[10px] font-bold uppercase tracking-[0.2em] text-red-700 mb-3 flex items-center gap-2" style={KU}>
+                <span className="w-3 h-px bg-red-600 block shrink-0" />
                 وردەکاری داواکاری
-                <span className="opacity-40 font-normal">· Reservation Details</span>
+                <span className="opacity-40 font-normal hidden sm:inline">· Reservation Details</span>
               </h2>
 
               <Field ku="ناوی تەواو"      en="Full Name"     value={reservation.name} />
@@ -148,11 +148,11 @@ export default function ReservationPage() {
             </div>
 
             {/* Right: QR */}
-            <div className="flex flex-col items-center justify-center gap-3 px-7 py-6 bg-gray-50/60">
-              <div className="bg-white rounded-2xl p-4 shadow-md border border-gray-100">
+            <div className="flex flex-col items-center justify-center gap-3 px-5 sm:px-7 py-5 sm:py-6 bg-gray-50/60">
+              <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-md border border-gray-100">
                 <QRCodeSVG
                   value={qrUrl || `${typeof window !== 'undefined' ? window.location.href : ''}`}
-                  size={148}
+                  size={132}
                   bgColor="#ffffff"
                   fgColor="#1a1a1a"
                   level="H"
@@ -160,7 +160,7 @@ export default function ReservationPage() {
                 />
               </div>
               <div className="text-center">
-                <p className="text-[9px] uppercase tracking-widest text-gray-400 mb-0.5" style={KU}>بخوێنەرەوە بۆ پشتڕاستکردنەوە</p>
+                <p className="text-[9px] uppercase tracking-widest text-gray-400 mb-0.5" style={KU}>سکان بکە بۆ پشتڕاستکردنەوە</p>
                 <p className="text-[9px] uppercase tracking-widest text-gray-300">SCAN TO VERIFY</p>
                 <p className="font-mono text-xs font-black text-red-700 mt-1.5 tracking-widest" style={{ fontFamily: "'Courier New', Courier, monospace" }}>
                   RESERVATION · {ref}
@@ -178,15 +178,15 @@ export default function ReservationPage() {
           </div>
 
           {/* ── Footer ── */}
-          <div className="px-7 py-4 flex items-center justify-between bg-gray-50">
-            <div dir="rtl">
+          <div className="px-4 sm:px-7 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-3 bg-gray-50">
+            <div dir="rtl" className="min-w-0">
               <p className="text-xs font-semibold text-gray-700" style={KU}>مۆزەخانەی نیشتمانی ئەمنە سورەکە</p>
               <p className="text-[10px] text-gray-400 mt-0.5">Amna Suraka National Museum · Sulaymaniyah, Kurdistan</p>
-              <p className="text-[10px] text-gray-300 mt-0.5" style={KU}>ئەم پاسە پێشکەش بکە کاتێک دەگەیتە مۆزەخانەکە</p>
+              <p className="text-[10px] text-gray-300 mt-0.5 hidden sm:block" style={KU}>ئەم پاسە پێشکەش بکە کاتێک دەگەیتە مۆزەخانەکە</p>
             </div>
             <button
               onClick={() => window.print()}
-              className="no-print flex items-center gap-2 text-xs bg-[#7a0000] hover:bg-[#a00000] text-white px-4 py-2 rounded-xl transition-colors font-semibold shadow-sm flex-shrink-0 ml-4"
+              className="no-print flex items-center gap-2 text-xs bg-[#7a0000] hover:bg-[#a00000] text-white px-4 py-2 rounded-xl transition-colors font-semibold shadow-sm shrink-0"
               style={KU}
             >
               🖨 چاپکردن
