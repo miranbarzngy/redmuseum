@@ -300,7 +300,7 @@ export default function GalleryManagement() {
   const activeCat = categories.find(c => c.id === selectedCategory)
 
   return (
-    <div className="max-w-6xl">
+    <div className="max-w-6xl pt-4 sm:pt-6">
       {/* Header */}
       <div className="flex flex-wrap items-start sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3 min-w-0">

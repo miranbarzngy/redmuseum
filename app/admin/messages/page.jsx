@@ -159,7 +159,7 @@ export default function MessagesManagement() {
   }
 
   return (
-    <div className="max-w-6xl">
+    <div className="max-w-6xl pt-4 sm:pt-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-600 to-teal-900 flex items-center justify-center shadow-lg shadow-teal-950/40 shrink-0">
@@ -390,7 +390,7 @@ export default function MessagesManagement() {
             </button>
           )}
           {selectedMessage ? (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col">
               {/* Detail header */}
               <div className="px-6 py-5 border-b border-gray-100">
                 <div className="flex items-start gap-4">
@@ -420,7 +420,7 @@ export default function MessagesManagement() {
               </div>
 
               {/* Message body */}
-              <div className="flex-1 px-6 py-5">
+              <div className="px-6 py-5">
                 <div className="flex items-center gap-2 mb-3">
                   <MessageSquare size={14} className="text-gray-400" />
                   <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Message</h3>

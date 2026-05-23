@@ -90,9 +90,9 @@ export default function About({ currentLang = 'en' }) {
 
         {/* Decorative top line */}
         <div className="flex items-center gap-0 mb-16" style={{ opacity: 1 }}>
-          <div className="flex-1 h-1.5 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #e00000)' }} />
-          <div className="w-1.5 h-1.5 rounded-full mx-2" style={{ background: '#e00000' }} />
-          <div className="flex-1 h-1.5 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #e00000)' }} />
+          <div className="flex-1 h-1.5 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
+          <div className="w-1.5 h-1.5 rounded-full mx-2" style={{ background: '#c8a96e' }} />
+          <div className="flex-1 h-1.5 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
         </div>
 
         <div className="max-w-4xl mx-auto">
@@ -161,9 +161,9 @@ export default function About({ currentLang = 'en' }) {
 
         {/* Decorative bottom line */}
         <div className="flex items-center gap-0 mt-16" style={{ opacity: 1 }}>
-          <div className="flex-1 h-1.5 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #e00000)' }} />
-          <div className="w-1.5 h-1.5 rounded-full mx-2" style={{ background: '#e00000' }} />
-          <div className="flex-1 h-1.5 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #e00000)' }} />
+          <div className="flex-1 h-1.5 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
+          <div className="w-1.5 h-1.5 rounded-full mx-2" style={{ background: '#c8a96e' }} />
+          <div className="flex-1 h-1.5 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
         </div>
 
       </div>

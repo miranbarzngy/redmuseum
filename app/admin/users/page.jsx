@@ -166,7 +166,7 @@ function EditRoleModal({ role, onClose, onSaved }) {
           </button>
         </div>
         <form onSubmit={save} className="p-6 space-y-5">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Name</label>
               <input value={form.name} required
@@ -236,7 +236,7 @@ function EditUserModal({ user, roles, onClose, onSaved }) {
           </button>
         </div>
         <form onSubmit={save} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Full Name</label>
               <input type="text" value={form.full_name}
@@ -408,18 +408,18 @@ export default function UsersPage() {
   ]
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-5xl pt-4 sm:pt-6">
       {editingUser && <EditUserModal user={editingUser} roles={roles} onClose={() => setEditingUser(null)} onSaved={onUserSaved} />}
       {editingRole && <EditRoleModal role={editingRole} onClose={() => setEditingRole(null)} onSaved={onRoleSaved} />}
 
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-600 to-violet-900 flex items-center justify-center shadow-lg shadow-violet-950/40">
+      <div className="flex items-center gap-3 mb-6">
+        <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-violet-600 to-violet-900 flex items-center justify-center shadow-lg shadow-violet-950/40 shrink-0">
           <ShieldCheck size={20} strokeWidth={1.8} className="text-white" />
         </span>
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">User & Role Management</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Manage admin users and their permissions</p>
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">User & Role Management</h1>
+          <p className="text-sm text-gray-400 mt-0.5 hidden sm:block">Manage admin users and their permissions</p>
         </div>
       </div>
 
@@ -518,40 +518,49 @@ export default function UsersPage() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 border-b border-gray-100">
                     <tr>
-                      {['Name', 'Email', 'Role', 'Status', 'Created', 'Last Sign In', 'Actions'].map(h => (
-                        <th key={h} className="px-5 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                      ))}
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Name</th>
+                      <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Email</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Role</th>
+                      <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                      <th className="hidden lg:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Created</th>
+                      <th className="hidden lg:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Last Sign In</th>
+                      <th className="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
                     {users.map(u => (
                       <tr key={u.id} className={`hover:bg-gray-50/60 transition-colors ${!u.is_active ? 'opacity-60' : ''}`}>
-                        <td className="px-5 py-3">
+                        {/* Name — email shown below on mobile */}
+                        <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <span className="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-violet-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
                               {u.full_name ? u.full_name.trim().split(' ').map(w => w[0]).slice(0,2).join('').toUpperCase() : <UserRound size={13} />}
                             </span>
-                            <span className="font-medium text-gray-900 whitespace-nowrap">{u.full_name || <span className="text-gray-400 italic">—</span>}</span>
+                            <div className="min-w-0">
+                              <p className="font-medium text-gray-900 truncate">{u.full_name || <span className="text-gray-400 italic">—</span>}</p>
+                              <p className="md:hidden text-xs text-gray-400 truncate mt-0.5">{u.email}</p>
+                            </div>
                           </div>
                         </td>
-                        <td className="px-5 py-3 text-gray-600 text-sm">
+                        {/* Email — hidden on mobile */}
+                        <td className="hidden md:table-cell px-4 py-3 text-gray-600 text-sm">
                           <div className="flex items-center gap-1.5">
                             <AtSign size={11} className="text-gray-400 shrink-0" />
-                            {u.email}
+                            <span className="truncate">{u.email}</span>
                           </div>
                         </td>
-                        <td className="px-5 py-3">
-                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 capitalize">
+                        <td className="px-4 py-3">
+                          <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-violet-100 text-violet-700 capitalize whitespace-nowrap">
                             {u.role}
                           </span>
                         </td>
-                        <td className="px-5 py-3">
-                          <div className="flex items-center gap-2">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-1.5 sm:gap-2">
                             <button
                               onClick={() => toggleActive(u)}
                               disabled={togglingUser === u.id}
                               title={u.is_active ? 'Click to deactivate' : 'Click to activate'}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-40 ${
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none disabled:opacity-40 shrink-0 ${
                                 u.is_active ? 'bg-emerald-500' : 'bg-gray-300'
                               }`}
                             >
@@ -559,31 +568,36 @@ export default function UsersPage() {
                                 u.is_active ? 'translate-x-6' : 'translate-x-1'
                               }`} />
                             </button>
-                            <span className={`text-xs font-medium ${u.is_active ? 'text-emerald-600' : 'text-gray-400'}`}>
-                              {togglingUser === u.id ? '…' : u.is_active ? 'Active' : 'Inactive'}
+                            <span className={`text-xs font-medium hidden sm:inline ${u.is_active ? 'text-emerald-600' : 'text-gray-400'}`}>
+                              {togglingUser === u.id ? '…' : u.is_active ? 'Active' : 'Off'}
                             </span>
                           </div>
                         </td>
-                        <td className="px-5 py-3 text-gray-500 text-xs whitespace-nowrap">
+                        {/* Created — hidden below lg */}
+                        <td className="hidden lg:table-cell px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
                           {u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}
                         </td>
-                        <td className="px-5 py-3 text-gray-500 text-xs whitespace-nowrap">
+                        {/* Last Sign In — hidden below lg */}
+                        <td className="hidden lg:table-cell px-4 py-3 text-gray-500 text-xs whitespace-nowrap">
                           {u.last_sign_in_at ? new Date(u.last_sign_in_at).toLocaleDateString() : 'Never'}
                         </td>
-                        <td className="px-5 py-3 whitespace-nowrap">
+                        {/* Actions — icon-only on mobile */}
+                        <td className="pl-2 pr-4 sm:px-4 py-3 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
                             <button
                               onClick={() => setEditingUser(u)}
-                              className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium transition-colors"
+                              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium transition-colors"
                             >
-                              <Pencil size={11} /> Edit
+                              <Pencil size={11} />
+                              <span className="hidden sm:inline">Edit</span>
                             </button>
                             <button
                               onClick={() => deleteUser(u.id)}
                               disabled={deletingUser === u.id}
-                              className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors disabled:opacity-40"
+                              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors disabled:opacity-40"
                             >
-                              <Trash2 size={11} /> {deletingUser === u.id ? '…' : 'Delete'}
+                              <Trash2 size={11} />
+                              <span className="hidden sm:inline">{deletingUser === u.id ? '…' : 'Delete'}</span>
                             </button>
                           </div>
                         </td>

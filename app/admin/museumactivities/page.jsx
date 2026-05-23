@@ -88,54 +88,81 @@ function SortableRow({ slide, onEdit, onDelete }) {
 
   return (
     <tr ref={setNodeRef} style={style} className="group hover:bg-amber-50/20 bg-white transition-colors">
-      <td className="pl-4 pr-2 py-4 w-8">
+      {/* Drag handle */}
+      <td className="pl-3 pr-1 sm:pl-4 sm:pr-2 py-3 sm:py-4 w-8">
         <button {...attributes} {...listeners} className="p-1.5 rounded-lg text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors cursor-grab active:cursor-grabbing" title="Drag to reorder">
           <GripVertical size={16} />
         </button>
       </td>
-      <td className="px-4 py-4 w-20">
+
+      {/* Image */}
+      <td className="px-2 sm:px-4 py-3 sm:py-4 w-12 sm:w-20">
         {slide.image_url ? (
-          <Image src={slide.image_url} alt={slide.title_en || ''} width={56} height={56} className="rounded-xl object-cover border border-gray-100 shadow-sm" unoptimized />
+          <Image src={slide.image_url} alt={slide.title_en || ''} width={44} height={44} className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl object-cover border border-gray-100 shadow-sm" unoptimized />
         ) : (
-          <div className="w-14 h-14 bg-gray-100 rounded-xl flex items-center justify-center">
-            <ImageIcon size={18} className="text-gray-300" />
+          <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gray-100 rounded-lg sm:rounded-xl flex items-center justify-center">
+            <ImageIcon size={16} className="text-gray-300" />
           </div>
         )}
       </td>
-      <td className="px-4 py-4">
-        <p className="font-semibold text-sm text-gray-800 leading-tight">{slide.title_en || '—'}</p>
-        {slide.title_ku && <p className="text-xs text-gray-400 mt-0.5" dir="rtl" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>{slide.title_ku}</p>}
+
+      {/* Title — on mobile shows date below */}
+      <td className="px-2 sm:px-4 py-3 sm:py-4">
+        <p className="font-semibold text-sm text-gray-800 leading-tight truncate" dir="rtl" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>{slide.title_ku || slide.title_en || '—'}</p>
+        {slide.event_date && (
+          <p className="md:hidden flex items-center gap-1 text-xs text-gray-400 mt-1">
+            <CalendarDays size={10} className="shrink-0" />{slide.event_date}
+          </p>
+        )}
       </td>
-      <td className="px-4 py-4 w-32">
+
+      {/* Date — hidden on mobile */}
+      <td className="hidden md:table-cell px-4 py-4 w-32">
         <span className="flex items-center gap-1.5 text-sm text-gray-600">
           <CalendarDays size={13} className="text-gray-400" />
           {slide.event_date || '—'}
         </span>
       </td>
-      <td className="px-4 py-4 w-44">
+
+      {/* Countdown — hidden on mobile */}
+      <td className="hidden md:table-cell px-4 py-4 w-44">
         <span className="flex items-center gap-1.5 text-xs text-gray-500">
           <Timer size={12} className="text-gray-400" />
           {slide.countdown_to ? new Date(slide.countdown_to).toLocaleString() : '—'}
         </span>
       </td>
-      <td className="px-4 py-4 w-28">
+
+      {/* Lock — hidden on mobile */}
+      <td className="hidden md:table-cell px-4 py-4 w-28">
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${slide.is_locked ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500'}`}>
           {slide.is_locked ? <><Lock size={10} /> Locked</> : <><Unlock size={10} /> Free</>}
         </span>
       </td>
-      <td className="px-4 py-4 w-24">
+
+      {/* Status — hidden on mobile */}
+      <td className="hidden md:table-cell px-4 py-4 w-24">
         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${slide.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
           {slide.is_active ? <><Eye size={10} /> Active</> : <><EyeOff size={10} /> Inactive</>}
         </span>
       </td>
-      <td className="px-4 py-4 w-28">
-        <div className="flex items-center gap-2">
-          <button onClick={() => onEdit(slide)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
-            <Pencil size={11} /> Edit
-          </button>
-          <button onClick={() => onDelete(slide.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
-            <Trash2 size={11} /> Del
-          </button>
+
+      {/* Actions */}
+      <td className="pl-2 pr-4 sm:px-4 py-3 sm:py-4 w-auto">
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-2">
+          {/* Status badge — mobile only */}
+          <span className={`md:hidden inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${slide.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'}`}>
+            {slide.is_active ? <><Eye size={10} /> Active</> : <><EyeOff size={10} /> Off</>}
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => onEdit(slide)} className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors">
+              <Pencil size={11} />
+              <span className="hidden sm:inline">Edit</span>
+            </button>
+            <button onClick={() => onDelete(slide.id)} className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors">
+              <Trash2 size={11} />
+              <span className="hidden sm:inline">Del</span>
+            </button>
+          </div>
         </div>
       </td>
     </tr>
@@ -344,7 +371,7 @@ export default function ExclusiveAdmin() {
   }
 
   return (
-    <div className="max-w-6xl space-y-5">
+    <div className="max-w-6xl space-y-5 pt-4 sm:pt-6">
       {/* Header */}
       <div className="flex flex-wrap items-start sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -545,14 +572,14 @@ export default function ExclusiveAdmin() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/60">
-                  <th className="pl-4 pr-2 py-3 w-8" />
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-20">Image</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Title</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-32">Date</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-44">Countdown</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-28">Lock</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">Status</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-28">Actions</th>
+                  <th className="pl-3 pr-1 sm:pl-4 sm:pr-2 py-3 w-8" />
+                  <th className="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-12 sm:w-20">Image</th>
+                  <th className="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Title</th>
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-32">Date</th>
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-44">Countdown</th>
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-28">Lock</th>
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-24">Status</th>
+                  <th className="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <SortableContext items={slides.map(s => s.id)} strategy={verticalListSortingStrategy}>

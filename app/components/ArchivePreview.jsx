@@ -126,9 +126,8 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const formatDate = (d) => {
     if (!d) return ''
     const date = new Date(d)
-    if (isKu) return date.toLocaleDateString('ku-KU', { year: 'numeric', month: 'long', day: 'numeric' })
-    if (isAr) return date.toLocaleDateString('ar-IQ', { year: 'numeric', month: 'long', day: 'numeric' })
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    const day = date.getDate(), month = date.getMonth() + 1, year = date.getFullYear()
+    return `${day}/${month}/${year}`
   }
 
   const archiveLink   = isKu ? '/kurdish/archive' : isAr ? '/arabic/archive' : '/archive'

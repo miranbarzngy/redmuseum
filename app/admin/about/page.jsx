@@ -181,7 +181,7 @@ export default function AboutEditor() {
   ]
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-5xl pt-4 sm:pt-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-lg shadow-amber-950/40 shrink-0">

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { getSupabaseClient } from '../../lib/supabase-client'
 import { QRCodeSVG } from 'qrcode.react'
 import QRCode from 'qrcode'
@@ -47,6 +47,15 @@ export default function VisitorsPage() {
   const [filterFrom, setFilterFrom] = useState('')
   const [filterTo, setFilterTo] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
+  const [longPressRow, setLongPressRow] = useState(null)
+  const lpTimer = useRef(null)
+
+  const startLongPress = (r) => {
+    lpTimer.current = setTimeout(() => setLongPressRow(r), 500)
+  }
+  const cancelLongPress = () => {
+    if (lpTimer.current) clearTimeout(lpTimer.current)
+  }
 
   const [showTab, setShowTab] = useState(true)
   const [tabToggling, setTabToggling] = useState(false)
@@ -601,7 +610,7 @@ export default function VisitorsPage() {
 
   const counts = {
     total: reservations.length,
-    guests: reservations.reduce((s, r) => s + (Number(r.guest_count) || 0), 0),
+    guests: reservations.filter(r => r.status === 'visited').reduce((s, r) => s + (Number(r.guest_count) || 0), 0),
     pending: reservations.filter(r => r.status === 'pending').length,
     approved: reservations.filter(r => r.status === 'approved').length,
     visited: reservations.filter(r => r.status === 'visited').length,
@@ -618,7 +627,7 @@ export default function VisitorsPage() {
   }
 
   return (
-    <div className="max-w-6xl space-y-6">
+    <div className="max-w-6xl space-y-6 pt-4 sm:pt-6">
 
       {/* Header */}
       <div className="flex flex-wrap items-start sm:items-center justify-between gap-3">
@@ -645,14 +654,16 @@ export default function VisitorsPage() {
       </div>
 
       {/* Sidebar Tab Visibility Toggle */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between">
-        <div>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center justify-between gap-4">
+        <div className="min-w-0">
           <p className="font-semibold text-gray-800">Sidebar Tab Visibility</p>
           <p className="text-sm text-gray-400 mt-0.5">
             {showTab ? 'Visitor Booking tab is visible on the public site' : 'Visitor Booking tab is hidden from the public site'}
           </p>
         </div>
-        <Toggle checked={showTab} onChange={toggleTab} disabled={tabToggling} />
+        <div className="shrink-0">
+          <Toggle checked={showTab} onChange={toggleTab} disabled={tabToggling} />
+        </div>
       </div>
 
       {/* Appearance */}
@@ -975,9 +986,15 @@ export default function VisitorsPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {['Name', 'Guests', 'Phone', 'Date', 'Time', 'Note', 'Status', 'Created', 'Actions'].map(h => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">{h}</th>
-                ))}
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Name</th>
+                <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Guests</th>
+                <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Phone</th>
+                <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Date</th>
+                <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Time</th>
+                <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Note</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
+                <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Created</th>
+                <th className="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -992,56 +1009,80 @@ export default function VisitorsPage() {
                 </tr>
               )}
               {filtered.map(r => (
-                <tr key={r.id} className="hover:bg-gray-50/60 transition-colors">
-                  <td className="px-4 py-3 font-semibold text-gray-900 whitespace-nowrap">{r.name}</td>
-                  <td className="px-4 py-3 text-gray-600 text-center font-medium">{r.guest_count}</td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap" dir="ltr">{r.phone}</td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{r.date}</td>
-                  <td className="px-4 py-3 text-gray-600 whitespace-nowrap">{r.time?.slice(0, 5)}</td>
-                  <td className="px-4 py-3 text-gray-400 max-w-[130px] truncate italic">{r.note || '—'}</td>
+                <tr
+                  key={r.id}
+                  className="hover:bg-gray-50/60 transition-colors select-none"
+                  onMouseDown={() => startLongPress(r)}
+                  onMouseUp={cancelLongPress}
+                  onMouseLeave={cancelLongPress}
+                  onTouchStart={() => startLongPress(r)}
+                  onTouchEnd={cancelLongPress}
+                  onTouchMove={cancelLongPress}
+                  onContextMenu={e => e.preventDefault()}
+                >
+                  {/* Name — date + guests shown below on mobile */}
+                  <td className="px-4 py-3">
+                    <p className="font-semibold text-gray-900 whitespace-nowrap">{r.name}</p>
+                    <p className="md:hidden text-xs text-gray-400 mt-0.5 flex items-center gap-1.5 flex-wrap">
+                      <span>{r.date}</span>
+                      <span>·</span>
+                      <span>{r.guest_count} guests</span>
+                    </p>
+                  </td>
+                  <td className="hidden md:table-cell px-4 py-3 text-gray-600 text-center font-medium">{r.guest_count}</td>
+                  <td className="hidden md:table-cell px-4 py-3 text-gray-600 whitespace-nowrap" dir="ltr">{r.phone}</td>
+                  <td className="hidden md:table-cell px-4 py-3 text-gray-600 whitespace-nowrap">{r.date}</td>
+                  <td className="hidden md:table-cell px-4 py-3 text-gray-600 whitespace-nowrap">{r.time?.slice(0, 5)}</td>
+                  <td className="hidden md:table-cell px-4 py-3 text-gray-400 max-w-[130px] truncate italic">{r.note || '—'}</td>
                   <td className="px-4 py-3">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${STATUS_STYLES[r.status]}`}>
                       {STATUS_LABELS[r.status]}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-gray-400 whitespace-nowrap text-xs">
+                  <td className="hidden md:table-cell px-4 py-3 text-gray-400 whitespace-nowrap text-xs">
                     {new Date(r.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
+                  {/* Actions — icon-only on mobile */}
+                  <td className="pl-2 pr-4 sm:px-4 py-3 whitespace-nowrap">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={() => setQrModal(r)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors"
+                        className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors"
                       >
-                        <QrCode size={12} /> QR
+                        <QrCode size={12} />
+                        <span className="hidden sm:inline">QR</span>
                       </button>
                       <button
                         onClick={() => printGuest(r)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-br from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white rounded-lg text-xs font-medium transition-all"
+                        className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-gradient-to-br from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white rounded-lg text-xs font-medium transition-all"
                       >
-                        <Printer size={12} /> Print
+                        <Printer size={12} />
+                        <span className="hidden sm:inline">Print</span>
                       </button>
                       {r.status === 'pending' && (
                         <button
                           onClick={() => updateStatus(r.id, 'approved')}
-                          className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium transition-colors"
+                          className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-xs font-medium transition-colors"
                         >
-                          <Check size={12} /> Approve
+                          <Check size={12} />
+                          <span className="hidden sm:inline">Approve</span>
                         </button>
                       )}
                       {r.status === 'approved' && (
                         <button
                           onClick={() => updateStatus(r.id, 'visited')}
-                          className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium transition-colors whitespace-nowrap"
+                          className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-medium transition-colors"
                         >
-                          <CheckCircle2 size={12} /> Visited
+                          <CheckCircle2 size={12} />
+                          <span className="hidden sm:inline">Visited</span>
                         </button>
                       )}
                       <button
                         onClick={() => handleDelete(r.id)}
-                        className="flex items-center gap-1 px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors"
+                        className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-medium transition-colors"
                       >
-                        <Trash2 size={12} /> Delete
+                        <Trash2 size={12} />
+                        <span className="hidden sm:inline">Delete</span>
                       </button>
                     </div>
                   </td>
@@ -1131,6 +1172,88 @@ export default function VisitorsPage() {
                 className="flex-1 py-2.5 border border-gray-200 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Long-press status card */}
+      {longPressRow && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setLongPressRow(null)}
+        >
+          <div
+            className="bg-white rounded-t-2xl w-full max-w-md shadow-2xl animate-in slide-in-from-bottom-4 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Handle */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 bg-gray-200 rounded-full" />
+            </div>
+
+            {/* Guest info */}
+            <div className="px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <span className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                  {longPressRow.name?.trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-bold text-gray-900">{longPressRow.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-2 flex-wrap">
+                    <span>{longPressRow.date}</span>
+                    <span>·</span>
+                    <span>{longPressRow.time?.slice(0,5)}</span>
+                    <span>·</span>
+                    <span>{longPressRow.guest_count} guests</span>
+                  </p>
+                </div>
+                <span className={`ml-auto px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${STATUS_STYLES[longPressRow.status]}`}>
+                  {STATUS_LABELS[longPressRow.status]}
+                </span>
+              </div>
+              {longPressRow.phone && (
+                <p className="text-sm text-gray-500 mt-2 flex items-center gap-1.5">
+                  <span className="text-gray-300">📞</span>{longPressRow.phone}
+                </p>
+              )}
+            </div>
+
+            {/* Action buttons */}
+            <div className="px-5 py-4 space-y-2.5 pb-8">
+              {longPressRow.status === 'pending' && (
+                <button
+                  onClick={() => { updateStatus(longPressRow.id, 'approved'); setLongPressRow(null) }}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white rounded-xl text-sm font-semibold transition-all"
+                >
+                  <Check size={16} /> Approve Reservation
+                </button>
+              )}
+              {longPressRow.status === 'approved' && (
+                <button
+                  onClick={() => { updateStatus(longPressRow.id, 'visited'); setLongPressRow(null) }}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white rounded-xl text-sm font-semibold transition-all"
+                >
+                  <CheckCircle2 size={16} /> Mark as Visited
+                </button>
+              )}
+              {longPressRow.status === 'visited' && (
+                <div className="w-full flex items-center justify-center gap-2 py-3 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-semibold">
+                  <CheckCircle2 size={16} /> Already Visited
+                </div>
+              )}
+              <button
+                onClick={() => { handleDelete(longPressRow.id); setLongPressRow(null) }}
+                className="w-full flex items-center justify-center gap-2 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-xl text-sm font-semibold transition-colors"
+              >
+                <Trash2 size={16} /> Delete Reservation
+              </button>
+              <button
+                onClick={() => setLongPressRow(null)}
+                className="w-full py-3 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Cancel
               </button>
             </div>
           </div>

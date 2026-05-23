@@ -517,15 +517,15 @@ export default function ArchiveManagement() {
   const CatIcon = categoryIcons[activeCat?.id] || categoryIcons[activeCat?.slug] || ScrollText
 
   return (
-    <div className="max-w-6xl">
+    <div className="max-w-6xl pt-4 sm:pt-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-stone-600 to-stone-800 flex items-center justify-center shadow-lg shadow-stone-950/40">
+      <div className="flex flex-wrap items-start sm:items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-stone-600 to-stone-800 flex items-center justify-center shadow-lg shadow-stone-950/40 shrink-0">
             <ScrollText size={20} strokeWidth={1.8} className="text-white" />
           </span>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Digital Archive</h1>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Digital Archive</h1>
             <p className="text-sm text-gray-400 mt-0.5">{filteredItems.length} items in {activeCat?.name_en || 'archive'}</p>
           </div>
           {saving && (
@@ -534,18 +534,20 @@ export default function ArchiveManagement() {
             </span>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Link
             href="/admin/archive/categories"
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium bg-white border border-gray-200 text-gray-700 hover:border-violet-400 hover:text-violet-700 rounded-xl transition-all"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-sm font-medium bg-white border border-gray-200 text-gray-700 hover:border-violet-400 hover:text-violet-700 rounded-xl transition-all"
           >
-            <Tags size={15} /> Manage Categories
+            <Tags size={14} />
+            <span className="hidden sm:inline">Manage</span> Categories
           </Link>
           <button
             onClick={() => { setIsAdding(true); setEditingItem(null); setFormData({ ...emptyForm, category_id: selectedCategory }) }}
-            className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold bg-gradient-to-br from-stone-600 to-stone-800 hover:from-stone-700 hover:to-stone-900 text-white rounded-xl shadow-lg shadow-stone-950/30 transition-all"
+            className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-sm font-semibold bg-gradient-to-br from-stone-600 to-stone-800 hover:from-stone-700 hover:to-stone-900 text-white rounded-xl shadow-lg shadow-stone-950/30 transition-all"
           >
-            <Plus size={16} /> Add New Item
+            <Plus size={15} />
+            <span className="hidden sm:inline">Add New</span> Item
           </button>
         </div>
       </div>

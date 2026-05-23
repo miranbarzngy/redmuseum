@@ -52,7 +52,7 @@ function SortableRow({ slide, onDelete, onToggleActive, disabled }) {
   return (
     <tr ref={setNodeRef} style={style} className="group hover:bg-blue-50/30 transition-colors bg-white">
       {/* Drag handle */}
-      <td className="pl-4 pr-2 py-4 w-8">
+      <td className="pl-3 pr-1 sm:pl-4 sm:pr-2 py-3 sm:py-4 w-8">
         <button
           {...attributes}
           {...listeners}
@@ -65,30 +65,30 @@ function SortableRow({ slide, onDelete, onToggleActive, disabled }) {
       </td>
 
       {/* Thumbnail + title */}
-      <td className="px-4 py-4">
-        <div className="flex items-center gap-4">
+      <td className="px-2 sm:px-4 py-3 sm:py-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           {slide.background_image ? (
             <img
               src={slide.background_image}
               alt={slide.title}
-              className="w-16 h-11 object-cover rounded-xl border border-gray-100 shrink-0 shadow-sm"
+              className="w-12 h-9 sm:w-16 sm:h-11 object-cover rounded-lg sm:rounded-xl border border-gray-100 shrink-0 shadow-sm"
             />
           ) : (
-            <div className="w-16 h-11 rounded-xl bg-gray-100 shrink-0 flex items-center justify-center">
+            <div className="w-12 h-9 sm:w-16 sm:h-11 rounded-lg sm:rounded-xl bg-gray-100 shrink-0 flex items-center justify-center">
               <Search size={14} className="text-gray-300" />
             </div>
           )}
-          <div>
-            <p className="font-semibold text-gray-800 text-sm leading-tight">{slide.title}</p>
+          <div className="min-w-0">
+            <p className="font-semibold text-gray-800 text-sm leading-tight truncate">{slide.title}</p>
             {slide.title_kr && (
-              <p className="text-xs text-gray-400 mt-0.5">{slide.title_kr}</p>
+              <p className="text-xs text-gray-400 mt-0.5 truncate">{slide.title_kr}</p>
             )}
           </div>
         </div>
       </td>
 
-      {/* Status badge */}
-      <td className="px-4 py-4 w-32">
+      {/* Status badge — hidden on mobile */}
+      <td className="hidden md:table-cell px-4 py-4 w-32">
         <button
           onClick={() => onToggleActive(slide.id, slide.is_active)}
           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
@@ -105,22 +105,35 @@ function SortableRow({ slide, onDelete, onToggleActive, disabled }) {
       </td>
 
       {/* Actions */}
-      <td className="px-4 py-4 w-28">
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/admin/slides/${slide.id}`}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
-          >
-            <Pencil size={11} />
-            Edit
-          </Link>
+      <td className="pl-2 pr-4 sm:px-4 py-3 sm:py-4 w-auto">
+        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 sm:gap-2">
+          {/* Status toggle — mobile only */}
           <button
-            onClick={() => onDelete(slide.id)}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+            onClick={() => onToggleActive(slide.id, slide.is_active)}
+            className={`md:hidden inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold transition-all ${
+              slide.is_active
+                ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+            }`}
           >
-            <Trash2 size={11} />
-            Delete
+            {slide.is_active ? <><Eye size={10} /> Active</> : <><EyeOff size={10} /> Off</>}
           </button>
+          <div className="flex items-center gap-1.5">
+            <Link
+              href={`/admin/slides/${slide.id}`}
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors"
+            >
+              <Pencil size={11} />
+              <span className="hidden sm:inline">Edit</span>
+            </Link>
+            <button
+              onClick={() => onDelete(slide.id)}
+              className="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors"
+            >
+              <Trash2 size={11} />
+              <span className="hidden sm:inline">Delete</span>
+            </button>
+          </div>
         </div>
       </td>
     </tr>
@@ -223,18 +236,18 @@ export default function SlidesManagement() {
   }
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-5xl pt-4 sm:pt-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-start sm:items-center justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Slides Management</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Slides Management</h1>
           <p className="text-sm text-gray-400 mt-0.5">{slides.length} slides total</p>
         </div>
         <div className="flex items-center gap-3">
           {saving && (
             <span className="flex items-center gap-2 text-sm text-gray-400">
               <Loader2 size={14} className="animate-spin text-blue-500" />
-              Saving order…
+              <span className="hidden sm:inline">Saving order…</span>
             </span>
           )}
           <Link
@@ -276,7 +289,7 @@ export default function SlidesManagement() {
                 <tr className="border-b border-gray-100 bg-gray-50/60">
                   <th className="pl-4 pr-2 py-3 w-8" />
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Slide</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-32">Status</th>
+                  <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-32">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider w-28">Actions</th>
                 </tr>
               </thead>
