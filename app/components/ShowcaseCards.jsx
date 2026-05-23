@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Image from 'next/image'
+import { getSupabaseClient } from '../lib/supabase-client'
 
 const LABELS = {
   ku: { title: 'سۆشیاڵ میدیا', empty: 'هیچ کارتێک بەردەست نییە' },
@@ -26,6 +27,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [paused, setPaused]     = useState(false)
   const [progress, setProgress] = useState(0)
+  const [bgColor, setBgColor]   = useState('#0a0a0a')
   const progressRef             = useRef(null)
   const isRTL = currentLang === 'ku' || currentLang === 'ar'
   const labels = LABELS[currentLang] || LABELS.ku
@@ -36,6 +38,10 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
       .then(json => setCards(json.cards || []))
       .catch(() => {})
       .finally(() => setLoading(false))
+
+    const supabase = getSupabaseClient()
+    supabase?.from('settings').select('showcase_bg_color').single()
+      .then(({ data }) => { if (data?.showcase_bg_color) setBgColor(data.showcase_bg_color) })
   }, [])
 
   // Go to a specific index
@@ -70,7 +76,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
   }, [cards.length, paused, activeIdx])
 
   if (loading) return (
-    <section id="showcase" className="bg-[#0a0a0a] py-20 flex items-center justify-center">
+    <section id="showcase" className="py-20 flex items-center justify-center" style={{ background: bgColor }}>
       <div className="w-6 h-6 border-2 border-[#c8a96e] border-t-transparent rounded-full animate-spin" />
     </section>
   )
@@ -85,7 +91,8 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
   return (
     <section
       id="showcase"
-      className="relative bg-[#0a0a0a] py-16 overflow-hidden"
+      className="relative py-16 overflow-hidden"
+      style={{ background: bgColor }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

@@ -132,10 +132,10 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
   )
 
   const exclusiveItem = currentLang === 'ku'
-    ? { id: 'exclusive-section', icon: 'ri-star-line', title: 'تایبەت',   href: '/kurdish#exclusive-section' }
+    ? { id: 'exclusive-section', icon: 'ri-star-line', title: 'چالاکییەکانی مۆزەخانە', href: '/kurdish#exclusive-section' }
     : currentLang === 'ar'
-    ? { id: 'exclusive-section', icon: 'ri-star-line', title: 'حصري',     href: '/arabic#exclusive-section' }
-    : { id: 'exclusive-section', icon: 'ri-star-line', title: 'Exclusive', href: '/#exclusive-section' }
+    ? { id: 'exclusive-section', icon: 'ri-star-line', title: 'أنشطة المتحف',            href: '/arabic#exclusive-section' }
+    : { id: 'exclusive-section', icon: 'ri-star-line', title: 'Museum Activities',        href: '/#exclusive-section' }
 
   const baseItems = currentLang === 'ku'
     ? [

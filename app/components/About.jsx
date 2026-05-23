@@ -76,15 +76,17 @@ export default function About({ currentLang = 'en' }) {
     { key: 'museums',  value: counters.museums,  label: isAr ? 'المتاحف'        : isKu ? 'مۆزە'              : 'Museums',         icon: STAT_ICONS.museums  },
   ]
 
+  const bgColor = settings?.about_bg_color || '#ffffff'
+
   if (loading) return (
-    <section id="about" className="min-h-[400px] flex items-center justify-center" style={{ background: '#ffffff' }}>
+    <section id="about" className="min-h-[400px] flex items-center justify-center" style={{ background: bgColor }}>
       <div className="w-10 h-10 border-2 border-[#7a0000] border-t-transparent rounded-full animate-spin" />
     </section>
   )
 
   return (
-    <section id="about" className="py-20 overflow-hidden" style={{ background: '#ffffff' }}>
-      <div className="container mx-auto pl-[72px] pr-4 md:px-8 lg:px-16">
+    <section id="about" className="py-20 overflow-hidden" style={{ background: bgColor }}>
+      <div className="container mx-auto px-4 md:px-8 lg:px-16">
 
         {/* Decorative top line */}
         <div className="flex items-center gap-0 mb-16" style={{ opacity: 1 }}>

@@ -21,6 +21,8 @@ import {
   PlayCircle,
   Music2,
   Link as LinkIcon,
+  Palette,
+  ChevronDown,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase-client'
 import VisibilityToggle from '../components/VisibilityToggle'
@@ -32,16 +34,20 @@ const SOCIAL_PLATFORMS = [
   { name: 'TikTok',    icon: 'ri-tiktok-fill',     LIcon: Music2,      grad: 'from-slate-700 to-slate-900' },
 ]
 
-function SectionCard({ icon: Icon, title, grad, shadow, children }) {
+function SectionCard({ icon: Icon, title, grad, shadow, children, collapsible, open, onToggle }) {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100">
+      <div
+        className={`flex items-center gap-3 px-6 py-4 border-b border-gray-100 ${collapsible ? 'cursor-pointer select-none' : ''}`}
+        onClick={collapsible ? onToggle : undefined}
+      >
         <span className={`w-8 h-8 rounded-lg bg-gradient-to-br ${grad} flex items-center justify-center shadow ${shadow}`}>
           <Icon size={15} strokeWidth={2} className="text-white" />
         </span>
         <h2 className="font-semibold text-gray-800">{title}</h2>
+        {collapsible && <ChevronDown size={16} className={`ml-auto text-gray-400 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />}
       </div>
-      <div className="p-6">{children}</div>
+      {(!collapsible || open) && <div className="p-6">{children}</div>}
     </div>
   )
 }
@@ -67,6 +73,11 @@ export default function AboutEditor() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [appearanceOpen, setAppearanceOpen] = useState(false)
+  const [bgMode, setBgMode]           = useState('solid')
+  const [gradColor1, setGradColor1]   = useState('#7a0000')
+  const [gradColor2, setGradColor2]   = useState('#ffffff')
+  const [gradAngle, setGradAngle]     = useState(135)
   const [formData, setFormData] = useState({
     id: 1,
     museum_name_en: '', museum_name_kr: '', museum_name_ar: '',
@@ -77,6 +88,7 @@ export default function AboutEditor() {
     contact_phone: '', contact_email: '',
     contact_address_en: '', contact_address_kr: '',
     social_json: [],
+    about_bg_color: '#ffffff',
   })
 
   useEffect(() => { fetchSettings() }, [])
@@ -105,7 +117,13 @@ export default function AboutEditor() {
           contact_address_en:  data.contact_address_en  || '',
           contact_address_kr:  data.contact_address_kr  || '',
           social_json:         data.social_json         || [],
+          about_bg_color:      data.about_bg_color      || '#ffffff',
         })
+        const bgVal = data.about_bg_color || '#ffffff'
+        if (bgVal.startsWith('linear-gradient')) {
+          const m = bgVal.match(/linear-gradient\((\d+)deg,\s*([^,]+),\s*([^)]+)\)/)
+          if (m) { setBgMode('gradient'); setGradAngle(parseInt(m[1])); setGradColor1(m[2].trim()); setGradColor2(m[3].trim()) }
+        }
       }
     } catch { /* use defaults */ } finally { setLoading(false) }
   }
@@ -165,12 +183,12 @@ export default function AboutEditor() {
   return (
     <div className="max-w-5xl">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-8">
-        <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-lg shadow-amber-950/40">
+      <div className="flex items-center gap-3 mb-6">
+        <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-lg shadow-amber-950/40 shrink-0">
           <Landmark size={20} strokeWidth={1.8} className="text-white" />
         </span>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">About Section</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">About Section</h1>
           <p className="text-sm text-gray-400 mt-0.5">Museum info, statistics & contact details</p>
         </div>
       </div>
@@ -248,6 +266,158 @@ export default function AboutEditor() {
           </div>
         </SectionCard>
 
+        {/* Appearance */}
+        <SectionCard icon={Palette} title="Appearance" grad="from-purple-600 to-purple-900" shadow="shadow-purple-950/40" collapsible open={appearanceOpen} onToggle={() => setAppearanceOpen(o => !o)}>
+          {/* Mode toggle */}
+          <div className="flex items-center gap-2 mb-5">
+            {['solid', 'gradient'].map(mode => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => {
+                  setBgMode(mode)
+                  if (mode === 'solid') {
+                    setFormData(p => ({ ...p, about_bg_color: '#ffffff' }))
+                  } else {
+                    setFormData(p => ({ ...p, about_bg_color: `linear-gradient(${gradAngle}deg, ${gradColor1}, ${gradColor2})` }))
+                  }
+                }}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
+                  bgMode === mode
+                    ? 'bg-purple-600 text-white shadow'
+                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {mode === 'solid' ? '⬛ Solid' : '🌈 Gradient'}
+              </button>
+            ))}
+          </div>
+
+          {bgMode === 'solid' ? (
+            <div className="flex items-center gap-3 flex-wrap">
+              <input
+                type="color"
+                value={formData.about_bg_color.startsWith('linear') ? '#ffffff' : formData.about_bg_color}
+                onChange={e => setFormData(p => ({ ...p, about_bg_color: e.target.value }))}
+                className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white"
+              />
+              <input
+                type="text"
+                value={formData.about_bg_color.startsWith('linear') ? '#ffffff' : formData.about_bg_color}
+                onChange={e => setFormData(p => ({ ...p, about_bg_color: e.target.value }))}
+                placeholder="#ffffff"
+                className={inputCls + ' w-32 font-mono'}
+              />
+              <button
+                type="button"
+                onClick={() => setFormData(p => ({ ...p, about_bg_color: '#ffffff' }))}
+                className="px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {/* Two color pickers */}
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { label: 'Color 1 (Start)', val: gradColor1, set: setGradColor1 },
+                  { label: 'Color 2 (End)',   val: gradColor2, set: setGradColor2 },
+                ].map(({ label, val, set }) => (
+                  <div key={label}>
+                    <label className="text-xs font-medium text-gray-500 mb-1.5 block">{label}</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={val}
+                        onChange={e => {
+                          set(e.target.value)
+                          const c1 = label.includes('1') ? e.target.value : gradColor1
+                          const c2 = label.includes('2') ? e.target.value : gradColor2
+                          setFormData(p => ({ ...p, about_bg_color: `linear-gradient(${gradAngle}deg, ${c1}, ${c2})` }))
+                        }}
+                        className="w-10 h-9 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white shrink-0"
+                      />
+                      <input
+                        type="text"
+                        value={val}
+                        onChange={e => {
+                          set(e.target.value)
+                          const c1 = label.includes('1') ? e.target.value : gradColor1
+                          const c2 = label.includes('2') ? e.target.value : gradColor2
+                          setFormData(p => ({ ...p, about_bg_color: `linear-gradient(${gradAngle}deg, ${c1}, ${c2})` }))
+                        }}
+                        className={inputCls + ' font-mono text-xs'}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Angle */}
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-2 block">
+                  Direction — {gradAngle}°
+                </label>
+                {/* Preset buttons */}
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {[
+                    { label: '↓',  angle: 180 },
+                    { label: '↗',  angle: 45  },
+                    { label: '→',  angle: 90  },
+                    { label: '↘',  angle: 135 },
+                    { label: '↙',  angle: 225 },
+                    { label: '←',  angle: 270 },
+                    { label: '↖',  angle: 315 },
+                    { label: '↑',  angle: 0   },
+                  ].map(({ label, angle }) => (
+                    <button
+                      key={angle}
+                      type="button"
+                      onClick={() => {
+                        setGradAngle(angle)
+                        setFormData(p => ({ ...p, about_bg_color: `linear-gradient(${angle}deg, ${gradColor1}, ${gradColor2})` }))
+                      }}
+                      className={`w-9 h-9 rounded-lg text-base font-bold transition-all ${
+                        gradAngle === angle
+                          ? 'bg-purple-600 text-white shadow'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="360"
+                  value={gradAngle}
+                  onChange={e => {
+                    const a = parseInt(e.target.value)
+                    setGradAngle(a)
+                    setFormData(p => ({ ...p, about_bg_color: `linear-gradient(${a}deg, ${gradColor1}, ${gradColor2})` }))
+                  }}
+                  className="w-full accent-purple-600"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Preview */}
+          <div className="mt-5">
+            <label className="text-xs font-medium text-gray-500 mb-1.5 block">Preview</label>
+            <div
+              className="h-16 rounded-xl border border-gray-200 flex items-center justify-center transition-all"
+              style={{ background: formData.about_bg_color }}
+            >
+              <span style={{ color: '#7a0000', opacity: 0.6, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                About Section Background
+              </span>
+            </div>
+          </div>
+        </SectionCard>
+
         {/* Statistics */}
         <SectionCard icon={BarChart3} title="Statistics" grad="from-slate-600 to-slate-800" shadow="shadow-slate-950/40">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -314,7 +484,7 @@ export default function AboutEditor() {
             {formData.social_json.map(link => {
               const platform = SOCIAL_PLATFORMS.find(p => p.icon === link.icon_name) || SOCIAL_PLATFORMS[0]
               return (
-                <div key={link.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+                <div key={link.id} className="flex flex-wrap items-center gap-2 sm:gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
                   <span className={`w-9 h-9 rounded-xl bg-gradient-to-br ${platform.grad} flex items-center justify-center shrink-0 shadow`}>
                     <platform.LIcon size={16} strokeWidth={1.8} className="text-white" />
                   </span>
@@ -326,14 +496,14 @@ export default function AboutEditor() {
                       updateSocialLink(link.id, 'icon_name', e.target.value)
                       if (p) updateSocialLink(link.id, 'platform_name', p.name)
                     }}
-                    className="px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400"
+                    className="px-3 py-2 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 min-w-[120px]"
                   >
                     {SOCIAL_PLATFORMS.map(p => (
                       <option key={p.icon} value={p.icon}>{p.name}</option>
                     ))}
                   </select>
 
-                  <div className="flex-1 relative">
+                  <div className="flex-1 min-w-[160px] relative">
                     <LinkIcon size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                     <input
                       type="url"

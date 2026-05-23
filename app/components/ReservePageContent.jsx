@@ -43,6 +43,13 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   const [trackLoading, setTrackLoading] = useState(false)
   const [trackResults, setTrackResults] = useState(null)
   const [trackError, setTrackError]     = useState('')
+  const [bgColor, setBgColor]           = useState('#0a0a0a')
+
+  useEffect(() => {
+    const supabase = getSupabaseClient()
+    supabase?.from('settings').select('visitors_bg_color').single()
+      .then(({ data }) => { if (data?.visitors_bg_color) setBgColor(data.visitors_bg_color) })
+  }, [])
 
   const searchByPhone = async () => {
     const phone = trackPhone.trim()
@@ -452,12 +459,12 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     )
 
     if (inline) return (
-      <section id="reserve" className="text-white px-4 py-16" style={{ background: '#0a0a0a' }} dir={isRtl ? 'rtl' : 'ltr'}>
+      <section id="reserve" className="text-white px-4 py-16" style={{ background: bgColor }} dir={isRtl ? 'rtl' : 'ltr'}>
         {successContent}
       </section>
     )
     return (
-      <div className="min-h-screen text-white flex items-center justify-center px-4 py-16" style={{ background: '#0a0a0a' }}>
+      <div className="min-h-screen text-white flex items-center justify-center px-4 py-16" style={{ background: bgColor }}>
         <Sidebar activeSection="reserve" currentLang={lang} onLangChange={setLang} />
         {successContent}
       </div>
@@ -469,8 +476,8 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   return (
     <Wrapper
       id={inline ? 'reserve' : undefined}
-      className={inline ? 'text-white pl-[72px] pr-4 md:px-8 py-16' : 'min-h-screen text-white px-4 py-16'}
-      style={{ background: '#0a0a0a' }}
+      className={inline ? 'text-white px-4 md:px-8 py-16' : 'min-h-screen text-white px-4 py-16'}
+      style={{ background: bgColor }}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <style>{`

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { getSupabaseClient } from '../lib/supabase-client'
+import { useMuseumName } from '../lib/useMuseumName'
 import Image from 'next/image'
 
 const SLIDE_DURATION = 7000
@@ -15,26 +16,36 @@ function DateDisplay({ dateStr, lang }) {
   const label = lang === 'ku' ? 'بەروار' : lang === 'ar' ? 'التاريخ' : 'DATE'
 
   return (
-    <div className="flex flex-col items-center mt-5" dir="ltr">
-      <div
-        className="relative rounded-xl overflow-hidden flex items-center shadow-lg shadow-red-950/60"
-        style={{
-          background: 'linear-gradient(135deg, #7a0000 0%, #cc0000 40%, #7a0000 100%)',
-          border: '1px solid rgba(255,180,0,0.25)',
-          height: 'clamp(32px, 6vw, 56px)',
-          padding: '0 clamp(12px, 3vw, 28px)',
-          gap: 'clamp(6px, 1.5vw, 12px)',
-        }}
-      >
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+    <div className="flex flex-col items-center py-1" dir="ltr">
+      <div className="flex items-center gap-1.5">
         {[yyyy, mm, dd].map((part, i) => (
-          <div key={i} className="flex items-center" style={{ gap: 'clamp(6px, 1.5vw, 12px)' }}>
-            <span className="flip-digit relative z-20 text-white font-bold tracking-widest" style={{ ...DIGIT_STYLE, fontSize: 'clamp(13px, 3vw, 22px)' }} lang="en">{part}</span>
-            {i < 2 && <span className="relative z-20 text-white/40 font-bold select-none" style={{ fontSize: 'clamp(11px, 2.5vw, 18px)' }}>/</span>}
+          <div key={i} className="flex items-center gap-1.5">
+            <span
+              className="flip-digit text-white font-bold tracking-widest"
+              style={{
+                ...DIGIT_STYLE,
+                fontSize: '15px',
+                textShadow: '0 0 12px rgba(200,169,110,0.4)',
+              }}
+              lang="en"
+            >
+              {part}
+            </span>
+            {i < 2 && (
+              <span
+                className="text-[#c8a96e]/60 font-bold select-none"
+                style={{ fontSize: '13px' }}
+              >
+                /
+              </span>
+            )}
           </div>
         ))}
       </div>
-      <span className="text-[10px] uppercase tracking-[0.25em] text-[#c8a96e] font-semibold mt-2.5">{label}</span>
+      <span className="text-[8px] uppercase tracking-[0.2em] text-[#c8a96e] font-semibold mt-1.5"
+        style={{ fontFamily: lang === 'ku' || lang === 'ar' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}>
+        {label}
+      </span>
     </div>
   )
 }
@@ -151,9 +162,9 @@ const DIGIT_STYLE = {
 }
 
 // Shared sizing — used by both FlipCard and Countdown's separator wrapper
-const CARD_W = 'clamp(38px, calc((100vw - 140px) / 6), 78px)'
-const CARD_H = 'clamp(46px, calc((100vw - 140px) / 5), 94px)'
-const NUM_FS = 'clamp(14px, calc((100vw - 140px) / 14), 32px)'
+const CARD_W = 'clamp(28px, calc((100vw - 140px) / 8), 58px)'
+const CARD_H = 'clamp(34px, calc((100vw - 140px) / 7), 70px)'
+const NUM_FS = 'clamp(10px, calc((100vw - 140px) / 19), 24px)'
 
 function FlipCard({ value }) {
   const [display, setDisplay] = useState(value)
@@ -315,9 +326,19 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
   const [displayed, setDisplayed] = useState(0)
   const [fading, setFading] = useState(false)
   const [countdownDone, setCountdownDone] = useState(false)
+  const [bgColor, setBgColor] = useState('#000000')
+
+  const museumName = useMuseumName()
+
+  useEffect(() => {
+    const supabase = getSupabaseClient()
+    supabase?.from('settings').select('exclusive_bg_color').single()
+      .then(({ data }) => { if (data?.exclusive_bg_color) setBgColor(data.exclusive_bg_color) })
+  }, [])
 
   const lang = currentLang === 'ku' ? 'ku' : currentLang === 'ar' ? 'ar' : 'en'
   const isRtl = lang === 'ku' || lang === 'ar'
+  const museumNameDisplay = lang === 'ar' ? museumName.ar : lang === 'ku' ? museumName.kr : museumName.en
 
   const getText = (slide, field) =>
     slide[`${field}_${lang}`] || slide[`${field}_en`] || ''
@@ -379,7 +400,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
 
   if (loading) {
     return (
-      <section id="exclusive-section" className="py-20 bg-black flex items-center justify-center min-h-[300px]">
+      <section id="exclusive-section" className="py-20 flex items-center justify-center min-h-[300px]" style={{ background: bgColor }}>
         <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
       </section>
     )
@@ -390,27 +411,14 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
   const slide = slides[displayed]
 
   return (
-    <section id="exclusive-section" className="relative bg-black text-white min-h-screen">
+    <section id="exclusive-section" className="relative text-white overflow-hidden" style={{ background: bgColor, minHeight: '35svh' }}>
 
-      {/* Background image — keyed on displayed so it crossfades on slide change */}
-      {slide.image_url && (
-        <div key={`bg-${displayed}`} className="absolute inset-0 overflow-hidden" style={{ animation: 'bgFadeIn 0.7s ease forwards' }}>
-          <Image
-            src={slide.image_url}
-            alt=""
-            fill
-            className="object-cover opacity-25"
-            unoptimized
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black/80" />
-        </div>
-      )}
-      {!slide.image_url && (
-        <div className="absolute inset-0 overflow-hidden bg-gradient-to-br from-red-900/30 via-black to-black" />
-      )}
+      {/* Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-red-950/20 via-black to-black" />
 
+      {/* Fade wrapper */}
       <div
-        className="relative z-10 max-w-7xl mx-auto pl-[72px] pr-4 md:pl-[80px] md:pr-6 lg:px-10 py-8 md:py-12 lg:py-16 min-h-screen flex flex-col justify-center"
+        className="relative z-10"
         style={{
           opacity: fading ? 0 : 1,
           transform: fading ? 'translateY(12px)' : 'translateY(0)',
@@ -418,143 +426,251 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
         }}
       >
 
-        {/* Section label */}
-        <div className="text-center mb-6 md:mb-10">
-          <span className="inline-block text-xs font-bold uppercase tracking-[0.3em] text-red-400 bg-red-600/10 border border-red-600/30 px-4 py-1.5 rounded-full mb-4 md:mb-5">
-            ⭐&nbsp;{lang === 'ku' ? 'تایبەت' : lang === 'ar' ? 'حصري' : 'Exclusive'}
-          </span>
-          <h2
-            className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight"
-            style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
-            dir={isRtl ? 'rtl' : 'ltr'}
+      {/* Title — full width, truly centered */}
+      <div className="text-center pt-8 pb-4 px-4">
+        <span className="inline-block text-xs font-bold uppercase tracking-[0.3em] text-red-400 bg-red-600/10 border border-red-600/30 px-4 py-1.5 rounded-full mb-4">
+          ⭐&nbsp;{lang === 'ku' ? 'چالاکییەکانی مۆزەخانە' : lang === 'ar' ? 'أنشطة المتحف' : 'Museum Activities'}
+        </span>
+        <h2
+          className="text-2xl md:text-4xl lg:text-4xl font-bold leading-tight"
+          style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
+          dir={isRtl ? 'rtl' : 'ltr'}
+        >
+          {getText(slide, 'title')}
+        </h2>
+        <div className="w-20 h-1 bg-red-600 mx-auto mt-4" />
+      </div>
+
+      {/* Split layout — grid */}
+      <div className="max-w-screen-2xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[60%_40%] lg:items-start">
+
+        {/* IMAGE — col 1 = RIGHT in RTL, stacks on top on mobile */}
+        <div className="w-full flex items-center justify-center p-3 pt-5 lg:p-3 xl:p-4 lg:self-center">
+          <div
+            className="relative rounded-2xl overflow-hidden w-full"
+            style={{
+              aspectRatio: '16/9',
+              border: '1.5px solid rgba(200,169,110,0.5)',
+              boxShadow: '0 0 0 4px rgba(200,169,110,0.06), 0 24px 80px rgba(0,0,0,0.85)',
+            }}
           >
-            {getText(slide, 'title')}
-          </h2>
-          <div className="w-20 h-1 bg-red-600 mx-auto mt-5" />
-        </div>
-
-        {/* Content grid — image left, info right on lg+ */}
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
-
-          {/* Image — A4 landscape ratio, full width on mobile/tablet, left column on lg+ */}
-          <div className="relative w-full lg:w-1/2 shrink-0 rounded-2xl overflow-hidden" style={{ aspectRatio: '297/210' }}>
             {slide.image_url ? (
               <Image
                 src={slide.image_url}
                 alt={getText(slide, 'title')}
                 fill
-                className="object-cover"
+                className="object-cover object-center"
                 unoptimized
+                sizes="(max-width: 1024px) 100vw, 60vw"
               />
             ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-red-900/30 to-black/60 flex items-center justify-center rounded-2xl border border-red-600/20">
+              <div className="absolute inset-0 bg-gradient-to-br from-red-900/30 to-black/60 flex items-center justify-center">
                 <span className="text-8xl opacity-20">⭐</span>
               </div>
             )}
+
+            {/* Bottom gradient for logo readability */}
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/80 to-transparent" />
+
+            {/* Museum logo watermark — bottom left */}
+            <div className="absolute bottom-2.5 left-3 flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/android-chrome-192x192.png"
+                alt=""
+                className="w-8 h-8 rounded-lg object-cover bg-white p-0.5 shrink-0"
+                style={{ border: '1px solid rgba(200,169,110,0.4)' }}
+              />
+              <div>
+                <p className="text-[8px] text-[#c8a96e]/70 uppercase tracking-[0.15em] leading-none mb-0.5">
+                  {museumName.en}
+                </p>
+                <p className="text-white text-[10px] font-semibold leading-tight" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
+                  {museumNameDisplay}
+                </p>
+              </div>
+            </div>
+
+            {/* Top gold shimmer */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/60 to-transparent" />
+            {/* Bottom gold shimmer */}
+            <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/40 to-transparent" />
           </div>
+        </div>
 
-          {/* Info side */}
-          <div className="space-y-4 md:space-y-6 flex-1" dir={isRtl ? 'rtl' : 'ltr'}>
+        {/* CARD SIDE — col 2 = LEFT in RTL */}
+        <div
+          className="w-full px-4 md:px-6 lg:pl-8 lg:pr-8 pt-6 pb-8 lg:pt-8 lg:pb-8 flex flex-col overflow-y-auto"
+        >
+          {/* Invitation card */}
+          <div
+            className="flex-1 relative rounded-2xl overflow-hidden flex flex-col"
+            style={{
+              background: 'linear-gradient(160deg, #0d0000 0%, #180000 50%, #0a0a0a 100%)',
+              border: '1px solid rgba(200,169,110,0.2)',
+              boxShadow: '0 24px 64px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)',
+            }}
+            dir={isRtl ? 'rtl' : 'ltr'}
+          >
+            {/* Top gold highlight */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/50 to-transparent" />
 
+            {/* Museum header */}
+            <div
+              className="px-5 pt-5 pb-3"
+              style={{ background: 'linear-gradient(180deg, rgba(100,0,0,0.35) 0%, transparent 100%)' }}
+            >
+              <div className="flex items-center gap-3" dir="ltr">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/android-chrome-192x192.png"
+                  alt=""
+                  className="w-10 h-10 rounded-xl object-cover shrink-0 bg-white p-0.5"
+                  style={{ border: '1px solid rgba(200,169,110,0.3)' }}
+                />
+                <div className={isRtl ? 'text-right flex-1' : 'flex-1'}>
+                  <p className="text-[9px] text-[#c8a96e]/60 uppercase tracking-[0.25em] leading-none mb-1">
+                    {museumName.en}
+                  </p>
+                  <p
+                    className="text-sm text-white/90 font-semibold leading-snug"
+                    style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
+                  >
+                    {museumNameDisplay}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-3 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/40 to-transparent" />
+            </div>
+
+            {/* Title in gold */}
+            <div className="px-5 pt-4 pb-3">
+              <p
+                className="text-[#c8a96e] text-lg font-bold leading-snug"
+                style={{
+                  fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit',
+                  textShadow: '0 0 20px rgba(200,169,110,0.35)',
+                }}
+              >
+                {getText(slide, 'title')}
+              </p>
+              <div className="mt-3 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/30 to-transparent" />
+            </div>
 
             {/* Description */}
             {getText(slide, 'description') && (
-              <p
-                className="text-gray-300 text-lg leading-relaxed"
-                style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
-              >
-                {getText(slide, 'description')}
-              </p>
+              <div className="px-5 pb-4 flex-1">
+                <p
+                  className="text-gray-300 text-sm md:text-base leading-loose"
+                  style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
+                >
+                  {getText(slide, 'description')}
+                </p>
+              </div>
             )}
 
             {/* Phone numbers */}
-            <div className="space-y-2">
-              {slide.phone && (
-                <a
-                  href={`tel:${slide.phone}`}
-                  className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit"
-                  dir="ltr"
-                >
-                  <span className="text-red-500">📞</span>
-                  <span className="font-mono" style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone}</span>
-                </a>
-              )}
-              {slide.phone2 && (
-                <a
-                  href={`tel:${slide.phone2}`}
-                  className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit"
-                  dir="ltr"
-                >
-                  <span className="text-red-500">📞</span>
-                  <span className="font-mono" style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone2}</span>
-                </a>
-              )}
-            </div>
+            {(slide.phone || slide.phone2) && (
+              <div className="px-5 pb-4 space-y-2">
+                <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent mb-2" />
+                {slide.phone && (
+                  <a href={`tel:${slide.phone}`} className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit" dir="rtl">
+                    <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
+                    <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone}</span>
+                  </a>
+                )}
+                {slide.phone2 && (
+                  <a href={`tel:${slide.phone2}`} className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit" dir="rtl">
+                    <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
+                    <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone2}</span>
+                  </a>
+                )}
+              </div>
+            )}
 
-            {/* Countdown — hidden once time expires */}
+            {/* Countdown */}
             {slide.countdown_to && !countdownDone && (
-              <div className="flex flex-col items-center">
-                {/* Title */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[#c8a96e]/40" />
+              <div className="px-5 pb-4 flex flex-col items-center">
+                <div className="flex items-center gap-3 mb-3 w-full">
+                  <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[#c8a96e]/30" />
                   <p
-                    className="text-xs md:text-sm font-bold uppercase tracking-[0.2em] text-[#c8a96e]"
+                    className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c8a96e]"
                     style={{
                       fontFamily: lang === 'ku' || lang === 'ar' ? 'UniSalar, Tahoma, sans-serif' : 'inherit',
-                      textShadow: '0 0 16px rgba(200,169,110,0.6)',
+                      textShadow: '0 0 14px rgba(200,169,110,0.5)',
                     }}
                   >
                     {lang === 'ku' ? 'کاتژمێر بۆ دەستپێکردن' : lang === 'ar' ? 'العد التنازلي للبدء' : 'Countdown to Start'}
                   </p>
-                  <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#c8a96e]/40" />
+                  <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#c8a96e]/30" />
                 </div>
-                <Countdown
-                  targetTime={slide.countdown_to}
-                  lang={lang}
-                  onFinish={() => setCountdownDone(true)}
-                />
-                {slide.event_date && <DateDisplay dateStr={slide.event_date} lang={lang} />}
+                <Countdown targetTime={slide.countdown_to} lang={lang} onFinish={() => setCountdownDone(true)} />
               </div>
             )}
 
-            {/* Date fallback — only shown when there is no countdown */}
-            {!slide.countdown_to && slide.event_date && (
-              <div className="flex justify-center">
-                <DateDisplay dateStr={slide.event_date} lang={lang} />
-              </div>
-            )}
-
-            {/* Link */}
-            {slide.link && (
-              <a
-                href={slide.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full transition-colors shadow-lg"
+            {/* Event poster */}
+            {slide.event_date && (
+              <div
+                className="mx-3 mb-2 rounded-md overflow-hidden"
+                style={{
+                  background: 'linear-gradient(135deg, #5a0000 0%, #3a0000 100%)',
+                  border: '1px solid rgba(200,169,110,0.25)',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                }}
               >
-                🔗&nbsp;{lang === 'ku' ? 'بڕۆ بۆ گەڕان' : lang === 'ar' ? 'زيارة الرابط' : 'Visit Link'}
-              </a>
+                <div
+                  className={`px-2 py-0.5 flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}
+                  style={{ background: 'rgba(0,0,0,0.25)' }}
+                >
+                  <span className="text-[6px] text-[#c8a96e]/70 uppercase tracking-[0.2em]">
+                    {lang === 'ku' ? 'بەروار' : lang === 'ar' ? 'التاريخ' : 'Date'}
+                  </span>
+                  <div className="flex-1 h-px bg-[#c8a96e]/20" />
+                </div>
+                <div className="px-2 pb-1.5 pt-1 flex justify-center">
+                  <DateDisplay dateStr={slide.event_date} lang={lang} />
+                </div>
+              </div>
             )}
 
-          </div>
+            {/* Link button */}
+            {slide.link && (
+              <div className="px-5 pb-5">
+                <a
+                  href={slide.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center gap-2 px-6 py-3 bg-red-700 hover:bg-red-600 text-white font-semibold rounded-full transition-all shadow-lg border border-red-600/30 w-full"
+                  style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
+                >
+                  🔗&nbsp;{lang === 'ku' ? 'لینک' : lang === 'ar' ? 'زيارة الرابط' : 'Visit Link'}
+                </a>
+              </div>
+            )}
 
-        </div>{/* end flex row */}
+            {/* Gold bottom bar */}
+            <div className="h-1.5 bg-gradient-to-r from-[#c8a96e] via-[#7a0000] to-[#c8a96e]" />
+          </div>{/* end invitation card */}
 
-        {/* Slide dots */}
-        {slides.length > 1 && (
-          <div className="flex justify-center gap-2 mt-12">
-            {slides.map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => setCurrent(i)}
-                className={`h-2 rounded-full transition-all duration-300 ${
-                  i === current ? 'bg-red-600 w-6' : 'bg-white/30 hover:bg-white/60 w-2'
-                }`}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+          {/* Slide dots */}
+          {slides.length > 1 && (
+            <div className="flex justify-center gap-2 mt-6">
+              {slides.map((s, i) => (
+                <button
+                  key={s.id}
+                  onClick={() => setCurrent(i)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    i === current ? 'bg-red-600 w-6' : 'bg-white/30 hover:bg-white/60 w-2'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+        </div>{/* end card side */}
+
+      </div>{/* end split layout */}
+      </div>{/* end fade wrapper */}
     </section>
   )
 }

@@ -97,8 +97,8 @@ export default function ContactForm({ currentLang = 'en' }) {
   ]
 
   return (
-    <section id="contact" className="text-white py-16" style={{ background: '#0a0f1e' }}>
-      <div className="container mx-auto pl-[72px] pr-4 md:px-8 lg:px-16">
+    <section id="contact" className="text-white py-16" style={{ background: settings?.contact_bg_color || '#0a0f1e' }}>
+      <div className="container mx-auto px-4 md:px-8 lg:px-16">
 
         {/* Section header */}
         <div className="flex flex-col items-center mb-12">

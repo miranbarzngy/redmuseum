@@ -33,6 +33,8 @@ import {
   Zap,
   Award,
   Heart,
+  Palette,
+  ChevronDown,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase-client'
 import VisibilityToggle from '../components/VisibilityToggle'
@@ -128,12 +130,23 @@ export default function GalleryManagement() {
   const [uploading, setUploading] = useState(false)
   const [formData, setFormData] = useState({ image_url: '', title: '', title_ar: '', description: '', description_ar: '' })
 
+  // Appearance state
+  const [bgColor,    setBgColor]    = useState('#0a0a0a')
+  const [bgMode,     setBgMode]     = useState('solid')
+  const [gradColor1, setGradColor1] = useState('#0a0a0a')
+  const [gradColor2, setGradColor2] = useState('#1a1a2e')
+  const [gradAngle,  setGradAngle]  = useState(135)
+  const [savingBg,   setSavingBg]   = useState(false)
+  const [savedBg,    setSavedBg]    = useState(false)
+  const [settingsId, setSettingsId] = useState(1)
+  const [appearanceOpen, setAppearanceOpen] = useState(false)
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   )
 
-  useEffect(() => { fetchGallery() }, [])
+  useEffect(() => { fetchGallery(); fetchAppearance() }, [])
 
   const fetchGallery = async () => {
     if (!supabase) { setLoading(false); return }
@@ -144,6 +157,37 @@ export default function GalleryManagement() {
     } catch (error) {
       console.error('Error fetching gallery:', error)
     } finally { setLoading(false) }
+  }
+
+  const fetchAppearance = async () => {
+    try {
+      const { data } = await supabase.from('settings').select('id, gallery_bg_color').single()
+      if (data) {
+        setSettingsId(data.id)
+        const val = data.gallery_bg_color || '#0a0a0a'
+        setBgColor(val)
+        if (val.startsWith('linear-gradient')) {
+          const m = val.match(/linear-gradient\((\d+)deg,\s*([^,]+),\s*([^)]+)\)/)
+          if (m) { setBgMode('gradient'); setGradAngle(parseInt(m[1])); setGradColor1(m[2].trim()); setGradColor2(m[3].trim()) }
+        }
+      }
+    } catch {}
+  }
+
+  const saveAppearance = async () => {
+    setSavingBg(true)
+    try {
+      const { error } = await supabase.from('settings').upsert([{ id: settingsId, gallery_bg_color: bgColor, updated_at: new Date().toISOString() }], { onConflict: 'id' })
+      if (error) throw error
+      setSavedBg(true)
+      setTimeout(() => setSavedBg(false), 3000)
+    } catch (err) {
+      alert('Error saving appearance: ' + err.message)
+    } finally { setSavingBg(false) }
+  }
+
+  const setGrad = (c1, c2, angle) => {
+    setBgColor(`linear-gradient(${angle}deg, ${c1}, ${c2})`)
   }
 
   const filteredImages = gallery.filter(img => img.category === selectedCategory)
@@ -258,13 +302,13 @@ export default function GalleryManagement() {
   return (
     <div className="max-w-6xl">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-700 to-rose-900 flex items-center justify-center shadow-lg shadow-rose-950/40">
+      <div className="flex flex-wrap items-start sm:items-center justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="w-11 h-11 rounded-2xl bg-gradient-to-br from-rose-700 to-rose-900 flex items-center justify-center shadow-lg shadow-rose-950/40 shrink-0">
             <Frame size={20} strokeWidth={1.8} className="text-white" />
           </span>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Gallery Management</h1>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Gallery Management</h1>
             <p className="text-sm text-gray-400 mt-0.5">{filteredImages.length} images in {activeCat?.name}</p>
           </div>
         </div>
@@ -286,6 +330,160 @@ export default function GalleryManagement() {
       {/* Visibility toggle */}
       <div className="mb-5">
         <VisibilityToggle settingKey="show_gallery" label="Gallery Section" />
+      </div>
+
+      {/* Appearance */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-6">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-gray-100 cursor-pointer select-none" onClick={() => setAppearanceOpen(o => !o)}>
+          <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-purple-900 flex items-center justify-center shadow shadow-purple-950/40">
+            <Palette size={15} strokeWidth={2} className="text-white" />
+          </span>
+          <h2 className="font-semibold text-gray-800">Appearance</h2>
+          <ChevronDown size={16} className={`ml-auto text-gray-400 transition-transform duration-200 ${appearanceOpen ? 'rotate-180' : ''}`} />
+        </div>
+        {appearanceOpen && (
+        <div className="p-6">
+
+          {/* Mode toggle */}
+          <div className="flex items-center gap-2 mb-5">
+            {['solid', 'gradient'].map(mode => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => {
+                  setBgMode(mode)
+                  if (mode === 'solid') setBgColor('#0a0a0a')
+                  else setGrad(gradColor1, gradColor2, gradAngle)
+                }}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
+                  bgMode === mode ? 'bg-purple-600 text-white shadow' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                }`}
+              >
+                {mode === 'solid' ? '⬛ Solid' : '🌈 Gradient'}
+              </button>
+            ))}
+          </div>
+
+          {bgMode === 'solid' ? (
+            <div className="flex items-center gap-3 flex-wrap">
+              <input
+                type="color"
+                value={bgColor.startsWith('linear') ? '#0a0a0a' : bgColor}
+                onChange={e => setBgColor(e.target.value)}
+                className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white"
+              />
+              <input
+                type="text"
+                value={bgColor.startsWith('linear') ? '#0a0a0a' : bgColor}
+                onChange={e => setBgColor(e.target.value)}
+                placeholder="#0a0a0a"
+                className={inputCls + ' w-32 font-mono'}
+              />
+              <button
+                type="button"
+                onClick={() => setBgColor('#0a0a0a')}
+                className="px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+              >
+                Reset
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                {[
+                  { label: 'Color 1 (Start)', val: gradColor1, isFirst: true },
+                  { label: 'Color 2 (End)',   val: gradColor2, isFirst: false },
+                ].map(({ label, val, isFirst }) => (
+                  <div key={label}>
+                    <label className="text-xs font-medium text-gray-500 mb-1.5 block">{label}</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={val}
+                        onChange={e => {
+                          const c1 = isFirst ? e.target.value : gradColor1
+                          const c2 = isFirst ? gradColor2 : e.target.value
+                          if (isFirst) setGradColor1(e.target.value); else setGradColor2(e.target.value)
+                          setGrad(c1, c2, gradAngle)
+                        }}
+                        className="w-10 h-9 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white shrink-0"
+                      />
+                      <input
+                        type="text"
+                        value={val}
+                        onChange={e => {
+                          const c1 = isFirst ? e.target.value : gradColor1
+                          const c2 = isFirst ? gradColor2 : e.target.value
+                          if (isFirst) setGradColor1(e.target.value); else setGradColor2(e.target.value)
+                          setGrad(c1, c2, gradAngle)
+                        }}
+                        className={inputCls + ' font-mono text-xs'}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-2 block">Direction — {gradAngle}°</label>
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {[
+                    { label: '↓', angle: 180 }, { label: '↗', angle: 45  }, { label: '→', angle: 90  }, { label: '↘', angle: 135 },
+                    { label: '↙', angle: 225 }, { label: '←', angle: 270 }, { label: '↖', angle: 315 }, { label: '↑', angle: 0   },
+                  ].map(({ label, angle }) => (
+                    <button
+                      key={angle}
+                      type="button"
+                      onClick={() => { setGradAngle(angle); setGrad(gradColor1, gradColor2, angle) }}
+                      className={`w-9 h-9 rounded-lg text-base font-bold transition-all ${
+                        gradAngle === angle ? 'bg-purple-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="range" min="0" max="360" value={gradAngle}
+                  onChange={e => { const a = parseInt(e.target.value); setGradAngle(a); setGrad(gradColor1, gradColor2, a) }}
+                  className="w-full accent-purple-600"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Preview */}
+          <div className="mt-5">
+            <label className="text-xs font-medium text-gray-500 mb-1.5 block">Preview</label>
+            <div
+              className="h-16 rounded-xl border border-gray-200 flex items-center justify-center transition-all"
+              style={{ background: bgColor }}
+            >
+              <span style={{ color: '#fff', opacity: 0.4, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
+                Gallery Section Background
+              </span>
+            </div>
+          </div>
+
+          {/* Save */}
+          <div className="flex items-center justify-end gap-3 mt-5">
+            {savedBg && (
+              <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+                <CheckCircle2 size={15} /> Saved
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={saveAppearance}
+              disabled={savingBg}
+              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gradient-to-br from-purple-600 to-purple-900 hover:from-purple-700 hover:to-purple-950 text-white rounded-xl disabled:opacity-60 shadow-lg shadow-purple-950/30 transition-all"
+            >
+              {savingBg ? <><Loader2 size={15} className="animate-spin" /> Saving…</> : <><CheckCircle2 size={15} /> Save Appearance</>}
+            </button>
+          </div>
+
+        </div>
+        )}
       </div>
 
       {/* Category Tabs */}
@@ -358,10 +556,10 @@ export default function GalleryManagement() {
 
             {/* Title & Description — language columns */}
             <div>
-              <div className="grid grid-cols-2 gap-4 mb-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
                 {langCols.map(l => <LangBadge key={l.suffix} label={l.label} cls={l.badge} />)}
               </div>
-              <div className="grid grid-cols-2 gap-4 mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-3">
                 {langCols.map(l => (
                   <div key={l.suffix}>
                     <label className="block text-xs font-medium text-gray-500 mb-1.5">Title</label>
@@ -376,7 +574,7 @@ export default function GalleryManagement() {
                   </div>
                 ))}
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {langCols.map(l => (
                   <div key={l.suffix}>
                     <label className="block text-xs font-medium text-gray-500 mb-1.5">Description</label>

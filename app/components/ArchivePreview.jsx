@@ -27,12 +27,18 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const [categories,   setCategories]   = useState(defaultCategories)
   const [progress,     setProgress]     = useState(0)
   const [paused,       setPaused]       = useState(false)
+  const [bgColor,      setBgColor]      = useState('#0a0a0a')
 
   const isKu = currentLang === 'ku'
   const isAr = currentLang === 'ar'
   const font = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
              : isAr ? { fontFamily: 'Cairo, Tahoma, sans-serif' }
              : {}
+
+  useEffect(() => {
+    supabase?.from('settings').select('archive_bg_color').single()
+      .then(({ data }) => { if (data?.archive_bg_color) setBgColor(data.archive_bg_color) })
+  }, [])
 
   useEffect(() => { fetchCategories() }, [])
 
@@ -133,7 +139,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const viewAllLabel = isAr ? 'عرض كل الأرشيف' : isKu ? 'بینینی هەموو ئەرشیفەکە' : 'View All Archive'
 
   if (loading) return (
-    <section id="archive-section" className="min-h-[400px] bg-[#0a0a0a] flex items-center justify-center">
+    <section id="archive-section" className="min-h-[400px] flex items-center justify-center" style={{ background: bgColor }}>
       <div className="w-10 h-10 border-2 border-[#c8a96e] border-t-transparent rounded-full animate-spin" />
     </section>
   )
@@ -145,11 +151,12 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   return (
     <section
       id="archive-section"
-      className="bg-[#0a0a0a] py-16"
+      className="py-16"
+      style={{ background: bgColor }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="container mx-auto pl-[72px] pr-4 md:px-8 lg:px-16">
+      <div className="container mx-auto px-4 md:px-8 lg:px-16">
 
         {/* Section header */}
         <div className="flex flex-col items-center mb-12">

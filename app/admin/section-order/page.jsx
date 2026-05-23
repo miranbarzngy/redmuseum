@@ -15,8 +15,8 @@ const SECTION_META = {
   'virtual-tour': { iconCls: 'ri-eye-2-line',            label: 'VR Tour',         desc: '360° virtual tour section',     grad: 'from-teal-600 to-teal-800',     shadow: 'shadow-teal-950/30' },
   gallery:        { iconCls: 'ri-image-line',            label: 'Gallery',         desc: 'Photo gallery section',         grad: 'from-rose-600 to-rose-800',     shadow: 'shadow-rose-950/30' },
   archive:        { iconCls: 'ri-archive-line',          label: 'Archive',         desc: 'Archive & documents section',   grad: 'from-stone-500 to-stone-700',   shadow: 'shadow-stone-950/30' },
-  exclusive:      { iconCls: 'ri-star-line',             label: 'Exclusive',       desc: 'Exclusive events section',      grad: 'from-yellow-500 to-amber-700',  shadow: 'shadow-amber-950/30' },
-  showcase:       { iconCls: 'ri-layout-grid-line',      label: 'Showcase Cards',  desc: 'Portrait card slider section',  grad: 'from-fuchsia-600 to-fuchsia-800', shadow: 'shadow-fuchsia-950/30' },
+  exclusive:      { iconCls: 'ri-star-line',             label: 'Museum Activities', desc: 'Museum activities section',      grad: 'from-yellow-500 to-amber-700',  shadow: 'shadow-amber-950/30' },
+  showcase:       { iconCls: 'ri-layout-grid-line',      label: 'Social Media',  desc: 'Social Media',  grad: 'from-fuchsia-600 to-fuchsia-800', shadow: 'shadow-fuchsia-950/30' },
   messages:       { iconCls: 'ri-contacts-book-3-line',  label: 'Messages',        desc: 'Contact form section',          grad: 'from-teal-600 to-teal-900',     shadow: 'shadow-teal-950/30' },
   reserve:        { iconCls: 'ri-calendar-check-line',   label: 'Reserve a Visit', desc: 'Visitor reservation form',      grad: 'from-indigo-600 to-indigo-800', shadow: 'shadow-indigo-950/30' },
 }

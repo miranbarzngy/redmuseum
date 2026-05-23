@@ -108,9 +108,15 @@ export default function Gallery({ currentLang = 'en' }) {
   const [loading, setLoading] = useState(true)
   const [lightbox, setLightbox] = useState(null) // { images, idx }
   const [activeCategory, setActiveCategory] = useState(null)
+  const [bgColor, setBgColor] = useState('#0a0a0a')
 
   const langKey = isAr ? 'ar' : isKu ? 'ku' : 'en'
   const font = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' } : isAr ? { fontFamily: 'Cairo, Tahoma, sans-serif' } : {}
+
+  useEffect(() => {
+    supabase?.from('settings').select('gallery_bg_color').single()
+      .then(({ data }) => { if (data?.gallery_bg_color) setBgColor(data.gallery_bg_color) })
+  }, [])
 
   const fetchGallery = async () => {
     if (!supabase) { setLoading(false); return }
@@ -150,13 +156,13 @@ export default function Gallery({ currentLang = 'en' }) {
   const title = isAr ? 'المعرض' : isKu ? 'گەلەری' : 'Gallery'
 
   if (loading) return (
-    <section id="gallery" className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+    <section id="gallery" className="min-h-screen flex items-center justify-center" style={{ background: bgColor }}>
       <div className="w-10 h-10 border-2 border-[#c8a96e] border-t-transparent rounded-full animate-spin" />
     </section>
   )
 
   if (!galleries.length || galleries.every(g => !g.images.length)) return (
-    <section id="gallery" className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+    <section id="gallery" className="min-h-screen flex items-center justify-center" style={{ background: bgColor }}>
       <p className="text-white/40 text-sm" style={font}>
         {isAr ? 'لا توجد صور في المعرض.' : isKu ? 'هیچ وێنەیەک لە گەلەریدا نییە.' : 'No images found in the gallery.'}
       </p>
@@ -167,7 +173,7 @@ export default function Gallery({ currentLang = 'en' }) {
 
   return (
     <>
-      <section id="gallery" className="bg-[#0a0a0a] py-16">
+      <section id="gallery" className="py-16" style={{ background: bgColor }}>
 
         {/* Section header */}
         <div className="flex items-center justify-center gap-4 mb-10 px-8">

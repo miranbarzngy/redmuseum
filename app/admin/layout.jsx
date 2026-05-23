@@ -29,7 +29,7 @@ const BASE_NAV = [
   { section: 'about',         href: '/admin/about',          Icon: Landmark,        label: 'About',          exact: true,  grad: 'from-amber-600 to-amber-800',     shadow: 'shadow-amber-950/60'   },
   { section: 'gallery',       href: '/admin/gallery',        Icon: Frame,           label: 'Gallery',        exact: true,  grad: 'from-rose-700 to-rose-900',       shadow: 'shadow-rose-950/60'    },
   { section: 'archive',       href: '/admin/archive',        Icon: ScrollText,      label: 'Archive',        exact: true,  grad: 'from-stone-600 to-stone-800',     shadow: 'shadow-stone-950/60'   },
-  { section: 'exclusive',     href: '/admin/exclusive',      Icon: Crown,           label: 'Exclusive',      exact: true,  grad: 'from-yellow-600 to-amber-700',    shadow: 'shadow-yellow-950/60'  },
+  { section: 'exclusive',        href: '/admin/museumactivities', Icon: Crown,        label: 'Museum Activities', exact: true, grad: 'from-yellow-600 to-amber-700',   shadow: 'shadow-yellow-950/60'  },
   { section: 'visitors',      href: '/admin/visitors',       Icon: Ticket,          label: 'Visitors',       exact: true,  grad: 'from-indigo-600 to-indigo-900',   shadow: 'shadow-indigo-950/60'  },
   { section: 'section_order', href: '/admin/section-order',  Icon: Layers,          label: 'Section Order',  exact: true,  grad: 'from-emerald-700 to-emerald-900', shadow: 'shadow-emerald-950/60' },
   { section: 'showcase_cards',href: '/admin/showcase-cards', Icon: LayoutGrid,      label: 'Social Media Post', exact: true,  grad: 'from-fuchsia-600 to-fuchsia-900', shadow: 'shadow-fuchsia-950/60' },
@@ -46,6 +46,7 @@ const ROUTE_SECTION = {
   gallery: 'gallery',
   archive: 'archive',
   exclusive: 'exclusive',
+  museumactivities: 'exclusive',
   visitors: 'visitors',
   users: 'users',
   'section-order': 'section_order',
@@ -101,7 +102,7 @@ export default function AdminLayout({ children }) {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) {
-          if (pathname !== '/admin/login') router.push('/admin/login')
+          if (pathname !== '/login') router.push('/login')
         } else {
           setUser(session.user)
           fetchPerms(session.user)
@@ -118,7 +119,7 @@ export default function AdminLayout({ children }) {
     try {
       const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
         if (!session) {
-          router.push('/admin/login')
+          router.push('/login')
         } else {
           setUser(session.user)
           // Re-check ban status on every token refresh
@@ -130,13 +131,13 @@ export default function AdminLayout({ children }) {
       const pollId = setInterval(async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
-        if (!session) { router.push('/admin/login'); return }
+        if (!session) { router.push('/login'); return }
         const res = await fetch(`/api/admin/users`)
         const json = await res.json()
         const me = (json.users || []).find(u => u.id === session.user.id)
         if (me && !me.is_active) {
           await supabase.auth.signOut()
-          router.push('/admin/login')
+          router.push('/login')
         }
       } catch {}
     }, 30000)
@@ -149,7 +150,7 @@ export default function AdminLayout({ children }) {
 
   // Redirect if user navigates to a section they can't view
   useEffect(() => {
-    if (!userPerms || pathname === '/admin/login') return
+    if (!userPerms || pathname === '/login') return
     const segment = pathname.split('/')[2]
     const section = ROUTE_SECTION[segment]
     if (section && !userPerms[section]?.view) {
@@ -177,7 +178,7 @@ export default function AdminLayout({ children }) {
   const handleLogout = async () => {
     await supabase.auth.signOut()
     await fetch('/api/admin/auth', { method: 'DELETE' })
-    router.push('/admin/login')
+    router.push('/login')
   }
 
   if (loading) {
@@ -191,7 +192,7 @@ export default function AdminLayout({ children }) {
     )
   }
 
-  if (pathname === '/admin/login') return children
+  if (pathname === '/login') return children
 
   const navLinks = navOrder || BASE_NAV
 
@@ -254,7 +255,7 @@ export default function AdminLayout({ children }) {
         `}>
           <div className="p-6 hidden lg:block">
             <h1 className="text-xl font-bold">Admin Panel</h1>
-            <p className="text-sm text-gray-400">Amna Suraka Museum</p>
+            <p className="text-sm text-gray-400">{museumName.en || 'Museum'}</p>
           </div>
 
           {/* Close button — mobile only */}

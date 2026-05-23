@@ -35,7 +35,7 @@ const ELEMENT_URL = {
   'virtual-tour':     '/kurdish/virtual-tour',
   gallery:            '/kurdish/gallery',
   'archive-section':  '/kurdish/archive',
-  'exclusive-section':'/kurdish/exclusive',
+  'exclusive-section':'/kurdish/museumactivities',
   showcase:           '/kurdish/showcase',
   contact:            '/kurdish/contact',
   reserve:            '/kurdish/reserve',

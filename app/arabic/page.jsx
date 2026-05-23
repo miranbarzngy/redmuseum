@@ -35,7 +35,7 @@ const ELEMENT_URL = {
   'virtual-tour':     '/arabic/virtual-tour',
   gallery:            '/arabic/gallery',
   'archive-section':  '/arabic/archive',
-  'exclusive-section':'/arabic/exclusive',
+  'exclusive-section':'/arabic/museumactivities',
   showcase:           '/arabic/showcase',
   contact:            '/arabic/contact',
   reserve:            '/arabic/reserve',
