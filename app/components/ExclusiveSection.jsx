@@ -19,12 +19,12 @@ function DateDisplay({ dateStr, lang }) {
     <div className="flex flex-col items-center py-1" dir="ltr">
       <div className="flex items-center gap-1.5">
         {[yyyy, mm, dd].map((part, i) => (
-          <div key={i} className="flex items-center gap-1.5">
+          <div key={i} className="flex items-center gap-2.5">
             <span
               className="flip-digit text-white font-bold tracking-widest"
               style={{
                 ...DIGIT_STYLE,
-                fontSize: '15px',
+                fontSize: '18px',
                 textShadow: '0 0 12px rgba(200,169,110,0.4)',
               }}
               lang="en"
@@ -34,7 +34,7 @@ function DateDisplay({ dateStr, lang }) {
             {i < 2 && (
               <span
                 className="text-[#c8a96e]/60 font-bold select-none"
-                style={{ fontSize: '13px' }}
+                style={{ fontSize: '16px' }}
               >
                 /
               </span>
@@ -42,10 +42,6 @@ function DateDisplay({ dateStr, lang }) {
           </div>
         ))}
       </div>
-      <span className="text-[8px] uppercase tracking-[0.2em] text-[#c8a96e] font-semibold mt-1.5"
-        style={{ fontFamily: lang === 'ku' || lang === 'ar' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}>
-        {label}
-      </span>
     </div>
   )
 }
@@ -611,23 +607,24 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
             {/* Event poster */}
             {slide.event_date && (
               <div
-                className="mx-3 mb-2 rounded-md overflow-hidden"
+                className="mx-3 mb-3 rounded-lg overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #5a0000 0%, #3a0000 100%)',
                   border: '1px solid rgba(200,169,110,0.25)',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
                 }}
               >
                 <div
-                  className={`px-2 py-0.5 flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}
+                  className={`px-4 py-1 flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}
                   style={{ background: 'rgba(0,0,0,0.25)' }}
                 >
-                  <span className="text-[6px] text-[#c8a96e]/70 uppercase tracking-[0.2em]">
+                  <span className="text-[10px] text-[#c8a96e]/70 uppercase tracking-[0.2em]"
+                    style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
                     {lang === 'ku' ? 'بەروار' : lang === 'ar' ? 'التاريخ' : 'Date'}
                   </span>
                   <div className="flex-1 h-px bg-[#c8a96e]/20" />
                 </div>
-                <div className="px-2 pb-1.5 pt-1 flex justify-center">
+                <div className="px-4 pb-3 pt-2 flex justify-center">
                   <DateDisplay dateStr={slide.event_date} lang={lang} />
                 </div>
               </div>

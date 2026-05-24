@@ -99,7 +99,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
 
       {/* Section title — centered */}
       <div className="flex items-center justify-center gap-4 mb-24 px-8">
-        <span className="block w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#cc0000]" />
+        <span className="block w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
         <h2
           className="text-2xl md:text-3xl font-black text-white tracking-wide text-center"
           style={
@@ -110,7 +110,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
         >
           {labels.title}
         </h2>
-        <span className="block w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#cc0000]" />
+        <span className="block w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
       </div>
 
       {/* Card strip — translate to center active card */}

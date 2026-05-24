@@ -103,16 +103,16 @@ export default function ContactForm({ currentLang = 'en' }) {
         {/* Section header */}
         <div className="flex flex-col items-center mb-12">
           <div className="flex items-center gap-4 mb-3">
-            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #7a0000)' }} />
+            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
             <h2 className="text-2xl md:text-3xl font-black text-white tracking-wide" style={font}>
               {t('پەیوەندی بکە', 'اتصل بنا', 'Contact Us')}
             </h2>
-            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #7a0000)' }} />
+            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-px" style={{ background: 'linear-gradient(to right, transparent, #7a0000)' }} />
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#7a0000' }} />
-            <div className="w-8 h-px" style={{ background: 'linear-gradient(to left, transparent, #7a0000)' }} />
+            <div className="w-8 h-px" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#c8a96e' }} />
+            <div className="w-8 h-px" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
           </div>
         </div>
 

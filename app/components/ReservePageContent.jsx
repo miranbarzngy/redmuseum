@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { QRCodeSVG } from 'qrcode.react'
 import QRCode from 'qrcode'
+import { QRCodeSVG } from 'qrcode.react'
 import { useEffect, useRef, useState } from 'react'
 import { getSupabaseClient } from '../lib/supabase-client'
 import { useMuseumName } from '../lib/useMuseumName'
@@ -27,34 +27,6 @@ const STATUS_COLOR = {
 const GOLD = '#c8a96e'
 const RED  = '#7a0000'
 
-// Derive a harmonious button/accent color from any background hex
-function deriveAccent(bgHex) {
-  try {
-    const hex = bgHex.replace('#', '')
-    if (!/^[0-9a-f]{6}$/i.test(hex)) return RED
-    const r = parseInt(hex.slice(0,2),16)/255, g = parseInt(hex.slice(2,4),16)/255, b = parseInt(hex.slice(4,6),16)/255
-    const max = Math.max(r,g,b), min = Math.min(r,g,b), d = max - min
-    if (d < 0.12) return RED   // near-grayscale: no hue, keep museum red
-    const l = (max + min) / 2
-    const s = d / (1 - Math.abs(2*l - 1))
-    let h = max===r ? ((g-b)/d%6)/6 : max===g ? ((b-r)/d+2)/6 : ((r-g)/d+4)/6
-    if (h < 0) h += 1
-    // Target: same hue, boosted saturation, L=28% (dark enough for white text contrast)
-    const tl = 0.28, ts = Math.min(s + 0.15, 1)
-    const q = tl < 0.5 ? tl*(1+ts) : tl+ts-tl*ts, p = 2*tl - q
-    const f = t => { t = ((t%1)+1)%1; return t<1/6?p+(q-p)*6*t:t<1/2?q:t<2/3?p+(q-p)*(2/3-t)*6:p }
-    return '#' + [f(h+1/3),f(h),f(h-1/3)].map(v => Math.round(v*255).toString(16).padStart(2,'0')).join('')
-  } catch { return RED }
-}
-
-function accentRgba(hex, alpha) {
-  try {
-    const h = hex.replace('#','')
-    const r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16)
-    return `rgba(${r},${g},${b},${alpha})`
-  } catch { return `rgba(122,0,0,${alpha})` }
-}
-
 export default function ReservePageContent({ initialLang = 'ku', inline = false }) {
   const [lang, setLang]               = useState(initialLang)
   const [pageTab, setPageTab]         = useState('book')
@@ -72,7 +44,6 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   const [trackResults, setTrackResults] = useState(null)
   const [trackError, setTrackError]     = useState('')
   const [bgColor, setBgColor]           = useState('#0a0a0a')
-  const accentColor = deriveAccent(bgColor)
 
   useEffect(() => {
     const supabase = getSupabaseClient()
@@ -362,11 +333,11 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
           {/* Title with decorative lines */}
           <div className="flex items-center justify-center gap-4 mb-3 w-full">
-            <span className="block flex-1 max-w-[60px] h-px rounded-full" style={{ background: `linear-gradient(to right, transparent, ${accentColor})` }} />
+            <span className="block flex-1 max-w-[60px] h-px rounded-full" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
             <h1 className="text-2xl md:text-3xl font-black text-white text-center" style={{ fontFamily: fontStyle(lang) }}>
               {t('داواکارییەکەت تۆمارکرا!', 'تم تسجيل طلبك!', 'Reservation Submitted!', lang)}
             </h1>
-            <span className="block flex-1 max-w-[60px] h-px rounded-full" style={{ background: `linear-gradient(to left, transparent, ${accentColor})` }} />
+            <span className="block flex-1 max-w-[60px] h-px rounded-full" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
           </div>
 
           {/* Gold diamond divider */}
@@ -461,7 +432,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
         <div className="flex gap-3 flex-wrap">
           <button onClick={downloadQR}
             className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
-            style={{ background: accentColor, border: `1px solid rgba(200,169,110,0.35)`, boxShadow: `0 4px 20px ${accentRgba(accentColor, 0.35)}`, fontFamily: fontStyle(lang) }}>
+            style={{ background: RED, border: `1px solid rgba(200,169,110,0.35)`, boxShadow: '0 4px 20px rgba(122,0,0,0.35)', fontFamily: fontStyle(lang) }}>
             <i className="ri-download-2-line text-base" style={{ color: GOLD }} />
             {t('داونلۆدی QR','تحميل QR','Download QR',lang)}
           </button>
@@ -540,11 +511,11 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
           {/* Decorative lines + title */}
           <div className="flex items-center justify-center gap-4 mb-4">
-            <span className="block w-16 h-1 rounded-full" style={{ background: `linear-gradient(to right, transparent, ${accentColor})` }} />
+            <span className="block w-16 h-1 rounded-full" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
             <h1 className="text-3xl md:text-4xl font-black text-white" style={{ fontFamily: fontStyle(lang) }}>
               {t('داواکاری سەردانکردن', 'حجز زيارة', 'Reserve a Visit', lang)}
             </h1>
-            <span className="block w-16 h-1 rounded-full" style={{ background: `linear-gradient(to left, transparent, ${accentColor})` }} />
+            <span className="block w-16 h-1 rounded-full" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
           </div>
 
           {/* Diamond divider */}
@@ -578,9 +549,9 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
               style={{
                 fontFamily: fontStyle(lang),
                 color: '#fff',
-                background: pageTab === tab.id ? accentColor : 'transparent',
+                background: pageTab === tab.id ? RED : 'transparent',
                 border: pageTab === tab.id ? `1px solid rgba(200,169,110,0.35)` : '1px solid transparent',
-                boxShadow: pageTab === tab.id ? `0 4px 16px ${accentRgba(accentColor, 0.4)}` : 'none',
+                boxShadow: pageTab === tab.id ? '0 4px 16px rgba(122,0,0,0.4)' : 'none',
               }}
             >
               {t(tab.ku, tab.ar, tab.en, lang)}
@@ -613,7 +584,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                   onClick={searchByPhone}
                   disabled={trackLoading || !trackPhone.trim()}
                   className="flex items-center gap-2 whitespace-nowrap px-5 py-3 text-white font-bold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  style={{ background: accentColor, border: `1px solid rgba(200,169,110,0.3)`, fontFamily: fontStyle(lang) }}
+                  style={{ background: RED, border: `1px solid rgba(200,169,110,0.3)`, fontFamily: fontStyle(lang) }}
                 >
                   {trackLoading
                     ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -711,9 +682,9 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
               disabled={loading}
               className="w-full py-4 text-white font-black text-lg rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               style={{
-                background: accentColor,
+                background: RED,
                 border: `1px solid rgba(200,169,110,0.35)`,
-                boxShadow: `0 8px 32px ${accentRgba(accentColor, 0.4)}`,
+                boxShadow: '0 8px 32px rgba(122,0,0,0.4)',
                 fontFamily: fontStyle(lang),
               }}
             >

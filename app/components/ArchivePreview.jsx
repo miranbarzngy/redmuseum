@@ -160,9 +160,9 @@ export default function ArchivePreview({ currentLang = 'en' }) {
         {/* Section header */}
         <div className="flex flex-col items-center mb-12">
           <div className="flex items-center gap-4 mb-3">
-            <span className="block w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#7a0000]" />
+            <span className="block w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
             <h2 className="text-2xl md:text-3xl font-black text-white tracking-wide" style={font}>{sectionTitle}</h2>
-            <span className="block w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#7a0000]" />
+            <span className="block w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
           </div>
           <p className="text-white text-sm" style={font}>{sectionSub}</p>
         </div>

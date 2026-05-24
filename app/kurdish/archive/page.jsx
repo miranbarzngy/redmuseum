@@ -119,9 +119,9 @@ export default function KurdishArchive() {
 
           {/* Decorative line */}
           <div className="flex items-center justify-center gap-4 mb-4">
-            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #cc0000)' }} />
+            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
             <h1 className="text-4xl md:text-5xl font-black text-white" style={KU}>ئەرشیفی دیجیتاڵی</h1>
-            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #cc0000)' }} />
+            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
           </div>
           <p className="text-white/60 text-lg" style={KU}>{museumName.kr}</p>
 

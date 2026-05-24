@@ -25,11 +25,11 @@ export default function VRSection({ currentLang = 'en' }) {
         {/* Section header */}
         <div className="flex flex-col items-center mb-10">
           <div className="flex items-center gap-4 mb-3">
-            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #cc0000)' }} />
+            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
             <h2 className="text-2xl md:text-3xl font-black text-white tracking-wide text-center" style={font}>
               {title}
             </h2>
-            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #cc0000)' }} />
+            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
           </div>
           <p className="text-white text-sm text-center" style={font}>{subtitle}</p>
         </div>

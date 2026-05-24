@@ -177,9 +177,9 @@ export default function Gallery({ currentLang = 'en' }) {
 
         {/* Section header */}
         <div className="flex items-center justify-center gap-4 mb-10 px-8">
-          <span className="block w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#7a0000]" />
+          <span className="block w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
           <h2 className="text-2xl md:text-3xl font-black text-white tracking-wide" style={font}>{title}</h2>
-          <span className="block w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#7a0000]" />
+          <span className="block w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
         </div>
 
         {/* Category tab pills */}

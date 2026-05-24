@@ -198,7 +198,7 @@ export function ArabicPageContent({ initialSection = null }) {
         onLangChange={handleLangChange}
       />
       {sectionOrder.map(id => sectionComponents[id] ?? null)}
-      <footer className="py-6 bg-black text-white text-center">
+      <footer className="py-6 text-white text-center" style={{ background: '#7a0000' }}>
         <p>{`© ٢٠٢٥ ${museumName.ar}. جميع الحقوق محفوظة.`}</p>
       </footer>
     </main>

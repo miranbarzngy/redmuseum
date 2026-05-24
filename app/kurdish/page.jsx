@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useMuseumName } from '../lib/useMuseumName'
 import About from '../components/About'
 import ArchivePreview from '../components/ArchivePreview'
 import ContactForm from '../components/ContactForm'
@@ -12,6 +11,7 @@ import ShowcaseCards from '../components/ShowcaseCards'
 import Sidebar from '../components/Sidebar'
 import Slider from '../components/Slider'
 import VRSection from '../components/VRSection'
+import { useMuseumName } from '../lib/useMuseumName'
 
 const SECTION_KEYS = ['show_slides','show_about','show_gallery','show_archive','show_activities','show_exclusive','show_messages','show_visitor_tab','show_showcase']
 
@@ -203,8 +203,8 @@ export function KurdishPageContent({ initialSection = null }) {
         onLangChange={handleLangChange}
       />
       {sectionOrder.map(id => sectionComponents[id] ?? null)}
-      <footer className="py-6 bg-black text-white text-center">
-        <p>{currentLang === 'ku' ? `© ٢٠٢٦ ${museumName.kr}. هەموو مافەکان پارێزراوە.` : `© 2025 ${museumName.en}. All rights reserved.`}</p>
+      <footer className="py-6 text-white text-center" style={{ background: '#7a0000' }}>
+        <p>{currentLang === 'ku' ? `© ٢٠٢٦ ${museumName.kr}. هەموو مافەکان پارێزراوە.` : `© 2026 ${museumName.en}. All rights reserved.`}</p>
       </footer>
     </main>
   )

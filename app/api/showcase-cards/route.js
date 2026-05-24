@@ -35,9 +35,14 @@ export async function POST(request) {
 
   if (!image_url) return NextResponse.json({ error: 'image_url is required' }, { status: 400 })
 
+  if (redirect_url) {
+    try { const u = new URL(redirect_url); if (!['http:', 'https:'].includes(u.protocol)) throw new Error() }
+    catch { return NextResponse.json({ error: 'redirect_url must be a valid http/https URL' }, { status: 400 }) }
+  }
+
   const { data, error } = await supabase
     .from('showcase_cards')
-    .insert({ title_ku, title_en, title_ar, image_url, redirect_url, order_index: order_index ?? 0 })
+    .insert({ title_ku, title_en, title_ar, image_url, redirect_url: redirect_url || null, order_index: order_index ?? 0 })
     .select()
     .single()
 
@@ -52,8 +57,17 @@ export async function PATCH(request) {
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
   const body = await request.json()
-  const { id, ...updates } = body
+  const { id } = body
   if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+  const ALLOWED = ['title_ku', 'title_en', 'title_ar', 'image_url', 'redirect_url', 'order_index', 'is_active']
+  const updates = {}
+  ALLOWED.forEach(k => { if (body[k] !== undefined) updates[k] = body[k] })
+
+  if (updates.redirect_url) {
+    try { const u = new URL(updates.redirect_url); if (!['http:', 'https:'].includes(u.protocol)) throw new Error() }
+    catch { return NextResponse.json({ error: 'redirect_url must be a valid http/https URL' }, { status: 400 }) }
+  }
 
   const { data, error } = await supabase
     .from('showcase_cards')
