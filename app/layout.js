@@ -14,13 +14,13 @@ export async function generateMetadata() {
       siteName: name.en,
       title: name.en,
       description: `${name.en} (Red Prison) - Not To Be Forgotten`,
-      images: [{ url: '/android-chrome-512x512.png', width: 512, height: 512 }],
+      images: [{ url: '/1200x630.png', width: 1200, height: 630, alt: name.en }],
     },
     twitter: {
-      card: 'summary',
+      card: 'summary_large_image',
       title: name.en,
       description: `${name.en} (Red Prison) - Not To Be Forgotten`,
-      images: ['/android-chrome-512x512.png'],
+      images: ['/1200x630.png'],
     },
     robots: { index: true, follow: true },
   }
