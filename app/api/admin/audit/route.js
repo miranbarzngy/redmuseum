@@ -41,6 +41,7 @@ export async function POST(request) {
   const { error } = await supabase.from('audit_logs').insert({
     user_id:    user.id,
     user_email: user.email,
+    user_name:  user.user_metadata?.full_name || '',
     action:     String(action).slice(0, 64),
     entity:     String(entity).slice(0, 64),
     entity_id:  entity_id ? String(entity_id).slice(0, 128) : null,

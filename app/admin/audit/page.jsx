@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ShieldAlert, Trash2, RotateCcw, Edit, PlusCircle, ArrowRightLeft, RefreshCw, Loader2, Archive } from 'lucide-react'
+import { ShieldAlert, Trash2, RotateCcw, Edit, PlusCircle, ArrowRightLeft, RefreshCw, Loader2, Archive, Eye, X, UserRound } from 'lucide-react'
 
 const ACTION_META = {
   delete:        { label: 'Deleted',       icon: Trash2,          cls: 'bg-red-100 text-red-700'     },
@@ -14,6 +14,13 @@ const ACTION_META = {
 
 function formatDate(d) {
   return new Date(d).toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+function formatDateFull(d) {
+  return new Date(d).toLocaleString('en-GB', {
+    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit',
+  })
 }
 
 function ActionBadge({ action }) {
@@ -40,10 +47,113 @@ function EntityBadge({ entity }) {
   )
 }
 
+function DetailModal({ log, onClose }) {
+  if (!log) return null
+  const details = log.details && typeof log.details === 'object' ? log.details : {}
+  const hasDetails = Object.keys(details).length > 0
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Modal header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-600 to-slate-900 flex items-center justify-center">
+              <ShieldAlert size={14} className="text-white" />
+            </span>
+            <h2 className="font-semibold text-gray-800">Audit Event Details</h2>
+          </div>
+          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 transition-colors">
+            <X size={16} />
+          </button>
+        </div>
+
+        {/* Modal body */}
+        <div className="px-6 py-5 space-y-4">
+
+          {/* When */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">When</p>
+            <p className="text-sm text-gray-800">{formatDateFull(log.created_at)}</p>
+          </div>
+
+          {/* User */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">User</p>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-500 to-slate-700 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                {log.user_name
+                  ? log.user_name.trim().split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase()
+                  : <UserRound size={14} />
+                }
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">{log.user_name || <span className="text-gray-400 italic">No name</span>}</p>
+                <p className="text-xs text-gray-400">{log.user_email || '—'}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Action + Table */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Action</p>
+              <ActionBadge action={log.action} />
+            </div>
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Table</p>
+              <EntityBadge entity={log.entity} />
+            </div>
+          </div>
+
+          {/* Entity ID */}
+          {log.entity_id && (
+            <div>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Record ID</p>
+              <p className="text-xs font-mono text-gray-500 bg-gray-50 px-3 py-2 rounded-lg break-all">{log.entity_id}</p>
+            </div>
+          )}
+
+          {/* Details */}
+          <div>
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">Details</p>
+            {hasDetails ? (
+              <div className="bg-gray-50 rounded-xl border border-gray-100 overflow-hidden">
+                {Object.entries(details).map(([k, v], i, arr) => (
+                  <div key={k} className={`flex gap-3 px-3 py-2.5 ${i < arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
+                    <span className="text-xs font-semibold text-gray-500 w-24 shrink-0">{k}</span>
+                    <span className="text-xs text-gray-800 break-all">{String(v)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-gray-300 italic">No additional details</p>
+            )}
+          </div>
+
+        </div>
+
+        <div className="px-6 pb-5">
+          <button
+            onClick={onClose}
+            className="w-full py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AuditLogPage() {
-  const [logs,     setLogs]     = useState([])
-  const [loading,  setLoading]  = useState(true)
-  const [filter,   setFilter]   = useState('all')
+  const [logs,      setLogs]      = useState([])
+  const [loading,   setLoading]   = useState(true)
+  const [filter,    setFilter]    = useState('all')
+  const [selected,  setSelected]  = useState(null)
 
   const loadLogs = async () => {
     setLoading(true)
@@ -116,6 +226,7 @@ export default function AuditLogPage() {
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Action</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide">Table</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wide hidden sm:table-cell">Details</th>
+                  <th className="px-4 py-3 w-12" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -123,7 +234,8 @@ export default function AuditLogPage() {
                   <tr key={log.id} className="hover:bg-gray-50/60 transition-colors">
                     <td className="px-4 py-3 text-xs text-gray-400 whitespace-nowrap">{formatDate(log.created_at)}</td>
                     <td className="px-4 py-3">
-                      <p className="text-sm font-medium text-gray-800 truncate max-w-[140px]">{log.user_email || '—'}</p>
+                      <p className="text-sm font-medium text-gray-800 truncate max-w-[140px]">{log.user_name || <span className="text-gray-400 italic text-xs">—</span>}</p>
+                      <p className="text-xs text-gray-400 truncate max-w-[140px]">{log.user_email || '—'}</p>
                     </td>
                     <td className="px-4 py-3"><ActionBadge action={log.action} /></td>
                     <td className="px-4 py-3"><EntityBadge entity={log.entity} /></td>
@@ -136,6 +248,15 @@ export default function AuditLogPage() {
                         <span className="text-xs text-gray-300">—</span>
                       )}
                     </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        onClick={() => setSelected(log)}
+                        className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-slate-200 flex items-center justify-center text-gray-500 hover:text-gray-700 transition-colors"
+                        title="View details"
+                      >
+                        <Eye size={13} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -143,6 +264,9 @@ export default function AuditLogPage() {
           </div>
         )}
       </div>
+
+      {/* Detail modal */}
+      {selected && <DetailModal log={selected} onClose={() => setSelected(null)} />}
 
     </div>
   )
