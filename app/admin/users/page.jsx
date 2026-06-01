@@ -288,7 +288,7 @@ function EditUserModal({ user, roles, onClose, onSaved }) {
             </label>
             <input type="password" value={form.password}
               onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-              placeholder="••••••••"
+              placeholder="••••••••" autoComplete="new-password"
               className={inputCls} />
           </div>
           <div>
@@ -492,27 +492,27 @@ export default function UsersPage() {
               </span>
               <h2 className="font-semibold text-gray-800 text-sm">Create New User</h2>
             </div>
-            <form onSubmit={createUser} className="p-5 space-y-4">
+            <form onSubmit={createUser} className="p-5 space-y-4" autoComplete="off">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Full Name</label>
                   <input type="text" value={userForm.full_name}
                     onChange={e => setUserForm(p => ({ ...p, full_name: e.target.value }))}
-                    placeholder="Full Name"
+                    placeholder="Full Name" autoComplete="off"
                     className={inputCls} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Email</label>
                   <input type="email" required value={userForm.email}
                     onChange={e => setUserForm(p => ({ ...p, email: e.target.value }))}
-                    placeholder="user@example.com"
+                    placeholder="user@example.com" autoComplete="off"
                     className={inputCls} />
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">Password</label>
                   <input type="password" required value={userForm.password}
                     onChange={e => setUserForm(p => ({ ...p, password: e.target.value }))}
-                    placeholder="Min 6 characters"
+                    placeholder="Min 6 characters" autoComplete="new-password"
                     className={inputCls} />
                 </div>
                 <div>
