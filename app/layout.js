@@ -3,10 +3,26 @@ import { getMuseumName } from './lib/getMuseumName'
 
 export async function generateMetadata() {
   const name = await getMuseumName()
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://amna-suraka.com'
   return {
-    title: name.en,
+    title: { default: name.en, template: `%s | ${name.en}` },
     description: `${name.en} (Red Prison) - Not To Be Forgotten`,
     keywords: ['museum', 'Kurdistan', 'Amna Suraka', 'Sulaimani', 'genocide', 'history'],
+    metadataBase: new URL(siteUrl),
+    openGraph: {
+      type: 'website',
+      siteName: name.en,
+      title: name.en,
+      description: `${name.en} (Red Prison) - Not To Be Forgotten`,
+      images: [{ url: '/android-chrome-512x512.png', width: 512, height: 512 }],
+    },
+    twitter: {
+      card: 'summary',
+      title: name.en,
+      description: `${name.en} (Red Prison) - Not To Be Forgotten`,
+      images: ['/android-chrome-512x512.png'],
+    },
+    robots: { index: true, follow: true },
   }
 }
 

@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Admin panel — keep out of search indexes
+Disallow: /admin/
+Disallow: /api/
+
+Sitemap: /sitemap.xml
