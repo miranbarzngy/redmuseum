@@ -226,6 +226,26 @@ body {
   animation-play-state: paused;
 }
 
+/* Admin sidebar scrollbar */
+.admin-nav-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.admin-nav-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.admin-nav-scroll::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.25);
+  border-radius: 9999px;
+}
+.admin-nav-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.55);
+}
+/* Firefox */
+.admin-nav-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.3) transparent;
+}
+
 /* Video modal styles */
 .slider-video-modal {
   @apply fixed inset-0 bg-black/80 z-40 hidden;

@@ -278,7 +278,7 @@ export default function AdminLayout({ children }) {
           </button>
 
           {/* Nav — scrollable, fills all space between header and footer */}
-          <nav className="flex-1 overflow-y-auto min-h-0 py-2">
+          <nav className="flex-1 overflow-y-auto min-h-0 py-2 admin-nav-scroll">
             {!userPerms && (
               <div className="px-6 py-4 flex items-center gap-2 text-gray-500 text-sm">
                 <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
