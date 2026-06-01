@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Globe, Lock } from 'lucide-react'
 import Image from 'next/image'
+import { logAudit } from '../../lib/auditLog'
 
 const LANGUAGES = [
   {
@@ -138,6 +139,7 @@ export default function LanguagesPage() {
       })
       if (!res.ok) throw new Error()
       setSettings(prev => ({ ...prev, [key]: newVal }))
+      logAudit('update', 'settings', key, { value: newVal })
       setToast({ type: 'success', msg: `${key === 'show_english' ? 'English' : 'Arabic'} ${newVal ? 'enabled' : 'disabled'}` })
     } catch {
       setToast({ type: 'error', msg: 'Failed to save setting' })

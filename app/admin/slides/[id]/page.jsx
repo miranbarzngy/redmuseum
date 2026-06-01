@@ -13,6 +13,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { supabase } from '../../../lib/supabase-client'
+import { logAudit } from '../../../lib/auditLog'
 import ImageUpload from '../../../components/ImageUpload'
 
 function SectionCard({ icon: Icon, title, grad, shadow, children }) {
@@ -105,6 +106,7 @@ export default function SlideForm() {
         const { error } = await supabase.from('slides').update(formData).eq('id', id)
         if (error) throw error
       }
+      logAudit(isNew ? 'create' : 'update', 'slides', isNew ? 'new' : String(id), { title: formData.title })
       router.push('/admin/slides')
     } catch (error) {
       alert('Error saving slide: ' + error.message)

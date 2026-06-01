@@ -30,6 +30,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase-client'
 import VisibilityToggle from '../components/VisibilityToggle'
+import { logAudit } from '../../lib/auditLog'
 
 function SortableRow({ slide, onDelete, onToggleActive, disabled }) {
   const {
@@ -204,8 +205,10 @@ export default function SlidesManagement() {
   const deleteSlide = async (id) => {
     if (!confirm('Are you sure you want to delete this slide?')) return
     try {
+      const slide = slides.find(s => s.id === id)
       const { error } = await supabase.from('slides').delete().eq('id', id)
       if (error) throw error
+      logAudit('delete', 'slides', String(id), { title: slide?.title })
       fetchSlides()
     } catch (error) {
       alert('Error deleting slide: ' + error.message)
@@ -217,6 +220,7 @@ export default function SlidesManagement() {
       const { error } = await supabase.from('slides').update({ is_active: !currentStatus }).eq('id', id)
       if (error) throw error
       setSlides(prev => prev.map(s => s.id === id ? { ...s, is_active: !currentStatus } : s))
+      logAudit('update', 'slides', String(id), { is_active: !currentStatus })
     } catch (error) {
       alert('Error updating slide: ' + error.message)
     }

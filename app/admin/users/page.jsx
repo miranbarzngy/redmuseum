@@ -6,6 +6,7 @@ import {
   ChevronRight, CheckCircle2, Loader2, X, Plus,
   AtSign, UserRound, ShieldAlert,
 } from 'lucide-react'
+import { logAudit } from '../../lib/auditLog'
 
 const SECTIONS = [
   'dashboard','slides','messages','about','gallery','archive',
@@ -378,6 +379,7 @@ export default function UsersPage() {
     const json = await res.json()
     setSavingUser(false)
     if (!res.ok) { flash(setUserMsg, json.error, false); return }
+    logAudit('create', 'users', json.user.id, { email: json.user.email, role: userForm.role })
     flash(setUserMsg, `User ${json.user.email} created`)
     setUserForm(p => ({ ...p, email: '', full_name: '', password: '' }))
     fetchUsers()
@@ -391,18 +393,24 @@ export default function UsersPage() {
     })
     const json = await res.json()
     setTogglingUser(null)
-    if (res.ok) setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_active: json.user.is_active } : u))
+    if (res.ok) {
+      logAudit('update', 'users', user.id, { email: user.email, is_active: !user.is_active })
+      setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_active: json.user.is_active } : u))
+    }
   }
 
   const deleteUser = async (id) => {
     if (!confirm('Delete this user permanently?')) return
+    const user = users.find(u => u.id === id)
     setDeletingUser(id)
     await fetch(`/api/admin/users?id=${id}`, { method: 'DELETE' })
+    logAudit('delete', 'users', id, { email: user?.email })
     setDeletingUser(null)
     setUsers(prev => prev.filter(u => u.id !== id))
   }
 
   const onUserSaved = (updated) => {
+    logAudit('update', 'users', updated.id, { email: updated.email, role: updated.role })
     setUsers(prev => prev.map(u => u.id === updated.id ? { ...u, ...updated } : u))
     setEditingUser(null)
     flash(setUserMsg, 'User updated')

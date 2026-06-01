@@ -5,6 +5,7 @@ import { LayoutGrid, Plus, Trash2, ChevronUp, ChevronDown, Loader2, CheckCircle2
 import Image from 'next/image'
 import VisibilityToggle from '../components/VisibilityToggle'
 import { getSupabaseClient } from '../../lib/supabase-client'
+import { logAudit } from '../../lib/auditLog'
 
 const EMPTY_FORM = { title_ku: '', title_en: '', title_ar: '', image_url: '', redirect_url: '' }
 
@@ -116,6 +117,7 @@ export default function ShowcaseCardsPage() {
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error)
+      logAudit(editCard ? 'update' : 'create', 'showcase_cards', editCard ? String(editCard.id) : null, { title: form.title_en || form.title_ku })
       flash(editCard ? 'Card updated' : 'Card added')
       closeForm()
       load()
@@ -128,6 +130,7 @@ export default function ShowcaseCardsPage() {
     try {
       const res = await fetch(`/api/showcase-cards?id=${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
+      logAudit('delete', 'showcase_cards', String(id), {})
       flash('Card deleted')
       load()
     } catch { flash('Delete failed', false) }

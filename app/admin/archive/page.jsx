@@ -40,6 +40,7 @@ import {
 } from 'lucide-react'
 import { supabase, getSupabaseClient } from '../../lib/supabase-client'
 import VisibilityToggle from '../components/VisibilityToggle'
+import { logAudit } from '../../lib/auditLog'
 import QRCode from 'qrcode'
 
 const defaultCategories = [
@@ -438,8 +439,10 @@ export default function ArchiveManagement() {
   const deleteItem = async (id) => {
     if (!confirm('Are you sure you want to delete this item?')) return
     try {
+      const item = archive.find(a => a.id === id)
       const { error } = await supabase.from('digital_archive').delete().eq('id', id)
       if (error) throw error
+      logAudit('delete', 'digital_archive', String(id), { title: item?.title_en || item?.title_ku })
       setArchive(prev => prev.filter(i => i.id !== id))
     } catch (error) { alert('Error deleting item: ' + error.message) }
   }
@@ -480,6 +483,7 @@ export default function ArchiveManagement() {
     try {
       if (editingItem) { const { error } = await supabase.from('digital_archive').update(data).eq('id', editingItem.id); if (error) throw error }
       else { const { error } = await supabase.from('digital_archive').insert([data]); if (error) throw error }
+      logAudit(editingItem ? 'update' : 'create', 'digital_archive', editingItem ? String(editingItem.id) : null, { title: data.title_en || data.title_ku })
       handleCancel(); fetchArchive()
     } catch (error) { alert('Error saving: ' + error.message) }
   }
@@ -488,6 +492,7 @@ export default function ArchiveManagement() {
     try {
       const { error } = await supabase.from('digital_archive').update({ is_active: !item.is_active }).eq('id', item.id)
       if (error) throw error
+      logAudit('update', 'digital_archive', String(item.id), { is_active: !item.is_active })
       setArchive(prev => prev.map(a => a.id === item.id ? { ...a, is_active: !item.is_active } : a))
     } catch (e) { alert('Failed to update: ' + e.message) }
   }

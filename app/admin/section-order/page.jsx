@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useAdminPerms, can } from '../AdminContext'
+import { logAudit } from '../../lib/auditLog'
 import {
   Layers, GripVertical, ChevronUp, ChevronDown,
   RotateCcw, CheckCircle2, Loader2, Lock, Info,
@@ -89,8 +90,10 @@ export default function SectionOrderPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: 'section_order', value: JSON.stringify(order) }),
       })
-      if (res.ok) flash('Section order saved! Homepage will update.', true)
-      else flash('Failed to save. Try again.', false)
+      if (res.ok) {
+        logAudit('update', 'settings', 'section_order', { order: order.join(',') })
+        flash('Section order saved! Homepage will update.', true)
+      } else flash('Failed to save. Try again.', false)
     } catch {
       flash('Network error. Try again.', false)
     } finally {

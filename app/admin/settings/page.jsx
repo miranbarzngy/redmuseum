@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase-client'
+import { logAudit } from '../../lib/auditLog'
 import {
   Settings, Phone, Mail, MapPin, Globe, CheckCircle2,
   Loader2, Plus, Trash2, Save, Building2,
@@ -108,6 +109,7 @@ export default function MuseumSettingsPage() {
         ? await supabase.from('settings').update(updates).eq('id', settingsId)
         : await supabase.from('settings').insert([updates])
       if (error) throw error
+      logAudit('update', 'settings', 'museum_settings', { museum_name: nameEn.trim() })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (e) {

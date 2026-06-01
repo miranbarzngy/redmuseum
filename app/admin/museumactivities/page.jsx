@@ -43,6 +43,7 @@ import {
 } from 'lucide-react'
 import { getSupabaseClient } from '../../lib/supabase-client'
 import VisibilityToggle from '../components/VisibilityToggle'
+import { logAudit } from '../../lib/auditLog'
 
 const EMPTY_SLIDE = {
   title_ku: '', title_en: '', title_ar: '',
@@ -326,6 +327,7 @@ export default function ExclusiveAdmin() {
     try {
       if (editingSlide) { const { error } = await supabase.from('exclusive_slides').update(payload).eq('id', editingSlide.id); if (error) throw error }
       else { const { error } = await supabase.from('exclusive_slides').insert([payload]); if (error) throw error }
+      logAudit(editingSlide ? 'update' : 'create', 'exclusive_slides', editingSlide ? String(editingSlide.id) : null, { title: formData.title_en || formData.title_ku })
       setShowModal(false); setEditingSlide(null); setFormData(EMPTY_SLIDE); setImageFile(null)
       flash(editingSlide ? 'Slide updated' : 'Slide created')
       fetchAll()
@@ -337,8 +339,10 @@ export default function ExclusiveAdmin() {
     const supabase = getSupabaseClient()
     if (!supabase) return
     const { error } = await supabase.from('exclusive_slides').delete().eq('id', id)
-    if (!error) fetchAll()
-    else flash('Error deleting slide', 'error')
+    if (!error) {
+      logAudit('delete', 'exclusive_slides', String(id), {})
+      fetchAll()
+    } else flash('Error deleting slide', 'error')
   }
 
   const openModal = (slide = null) => {

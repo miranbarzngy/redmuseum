@@ -26,6 +26,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase-client'
 import VisibilityToggle from '../components/VisibilityToggle'
+import { logAudit } from '../../lib/auditLog'
 
 const SOCIAL_PLATFORMS = [
   { name: 'Facebook',  icon: 'ri-facebook-fill',  LIcon: ThumbsUp,    grad: 'from-blue-600 to-blue-800' },
@@ -136,6 +137,7 @@ export default function AboutEditor() {
         ...formData, updated_at: new Date().toISOString(),
       }], { onConflict: 'id' })
       if (error) throw error
+      logAudit('update', 'settings', 'about', { museum_name: formData.museum_name_en })
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
     } catch (error) {

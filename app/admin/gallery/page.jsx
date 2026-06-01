@@ -38,6 +38,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase-client'
 import VisibilityToggle from '../components/VisibilityToggle'
+import { logAudit } from '../../lib/auditLog'
 
 const categories = [
   { id: 'visitor',    name: 'Visitor Touring',           Icon: Users  },
@@ -217,8 +218,10 @@ export default function GalleryManagement() {
   const deleteImage = async (id) => {
     if (!confirm('Are you sure you want to delete this image?')) return
     try {
+      const img = gallery.find(g => g.id === id)
       const { error } = await supabase.from('gallery').delete().eq('id', id)
       if (error) throw error
+      logAudit('delete', 'gallery', String(id), { title: img?.title, category: img?.category })
       setGallery(prev => prev.filter(img => img.id !== id))
     } catch (error) {
       alert('Error deleting image: ' + error.message)
@@ -270,6 +273,7 @@ export default function GalleryManagement() {
         const { error } = await supabase.from('gallery').insert([data])
         if (error) throw error
       }
+      logAudit(editingItem ? 'update' : 'create', 'gallery', editingItem ? String(editingItem.id) : null, { title: formData.title, category: selectedCategory })
       handleCancel()
       fetchGallery()
     } catch (error) {
