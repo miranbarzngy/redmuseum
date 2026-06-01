@@ -83,7 +83,7 @@ export default function AdminLayout({ children }) {
       // superadmin always gets full access regardless of DB state
       if (role === 'admin') { setUserPerms(FULL_PERMS); return }
       const res = await fetch('/api/admin/roles')
-      if (!res.ok) { setUserPerms(FULL_PERMS); return }
+      if (!res.ok) { setUserPerms({}); return }
       const json = await res.json()
       const matched = (json.roles || []).find(r => r.name === role)
       if (!matched) {
@@ -349,7 +349,19 @@ export default function AdminLayout({ children }) {
         {/* ── Main content ── */}
         <main className="lg:ml-64 min-h-screen">
           <div className="pt-16 lg:pt-0 px-4 md:px-6 lg:px-8 pb-8">
-            {children}
+            {(() => {
+              const segment = pathname.split('/')[2]
+              const section = ROUTE_SECTION[segment]
+              // Block render until permissions are loaded
+              if (!userPerms) return (
+                <div className="flex items-center justify-center h-64">
+                  <div className="w-8 h-8 border-4 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                </div>
+              )
+              // If this route has a known section and user can't view it, render nothing (redirect fires from useEffect)
+              if (section && !userPerms[section]?.view) return null
+              return children
+            })()}
           </div>
         </main>
 

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '../../../lib/api-auth'
+import { requireAdmin, getSessionUser } from '../../../lib/api-auth'
 
 function getAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -10,7 +10,7 @@ function getAdmin() {
 }
 
 export async function GET(request) {
-  if (!await requireAdmin(request)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
   const { data, error } = await supabase.from('admin_roles').select('*').order('created_at', { ascending: true })
