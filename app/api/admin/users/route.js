@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { getSessionUser } from '../../../lib/api-auth'
+import { requireAdmin } from '../../../lib/api-auth'
 
 function getAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -9,9 +9,9 @@ function getAdmin() {
   return createClient(url, key, { auth: { persistSession: false } })
 }
 
-// GET — list all auth users
+// GET — list all auth users (admin only)
 export async function GET(request) {
-  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await requireAdmin(request)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
@@ -31,9 +31,9 @@ export async function GET(request) {
   return NextResponse.json({ users })
 }
 
-// POST — create a new user
+// POST — create a new user (admin only)
 export async function POST(request) {
-  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await requireAdmin(request)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
@@ -53,9 +53,9 @@ export async function POST(request) {
   return NextResponse.json({ user: data.user })
 }
 
-// PATCH — update user (email, password, role, active status)
+// PATCH — update user (email, password, role, active status) (admin only)
 export async function PATCH(request) {
-  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await requireAdmin(request)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
@@ -106,9 +106,9 @@ export async function PATCH(request) {
   })
 }
 
-// DELETE — delete a user by id in query param
+// DELETE — delete a user by id in query param (admin only)
 export async function DELETE(request) {
-  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await requireAdmin(request)) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   const supabase = getAdmin()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 

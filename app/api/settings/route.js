@@ -25,6 +25,16 @@ export async function GET(request) {
   return NextResponse.json({ value: data?.value ?? null })
 }
 
+const ALLOWED_KEYS = new Set([
+  'show_slides','show_about','show_gallery','show_archive','show_activities',
+  'show_exclusive','show_messages','show_visitor_tab','show_showcase',
+  'show_english','show_arabic',
+  'section_order','available_days','available_hours',
+  'contact_email','contact_phone','contact_address',
+  'museum_name_ku','museum_name_en','museum_name_ar',
+  'reserve_bg_color','reserve_title_ku','reserve_title_en','reserve_title_ar',
+])
+
 export async function POST(request) {
   if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getSupabase()
@@ -32,6 +42,7 @@ export async function POST(request) {
 
   const { key, value } = await request.json()
   if (!key || value === undefined) return NextResponse.json({ error: 'Missing key or value' }, { status: 400 })
+  if (!ALLOWED_KEYS.has(key)) return NextResponse.json({ error: 'Unknown setting key' }, { status: 400 })
 
   const { error } = await supabase
     .from('site_settings')

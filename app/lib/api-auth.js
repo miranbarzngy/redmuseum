@@ -24,3 +24,11 @@ export async function getSessionUser(request) {
   if (error || !user) return null
   return user
 }
+
+// Returns the user only if their role is 'admin'; null otherwise.
+export async function requireAdmin(request) {
+  const user = await getSessionUser(request)
+  if (!user) return null
+  if ((user.user_metadata?.role || 'viewer') !== 'admin') return null
+  return user
+}
