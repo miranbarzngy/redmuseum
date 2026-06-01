@@ -16,6 +16,8 @@ import {
   ShieldCheck,
   Globe,
   LayoutGrid,
+  Settings,
+  ClipboardList,
   LogOut,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase-client'
@@ -35,6 +37,8 @@ const BASE_NAV = [
   { section: 'showcase_cards',href: '/admin/showcase-cards', Icon: LayoutGrid,      label: 'Social Media Post', exact: true,  grad: 'from-fuchsia-600 to-fuchsia-900', shadow: 'shadow-fuchsia-950/60' },
   { section: 'languages',     href: '/admin/languages',      Icon: Globe,           label: 'Languages',      exact: true,  grad: 'from-sky-600 to-sky-900',         shadow: 'shadow-sky-950/60'     },
   { section: 'users',         href: '/admin/users',          Icon: ShieldCheck,     label: 'Users & Roles',  exact: true,  grad: 'from-violet-700 to-violet-900',   shadow: 'shadow-violet-950/60'  },
+  { section: 'settings',      href: '/admin/settings',       Icon: Settings,        label: 'Museum Settings',exact: true,  grad: 'from-indigo-600 to-indigo-900',   shadow: 'shadow-indigo-950/60'  },
+  { section: 'audit',         href: '/admin/audit',          Icon: ClipboardList,   label: 'Audit Log',      exact: true,  grad: 'from-slate-600 to-slate-800',     shadow: 'shadow-slate-950/60'   },
 ]
 
 // Map each route segment → permission section
@@ -52,6 +56,8 @@ const ROUTE_SECTION = {
   'section-order': 'section_order',
   languages: 'languages',
   'showcase-cards': 'showcase_cards',
+  settings: 'settings',
+  audit: 'audit',
 }
 
 export default function AdminLayout({ children }) {
@@ -67,7 +73,7 @@ export default function AdminLayout({ children }) {
   const museumName = useMuseumName()
 
   const FULL_PERMS = Object.fromEntries(
-    ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','users','section_order','languages','showcase_cards']
+    ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','users','section_order','languages','showcase_cards','settings','audit']
       .map(s => [s, { view: true, edit: true, delete: true }])
   )
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import {
   Mail,
   Inbox,
+  Archive,
   Trash2,
   Reply,
   Phone,
@@ -15,8 +16,10 @@ import {
   Loader2,
   ChevronDown,
   ChevronLeft,
+  RotateCcw,
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase-client'
+import { logAudit } from '../../lib/auditLog'
 import VisibilityToggle from '../components/VisibilityToggle'
 
 const inputCls = 'w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500/40 focus:border-teal-400 bg-gray-50/50 transition-colors'
@@ -25,7 +28,7 @@ function getInitials(name = '') {
   return name.trim().split(' ').slice(0, 2).map(w => w[0]?.toUpperCase()).join('') || '?'
 }
 
-function AvatarCircle({ name, active }) {
+function AvatarCircle({ name }) {
   const colors = [
     'from-teal-600 to-teal-800',
     'from-blue-600 to-blue-800',
@@ -66,9 +69,11 @@ function formatDateFull(dateString) {
 }
 
 export default function MessagesManagement() {
-  const [messages, setMessages] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [selectedMessage, setSelectedMessage] = useState(null)
+  const [messages,         setMessages]         = useState([])
+  const [loading,          setLoading]          = useState(true)
+  const [selectedMessage,  setSelectedMessage]  = useState(null)
+  const [tab,              setTab]              = useState('inbox') // 'inbox' | 'archived'
+  const [mobileView,       setMobileView]       = useState('inbox')
 
   // Appearance state
   const [bgColor,    setBgColor]    = useState('#0a0f1e')
@@ -80,7 +85,6 @@ export default function MessagesManagement() {
   const [savedBg,    setSavedBg]    = useState(false)
   const [settingsId, setSettingsId] = useState(1)
   const [appearanceOpen, setAppearanceOpen] = useState(false)
-  const [mobileView, setMobileView] = useState('inbox')
 
   useEffect(() => { fetchMessages(); fetchAppearance() }, [])
 
@@ -95,7 +99,10 @@ export default function MessagesManagement() {
 
   const fetchMessages = async () => {
     try {
-      const { data, error } = await supabase.from('messages').select('*').order('created_at', { ascending: false })
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: false })
       if (error) throw error
       setMessages(data || [])
     } catch (error) {
@@ -138,17 +145,57 @@ export default function MessagesManagement() {
     return val
   }
 
-  const deleteMessage = async (id) => {
-    if (!confirm('Are you sure you want to delete this message?')) return
+  // Move to archive (soft-delete)
+  const archiveMessage = async (id) => {
     try {
+      const msg = messages.find(m => m.id === id)
+      const { error } = await supabase
+        .from('messages')
+        .update({ archived_at: new Date().toISOString() })
+        .eq('id', id)
+      if (error) throw error
+      logAudit('archive', 'messages', id, { from: msg?.name, email: msg?.email })
+      fetchMessages()
+      setSelectedMessage(null)
+    } catch (error) {
+      alert('Error archiving message: ' + error.message)
+    }
+  }
+
+  // Restore from archive
+  const restoreMessage = async (id) => {
+    try {
+      const { error } = await supabase
+        .from('messages')
+        .update({ archived_at: null })
+        .eq('id', id)
+      if (error) throw error
+      logAudit('restore', 'messages', id)
+      fetchMessages()
+      setSelectedMessage(null)
+    } catch (error) {
+      alert('Error restoring message: ' + error.message)
+    }
+  }
+
+  // Permanent delete (only from archived tab)
+  const deleteMessage = async (id) => {
+    if (!confirm('Permanently delete this message? This cannot be undone.')) return
+    try {
+      const msg = messages.find(m => m.id === id)
       const { error } = await supabase.from('messages').delete().eq('id', id)
       if (error) throw error
+      logAudit('delete', 'messages', id, { name: msg?.name, email: msg?.email })
       fetchMessages()
       setSelectedMessage(null)
     } catch (error) {
       alert('Error deleting message: ' + error.message)
     }
   }
+
+  const inbox    = messages.filter(m => !m.archived_at)
+  const archived = messages.filter(m =>  m.archived_at)
+  const visible  = tab === 'inbox' ? inbox : archived
 
   if (loading) {
     return (
@@ -168,7 +215,8 @@ export default function MessagesManagement() {
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Messages</h1>
           <p className="text-sm text-gray-400 mt-0.5">
-            {messages.length === 0 ? 'No messages' : `${messages.length} message${messages.length !== 1 ? 's' : ''} received`}
+            {inbox.length === 0 ? 'No messages' : `${inbox.length} message${inbox.length !== 1 ? 's' : ''} in inbox`}
+            {archived.length > 0 && ` · ${archived.length} archived`}
           </p>
         </div>
       </div>
@@ -189,181 +237,109 @@ export default function MessagesManagement() {
         </div>
         {appearanceOpen && (
         <div className="p-6">
-
-          {/* Mode toggle */}
           <div className="flex items-center gap-2 mb-5">
             {['solid', 'gradient'].map(mode => (
-              <button
-                key={mode}
-                type="button"
-                onClick={() => {
-                  setBgMode(mode)
-                  if (mode === 'solid') setBgColor('#0a0f1e')
-                  else setGrad(gradColor1, gradColor2, gradAngle)
-                }}
-                className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${
-                  bgMode === mode ? 'bg-purple-600 text-white shadow' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                }`}
+              <button key={mode} type="button"
+                onClick={() => { setBgMode(mode); if (mode === 'solid') setBgColor('#0a0f1e'); else setGrad(gradColor1, gradColor2, gradAngle) }}
+                className={`px-4 py-1.5 rounded-lg text-xs font-semibold capitalize transition-all ${bgMode === mode ? 'bg-purple-600 text-white shadow' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
               >
                 {mode === 'solid' ? '⬛ Solid' : '🌈 Gradient'}
               </button>
             ))}
           </div>
-
           {bgMode === 'solid' ? (
             <div className="flex items-center gap-3 flex-wrap">
-              <input
-                type="color"
-                value={bgColor.startsWith('linear') ? '#0a0f1e' : bgColor}
-                onChange={e => setBgColor(e.target.value)}
-                className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white"
-              />
-              <input
-                type="text"
-                value={bgColor.startsWith('linear') ? '#0a0f1e' : bgColor}
-                onChange={e => setBgColor(e.target.value)}
-                placeholder="#0a0f1e"
-                className={inputCls + ' w-32 font-mono'}
-              />
-              <button
-                type="button"
-                onClick={() => setBgColor('#0a0f1e')}
-                className="px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
-              >
-                Reset
-              </button>
+              <input type="color" value={bgColor.startsWith('linear') ? '#0a0f1e' : bgColor} onChange={e => setBgColor(e.target.value)} className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white" />
+              <input type="text" value={bgColor.startsWith('linear') ? '#0a0f1e' : bgColor} onChange={e => setBgColor(e.target.value)} placeholder="#0a0f1e" className={inputCls + ' w-32 font-mono'} />
+              <button type="button" onClick={() => setBgColor('#0a0f1e')} className="px-3 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors">Reset</button>
             </div>
           ) : (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                {[
-                  { label: 'Color 1 (Start)', val: gradColor1, isFirst: true },
-                  { label: 'Color 2 (End)',   val: gradColor2, isFirst: false },
-                ].map(({ label, val, isFirst }) => (
+                {[{ label: 'Color 1 (Start)', val: gradColor1, isFirst: true }, { label: 'Color 2 (End)', val: gradColor2, isFirst: false }].map(({ label, val, isFirst }) => (
                   <div key={label}>
                     <label className="text-xs font-medium text-gray-500 mb-1.5 block">{label}</label>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="color"
-                        value={val}
-                        onChange={e => {
-                          const c1 = isFirst ? e.target.value : gradColor1
-                          const c2 = isFirst ? gradColor2 : e.target.value
-                          if (isFirst) setGradColor1(e.target.value); else setGradColor2(e.target.value)
-                          setGrad(c1, c2, gradAngle)
-                        }}
-                        className="w-10 h-9 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white shrink-0"
-                      />
-                      <input
-                        type="text"
-                        value={val}
-                        onChange={e => {
-                          const c1 = isFirst ? e.target.value : gradColor1
-                          const c2 = isFirst ? gradColor2 : e.target.value
-                          if (isFirst) setGradColor1(e.target.value); else setGradColor2(e.target.value)
-                          setGrad(c1, c2, gradAngle)
-                        }}
-                        className={inputCls + ' font-mono text-xs'}
-                      />
+                      <input type="color" value={val} onChange={e => { const c1 = isFirst ? e.target.value : gradColor1; const c2 = isFirst ? gradColor2 : e.target.value; if (isFirst) setGradColor1(e.target.value); else setGradColor2(e.target.value); setGrad(c1, c2, gradAngle) }} className="w-10 h-9 rounded-lg border border-gray-200 cursor-pointer p-0.5 bg-white shrink-0" />
+                      <input type="text" value={val} onChange={e => { const c1 = isFirst ? e.target.value : gradColor1; const c2 = isFirst ? gradColor2 : e.target.value; if (isFirst) setGradColor1(e.target.value); else setGradColor2(e.target.value); setGrad(c1, c2, gradAngle) }} className={inputCls + ' font-mono text-xs'} />
                     </div>
                   </div>
                 ))}
               </div>
-
               <div>
                 <label className="text-xs font-medium text-gray-500 mb-2 block">Direction — {gradAngle}°</label>
                 <div className="flex items-center gap-2 mb-2 flex-wrap">
-                  {[
-                    { label: '↓', angle: 180 }, { label: '↗', angle: 45  }, { label: '→', angle: 90  }, { label: '↘', angle: 135 },
-                    { label: '↙', angle: 225 }, { label: '←', angle: 270 }, { label: '↖', angle: 315 }, { label: '↑', angle: 0   },
-                  ].map(({ label, angle }) => (
-                    <button
-                      key={angle}
-                      type="button"
-                      onClick={() => { setGradAngle(angle); setGrad(gradColor1, gradColor2, angle) }}
-                      className={`w-9 h-9 rounded-lg text-base font-bold transition-all ${
-                        gradAngle === angle ? 'bg-purple-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {label}
-                    </button>
+                  {[{ label: '↓', angle: 180 }, { label: '↗', angle: 45 }, { label: '→', angle: 90 }, { label: '↘', angle: 135 }, { label: '↙', angle: 225 }, { label: '←', angle: 270 }, { label: '↖', angle: 315 }, { label: '↑', angle: 0 }].map(({ label, angle }) => (
+                    <button key={angle} type="button" onClick={() => { setGradAngle(angle); setGrad(gradColor1, gradColor2, angle) }} className={`w-9 h-9 rounded-lg text-base font-bold transition-all ${gradAngle === angle ? 'bg-purple-600 text-white shadow' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>{label}</button>
                   ))}
                 </div>
-                <input
-                  type="range" min="0" max="360" value={gradAngle}
-                  onChange={e => { const a = parseInt(e.target.value); setGradAngle(a); setGrad(gradColor1, gradColor2, a) }}
-                  className="w-full accent-purple-600"
-                />
+                <input type="range" min="0" max="360" value={gradAngle} onChange={e => { const a = parseInt(e.target.value); setGradAngle(a); setGrad(gradColor1, gradColor2, a) }} className="w-full accent-purple-600" />
               </div>
             </div>
           )}
-
-          {/* Preview */}
           <div className="mt-5">
             <label className="text-xs font-medium text-gray-500 mb-1.5 block">Preview</label>
-            <div
-              className="h-16 rounded-xl border border-gray-200 flex items-center justify-center transition-all"
-              style={{ background: bgColor }}
-            >
-              <span style={{ color: '#fff', opacity: 0.4, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' }}>
-                Contact Section Background
-              </span>
+            <div className="h-16 rounded-xl border border-gray-200 flex items-center justify-center transition-all" style={{ background: bgColor }}>
+              <span style={{ color: '#fff', opacity: 0.4, fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase' }}>Contact Section Background</span>
             </div>
           </div>
-
-          {/* Save */}
           <div className="flex items-center justify-end gap-3 mt-5">
-            {savedBg && (
-              <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
-                <CheckCircle2 size={15} /> Saved
-              </span>
-            )}
-            <button
-              type="button"
-              onClick={saveAppearance}
-              disabled={savingBg}
-              className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gradient-to-br from-purple-600 to-purple-900 hover:from-purple-700 hover:to-purple-950 text-white rounded-xl disabled:opacity-60 shadow-lg shadow-purple-950/30 transition-all"
-            >
+            {savedBg && <span className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium"><CheckCircle2 size={15} /> Saved</span>}
+            <button type="button" onClick={saveAppearance} disabled={savingBg} className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold bg-gradient-to-br from-purple-600 to-purple-900 hover:from-purple-700 hover:to-purple-950 text-white rounded-xl disabled:opacity-60 shadow-lg shadow-purple-950/30 transition-all">
               {savingBg ? <><Loader2 size={15} className="animate-spin" /> Saving…</> : <><CheckCircle2 size={15} /> Save Appearance</>}
             </button>
           </div>
-
         </div>
         )}
+      </div>
+
+      {/* Inbox / Archived tabs */}
+      <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl w-fit mb-5">
+        <button
+          onClick={() => { setTab('inbox'); setSelectedMessage(null) }}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${tab === 'inbox' ? 'bg-white text-teal-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          <Inbox size={14} />
+          Inbox
+          {inbox.length > 0 && <span className="bg-teal-100 text-teal-700 text-xs font-bold px-1.5 py-0.5 rounded-full">{inbox.length}</span>}
+        </button>
+        <button
+          onClick={() => { setTab('archived'); setSelectedMessage(null) }}
+          className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg transition-all ${tab === 'archived' ? 'bg-white text-amber-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+        >
+          <Archive size={14} />
+          Archived
+          {archived.length > 0 && <span className="bg-amber-100 text-amber-700 text-xs font-bold px-1.5 py-0.5 rounded-full">{archived.length}</span>}
+        </button>
       </div>
 
       {/* Two-panel layout */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-5">
 
-        {/* Inbox list — 2/5 width */}
+        {/* List panel */}
         <div className={`lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden ${mobileView === 'detail' ? 'hidden lg:block' : ''}`}>
           <div className="flex items-center gap-2 px-4 py-3.5 border-b border-gray-100">
-            <Inbox size={15} className="text-teal-600" />
-            <h2 className="font-semibold text-gray-800 text-sm">Inbox</h2>
-            {messages.length > 0 && (
-              <span className="ml-auto bg-teal-100 text-teal-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                {messages.length}
+            {tab === 'inbox' ? <Inbox size={15} className="text-teal-600" /> : <Archive size={15} className="text-amber-600" />}
+            <h2 className="font-semibold text-gray-800 text-sm">{tab === 'inbox' ? 'Inbox' : 'Archived'}</h2>
+            {visible.length > 0 && (
+              <span className={`ml-auto text-xs font-bold px-2 py-0.5 rounded-full ${tab === 'inbox' ? 'bg-teal-100 text-teal-700' : 'bg-amber-100 text-amber-700'}`}>
+                {visible.length}
               </span>
             )}
           </div>
-
           <div className="max-h-[600px] overflow-y-auto divide-y divide-gray-50">
-            {messages.length === 0 ? (
+            {visible.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                <MessageSquare size={32} className="mb-3 opacity-30" />
-                <p className="text-sm">No messages yet</p>
+                {tab === 'inbox' ? <MessageSquare size={32} className="mb-3 opacity-30" /> : <Archive size={32} className="mb-3 opacity-30" />}
+                <p className="text-sm">{tab === 'inbox' ? 'No messages yet' : 'No archived messages'}</p>
               </div>
             ) : (
-              messages.map(msg => (
-                <button
-                  key={msg.id}
-                  onClick={() => { setSelectedMessage(msg); setMobileView('detail') }}
-                  className={`w-full text-left px-4 py-3.5 hover:bg-teal-50/40 transition-colors ${
-                    selectedMessage?.id === msg.id ? 'bg-teal-50 border-l-2 border-teal-500' : ''
-                  }`}
+              visible.map(msg => (
+                <button key={msg.id} onClick={() => { setSelectedMessage(msg); setMobileView('detail') }}
+                  className={`w-full text-left px-4 py-3.5 hover:bg-teal-50/40 transition-colors ${selectedMessage?.id === msg.id ? 'bg-teal-50 border-l-2 border-teal-500' : ''}`}
                 >
                   <div className="flex items-start gap-3">
-                    <AvatarCircle name={msg.name} active={selectedMessage?.id === msg.id} />
+                    <AvatarCircle name={msg.name} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
                         <p className="font-semibold text-sm text-gray-800 truncate">{msg.name}</p>
@@ -379,19 +355,15 @@ export default function MessagesManagement() {
           </div>
         </div>
 
-        {/* Message detail — 3/5 width */}
+        {/* Detail panel */}
         <div className={`lg:col-span-3 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden ${mobileView === 'inbox' ? 'hidden lg:block' : ''}`}>
           {selectedMessage && (
-            <button
-              onClick={() => setMobileView('inbox')}
-              className="lg:hidden flex items-center gap-2 w-full px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-b border-gray-100 transition-colors"
-            >
-              <ChevronLeft size={15} /> Back to Inbox
+            <button onClick={() => setMobileView('inbox')} className="lg:hidden flex items-center gap-2 w-full px-4 py-3 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 border-b border-gray-100 transition-colors">
+              <ChevronLeft size={15} /> Back to {tab === 'inbox' ? 'Inbox' : 'Archived'}
             </button>
           )}
           {selectedMessage ? (
             <div className="flex flex-col">
-              {/* Detail header */}
               <div className="px-6 py-5 border-b border-gray-100">
                 <div className="flex items-start gap-4">
                   <AvatarCircle name={selectedMessage.name} />
@@ -400,26 +372,22 @@ export default function MessagesManagement() {
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
                       {selectedMessage.email && (
                         <a href={`mailto:${selectedMessage.email}`} className="flex items-center gap-1.5 text-sm text-teal-700 hover:underline">
-                          <AtSign size={12} />
-                          {selectedMessage.email}
+                          <AtSign size={12} />{selectedMessage.email}
                         </a>
                       )}
                       {selectedMessage.phone && (
                         <a href={`tel:${selectedMessage.phone}`} className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700">
-                          <Phone size={12} />
-                          {selectedMessage.phone}
+                          <Phone size={12} />{selectedMessage.phone}
                         </a>
                       )}
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 text-xs text-gray-400 shrink-0">
-                    <Clock size={11} />
-                    {formatDate(selectedMessage.created_at)}
+                    <Clock size={11} />{formatDate(selectedMessage.created_at)}
                   </div>
                 </div>
               </div>
 
-              {/* Message body */}
               <div className="px-6 py-5">
                 <div className="flex items-center gap-2 mb-3">
                   <MessageSquare size={14} className="text-gray-400" />
@@ -429,27 +397,36 @@ export default function MessagesManagement() {
                   {selectedMessage.message}
                 </div>
                 <p className="text-xs text-gray-400 mt-3 flex items-center gap-1">
-                  <Clock size={11} />
-                  {formatDateFull(selectedMessage.created_at)}
+                  <Clock size={11} />{formatDateFull(selectedMessage.created_at)}
                 </p>
+                {selectedMessage.archived_at && (
+                  <p className="text-xs text-amber-500 mt-1 flex items-center gap-1">
+                    <Archive size={11} /> Archived {formatDate(selectedMessage.archived_at)}
+                  </p>
+                )}
               </div>
 
-              {/* Actions */}
               <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3">
-                <button
-                  onClick={() => deleteMessage(selectedMessage.id)}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors"
-                >
-                  <Trash2 size={14} />
-                  Delete
-                </button>
-                <a
-                  href={`mailto:${selectedMessage.email}?subject=Re: Amna Suraka Museum Contact`}
-                  className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-gradient-to-br from-teal-600 to-teal-800 hover:from-teal-700 hover:to-teal-900 text-white rounded-xl shadow-md shadow-teal-950/30 transition-all"
-                >
-                  <Reply size={14} />
-                  Reply via Email
-                </a>
+                {tab === 'inbox' ? (
+                  <>
+                    <button onClick={() => archiveMessage(selectedMessage.id)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors">
+                      <Archive size={14} /> Archive
+                    </button>
+                    <a href={`mailto:${selectedMessage.email}?subject=Re: Amna Suraka Museum Contact`}
+                      className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-gradient-to-br from-teal-600 to-teal-800 hover:from-teal-700 hover:to-teal-900 text-white rounded-xl shadow-md shadow-teal-950/30 transition-all">
+                      <Reply size={14} /> Reply via Email
+                    </a>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => deleteMessage(selectedMessage.id)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-xl transition-colors">
+                      <Trash2 size={14} /> Delete Forever
+                    </button>
+                    <button onClick={() => restoreMessage(selectedMessage.id)} className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-gradient-to-br from-teal-600 to-teal-800 hover:from-teal-700 hover:to-teal-900 text-white rounded-xl shadow-md shadow-teal-950/30 transition-all">
+                      <RotateCcw size={14} /> Restore to Inbox
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           ) : (
@@ -458,7 +435,7 @@ export default function MessagesManagement() {
                 <Mail size={24} strokeWidth={1.6} className="text-white" />
               </span>
               <p className="text-sm font-medium text-gray-500">Select a message to read</p>
-              <p className="text-xs text-gray-400 mt-1">Click any message from the inbox</p>
+              <p className="text-xs text-gray-400 mt-1">Click any message from the {tab === 'inbox' ? 'inbox' : 'archive'}</p>
             </div>
           )}
         </div>

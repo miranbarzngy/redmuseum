@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { getSupabaseClient } from '../../lib/supabase-client'
+import { logAudit } from '../../lib/auditLog'
 import { QRCodeSVG } from 'qrcode.react'
 import QRCode from 'qrcode'
 import {
-  Users, CalendarDays, Clock, Search, X, QrCode, Printer,
+  Users, CalendarDays, Clock, Search, X, QrCode, Printer, Download,
   CheckCircle2, Trash2, Filter, SlidersHorizontal, UserCheck,
   Users2, Hourglass, Check, RefreshCw, Palette, Loader2, ChevronDown,
 } from 'lucide-react'
@@ -204,7 +205,9 @@ export default function VisitorsPage() {
   const updateStatus = async (id, status) => {
     const supabase = getSupabaseClient()
     if (!supabase) return
+    const prev = reservations.find(r => r.id === id)
     await supabase.from('reservations').update({ status }).eq('id', id)
+    logAudit('status_change', 'reservations', id, { from: prev?.status, to: status, name: prev?.name })
     fetchReservations()
   }
 
@@ -212,7 +215,9 @@ export default function VisitorsPage() {
     if (!confirm('Delete this reservation?')) return
     const supabase = getSupabaseClient()
     if (!supabase) return
+    const prev = reservations.find(r => r.id === id)
     await supabase.from('reservations').delete().eq('id', id)
+    logAudit('delete', 'reservations', id, { name: prev?.name, date: prev?.date })
     fetchReservations()
   }
 
@@ -608,6 +613,26 @@ export default function VisitorsPage() {
     win.document.close()
   }
 
+  const downloadCSV = () => {
+    const headers = ['Name', 'Guests', 'Phone', 'Date', 'Time', 'Status', 'Note', 'Created']
+    const rows = filtered.map(r => [
+      r.name, r.guest_count, r.phone || '', r.date,
+      r.time?.slice(0, 5) || '', r.status, r.note || '',
+      new Date(r.created_at).toLocaleDateString('en-GB'),
+    ])
+    const escape = v => `"${String(v ?? '').replace(/"/g, '""')}"`
+    const csv = [headers, ...rows].map(row => row.map(escape).join(',')).join('\r\n')
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `reservations-${new Date().toISOString().slice(0, 10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const counts = {
     total: reservations.length,
     guests: reservations.filter(r => r.status === 'visited').reduce((s, r) => s + (Number(r.guest_count) || 0), 0),
@@ -643,13 +668,22 @@ export default function VisitorsPage() {
           </div>
         </div>
         {filtered.length > 0 && (
-          <button
-            onClick={printGuests}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-gradient-to-br from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white rounded-xl shadow-md shadow-slate-950/30 transition-all"
-          >
-            <Printer size={14} />
-            Print All
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={downloadCSV}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-gradient-to-br from-emerald-600 to-emerald-800 hover:from-emerald-700 hover:to-emerald-900 text-white rounded-xl shadow-md shadow-emerald-950/30 transition-all"
+            >
+              <Download size={14} />
+              <span className="hidden sm:inline">Export CSV</span>
+            </button>
+            <button
+              onClick={printGuests}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-gradient-to-br from-slate-700 to-slate-900 hover:from-slate-800 hover:to-slate-950 text-white rounded-xl shadow-md shadow-slate-950/30 transition-all"
+            >
+              <Printer size={14} />
+              <span className="hidden sm:inline">Print All</span>
+            </button>
+          </div>
         )}
       </div>
 
