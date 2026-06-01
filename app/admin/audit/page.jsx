@@ -307,7 +307,7 @@ export default function AuditLogPage() {
   const loadLogs = useCallback(async () => {
     setLoading(true)
     try {
-      const res  = await fetch('/api/admin/audit?limit=200')
+      const res  = await fetch('/api/admin/audit?limit=1000')
       const json = await res.json()
       setLogs(json.logs || [])
     } catch {
@@ -348,7 +348,7 @@ export default function AuditLogPage() {
           </span>
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Audit Log</h1>
-            <p className="text-sm text-gray-400 mt-0.5">Admin action history — last 200 events</p>
+            <p className="text-sm text-gray-400 mt-0.5">Admin action history — last 1,000 events</p>
           </div>
         </div>
         <button
