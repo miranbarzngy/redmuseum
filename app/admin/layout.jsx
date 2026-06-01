@@ -254,15 +254,20 @@ export default function AdminLayout({ children }) {
 
         {/* ── Sidebar ── */}
         <aside className={`
-          fixed left-0 top-0 h-full w-64 bg-gray-900 text-white z-40
+          fixed left-0 top-0 h-full w-64 bg-gray-900 text-white z-40 flex flex-col
           transition-transform duration-300 ease-in-out
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
           lg:translate-x-0
         `}>
-          <div className="p-6 hidden lg:block">
+
+          {/* Header — desktop */}
+          <div className="shrink-0 p-6 hidden lg:block">
             <h1 className="text-xl font-bold">Admin Panel</h1>
             <p className="text-sm text-gray-400">{museumName.en || 'Museum'}</p>
           </div>
+
+          {/* Header spacer — mobile (leaves room for close button) */}
+          <div className="shrink-0 h-14 lg:hidden" />
 
           {/* Close button — mobile only */}
           <button
@@ -272,7 +277,8 @@ export default function AdminLayout({ children }) {
             ✕
           </button>
 
-          <nav className="mt-6 lg:mt-6 pt-16 lg:pt-0 overflow-y-auto h-[calc(100%-160px)]">
+          {/* Nav — scrollable, fills all space between header and footer */}
+          <nav className="flex-1 overflow-y-auto min-h-0 py-2">
             {!userPerms && (
               <div className="px-6 py-4 flex items-center gap-2 text-gray-500 text-sm">
                 <div className="w-4 h-4 border-2 border-gray-500 border-t-transparent rounded-full animate-spin" />
@@ -290,9 +296,6 @@ export default function AdminLayout({ children }) {
                 className="group/drag relative mx-3 mb-0.5"
                 style={{ cursor: 'grab' }}
               >
-                {/* Drop indicator */}
-                <div className="absolute -top-0.5 left-0 right-0 h-0.5 rounded-full bg-blue-400 opacity-0 group-hover/drag:opacity-0 transition-opacity pointer-events-none" />
-
                 <Link
                   href={link.href}
                   onClick={() => setSidebarOpen(false)}
@@ -316,7 +319,8 @@ export default function AdminLayout({ children }) {
             ))}
           </nav>
 
-          <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2.5">
+          {/* Footer — always visible, never overlaps nav */}
+          <div className="shrink-0 p-4 space-y-2.5 border-t border-white/5">
             {/* User info card */}
             {user && (
               <div className="bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 flex items-center gap-3">
@@ -344,6 +348,7 @@ export default function AdminLayout({ children }) {
               Logout
             </button>
           </div>
+
         </aside>
 
         {/* ── Main content ── */}
