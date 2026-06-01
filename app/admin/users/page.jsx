@@ -4,10 +4,30 @@ import { useState, useEffect } from 'react'
 import {
   ShieldCheck, Users, Key, UserPlus, Pencil, Trash2,
   ChevronRight, CheckCircle2, Loader2, X, Plus,
-  AtSign, UserRound,
+  AtSign, UserRound, ShieldAlert,
 } from 'lucide-react'
 
-const SECTIONS = ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','section_order','users']
+const SECTIONS = [
+  'dashboard','slides','messages','about','gallery','archive',
+  'exclusive','visitors','section_order','showcase_cards',
+  'languages','users','settings','audit',
+]
+const SECTION_LABELS = {
+  dashboard:     'Dashboard',
+  slides:        'Slides',
+  messages:      'Messages',
+  about:         'About',
+  gallery:       'Gallery',
+  archive:       'Archive',
+  exclusive:     'Museum Activities',
+  visitors:      'Visitors',
+  section_order: 'Section Order',
+  showcase_cards:'Social Media Post',
+  languages:     'Languages',
+  users:         'Users & Roles',
+  settings:      'Museum Settings',
+  audit:         'Audit Log',
+}
 const ACTIONS = ['view','edit','delete']
 
 const EMPTY_PERMS = () =>
@@ -40,18 +60,29 @@ function PermMatrix({ perms, onChange, disabled }) {
         <tbody className="divide-y divide-gray-50">
           {SECTIONS.map((s, i) => (
             <tr key={s} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}>
-              <td className="px-3 py-2 font-medium text-gray-600 capitalize">{s.replace('_', ' ')}</td>
+              <td className="px-3 py-2 font-medium text-gray-600">{SECTION_LABELS[s] || s}</td>
               {ACTIONS.map(a => (
                 <td key={a} className="px-3 py-2 text-center">
-                  <input
-                    type="checkbox"
-                    checked={!!p[s]?.[a]}
-                    disabled={disabled}
-                    onChange={e => set(s, a, e.target.checked)}
-                    className={`w-4 h-4 cursor-pointer disabled:opacity-40 rounded ${
-                      a === 'view' ? 'accent-emerald-600' : a === 'edit' ? 'accent-indigo-600' : 'accent-red-500'
-                    }`}
-                  />
+                  {disabled ? (
+                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded ${
+                      !!p[s]?.[a]
+                        ? 'bg-[#7a0000] shadow shadow-red-900/30'
+                        : 'bg-gray-100 border border-gray-200'
+                    }`}>
+                      {!!p[s]?.[a] && (
+                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                          <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </span>
+                  ) : (
+                    <input
+                      type="checkbox"
+                      checked={!!p[s]?.[a]}
+                      onChange={e => set(s, a, e.target.checked)}
+                      className="w-4 h-4 cursor-pointer rounded accent-[#7a0000]"
+                    />
+                  )}
                 </td>
               ))}
             </tr>
@@ -298,6 +329,7 @@ export default function UsersPage() {
   const [roles, setRoles] = useState([])
   const [loadingUsers, setLoadingUsers] = useState(true)
   const [loadingRoles, setLoadingRoles] = useState(true)
+  const [forbidden, setForbidden] = useState(false)
 
   const [userForm, setUserForm] = useState({ email: '', full_name: '', password: '', role: '' })
   const [userMsg, setUserMsg] = useState({ text: '', ok: true })
@@ -319,7 +351,9 @@ export default function UsersPage() {
 
   const fetchUsers = async () => {
     setLoadingUsers(true)
-    const json = await fetch('/api/admin/users').then(r => r.json())
+    const res = await fetch('/api/admin/users')
+    if (res.status === 403) { setForbidden(true); setLoadingUsers(false); return }
+    const json = await res.json()
     setUsers(json.users || [])
     setLoadingUsers(false)
   }
@@ -439,7 +473,15 @@ export default function UsersPage() {
       </div>
 
       {/* ── USERS TAB ──────────────────────────────────────── */}
-      {tab === 'users' && (
+      {tab === 'users' && forbidden && (
+        <div className="bg-red-50 border border-red-200 rounded-2xl p-8 flex flex-col items-center text-center gap-3">
+          <ShieldAlert size={32} className="text-red-400" />
+          <p className="text-red-700 font-semibold">Admin access required</p>
+          <p className="text-sm text-red-500">Only users with the <strong>admin</strong> role can manage users and roles.</p>
+        </div>
+      )}
+
+      {tab === 'users' && !forbidden && (
         <div className="space-y-5">
 
           {/* Create User */}

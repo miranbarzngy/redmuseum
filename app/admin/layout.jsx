@@ -135,18 +135,18 @@ export default function AdminLayout({ children }) {
         }
       })
       const pollId = setInterval(async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) { router.push('/login'); return }
-        const res = await fetch(`/api/admin/users`)
-        const json = await res.json()
-        const me = (json.users || []).find(u => u.id === session.user.id)
-        if (me && !me.is_active) {
-          await supabase.auth.signOut()
-          router.push('/login')
-        }
-      } catch {}
-    }, 30000)
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session) { router.push('/login'); return }
+          const res = await fetch('/api/admin/me')
+          if (!res.ok) return
+          const me = await res.json()
+          if (me && me.is_active === false) {
+            await supabase.auth.signOut()
+            router.push('/login')
+          }
+        } catch {}
+      }, 30000)
 
       return () => { subscription.unsubscribe(); clearInterval(pollId) }
     } catch (error) {
