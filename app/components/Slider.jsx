@@ -276,7 +276,7 @@ export default function Slider({ currentLang = 'en' }) {
       </button>
 
       {/* Prev + Next grouped — mobile/tablet only */}
-      <div className="absolute hidden max-[990px]:flex gap-[2px] z-[888] bottom-[18px] right-4">
+      <div dir="ltr" className="absolute hidden max-[990px]:flex gap-[2px] z-[888] bottom-[18px] left-1/2 -translate-x-1/2">
         <button
           onClick={prevSlide}
           aria-label={isKurdish ? 'سلایپەکەوە' : isArabic ? 'الشريحة السابقة' : 'Previous slide'}
