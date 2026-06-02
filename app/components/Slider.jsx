@@ -249,6 +249,7 @@ export default function Slider({ currentLang = 'en' }) {
       {/* Prev button
           Desktop (≥990px): bottom-right area, small
           Mobile/Tablet (<990px): left edge, vertically centered, larger */}
+      {/* Prev — desktop only */}
       <button
         onClick={prevSlide}
         aria-label={isKurdish ? 'سلایپەکەوە' : isArabic ? 'الشريحة السابقة' : 'Previous slide'}
@@ -256,13 +257,12 @@ export default function Slider({ currentLang = 'en' }) {
           transition-all duration-300 text-white/75 hover:text-white
           bg-black/25 hover:bg-black/60 backdrop-blur-sm
           bottom-[30px] right-[170px] w-10 h-10
-          max-[990px]:top-auto max-[990px]:translate-y-0
-          max-[990px]:bottom-[18px] max-[990px]:left-4 max-[990px]:right-auto max-[990px]:w-14 max-[990px]:h-14"
+          max-[990px]:hidden"
       >
-        <i className="ri-arrow-left-s-line text-2xl max-[990px]:text-4xl" />
+        <i className="ri-arrow-left-s-line text-2xl" />
       </button>
 
-      {/* Next button */}
+      {/* Next — desktop only */}
       <button
         onClick={nextSlide}
         aria-label={isKurdish ? 'سلایپێکەوە' : isArabic ? 'الشريحة التالية' : 'Next slide'}
@@ -270,11 +270,32 @@ export default function Slider({ currentLang = 'en' }) {
           transition-all duration-300 text-white/75 hover:text-white
           bg-black/25 hover:bg-black/60 backdrop-blur-sm
           bottom-[30px] right-[100px] w-10 h-10
-          max-[990px]:top-auto max-[990px]:translate-y-0
-          max-[990px]:bottom-[18px] max-[990px]:right-4 max-[990px]:w-14 max-[990px]:h-14"
+          max-[990px]:hidden"
       >
-        <i className="ri-arrow-right-s-line text-2xl max-[990px]:text-4xl" />
+        <i className="ri-arrow-right-s-line text-2xl" />
       </button>
+
+      {/* Prev + Next grouped — mobile/tablet only */}
+      <div className="absolute hidden max-[990px]:flex gap-[2px] z-[888] bottom-[18px] right-4">
+        <button
+          onClick={prevSlide}
+          aria-label={isKurdish ? 'سلایپەکەوە' : isArabic ? 'الشريحة السابقة' : 'Previous slide'}
+          className="flex items-center justify-center rounded-xl select-none
+            transition-all duration-300 text-white/75 hover:text-white
+            bg-black/25 hover:bg-black/60 backdrop-blur-sm w-9 h-9"
+        >
+          <i className="ri-arrow-left-s-line text-xl" />
+        </button>
+        <button
+          onClick={nextSlide}
+          aria-label={isKurdish ? 'سلایپێکەوە' : isArabic ? 'الشريحة التالية' : 'Next slide'}
+          className="flex items-center justify-center rounded-xl select-none
+            transition-all duration-300 text-white/75 hover:text-white
+            bg-black/25 hover:bg-black/60 backdrop-blur-sm w-9 h-9"
+        >
+          <i className="ri-arrow-right-s-line text-xl" />
+        </button>
+      </div>
 
       {/* Pagination Bars - Slide Orders - styled according to original CSS (vertical on right) */}
       <div className="absolute right-[40px] top-1/2 -translate-y-1/2 flex flex-col gap-[6px] z-[888] max-[580px]:bottom-[280px] max-[580px]:right-[16px] max-[580px]:top-auto max-[580px]:translate-y-0">
