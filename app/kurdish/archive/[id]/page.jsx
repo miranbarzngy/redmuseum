@@ -134,9 +134,9 @@ export default function KurdishArchiveDetail() {
       <div className="sticky top-0 z-30 px-4 md:px-8 lg:px-16 py-4 flex items-center justify-between"
         style={{ background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(200,169,110,0.1)' }}>
         <Link href="/kurdish/archive"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', color: '#fff', ...KU }}>
-          <i className="ri-arrow-right-line text-[#c8a96e]" />
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all text-white bg-red-700 hover:bg-red-800"
+          style={KU}>
+          <i className="ri-arrow-right-line" />
           گەڕانەوە بۆ ئەرشیف
         </Link>
         <div className="flex items-center gap-2 text-white text-xs" style={KU}>
