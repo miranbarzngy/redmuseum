@@ -1,13 +1,19 @@
 /** @type {import('next').NextConfig} */
 const withPWA = require('@ducanh2912/next-pwa').default({
   dest: 'public',
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
+  cacheOnFrontEndNav: false,
+  aggressiveFrontEndNavCaching: false,
   reloadOnOnline: true,
   disable: process.env.NODE_ENV === 'development',
   workboxOptions: {
     disableDevLogs: true,
     runtimeCaching: [
+      // Never cache HTML page navigations — Next.js App Router uses streaming
+      // responses which iOS Safari cannot clone/cache via ReadableStream.tee()
+      {
+        urlPattern: ({ request }) => request.mode === 'navigate',
+        handler: 'NetworkOnly',
+      },
       // Never cache admin or API routes
       {
         urlPattern: /^\/api\/.*/i,
@@ -42,16 +48,6 @@ const withPWA = require('@ducanh2912/next-pwa').default({
         options: {
           cacheName: 'static-images',
           expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 },
-        },
-      },
-      // Network-first for all public pages (fresh content, falls back to cache offline)
-      {
-        urlPattern: /^\/(kurdish|arabic|reservation)\/.*/i,
-        handler: 'NetworkFirst',
-        options: {
-          cacheName: 'public-pages',
-          expiration: { maxEntries: 30, maxAgeSeconds: 24 * 60 * 60 },
-          networkTimeoutSeconds: 8,
         },
       },
     ],
