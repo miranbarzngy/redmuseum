@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
-import { getSessionUser } from '../../../lib/api-auth'
+import { getSessionUser, requireAdmin } from '../../../lib/api-auth'
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -11,7 +11,7 @@ function getSupabase() {
 
 // GET — list recent audit log entries (any authenticated admin)
 export async function GET(request) {
-  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await requireAdmin(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getSupabase()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 

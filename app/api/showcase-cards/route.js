@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { getSessionUser } from '../../lib/api-auth'
+import { requireAdmin } from '../../lib/api-auth'
 
 function getSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -26,7 +26,7 @@ export async function GET() {
 
 // POST — create a new card (admin only)
 export async function POST(request) {
-  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await requireAdmin(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getSupabase()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
@@ -52,7 +52,7 @@ export async function POST(request) {
 
 // PATCH — update a card (admin only)
 export async function PATCH(request) {
-  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await requireAdmin(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getSupabase()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
@@ -82,7 +82,7 @@ export async function PATCH(request) {
 
 // DELETE — delete a card (admin only)
 export async function DELETE(request) {
-  if (!await getSessionUser(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!await requireAdmin(request)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   const supabase = getSupabase()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
