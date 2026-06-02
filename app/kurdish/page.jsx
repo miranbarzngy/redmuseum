@@ -204,7 +204,7 @@ export function KurdishPageContent({ initialSection = null }) {
         onLangChange={handleLangChange}
       />
       {sectionOrder.map(id => sectionComponents[id] ?? null)}
-      <footer className="py-6 text-white text-center" style={{ background: '#000000' }}>
+      <footer className="pt-6 text-white text-center" style={{ background: '#000000', paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
         <p>{currentLang === 'ku' ? ` ${museumName.kr} - هەموو مافەکان پارێزراوە © ٢٠٢٦` : `© 2026 ${museumName.en}. All rights reserved.`}</p>
       </footer>
     </main>

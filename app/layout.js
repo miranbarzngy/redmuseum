@@ -1,6 +1,12 @@
 import './globals.css'
 import { getMuseumName } from './lib/getMuseumName'
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+}
+
 export async function generateMetadata() {
   const name = await getMuseumName()
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://amna-suraka.com'
@@ -38,7 +44,7 @@ export default function RootLayout({ children }) {
           href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.css" 
         />
       </head>
-      <body className="antialiased">
+      <body className="antialiased" style={{ background: '#000' }}>
         {children}
       </body>
     </html>
