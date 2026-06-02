@@ -281,8 +281,8 @@ export default function Slider({ currentLang = 'en' }) {
           onClick={prevSlide}
           aria-label={isKurdish ? 'سلایپەکەوە' : isArabic ? 'الشريحة السابقة' : 'Previous slide'}
           className="flex items-center justify-center rounded-xl select-none
-            transition-all duration-300 text-white/75 hover:text-white
-            bg-black/25 hover:bg-black/60 backdrop-blur-sm w-9 h-9"
+            transition-all duration-300 text-white hover:text-white
+            bg-red-700 hover:bg-red-800 w-9 h-9"
         >
           <i className="ri-arrow-left-s-line text-xl" />
         </button>
@@ -290,8 +290,8 @@ export default function Slider({ currentLang = 'en' }) {
           onClick={nextSlide}
           aria-label={isKurdish ? 'سلایپێکەوە' : isArabic ? 'الشريحة التالية' : 'Next slide'}
           className="flex items-center justify-center rounded-xl select-none
-            transition-all duration-300 text-white/75 hover:text-white
-            bg-black/25 hover:bg-black/60 backdrop-blur-sm w-9 h-9"
+            transition-all duration-300 text-white hover:text-white
+            bg-red-700 hover:bg-red-800 w-9 h-9"
         >
           <i className="ri-arrow-right-s-line text-xl" />
         </button>
