@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { KurdishPageContent } from '../page'
+import KurdishPageContent from '../page'
 
 // Maps URL slug → HTML element ID used in the page
 const SLUG_TO_ID = {

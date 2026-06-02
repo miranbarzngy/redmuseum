@@ -63,7 +63,7 @@ async function fetchVisibilityAndOrder() {
   }
 }
 
-export function ArabicPageContent({ initialSection = null }) {
+export default function ArabicPageContent({ initialSection = null }) {
   const [activeSection, setActiveSection] = useState(initialSection || 'home')
   const [currentLang, setCurrentLang] = useState('ar')
   const [vis, setVis] = useState(Object.fromEntries(SECTION_KEYS.map(k => [k, true])))
@@ -206,6 +206,3 @@ export function ArabicPageContent({ initialSection = null }) {
   )
 }
 
-export default function ArabicPage() {
-  return <ArabicPageContent />
-}

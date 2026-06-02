@@ -64,7 +64,7 @@ async function fetchVisibilityAndOrder() {
 }
 
 // Named export so the catch-all can render this directly with an initialSection
-export function KurdishPageContent({ initialSection = null }) {
+export default function KurdishPageContent({ initialSection = null }) {
   const [activeSection, setActiveSection] = useState(initialSection || 'home')
   const [currentLang, setCurrentLang] = useState('ku')
   const [vis, setVis] = useState(Object.fromEntries(SECTION_KEYS.map(k => [k, true])))
@@ -205,12 +205,9 @@ export function KurdishPageContent({ initialSection = null }) {
       />
       {sectionOrder.map(id => sectionComponents[id] ?? null)}
       <footer className="pt-6 text-white text-center" style={{ background: '#000000', paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
-        <p>{currentLang === 'ku' ? ` ${museumName.kr} - هەموو مافەکان پارێزراوە © ٢٠٢٦` : `© 2026 ${museumName.en}. All rights reserved.`}</p>
+        <p>{currentLang === 'ku' ? ` ${museumName.kr} -    © ٢٠٢٦` : `© 2026 ${museumName.en}. All rights reserved.`}</p>
       </footer>
     </main>
   )
 }
 
-export default function KurdishPage() {
-  return <KurdishPageContent />
-}

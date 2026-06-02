@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { ArabicPageContent } from '../page'
+import ArabicPageContent from '../page'
 
 const SLUG_TO_ID = {
   slides:         'home',
