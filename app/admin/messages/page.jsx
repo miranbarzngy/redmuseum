@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import {
   Mail,
+  MailOpen,
   Inbox,
   Archive,
   Trash2,
@@ -409,8 +410,8 @@ export default function MessagesManagement() {
               <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3">
                 {tab === 'inbox' ? (
                   <>
-                    <button onClick={() => archiveMessage(selectedMessage.id)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors">
-                      <Archive size={14} /> Archive
+                    <button onClick={() => archiveMessage(selectedMessage.id)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-xl transition-colors">
+                      <MailOpen size={14} /> Readed
                     </button>
                     <a href={`mailto:${selectedMessage.email}?subject=Re: Amna Suraka Museum Contact`}
                       className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-gradient-to-br from-teal-600 to-teal-800 hover:from-teal-700 hover:to-teal-900 text-white rounded-xl shadow-md shadow-teal-950/30 transition-all">
