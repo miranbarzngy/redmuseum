@@ -246,29 +246,37 @@ export default function Slider({ currentLang = 'en' }) {
         ))}
       </div>
 
-      {/* Navigation Arrows - styled according to original CSS - always LTR for arrow icons */}
-      <div dir="ltr" className="absolute bottom-[30px] right-[100px] flex gap-[70px] z-[888] max-[990px]:bottom-[30px] max-[990px]:right-auto max-[990px]:left-0 max-[990px]:w-full max-[990px]:justify-center max-[990px]:gap-[60px] max-[580px]:bottom-[35px] max-[580px]:right-0 max-[580px]:left-auto max-[580px]:w-1/2 max-[580px]:gap-[40px] max-[400px]:gap-[10px] max-[400px]:bottom-[30px]">
-        <button
-          onClick={prevSlide}
-          className="text-[#bfbfbf] text-[0.8em] font-semibold flex items-center justify-center cursor-pointer select-none transition-colors duration-300 hover:text-[#ff0000]"
-          aria-label={isKurdish ? 'سلایپەکەوە' : isArabic ? 'الشريحة السابقة' : 'Previous slide'}
-        >
-          {/* RemixIcon arrow */}
-          <i className="ri-arrow-left-s-line text-2xl"></i>
-          {/* Fallback text for when icon doesn't load */}
-          <span className="ml-1 text-sm hidden">←</span>
-        </button>
-        <button
-          onClick={nextSlide}
-          className="text-[#bfbfbf] text-[0.8em] font-semibold flex items-center justify-center cursor-pointer select-none transition-colors duration-300 hover:text-[#ff0000]"
-          aria-label={isKurdish ? 'سلایپێکەوە' : isArabic ? 'الشريحة التالية' : 'Next slide'}
-        >
-          {/* RemixIcon arrow */}
-          <i className="ri-arrow-right-s-line text-2xl"></i>
-          {/* Fallback text for when icon doesn't load */}
-          <span className="mr-1 text-sm hidden">→</span>
-        </button>
-      </div>
+      {/* Prev button
+          Desktop (≥990px): bottom-right area, small
+          Mobile/Tablet (<990px): left edge, vertically centered, larger */}
+      <button
+        onClick={prevSlide}
+        aria-label={isKurdish ? 'سلایپەکەوە' : isArabic ? 'الشريحة السابقة' : 'Previous slide'}
+        className="absolute z-[888] flex items-center justify-center rounded-full select-none
+          transition-all duration-300 text-white/75 hover:text-white
+          bg-black/25 hover:bg-black/60 backdrop-blur-sm
+          bottom-[30px] right-[170px] w-10 h-10
+          max-[990px]:bottom-auto max-[990px]:top-1/2 max-[990px]:-translate-y-1/2
+          max-[990px]:left-3 max-[990px]:right-auto max-[990px]:w-16 max-[990px]:h-16"
+      >
+        <i className="ri-arrow-left-s-line text-2xl max-[990px]:text-4xl" />
+      </button>
+
+      {/* Next button
+          Desktop (≥990px): bottom-right area, small
+          Mobile/Tablet (<990px): right edge, vertically centered, larger */}
+      <button
+        onClick={nextSlide}
+        aria-label={isKurdish ? 'سلایپێکەوە' : isArabic ? 'الشريحة التالية' : 'Next slide'}
+        className="absolute z-[888] flex items-center justify-center rounded-full select-none
+          transition-all duration-300 text-white/75 hover:text-white
+          bg-black/25 hover:bg-black/60 backdrop-blur-sm
+          bottom-[30px] right-[100px] w-10 h-10
+          max-[990px]:bottom-auto max-[990px]:top-1/2 max-[990px]:-translate-y-1/2
+          max-[990px]:right-3 max-[990px]:w-16 max-[990px]:h-16"
+      >
+        <i className="ri-arrow-right-s-line text-2xl max-[990px]:text-4xl" />
+      </button>
 
       {/* Pagination Bars - Slide Orders - styled according to original CSS (vertical on right) */}
       <div className="absolute right-[40px] top-1/2 -translate-y-1/2 flex flex-col gap-[6px] z-[888] max-[580px]:bottom-[280px] max-[580px]:right-[16px] max-[580px]:top-auto max-[580px]:translate-y-0">
