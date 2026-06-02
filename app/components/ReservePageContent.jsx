@@ -56,11 +56,14 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     if (!phone) return
     setTrackLoading(true); setTrackError(''); setTrackResults(null)
     try {
-      const supabase = getSupabaseClient()
-      if (!supabase) throw new Error('Not configured')
-      const { data, error } = await supabase.from('reservations').select('*').eq('phone', phone).order('date', { ascending: false })
-      if (error) throw error
-      setTrackResults(data || [])
+      const res = await fetch('/api/reservation/track', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      })
+      const json = await res.json()
+      if (!res.ok) throw new Error(json.error || 'Unknown error')
+      setTrackResults(json.reservations)
     } catch {
       setTrackError(t('کێشەیەک ڕوویدا، دووبارە هەوڵبدەوە', 'حدث خطأ، حاول مرة أخرى', 'An error occurred, please try again', lang))
     } finally { setTrackLoading(false) }
