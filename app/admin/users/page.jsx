@@ -29,63 +29,50 @@ const SECTION_LABELS = {
   settings:      'Museum Settings',
   audit:         'Audit Log',
 }
-const ACTIONS = ['view','edit','delete']
-
 const EMPTY_PERMS = () =>
-  Object.fromEntries(SECTIONS.map(s => [s, { view: false, edit: false, delete: false }]))
+  Object.fromEntries(SECTIONS.map(s => [s, { view: false }]))
 
 const inputCls = 'w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-400 text-gray-800 placeholder-gray-400'
 
 // ── Permission Matrix ─────────────────────────────────────
 function PermMatrix({ perms, onChange, disabled }) {
   const p = { ...EMPTY_PERMS(), ...perms }
-  const set = (section, action, val) => {
-    const next = { ...p, [section]: { ...p[section], [action]: val } }
-    if ((action === 'edit' || action === 'delete') && val) next[section].view = true
-    if (action === 'view' && !val) { next[section].edit = false; next[section].delete = false }
-    onChange(next)
-  }
+  const toggle = (section, val) => onChange({ ...p, [section]: { view: val } })
   return (
     <div className="overflow-x-auto rounded-xl border border-gray-100">
       <table className="w-full text-xs">
         <thead className="bg-gray-50 border-b border-gray-100">
           <tr>
-            <th className="px-3 py-2.5 text-left font-semibold text-gray-400 uppercase tracking-wider w-32">Section</th>
-            {ACTIONS.map(a => (
-              <th key={a} className={`px-3 py-2.5 text-center font-semibold uppercase tracking-wider ${
-                a === 'view' ? 'text-emerald-600' : a === 'edit' ? 'text-indigo-600' : 'text-red-500'
-              }`}>{a}</th>
-            ))}
+            <th className="px-3 py-2.5 text-left font-semibold text-gray-400 uppercase tracking-wider">Section</th>
+            <th className="px-3 py-2.5 text-center font-semibold uppercase tracking-wider text-emerald-600 w-24">Access</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
           {SECTIONS.map((s, i) => (
             <tr key={s} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}>
-              <td className="px-3 py-2 font-medium text-gray-600">{SECTION_LABELS[s] || s}</td>
-              {ACTIONS.map(a => (
-                <td key={a} className="px-3 py-2 text-center">
-                  {disabled ? (
-                    <span className={`inline-flex items-center justify-center w-5 h-5 rounded ${
-                      !!p[s]?.[a]
-                        ? 'bg-[#7a0000] shadow shadow-red-900/30'
-                        : 'bg-gray-100 border border-gray-200'
-                    }`}>
-                      {!!p[s]?.[a] && (
-                        <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                          <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      )}
-                    </span>
-                  ) : (
-                    <input
-                      type="checkbox"
-                      checked={!!p[s]?.[a]}
-                      onChange={e => set(s, a, e.target.checked)}
-                      className="w-4 h-4 cursor-pointer rounded accent-[#7a0000]"
-                    />
-                  )}
-                </td>
-              ))}
+              <td className="px-3 py-2.5 font-medium text-gray-600">{SECTION_LABELS[s] || s}</td>
+              <td className="px-3 py-2.5 text-center">
+                {disabled ? (
+                  <span className={`inline-flex items-center justify-center w-5 h-5 rounded ${
+                    !!p[s]?.view
+                      ? 'bg-emerald-500 shadow shadow-emerald-900/30'
+                      : 'bg-gray-100 border border-gray-200'
+                  }`}>
+                    {!!p[s]?.view && (
+                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+                        <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                  </span>
+                ) : (
+                  <input
+                    type="checkbox"
+                    checked={!!p[s]?.view}
+                    onChange={e => toggle(s, e.target.checked)}
+                    className="w-4 h-4 cursor-pointer rounded accent-emerald-600"
+                  />
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -114,23 +101,14 @@ function RolesList({ roles, deletingRole, onEdit, onDelete }) {
               />
               <span className="font-semibold text-gray-800 capitalize">{role.name}</span>
               {role.description && <span className="text-xs text-gray-400 truncate">{role.description}</span>}
-              {!expanded[role.id] && (
-                <div className="flex gap-1 ml-1 flex-wrap">
-                  {['view','edit','delete'].map(action => {
-                    const count = Object.values(role.permissions || {}).filter(p => p[action]).length
-                    if (!count) return null
-                    return (
-                      <span key={action} className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
-                        action === 'view'   ? 'bg-emerald-100 text-emerald-700'
-                        : action === 'edit' ? 'bg-indigo-100 text-indigo-700'
-                        : 'bg-red-100 text-red-600'
-                      }`}>
-                        {action} ×{count}
-                      </span>
-                    )
-                  })}
-                </div>
-              )}
+              {!expanded[role.id] && (() => {
+                const count = Object.values(role.permissions || {}).filter(p => p.view).length
+                return count > 0 ? (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-700 ml-1">
+                    {count} section{count !== 1 ? 's' : ''}
+                  </span>
+                ) : null
+              })()}
             </div>
             <div className="flex items-center gap-2 shrink-0" onClick={e => e.stopPropagation()}>
               <button
