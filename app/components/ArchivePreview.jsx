@@ -235,10 +235,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
           {archive.length > 1 && (
             <button
               onClick={e => { e.preventDefault(); prev() }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full flex items-center justify-center text-white text-xl transition-all duration-200"
-              style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#7a0000'; e.currentTarget.style.borderColor = '#c8a96e' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.6)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-xl flex items-center justify-center text-white text-xl transition-all duration-200 bg-red-700 hover:bg-red-800"
             >
               <i className="ri-arrow-left-s-line" />
             </button>
@@ -248,10 +245,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
           {archive.length > 1 && (
             <button
               onClick={e => { e.preventDefault(); next() }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full flex items-center justify-center text-white text-xl transition-all duration-200"
-              style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#7a0000'; e.currentTarget.style.borderColor = '#c8a96e' }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.6)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)' }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-xl flex items-center justify-center text-white text-xl transition-all duration-200 bg-red-700 hover:bg-red-800"
             >
               <i className="ri-arrow-right-s-line" />
             </button>

@@ -211,13 +211,13 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
         <>
           <button
             onClick={prev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 border border-white/10 hover:bg-[#7a0000] hover:border-[#c8a96e] transition-all flex items-center justify-center text-white backdrop-blur-sm"
+            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-xl bg-red-700 hover:bg-red-800 transition-all flex items-center justify-center text-white"
           >
             <i className="ri-arrow-left-s-line text-xl" />
           </button>
           <button
             onClick={next}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-black/50 border border-white/10 hover:bg-[#7a0000] hover:border-[#c8a96e] transition-all flex items-center justify-center text-white backdrop-blur-sm"
+            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-xl bg-red-700 hover:bg-red-800 transition-all flex items-center justify-center text-white"
           >
             <i className="ri-arrow-right-s-line text-xl" />
           </button>
