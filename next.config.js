@@ -100,7 +100,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
               "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
               "img-src 'self' data: blob: https://bjuxbgoilihbtnifbihv.supabase.co https://flagcdn.com",
-              "connect-src 'self' https://bjuxbgoilihbtnifbihv.supabase.co wss://bjuxbgoilihbtnifbihv.supabase.co",
+              "connect-src 'self' https://bjuxbgoilihbtnifbihv.supabase.co wss://bjuxbgoilihbtnifbihv.supabase.co https://cdnjs.cloudflare.com",
               "frame-ancestors 'self'",
               "worker-src 'self'",
             ].join('; '),
