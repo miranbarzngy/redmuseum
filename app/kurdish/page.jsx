@@ -134,14 +134,14 @@ export default function KurdishPageContent({ initialSection = null }) {
   const handleSectionClick = (sectionId) => setActiveSection(sectionId)
 
   useEffect(() => {
-    // iOS Safari throws SecurityError if replaceState is called >100 times/30s.
-    // Throttle to at most once per 500ms and swallow any error.
-    let lastReplaceState = 0
+    // Debounce replaceState: fire only after user stops scrolling for 800ms.
+    // Eliminates iOS/Chrome WebKit SecurityError (>100 replaceState/30s limit).
+    let replaceTimer = null
     const safeReplaceState = (url) => {
-      const now = Date.now()
-      if (now - lastReplaceState < 500) return
-      lastReplaceState = now
-      try { window.history.replaceState(null, '', url) } catch {}
+      if (replaceTimer) clearTimeout(replaceTimer)
+      replaceTimer = setTimeout(() => {
+        try { window.history.replaceState(null, '', url) } catch {}
+      }, 800)
     }
 
     const handleHashChange = () => {
@@ -154,8 +154,10 @@ export default function KurdishPageContent({ initialSection = null }) {
     const handleScroll = () => {
       if (!urlGateRef.current) return
       if (window.scrollY < 100) {
-        setActiveSection('home')
-        activeSectionRef.current = 'home'
+        if (activeSectionRef.current !== 'home') {
+          setActiveSection('home')
+          activeSectionRef.current = 'home'
+        }
         safeReplaceState('/kurdish/slides')
       }
     }
@@ -173,11 +175,11 @@ export default function KurdishPageContent({ initialSection = null }) {
       observableIds.forEach(id => {
         if (sectionRatios[id] > maxRatio) { maxRatio = sectionRatios[id]; maxSection = id }
       })
-      if (maxRatio > 0.1) {
+      if (maxRatio > 0.1 && maxSection !== activeSectionRef.current) {
         setActiveSection(maxSection)
         activeSectionRef.current = maxSection
         const url = ELEMENT_URL[maxSection]
-        if (url && window.location.pathname !== url) safeReplaceState(url)
+        if (url) safeReplaceState(url)
       }
     }, { root: null, rootMargin: '-20% 0px -20% 0px', threshold: [0, 0.25, 0.5, 0.75, 1.0] })
 
@@ -187,6 +189,7 @@ export default function KurdishPageContent({ initialSection = null }) {
     })
 
     return () => {
+      if (replaceTimer) clearTimeout(replaceTimer)
       window.removeEventListener('hashchange', handleHashChange)
       window.removeEventListener('scroll', handleScroll)
       observer.disconnect()

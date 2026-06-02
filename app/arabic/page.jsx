@@ -129,12 +129,12 @@ export default function ArabicPageContent({ initialSection = null }) {
   const handleSectionClick = (sectionId) => setActiveSection(sectionId)
 
   useEffect(() => {
-    let lastReplaceState = 0
+    let replaceTimer = null
     const safeReplaceState = (url) => {
-      const now = Date.now()
-      if (now - lastReplaceState < 500) return
-      lastReplaceState = now
-      try { window.history.replaceState(null, '', url) } catch {}
+      if (replaceTimer) clearTimeout(replaceTimer)
+      replaceTimer = setTimeout(() => {
+        try { window.history.replaceState(null, '', url) } catch {}
+      }, 800)
     }
 
     const handleHashChange = () => {
@@ -147,8 +147,10 @@ export default function ArabicPageContent({ initialSection = null }) {
     const handleScroll = () => {
       if (!urlGateRef.current) return
       if (window.scrollY < 100) {
-        setActiveSection('home')
-        activeSectionRef.current = 'home'
+        if (activeSectionRef.current !== 'home') {
+          setActiveSection('home')
+          activeSectionRef.current = 'home'
+        }
         safeReplaceState('/arabic/slides')
       }
     }
@@ -166,11 +168,11 @@ export default function ArabicPageContent({ initialSection = null }) {
       observableIds.forEach(id => {
         if (sectionRatios[id] > maxRatio) { maxRatio = sectionRatios[id]; maxSection = id }
       })
-      if (maxRatio > 0.1) {
+      if (maxRatio > 0.1 && maxSection !== activeSectionRef.current) {
         setActiveSection(maxSection)
         activeSectionRef.current = maxSection
         const url = ELEMENT_URL[maxSection]
-        if (url && window.location.pathname !== url) safeReplaceState(url)
+        if (url) safeReplaceState(url)
       }
     }, { root: null, rootMargin: '-20% 0px -20% 0px', threshold: [0, 0.25, 0.5, 0.75, 1.0] })
 
@@ -180,6 +182,7 @@ export default function ArabicPageContent({ initialSection = null }) {
     })
 
     return () => {
+      if (replaceTimer) clearTimeout(replaceTimer)
       window.removeEventListener('hashchange', handleHashChange)
       window.removeEventListener('scroll', handleScroll)
       observer.disconnect()
