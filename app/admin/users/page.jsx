@@ -5,6 +5,8 @@ import {
   ShieldCheck, Users, Key, UserPlus, Pencil, Trash2,
   ChevronRight, CheckCircle2, Loader2, X, Plus,
   AtSign, UserRound, ShieldAlert,
+  LayoutDashboard, Monitor, Mail, Landmark, Frame, ScrollText,
+  Crown, Ticket, Layers, LayoutGrid, Globe, Settings, ClipboardList,
 } from 'lucide-react'
 import { logAudit } from '../../lib/auditLog'
 
@@ -29,54 +31,95 @@ const SECTION_LABELS = {
   settings:      'Museum Settings',
   audit:         'Audit Log',
 }
+const SECTION_META = {
+  dashboard:     { Icon: LayoutDashboard, grad: 'from-slate-500 to-slate-700'    },
+  slides:        { Icon: Monitor,         grad: 'from-blue-600 to-blue-800'       },
+  messages:      { Icon: Mail,            grad: 'from-teal-500 to-teal-800'       },
+  about:         { Icon: Landmark,        grad: 'from-amber-500 to-amber-700'     },
+  gallery:       { Icon: Frame,           grad: 'from-rose-600 to-rose-800'       },
+  archive:       { Icon: ScrollText,      grad: 'from-stone-500 to-stone-700'     },
+  exclusive:     { Icon: Crown,           grad: 'from-yellow-500 to-amber-600'    },
+  visitors:      { Icon: Ticket,          grad: 'from-indigo-500 to-indigo-800'   },
+  section_order: { Icon: Layers,          grad: 'from-emerald-600 to-emerald-800' },
+  showcase_cards:{ Icon: LayoutGrid,      grad: 'from-fuchsia-500 to-fuchsia-800' },
+  languages:     { Icon: Globe,           grad: 'from-sky-500 to-sky-800'         },
+  users:         { Icon: ShieldCheck,     grad: 'from-violet-600 to-violet-800'   },
+  settings:      { Icon: Settings,        grad: 'from-indigo-500 to-indigo-800'   },
+  audit:         { Icon: ClipboardList,   grad: 'from-slate-500 to-slate-700'     },
+}
+
 const EMPTY_PERMS = () =>
   Object.fromEntries(SECTIONS.map(s => [s, { view: false }]))
 
 const inputCls = 'w-full px-3 py-2 border border-gray-200 rounded-xl text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-400 text-gray-800 placeholder-gray-400'
 
+// ── Toggle switch ─────────────────────────────────────────
+function Toggle({ on }) {
+  return (
+    <span className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ${on ? 'bg-emerald-500' : 'bg-gray-200'}`}>
+      <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${on ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+    </span>
+  )
+}
+
 // ── Permission Matrix ─────────────────────────────────────
 function PermMatrix({ perms, onChange, disabled }) {
   const p = { ...EMPTY_PERMS(), ...perms }
-  const toggle = (section, val) => onChange({ ...p, [section]: { view: val } })
+  const enabledCount = SECTIONS.filter(s => !!p[s]?.view).length
+  const toggle = (section, val) => !disabled && onChange({ ...p, [section]: { view: val } })
+
   return (
-    <div className="overflow-x-auto rounded-xl border border-gray-100">
-      <table className="w-full text-xs">
-        <thead className="bg-gray-50 border-b border-gray-100">
-          <tr>
-            <th className="px-3 py-2.5 text-left font-semibold text-gray-400 uppercase tracking-wider">Section</th>
-            <th className="px-3 py-2.5 text-center font-semibold uppercase tracking-wider text-emerald-600 w-24">Access</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-50">
-          {SECTIONS.map((s, i) => (
-            <tr key={s} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}>
-              <td className="px-3 py-2.5 font-medium text-gray-600">{SECTION_LABELS[s] || s}</td>
-              <td className="px-3 py-2.5 text-center">
-                {disabled ? (
-                  <span className={`inline-flex items-center justify-center w-5 h-5 rounded ${
-                    !!p[s]?.view
-                      ? 'bg-emerald-500 shadow shadow-emerald-900/30'
-                      : 'bg-gray-100 border border-gray-200'
-                  }`}>
-                    {!!p[s]?.view && (
-                      <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
-                        <path d="M1 4L3.5 6.5L9 1" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    )}
-                  </span>
-                ) : (
-                  <input
-                    type="checkbox"
-                    checked={!!p[s]?.view}
-                    onChange={e => toggle(s, e.target.checked)}
-                    className="w-4 h-4 cursor-pointer rounded accent-emerald-600"
-                  />
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="space-y-3">
+      {/* Header bar */}
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-gray-400">
+          <span className="font-semibold text-gray-700">{enabledCount}</span> of {SECTIONS.length} sections enabled
+        </span>
+        {!disabled && (
+          <div className="flex items-center gap-3">
+            <button type="button"
+              onClick={() => onChange(Object.fromEntries(SECTIONS.map(s => [s, { view: true }])))}
+              className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 transition-colors">
+              Select all
+            </button>
+            <span className="text-gray-200 select-none">|</span>
+            <button type="button"
+              onClick={() => onChange(EMPTY_PERMS())}
+              className="text-xs font-semibold text-gray-400 hover:text-gray-600 transition-colors">
+              Clear all
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Cards grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {SECTIONS.map(s => {
+          const { Icon, grad } = SECTION_META[s] || { Icon: Settings, grad: 'from-gray-500 to-gray-700' }
+          const on = !!p[s]?.view
+          return (
+            <button
+              key={s}
+              type="button"
+              onClick={() => toggle(s, !on)}
+              disabled={disabled}
+              className={`flex items-center gap-3 px-3.5 py-3 rounded-xl border text-left transition-all duration-150 ${
+                on
+                  ? 'bg-emerald-50 border-emerald-200 shadow-sm shadow-emerald-100'
+                  : 'bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50/60'
+              } ${disabled ? 'cursor-default' : 'cursor-pointer'}`}
+            >
+              <span className={`w-9 h-9 rounded-xl bg-gradient-to-br ${grad} flex items-center justify-center shrink-0 shadow-md ${on ? '' : 'opacity-60'} transition-opacity`}>
+                <Icon size={15} strokeWidth={2} className="text-white" />
+              </span>
+              <span className={`flex-1 text-sm font-medium transition-colors ${on ? 'text-gray-900' : 'text-gray-500'}`}>
+                {SECTION_LABELS[s]}
+              </span>
+              <Toggle on={on} />
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }
