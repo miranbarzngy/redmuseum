@@ -63,5 +63,6 @@ export async function POST(request) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
-  return NextResponse.json({ data })
+  const { phone: _omit, ...safeData } = data
+  return NextResponse.json({ data: safeData })
 }

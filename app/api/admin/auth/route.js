@@ -6,11 +6,11 @@ export async function POST(request) {
   const { access_token } = await request.json()
   if (!access_token) return NextResponse.json({ error: 'Missing token' }, { status: 400 })
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY,
-    { auth: { persistSession: false } }
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_KEY
+  if (!supabaseUrl || !serviceKey) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
+
+  const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
 
   const { data: { user }, error } = await supabase.auth.getUser(access_token)
   if (error || !user) return NextResponse.json({ error: 'Invalid token' }, { status: 401 })

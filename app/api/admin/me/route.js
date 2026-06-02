@@ -7,11 +7,11 @@ export async function GET(request) {
   const user = await getSessionUser(request)
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_KEY,
-    { auth: { persistSession: false } }
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_KEY
+  if (!supabaseUrl || !serviceKey) return NextResponse.json({ error: 'Server not configured' }, { status: 500 })
+
+  const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
 
   const { data, error } = await supabase.auth.admin.getUserById(user.id)
   if (error || !data?.user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
