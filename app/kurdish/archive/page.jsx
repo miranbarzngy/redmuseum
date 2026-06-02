@@ -261,9 +261,9 @@ export default function KurdishArchive() {
         {/* Back to home */}
         <div className="flex justify-center mt-14">
           <Link href="/kurdish"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold text-white transition-all"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', ...KU }}>
-            <i className="ri-arrow-right-line text-[#c8a96e]" />
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold text-white transition-all bg-red-700 hover:bg-red-800"
+            style={KU}>
+            <i className="ri-arrow-right-line" />
             گەڕانەوە بۆ سەرەتا
           </Link>
         </div>
