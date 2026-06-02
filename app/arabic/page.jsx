@@ -129,6 +129,14 @@ export default function ArabicPageContent({ initialSection = null }) {
   const handleSectionClick = (sectionId) => setActiveSection(sectionId)
 
   useEffect(() => {
+    let lastReplaceState = 0
+    const safeReplaceState = (url) => {
+      const now = Date.now()
+      if (now - lastReplaceState < 500) return
+      lastReplaceState = now
+      try { window.history.replaceState(null, '', url) } catch {}
+    }
+
     const handleHashChange = () => {
       const hash = window.location.hash.replace('#', '')
       if (hash) { setActiveSection(hash); activeSectionRef.current = hash }
@@ -141,7 +149,7 @@ export default function ArabicPageContent({ initialSection = null }) {
       if (window.scrollY < 100) {
         setActiveSection('home')
         activeSectionRef.current = 'home'
-        window.history.replaceState(null, '', '/arabic/slides')
+        safeReplaceState('/arabic/slides')
       }
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -162,7 +170,7 @@ export default function ArabicPageContent({ initialSection = null }) {
         setActiveSection(maxSection)
         activeSectionRef.current = maxSection
         const url = ELEMENT_URL[maxSection]
-        if (url && window.location.pathname !== url) window.history.replaceState(null, '', url)
+        if (url && window.location.pathname !== url) safeReplaceState(url)
       }
     }, { root: null, rootMargin: '-20% 0px -20% 0px', threshold: [0, 0.25, 0.5, 0.75, 1.0] })
 
