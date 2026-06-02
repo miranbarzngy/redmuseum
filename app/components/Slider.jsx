@@ -252,12 +252,12 @@ export default function Slider({ currentLang = 'en' }) {
       <button
         onClick={prevSlide}
         aria-label={isKurdish ? 'سلایپەکەوە' : isArabic ? 'الشريحة السابقة' : 'Previous slide'}
-        className="absolute z-[888] flex items-center justify-center rounded-full select-none
+        className="absolute z-[888] flex items-center justify-center rounded-xl select-none
           transition-all duration-300 text-white/75 hover:text-white
           bg-black/25 hover:bg-black/60 backdrop-blur-sm
           bottom-[30px] right-[170px] w-10 h-10
           max-[990px]:bottom-auto max-[990px]:top-1/2 max-[990px]:-translate-y-1/2
-          max-[990px]:left-3 max-[990px]:right-auto max-[990px]:w-16 max-[990px]:h-16"
+          max-[990px]:left-2 max-[990px]:right-auto max-[990px]:w-14 max-[990px]:h-14"
       >
         <i className="ri-arrow-left-s-line text-2xl max-[990px]:text-4xl" />
       </button>
@@ -268,12 +268,12 @@ export default function Slider({ currentLang = 'en' }) {
       <button
         onClick={nextSlide}
         aria-label={isKurdish ? 'سلایپێکەوە' : isArabic ? 'الشريحة التالية' : 'Next slide'}
-        className="absolute z-[888] flex items-center justify-center rounded-full select-none
+        className="absolute z-[888] flex items-center justify-center rounded-xl select-none
           transition-all duration-300 text-white/75 hover:text-white
           bg-black/25 hover:bg-black/60 backdrop-blur-sm
           bottom-[30px] right-[100px] w-10 h-10
           max-[990px]:bottom-auto max-[990px]:top-1/2 max-[990px]:-translate-y-1/2
-          max-[990px]:right-3 max-[990px]:w-16 max-[990px]:h-16"
+          max-[990px]:right-2 max-[990px]:w-14 max-[990px]:h-14"
       >
         <i className="ri-arrow-right-s-line text-2xl max-[990px]:text-4xl" />
       </button>
