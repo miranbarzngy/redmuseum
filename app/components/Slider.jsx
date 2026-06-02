@@ -254,8 +254,8 @@ export default function Slider({ currentLang = 'en' }) {
         onClick={prevSlide}
         aria-label={isKurdish ? 'سلایپەکەوە' : isArabic ? 'الشريحة السابقة' : 'Previous slide'}
         className="absolute z-[888] flex items-center justify-center rounded-xl select-none
-          transition-all duration-300 text-white/75 hover:text-white
-          bg-black/25 hover:bg-black/60 backdrop-blur-sm
+          transition-all duration-300 text-white hover:text-white
+          bg-red-700 hover:bg-red-800
           bottom-[30px] right-[170px] w-10 h-10
           max-[990px]:hidden"
       >
@@ -267,8 +267,8 @@ export default function Slider({ currentLang = 'en' }) {
         onClick={nextSlide}
         aria-label={isKurdish ? 'سلایپێکەوە' : isArabic ? 'الشريحة التالية' : 'Next slide'}
         className="absolute z-[888] flex items-center justify-center rounded-xl select-none
-          transition-all duration-300 text-white/75 hover:text-white
-          bg-black/25 hover:bg-black/60 backdrop-blur-sm
+          transition-all duration-300 text-white hover:text-white
+          bg-red-700 hover:bg-red-800
           bottom-[30px] right-[100px] w-10 h-10
           max-[990px]:hidden"
       >
