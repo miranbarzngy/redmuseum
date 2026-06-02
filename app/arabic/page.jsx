@@ -41,25 +41,26 @@ const ELEMENT_URL = {
   reserve:            '/arabic/reserve',
 }
 
-async function fetchVisibility() {
-  const results = await Promise.all(
-    SECTION_KEYS.map(k => fetch(`/api/settings?key=${k}`).then(r => r.json()).catch(() => ({ value: null })))
-  )
-  return Object.fromEntries(SECTION_KEYS.map((k, i) => [k, results[i].value !== 'false']))
-}
-
-async function fetchSectionOrder() {
+async function fetchVisibilityAndOrder() {
   try {
-    const json = await fetch('/api/settings?key=section_order').then(r => r.json())
-    if (json.value) {
-      const parsed = JSON.parse(json.value)
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        const missing = DEFAULT_ORDER.filter(id => !parsed.includes(id))
-        return [...parsed, ...missing]
-      }
+    const keys = [...SECTION_KEYS, 'section_order']
+    const json = await fetch(`/api/settings?keys=${keys.join(',')}`).then(r => r.json())
+    const map = json.values || {}
+    const vis = Object.fromEntries(SECTION_KEYS.map(k => [k, map[k] !== 'false']))
+    let order = DEFAULT_ORDER
+    if (map.section_order) {
+      try {
+        const parsed = JSON.parse(map.section_order)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const missing = DEFAULT_ORDER.filter(id => !parsed.includes(id))
+          order = [...parsed, ...missing]
+        }
+      } catch {}
     }
-  } catch {}
-  return DEFAULT_ORDER
+    return { vis, order }
+  } catch {
+    return { vis: Object.fromEntries(SECTION_KEYS.map(k => [k, true])), order: DEFAULT_ORDER }
+  }
 }
 
 export function ArabicPageContent({ initialSection = null }) {
@@ -75,7 +76,7 @@ export function ArabicPageContent({ initialSection = null }) {
   useEffect(() => {
     const savedLang = localStorage.getItem('museum-lang')
     if (savedLang) setCurrentLang(savedLang)
-    Promise.all([fetchVisibility(), fetchSectionOrder()]).then(([v, o]) => {
+    fetchVisibilityAndOrder().then(({ vis: v, order: o }) => {
       setVis(v)
       setSectionOrder(o)
       setDataReady(true)

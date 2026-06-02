@@ -145,13 +145,6 @@ export default function Gallery({ currentLang = 'en' }) {
 
   useEffect(() => { fetchGallery() }, [])
 
-  useEffect(() => {
-    if (!supabase) return
-    const ch = supabase.channel('gallery-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'gallery' }, fetchGallery)
-      .subscribe()
-    return () => supabase.removeChannel(ch)
-  }, [])
 
   const title = isAr ? 'المعرض' : isKu ? 'گەلەری' : 'Gallery'
 

@@ -48,13 +48,6 @@ export default function About({ currentLang = 'en' }) {
     } finally { setLoading(false) }
   }
 
-  useEffect(() => {
-    if (!supabase) return
-    const ch = supabase.channel('settings-changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'settings' }, fetchSettings)
-      .subscribe()
-    return () => supabase.removeChannel(ch)
-  }, [])
 
   const get = (field) => {
     if (!settings) return null

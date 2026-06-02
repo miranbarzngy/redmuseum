@@ -77,14 +77,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       if (hoursRes.value) try { setAvailableHours(JSON.parse(hoursRes.value)) } catch {}
     }).catch(() => {})
 
-    const supabase = getSupabaseClient()
-    if (!supabase) return
-    const channel = supabase.channel('reserve-settings')
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'site_settings' }, ({ new: row }) => {
-        if (row?.key === 'available_days')  try { setAvailableDays(JSON.parse(row.value))  } catch {}
-        if (row?.key === 'available_hours') try { setAvailableHours(JSON.parse(row.value)) } catch {}
-      }).subscribe()
-    return () => supabase.removeChannel(channel)
+    return () => {}
   }, [])
 
   const isRtl = lang === 'ku' || lang === 'ar'

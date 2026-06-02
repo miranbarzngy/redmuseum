@@ -11,16 +11,29 @@ function getSupabase() {
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url)
-  const key = searchParams.get('key')
   const supabase = getSupabase()
   if (!supabase) return NextResponse.json({ error: 'Not configured' }, { status: 500 })
 
+  // Batch mode: ?keys=key1,key2,key3
+  const keysParam = searchParams.get('keys')
+  if (keysParam) {
+    const keys = keysParam.split(',').map(k => k.trim()).filter(Boolean)
+    const { data, error } = await supabase
+      .from('site_settings')
+      .select('key, value')
+      .in('key', keys)
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+    const map = Object.fromEntries((data || []).map(r => [r.key, r.value]))
+    return NextResponse.json({ values: map })
+  }
+
+  // Single key mode: ?key=somekey
+  const key = searchParams.get('key')
   const { data, error } = await supabase
     .from('site_settings')
     .select('value')
     .eq('key', key)
     .maybeSingle()
-
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ value: data?.value ?? null })
 }

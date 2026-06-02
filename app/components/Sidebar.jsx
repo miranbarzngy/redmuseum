@@ -44,31 +44,29 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
 
   const updateVis = (key, val) => setSectionVis(p => ({ ...p, [key]: val }))
 
-  // Fetch all section visibility settings and subscribe to realtime changes
+  // Fetch all section visibility settings in one batch request
   useEffect(() => {
     const supabase = getSupabaseClient()
-    if (!supabase) return
 
-    // Exclusive events (DB-driven)
-    supabase.from('exclusive_events').select('is_active').limit(1).maybeSingle()
-      .then(({ data }) => { if (data) setShowExclusive(data.is_active) })
-      .catch(() => {})
-
-    // site_settings visibility keys
-    SETTING_KEYS.forEach(key => {
-      fetch(`/api/settings?key=${key}`)
-        .then(r => r.json())
-        .then(json => { if (json.value !== null && json.value !== undefined) updateVis(key, json.value === 'true') })
+    // Exclusive events active state
+    if (supabase) {
+      supabase.from('exclusive_events').select('is_active').limit(1).maybeSingle()
+        .then(({ data }) => { if (data) setShowExclusive(data.is_active) })
         .catch(() => {})
-    })
+    }
 
-    // section order
-    fetch('/api/settings?key=section_order')
+    // All site_settings keys in one request
+    const allKeys = [...SETTING_KEYS, 'section_order']
+    fetch(`/api/settings?keys=${allKeys.join(',')}`)
       .then(r => r.json())
       .then(json => {
-        if (json.value) {
+        const map = json.values || {}
+        SETTING_KEYS.forEach(key => {
+          if (map[key] !== undefined) updateVis(key, map[key] === 'true')
+        })
+        if (map.section_order) {
           try {
-            const parsed = JSON.parse(json.value)
+            const parsed = JSON.parse(map.section_order)
             if (Array.isArray(parsed) && parsed.length > 0) {
               const missing = DEFAULT_SECTION_ORDER.filter(id => !parsed.includes(id))
               setSectionOrder([...parsed, ...missing])
@@ -77,28 +75,6 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
         }
       })
       .catch(() => {})
-
-    const channel = supabase
-      .channel('sidebar-settings')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'exclusive_events' },
-        ({ new: row }) => { if (row?.is_active !== undefined) setShowExclusive(row.is_active) })
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'site_settings' },
-        ({ new: row }) => {
-          if (!row?.key) return
-          if (SETTING_KEYS.includes(row.key)) updateVis(row.key, row.value === 'true')
-          if (row.key === 'section_order') {
-            try {
-              const parsed = JSON.parse(row.value)
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                const missing = DEFAULT_SECTION_ORDER.filter(id => !parsed.includes(id))
-                setSectionOrder([...parsed, ...missing])
-              }
-            } catch {}
-          }
-        })
-      .subscribe()
-
-    return () => supabase.removeChannel(channel)
   }, [])
 
   // Track URL hash changes

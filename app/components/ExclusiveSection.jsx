@@ -362,13 +362,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
 
     fetchSlides()
 
-    const channel = supabase
-      .channel('exclusive-section-live')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'exclusive_slides' }, fetchSlides)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'exclusive_events' }, fetchSlides)
-      .subscribe()
-
-    return () => supabase.removeChannel(channel)
+    return () => {}
   }, [fetchSlides])
 
   // Auto-advance — stops when current slide is locked

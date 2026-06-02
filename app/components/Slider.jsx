@@ -104,31 +104,6 @@ export default function Slider({ currentLang = 'en' }) {
     fetchSlides()
   }, [fetchSlides])
 
-  // Subscribe to realtime changes for slides table
-  useEffect(() => {
-    if (!supabase) return
-
-    const channel = supabase
-      .channel('slides-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'slides'
-        },
-        (payload) => {
-          console.log('Slide change detected:', payload)
-          // Refresh slides when any change happens
-          fetchSlides()
-        }
-      )
-      .subscribe()
-
-    return () => {
-      supabase.removeChannel(channel)
-    }
-  }, [fetchSlides])
 
   useEffect(() => {
     if (slides.length === 0) return
