@@ -39,7 +39,8 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   const [loading, setLoading]         = useState(false)
   const [reservation, setReservation] = useState(null)
 
-  const [faceImageUrl, setFaceImageUrl]   = useState(null)
+  const [faceImageUrl, setFaceImageUrl]   = useState(null)   // Supabase URL for admin review
+  const [faceVerified, setFaceVerified]   = useState(false)  // unlocks the form after capture
   const [faceUploading, setFaceUploading] = useState(false)
   const [faceScanOpen, setFaceScanOpen]   = useState(false)
   const [availableDays, setAvailableDays]   = useState(['1','2','3','4','5'])
@@ -79,6 +80,10 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
   // Upload captured face data URL → Supabase storage
   const handleFaceCapture = async (dataUrl) => {
+    // Unlock the form immediately — upload is for admin review only
+    setFaceVerified(true)
+    setFaceScanOpen(false)
+    setFaceImageUrl(dataUrl)   // show local preview while uploading
     setFaceUploading(true)
     try {
       const res  = await fetch(dataUrl)
@@ -87,12 +92,11 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       fd.append('face', blob, 'face.jpg')
       const r    = await fetch('/api/reserve/upload-face', { method: 'POST', body: fd })
       const json = await r.json()
-      if (r.ok && json.url) setFaceImageUrl(json.url)
+      if (r.ok && json.url) setFaceImageUrl(json.url)   // replace with Supabase URL if upload worked
     } catch {
-      // Non-fatal — reservation continues without face URL
+      // Upload failed — form is already unlocked, local preview stays as thumbnail
     } finally {
       setFaceUploading(false)
-      setFaceScanOpen(false)
     }
   }
 
@@ -293,7 +297,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     colorScheme: 'dark',
   }
 
-  const fieldsLocked = !faceImageUrl
+  const fieldsLocked = !faceVerified
 
   const field = (key, label, type = 'text', extra = {}) => {
     const disabledStyle = fieldsLocked ? {
@@ -480,7 +484,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             <i className="ri-download-2-line text-base" style={{ color: GOLD }} />
             {t('داونلۆدی QR','تحميل QR','Download QR',lang)}
           </button>
-          <button onClick={() => { setReservation(null); setForm(EMPTY); setFaceImageUrl(null); setFaceScanOpen(false) }}
+          <button onClick={() => { setReservation(null); setForm(EMPTY); setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(false) }}
             className="flex items-center justify-center gap-2 px-5 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
             style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: fontStyle(lang) }}>
             <i className="ri-add-line" />
@@ -783,7 +787,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                     </div>
                     <button
                       type="button"
-                      onClick={() => { setFaceImageUrl(null); setFaceScanOpen(true) }}
+                      onClick={() => { setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(true) }}
                       className="flex items-center gap-1 text-white/35 hover:text-white/70 text-xs transition-colors"
                       style={{ fontFamily: fontStyle(lang) }}
                     >
