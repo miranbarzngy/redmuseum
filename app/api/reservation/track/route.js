@@ -22,7 +22,7 @@ export async function POST(request) {
 
   const { data, error } = await supabase
     .from('reservations')
-    .select('id, name, status, date, time, guest_count, note, created_at')
+    .select('id, name, status, date, time, guest_count, note, created_at, face_image_url')
     .eq('phone', phone)
     .order('date', { ascending: false })
 

@@ -60,7 +60,7 @@ export default function ContactForm({ currentLang = 'en' }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!validateForm()) {
-      showToast(t('تکایە هەموو خانە پڕبکەرەوە', 'الرجاء ملء جميع الحقول المطلوبة', 'Please fill in all required fields'), 'error')
+      showToast(t('تکایە هەموو خانەکان پڕبکەرەوە', 'الرجاء ملء جميع الحقول المطلوبة', 'Please fill in all required fields'), 'error')
       return
     }
     setLoading(true)

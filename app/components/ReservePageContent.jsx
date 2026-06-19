@@ -102,6 +102,13 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
   useEffect(() => { const saved = localStorage.getItem('museum-lang'); if (saved) setLang(saved) }, [])
 
+  // Sync tab with URL ?tab=track on mount
+  useEffect(() => {
+    if (inline) return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('tab') === 'track') setPageTab('track')
+  }, [])
+
   useEffect(() => {
     Promise.all([
       fetch('/api/settings?key=available_days').then(r => r.json()),
@@ -183,16 +190,34 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       img.src = '/android-chrome-192x192.png'
     })
 
+    // Load face image if available
+    const faceImg = faceImageUrl ? await new Promise(resolve => {
+      const img = new Image()
+      img.crossOrigin = 'anonymous'
+      img.onload = () => resolve(img)
+      img.onerror = () => resolve(null)
+      img.src = faceImageUrl
+    }) : null
+
     // Generate QR as image
+    const hasFace = !!faceImg
     const qrUrl = `${window.location.origin}/reservation/${reservation.id}`
-    const qrDataUrl = await QRCode.toDataURL(qrUrl, { width: 464, margin: 2, errorCorrectionLevel: 'H', color: { dark: '#0a0a0a', light: '#ffffff' } })
+    const qrPixels = hasFace ? 300 : 464
+    const qrDataUrl = await QRCode.toDataURL(qrUrl, { width: qrPixels, margin: 2, errorCorrectionLevel: 'H', color: { dark: '#0a0a0a', light: '#ffffff' } })
     const qrImg = await new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = qrDataUrl })
 
-    // Canvas dimensions
-    const W = 520, LOGO_H = 80, GOLD_H = 3, TITLE_H = 56, PAD = 28
-    const QR_SIZE = W - PAD * 2
+    // ── Canvas layout constants ──
+    const W = 520, LOGO_H = 80, GOLD_H = 3, TITLE_H = 56, PAD = 24
     const FOOTER_H = 96
-    const H = LOGO_H + GOLD_H + TITLE_H + GOLD_H + QR_SIZE + FOOTER_H + 5
+
+    // QR + face row
+    const QR_SIZE  = hasFace ? 240 : W - PAD * 2   // QR square size
+    const FACE_W   = hasFace ? 168 : 0              // face panel width
+    const FACE_GAP = hasFace ? 16  : 0
+    const ROW_PAD  = 24                              // top/bottom padding inside dark row
+    const ROW_H    = QR_SIZE + ROW_PAD * 2
+
+    const H = LOGO_H + GOLD_H + TITLE_H + GOLD_H + ROW_H + FOOTER_H + 5
 
     const canvas = document.createElement('canvas')
     canvas.width = W; canvas.height = H
@@ -204,7 +229,6 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     // ── Logo banner (dark red) ──
     ctx.fillStyle = '#6b0000'; ctx.fillRect(0, 0, W, LOGO_H)
 
-    // Measure text to center group
     const ICON_SIZE = 44, GAP = 14
     ctx.font = `bold 15px ${kuFont}`
     const titleW = ctx.measureText(museumNameKr).width
@@ -215,7 +239,6 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     const ICON_X = groupStartX + textBlockW + GAP
     const ICON_Y = (LOGO_H - ICON_SIZE) / 2
 
-    // Logo icon with white rounded box
     if (logoImg) {
       const BP = 3
       ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.roundRect(ICON_X - BP, ICON_Y - BP, ICON_SIZE + BP * 2, ICON_SIZE + BP * 2, 8); ctx.fill()
@@ -223,11 +246,10 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       ctx.drawImage(logoImg, ICON_X - BP, ICON_Y - BP, ICON_SIZE + BP * 2, ICON_SIZE + BP * 2); ctx.restore()
     }
 
-    // Museum name text
     const textRightX = groupStartX + textBlockW
     ctx.fillStyle = '#ffffff'; ctx.font = `bold 15px ${kuFont}`; ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.direction = 'rtl'
     ctx.fillText(museumNameKr, textRightX, LOGO_H / 2 - 11)
-    ctx.direction = 'ltr'; ctx.font = '11px Arial, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.textAlign = 'right'
+    ctx.direction = 'ltr'; ctx.font = '11px Arial, sans-serif'; ctx.fillStyle = '#9ca3af'; ctx.textAlign = 'right'
     ctx.fillText(museumNameEn, textRightX, LOGO_H / 2 + 11)
 
     // ── Gold separator ──
@@ -239,7 +261,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     }
     drawGold()
 
-    // ── Reservation ID bar (museum red) ──
+    // ── Reservation ID bar ──
     ctx.fillStyle = '#7a0000'; ctx.fillRect(0, y, W, TITLE_H)
     const resId = '#' + reservation.id.slice(0, 8).toUpperCase()
     ctx.fillStyle = '#ffffff'; ctx.font = `bold 20px 'Courier New', Courier, monospace`
@@ -247,13 +269,54 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     ctx.fillText(resId, W / 2, y + TITLE_H / 2)
     y += TITLE_H
 
-    // ── Gold separator ──
     drawGold()
 
-    // ── QR code ──
-    ctx.fillStyle = '#ffffff'; ctx.fillRect(PAD, y, QR_SIZE, QR_SIZE)
-    ctx.drawImage(qrImg, PAD, y, QR_SIZE, QR_SIZE)
-    y += QR_SIZE
+    // ── Dark row: QR + face ──
+    ctx.fillStyle = '#111111'; ctx.fillRect(0, y, W, ROW_H)
+
+    if (hasFace) {
+      // Centre the QR+gap+face group horizontally
+      const groupW  = QR_SIZE + FACE_GAP + FACE_W
+      const groupX  = (W - groupW) / 2
+      const itemY   = y + ROW_PAD
+
+      // QR block (white rounded card)
+      ctx.fillStyle = '#ffffff'
+      ctx.beginPath(); ctx.roundRect(groupX, itemY, QR_SIZE, QR_SIZE, 10); ctx.fill()
+      ctx.drawImage(qrImg, groupX + 6, itemY + 6, QR_SIZE - 12, QR_SIZE - 12)
+
+      // Face panel
+      const faceX    = groupX + QR_SIZE + FACE_GAP
+      const BADGE_H  = 26
+      const IMG_H    = QR_SIZE - BADGE_H - 8   // image area, leaving room for badge
+
+      // Panel background + emerald border
+      ctx.fillStyle = '#1a1a1a'
+      ctx.beginPath(); ctx.roundRect(faceX, itemY, FACE_W, QR_SIZE, 10); ctx.fill()
+      ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5
+      ctx.beginPath(); ctx.roundRect(faceX, itemY, FACE_W, QR_SIZE, 10); ctx.stroke()
+
+      // Face image clipped to rounded rect
+      const IP = 5   // inner padding
+      ctx.save()
+      ctx.beginPath(); ctx.roundRect(faceX + IP, itemY + IP, FACE_W - IP * 2, IMG_H, 7); ctx.clip()
+      ctx.drawImage(faceImg, faceX + IP, itemY + IP, FACE_W - IP * 2, IMG_H)
+      ctx.restore()
+
+      // Emerald "Verified" badge at bottom of face panel
+      const badgeY = itemY + IMG_H + 5
+      ctx.fillStyle = '#10b981'
+      ctx.beginPath(); ctx.roundRect(faceX + 8, badgeY, FACE_W - 16, BADGE_H - 5, 6); ctx.fill()
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 10px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'
+      ctx.fillText('✓  Face Verified', faceX + FACE_W / 2, badgeY + (BADGE_H - 5) / 2)
+    } else {
+      // No face — QR full width centred
+      const qx = (W - QR_SIZE) / 2
+      ctx.fillStyle = '#ffffff'; ctx.fillRect(qx, y + ROW_PAD, QR_SIZE, QR_SIZE)
+      ctx.drawImage(qrImg, qx, y + ROW_PAD, QR_SIZE, QR_SIZE)
+    }
+
+    y += ROW_H
 
     // ── Footer ──
     ctx.fillStyle = '#111111'; ctx.fillRect(0, y, W, FOOTER_H)
@@ -261,13 +324,12 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     ctx.fillStyle = '#ffffff'; ctx.font = `bold 15px ${kuFont}`
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'rtl'
     ctx.fillText(reservation.name, W / 2, fMid - 18)
-    ctx.direction = 'ltr'; ctx.font = '12px Arial, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,0.55)'
+    ctx.direction = 'ltr'; ctx.font = '12px Arial, sans-serif'; ctx.fillStyle = '#9ca3af'
     ctx.fillText(`${reservation.date}  ·  ${(reservation.time || '').slice(0, 5)}  ·  ${reservation.guest_count} guests`, W / 2, fMid + 4)
-    // Gold accent line in footer
     const ag = ctx.createLinearGradient(0, 0, W, 0)
     ag.addColorStop(0, 'transparent'); ag.addColorStop(0.5, '#c8a96e'); ag.addColorStop(1, 'transparent')
     ctx.fillStyle = ag; ctx.fillRect(0, y + FOOTER_H - 24, W, 1)
-    ctx.fillStyle = 'rgba(200,169,110,0.45)'; ctx.font = '10px Arial'; ctx.textAlign = 'center'
+    ctx.fillStyle = '#6b7280'; ctx.font = '10px Arial'; ctx.textAlign = 'center'
     ctx.fillText(museumNameEn, W / 2, y + FOOTER_H - 10)
 
     // ── Gold bottom bar ──
@@ -396,7 +458,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
           </div>
 
           <p className="text-white text-sm text-center leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
-            {t('تکایە ئەم کیوئارکۆدە وەک پشکنین لە دەرگای مۆزەخانەکە پیشان بدە', 'يرجى إظهار رمز QR هذا عند مدخل المتحف للتحقق', 'Please show this QR code at the museum entrance for verification', lang)}
+            {t('تکایە وێنەیەک لەم زانیارییانەی خوارەوە لای خۆت دابگرە ، بۆ ئاگاداربوون لە ڕەوشی داواکارییەکت', 'يرجى إظهار رمز QR هذا عند مدخل المتحف للتحقق', 'Please show this QR code at the museum entrance for verification', lang)}
           </p>
         </div>
 
@@ -430,11 +492,37 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
           {/* Gold separator */}
           <div className="h-[3px]" style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
 
-          {/* QR itself */}
-          <div className="flex justify-center px-6 py-6" ref={qrRef} style={{ background: '#111' }}>
-            <div className="rounded-2xl p-4 shadow-2xl" style={{ background: '#fff', border: `1.5px solid rgba(200,169,110,0.35)` }}>
-              <QRCodeSVG value={`${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${reservation.id}`} size={190} bgColor="#ffffff" fgColor="#0a0a0a" level="H" />
+          {/* QR + Face side by side */}
+          <div className="flex items-center justify-center gap-4 px-6 py-6" ref={qrRef} style={{ background: '#111' }}>
+            {/* QR code */}
+            <div className="rounded-2xl p-4 shadow-2xl shrink-0" style={{ background: '#fff', border: `1.5px solid rgba(200,169,110,0.35)` }}>
+              <QRCodeSVG value={`${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${reservation.id}`} size={faceImageUrl ? 150 : 190} bgColor="#ffffff" fgColor="#0a0a0a" level="H" />
             </div>
+
+            {/* Face capture — shown only when available */}
+            {faceImageUrl && (
+              <div className="flex flex-col items-center gap-2 shrink-0">
+                <div className="relative">
+                  <img
+                    src={faceImageUrl}
+                    alt="Face ID"
+                    className="rounded-2xl object-cover shadow-2xl"
+                    style={{ width: 110, height: 138, border: '1.5px solid rgba(16,185,129,0.5)' }}
+                  />
+                  {/* Emerald verified badge */}
+                  <div
+                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold text-white whitespace-nowrap"
+                    style={{ background: '#10b981', border: '1.5px solid #000' }}
+                  >
+                    <i className="ri-shield-check-fill text-[9px]" />
+                    {t('ڕووخسار پشکنراوە', 'تم التحقق', 'Verified', lang)}
+                  </div>
+                </div>
+                <p className="text-gray-400 text-[10px] mt-3" style={{ fontFamily: fontStyle(lang) }}>
+                  {t('ناسنامەی ڕووخسار', 'Face ID', 'Face ID', lang)}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Details */}
@@ -579,7 +667,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
           <p className="text-white text-sm leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
             {t(
-              '"فۆرمەکە پڕ بکەرەوە و QR کۆدەکە دابگرە بۆ پاراستنی مافی سەردانیکردن و پیشاندانی لە کاتی سەردانیکردنت بۆ مۆزەخانە."',
+              'داواکاری پێشکەش بکە بۆ سەردانیکردنی مۆزەخانە',
               'أكمل النموذج وستحصل على رمز QR لمدخل المتحف',
               'Fill the form and receive a QR code for museum entry',
               lang
@@ -596,7 +684,10 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
           ].map(tab => (
             <button
               key={tab.id}
-              onClick={() => { setPageTab(tab.id); setTrackResults(null); setTrackError('') }}
+              onClick={() => {
+              setPageTab(tab.id); setTrackResults(null); setTrackError('')
+              if (!inline) window.history.replaceState({}, '', `?tab=${tab.id}`)
+            }}
               className="flex-1 py-3 rounded-xl text-sm font-bold transition-all"
               style={{
                 fontFamily: fontStyle(lang),
@@ -666,9 +757,26 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                   return (
                     <div key={res.id} className={`rounded-2xl border p-5 ${sc.bg} ${sc.border}`}>
                       <div className="flex items-start justify-between gap-3 mb-4">
-                        <div>
-                          <p className="font-bold text-white text-base" style={{ fontFamily: fontStyle(lang) }}>{res.name}</p>
-                          <p className="text-xs text-gray-500 font-mono mt-0.5">#{res.id.slice(0,8).toUpperCase()}</p>
+                        <div className="flex items-center gap-3">
+                          {/* Face thumbnail */}
+                          {res.face_image_url && (
+                            <div className="relative shrink-0">
+                              <img
+                                src={res.face_image_url}
+                                alt="Face ID"
+                                className="w-12 h-12 rounded-xl object-cover"
+                                style={{ border: '1.5px solid rgba(16,185,129,0.5)' }}
+                              />
+                              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center"
+                                style={{ border: '1.5px solid #000' }}>
+                                <i className="ri-check-line text-white text-[8px]" />
+                              </span>
+                            </div>
+                          )}
+                          <div>
+                            <p className="font-bold text-white text-base" style={{ fontFamily: fontStyle(lang) }}>{res.name}</p>
+                            <p className="text-xs text-gray-500 font-mono mt-0.5">#{res.id.slice(0,8).toUpperCase()}</p>
+                          </div>
                         </div>
                         <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${sc.bg} ${sc.border} ${sc.text} whitespace-nowrap`} style={{ fontFamily: fontStyle(lang) }}>
                           <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />{statusLabel}
@@ -688,6 +796,15 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                         ))}
                       </div>
                       {res.note && <p className="mt-3 text-xs text-gray-500 italic border-t border-white/5 pt-3" style={{ fontFamily: fontStyle(lang) }}>{res.note}</p>}
+                      {/* View full pass link */}
+                      <Link
+                        href={`/reservation/${res.id}`}
+                        className="mt-3 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white transition-all border-t border-white/5 pt-3"
+                        style={{ fontFamily: fontStyle(lang), color: GOLD }}
+                      >
+                        <i className="ri-qr-code-line text-sm" />
+                        {t('بینینی پاسی داواکاری', 'عرض تصريح الحجز', 'View Reservation Pass', lang)}
+                      </Link>
                     </div>
                   )
                 })}
