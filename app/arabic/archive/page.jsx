@@ -125,7 +125,7 @@ export default function ArabicArchive() {
           <p className="text-white/60 text-lg" style={AR}>{museumName.ar}</p>
 
           <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(200,169,110,0.15)', color: 'rgba(255,255,255,0.5)', ...AR }}>
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(200,169,110,0.15)', color: '#9ca3af', ...AR }}>
             <i className="ri-file-list-3-line text-[#c8a96e]" />
             {archive.length} أرشيف
           </div>
@@ -243,7 +243,7 @@ export default function ArabicArchive() {
               style={{ background: 'rgba(122,0,0,0.15)', border: '1px solid rgba(200,169,110,0.15)' }}>
               <i className="ri-file-search-line text-3xl" style={{ color: '#c8a96e' }} />
             </div>
-            <p className="text-white/50 text-lg mb-1" style={AR}>لم يتم العثور على أرشيف</p>
+            <p className="text-gray-400 text-lg mb-1" style={AR}>لم يتم العثور على أرشيف</p>
             <p className="text-white/25 text-sm">No archive items found</p>
           </div>
         )}

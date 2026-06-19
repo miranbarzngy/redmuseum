@@ -288,7 +288,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
                     className="transition-all duration-300 flex items-center justify-center"
                     style={{
                       fontSize: 26,
-                      color: isActive(item.id) ? '#ffffff' : 'rgba(255,255,255,0.5)',
+                      color: isActive(item.id) ? '#ffffff' : '#9ca3af',
                       transform: isActive(item.id) ? 'scale(1.15)' : 'scale(1)',
                       position: 'relative',
                       zIndex: 1,
@@ -320,7 +320,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
             onClick={() => setIsExpanded(false)}
             title="Collapse"
           >
-            <i className="ri-arrow-up-s-line text-white/50 group-hover:text-white transition-colors text-2xl" />
+            <i className="ri-arrow-up-s-line text-gray-400 group-hover:text-white transition-colors text-2xl" />
           </div>
         </>
       ) : (
@@ -363,7 +363,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
             onClick={() => setIsExpanded(true)}
             title="Expand menu"
           >
-            <i className="ri-menu-line text-white/50 group-hover:text-white transition-colors text-xl" />
+            <i className="ri-menu-line text-gray-400 group-hover:text-white transition-colors text-xl" />
           </div>
         </>
       )}

@@ -214,7 +214,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
                   {getDescription(item)}
                 </p>
                 {item?.date_created && (
-                  <p className="text-white/50 text-xs mt-auto flex items-center gap-1.5">
+                  <p className="text-gray-400 text-xs mt-auto flex items-center gap-1.5">
                     <i className="ri-calendar-line" />
                     {formatDate(item.date_created)}
                   </p>

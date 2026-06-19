@@ -551,7 +551,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
         {/* Header */}
         <div className="text-center mb-10">
           {!inline && (
-            <Link href={homeHref} className="inline-flex items-center gap-2 text-white/50 hover:text-white text-sm mb-8 transition-colors" style={{ fontFamily: fontStyle(lang) }}>
+            <Link href={homeHref} className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-8 transition-colors" style={{ fontFamily: fontStyle(lang) }}>
               <i className={`ri-arrow-${isRtl ? 'right' : 'left'}-line`} />
               {t('گەڕانەوە', 'رجوع', 'Back', lang)}
             </Link>

@@ -127,7 +127,7 @@ export default function ReservationPage() {
 
                 {/* Pass title */}
                 <div className="text-right shrink-0">
-                  <p className="text-[8px] sm:text-[9px] tracking-[0.15em] text-white/50 uppercase mb-0.5" style={KU}>فۆڕمی سەردانکاران</p>
+                  <p className="text-[8px] sm:text-[9px] tracking-[0.15em] text-gray-400 uppercase mb-0.5" style={KU}>فۆڕمی سەردانکاران</p>
                   <p className="text-sm sm:text-base font-black tracking-[0.1em] sm:tracking-[0.2em] uppercase">VISITOR PASS</p>
                   <p className="text-[10px] font-mono text-white/60 mt-0.5">REF: {ref}</p>
                 </div>

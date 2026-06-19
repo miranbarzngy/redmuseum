@@ -47,7 +47,7 @@ function Lightbox({ images, startIdx, onClose }) {
       </button>
 
       {/* Counter */}
-      <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white/50 text-sm font-mono">
+      <div className="absolute top-5 left-1/2 -translate-x-1/2 text-gray-400 text-sm font-mono">
         {idx + 1} / {images.length}
       </div>
 

@@ -227,7 +227,7 @@ export default function ContactForm({ currentLang = 'en' }) {
                 link.url && /^https?:\/\//i.test(link.url) && (
                   <a key={link.id || link.platform_name} href={link.url} target="_blank" rel="noopener noreferrer"
                     title={link.platform_name}
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-white/50 hover:text-[#c8a96e] transition-colors"
+                    className="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-[#c8a96e] transition-colors"
                     style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
                     <i className={`${link.icon_name || 'ri-links-line'} text-lg`} />
                   </a>
@@ -244,7 +244,7 @@ export default function ContactForm({ currentLang = 'en' }) {
                 { icon: 'ri-tiktok-fill', href: '#' },
               ].map(s => (
                 <a key={s.icon} href={s.href}
-                  className="w-10 h-10 rounded-full flex items-center justify-center text-white/50 hover:text-[#c8a96e] transition-colors"
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-gray-400 hover:text-[#c8a96e] transition-colors"
                   style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
                   <i className={`${s.icon} text-lg`} />
                 </a>

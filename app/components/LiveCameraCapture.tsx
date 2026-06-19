@@ -616,7 +616,7 @@ export default function LiveCameraCapture({ onCapture, onSkip, lang = 'ku', comp
           <h2 className="text-xl font-bold text-white" style={{ fontFamily: ff }}>{tx.title}</h2>
           <span className="block h-px w-10" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
         </div>
-        <p className="text-white/50 text-sm" style={{ fontFamily: ff }}>{tx.subtitle}</p>
+        <p className="text-gray-400 text-sm" style={{ fontFamily: ff }}>{tx.subtitle}</p>
       </div>
 
       {/* Camera / detection */}
