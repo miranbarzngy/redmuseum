@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import QRCode from 'qrcode'
 import { QRCodeSVG } from 'qrcode.react'
@@ -7,6 +8,9 @@ import { useEffect, useRef, useState } from 'react'
 import { getSupabaseClient } from '../lib/supabase-client'
 import { useMuseumName } from '../lib/useMuseumName'
 import Sidebar from './Sidebar'
+
+// Loaded only client-side — face detection pulls TensorFlow.js
+const LiveCameraCapture = dynamic(() => import('./LiveCameraCapture'), { ssr: false })
 
 const t = (ku, ar, en, lang) =>
   lang === 'ku' ? ku : lang === 'ar' ? ar : en
@@ -34,6 +38,10 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   const [errors, setErrors]           = useState({})
   const [loading, setLoading]         = useState(false)
   const [reservation, setReservation] = useState(null)
+
+  const [faceImageUrl, setFaceImageUrl]   = useState(null)
+  const [faceUploading, setFaceUploading] = useState(false)
+  const [faceScanOpen, setFaceScanOpen]   = useState(false)
   const [availableDays, setAvailableDays]   = useState(['1','2','3','4','5'])
   const [availableHours, setAvailableHours] = useState({ start: '09:00', end: '17:00' })
   const qrRef = useRef(null)
@@ -67,6 +75,25 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     } catch {
       setTrackError(t('کێشەیەک ڕوویدا، دووبارە هەوڵبدەوە', 'حدث خطأ، حاول مرة أخرى', 'An error occurred, please try again', lang))
     } finally { setTrackLoading(false) }
+  }
+
+  // Upload captured face data URL → Supabase storage
+  const handleFaceCapture = async (dataUrl) => {
+    setFaceUploading(true)
+    try {
+      const res  = await fetch(dataUrl)
+      const blob = await res.blob()
+      const fd   = new FormData()
+      fd.append('face', blob, 'face.jpg')
+      const r    = await fetch('/api/reserve/upload-face', { method: 'POST', body: fd })
+      const json = await r.json()
+      if (r.ok && json.url) setFaceImageUrl(json.url)
+    } catch {
+      // Non-fatal — reservation continues without face URL
+    } finally {
+      setFaceUploading(false)
+      setFaceScanOpen(false)
+    }
   }
 
   useEffect(() => { const saved = localStorage.getItem('museum-lang'); if (saved) setLang(saved) }, [])
@@ -107,7 +134,15 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       const res = await fetch('/api/reserve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: form.name.trim(), guest_count: Number(form.guest_count), phone: form.phone.trim(), date: form.date, time: form.time, note: form.note.trim() || null }),
+        body: JSON.stringify({
+          name: form.name.trim(),
+          guest_count: Number(form.guest_count),
+          phone: form.phone.trim(),
+          date: form.date,
+          time: form.time,
+          note: form.note.trim() || null,
+          ...(faceImageUrl ? { face_image_url: faceImageUrl } : {}),
+        }),
       })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Unknown error')
@@ -258,46 +293,59 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     colorScheme: 'dark',
   }
 
-  const field = (key, label, type = 'text', extra = {}) => (
-    <div>
-      <label className="block text-sm font-semibold mb-2 text-white" style={{ fontFamily: fontStyle(lang) }}>
-        {label}
-        {key !== 'note' && <span className="ml-1" style={{ color: GOLD }}>*</span>}
-      </label>
-      {type === 'textarea' ? (
-        <textarea
-          value={form[key]}
-          onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-          rows={3}
-          style={{ ...inputBase, resize: 'none', borderColor: errors[key] ? '#ef4444' : 'rgba(255,255,255,0.12)' }}
-          onFocus={e  => { if (!errors[key]) e.target.style.borderColor = GOLD }}
-          onBlur={e   => { if (!errors[key]) e.target.style.borderColor = 'rgba(255,255,255,0.12)' }}
-          {...extra}
-        />
-      ) : (
-        <input
-          type={type}
-          value={form[key]}
-          onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-          className={`date-input${(type === 'date' || type === 'time') ? ' picker-input' : ''}`}
-          style={{ ...inputBase, borderColor: errors[key] ? '#ef4444' : 'rgba(255,255,255,0.12)', minHeight: (type === 'date' || type === 'time') ? 52 : 'auto' }}
-          onFocus={e  => { if (!errors[key]) e.target.style.borderColor = GOLD }}
-          onBlur={e   => { if (!errors[key]) e.target.style.borderColor = 'rgba(255,255,255,0.12)' }}
-          {...extra}
-        />
-      )}
-      {errors[key] && (
-        <p className="text-red-400 text-xs mt-1.5" style={{ fontFamily: fontStyle(lang) }}>
-          {errors[key] === 'unavailable'
-            ? t('ئەم رۆژە بەردەست نییە', 'هذا اليوم غير متاح', 'This day is not available', lang)
-            : errors[key] === 'outofrange'
-            ? t(`کات دەبێت لە نێوان ${availableHours.start} و ${availableHours.end} بێت`, `يجب أن يكون الوقت بين ${availableHours.start} و ${availableHours.end}`, `Time must be between ${availableHours.start} and ${availableHours.end}`, lang)
-            : t('ئەم خانەیە پێویستە', 'هذا الحقل مطلوب', 'This field is required', lang)
-          }
-        </p>
-      )}
-    </div>
-  )
+  const fieldsLocked = !faceImageUrl
+
+  const field = (key, label, type = 'text', extra = {}) => {
+    const disabledStyle = fieldsLocked ? {
+      opacity: 0.38,
+      cursor: 'not-allowed',
+      pointerEvents: 'none',
+      userSelect: 'none',
+    } : {}
+
+    return (
+      <div style={{ transition: 'opacity 0.35s', ...disabledStyle }}>
+        <label className="block text-sm font-semibold mb-2" style={{ fontFamily: fontStyle(lang), color: fieldsLocked ? 'rgba(255,255,255,0.4)' : '#fff' }}>
+          {label}
+          {key !== 'note' && <span className="ml-1" style={{ color: fieldsLocked ? 'rgba(200,169,110,0.4)' : GOLD }}>*</span>}
+        </label>
+        {type === 'textarea' ? (
+          <textarea
+            disabled={fieldsLocked}
+            value={form[key]}
+            onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
+            rows={3}
+            style={{ ...inputBase, resize: 'none', borderColor: errors[key] ? '#ef4444' : 'rgba(255,255,255,0.12)', cursor: fieldsLocked ? 'not-allowed' : 'text' }}
+            onFocus={e  => { if (!errors[key] && !fieldsLocked) e.target.style.borderColor = GOLD }}
+            onBlur={e   => { if (!errors[key]) e.target.style.borderColor = 'rgba(255,255,255,0.12)' }}
+            {...extra}
+          />
+        ) : (
+          <input
+            disabled={fieldsLocked}
+            type={type}
+            value={form[key]}
+            onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
+            className={`date-input${(type === 'date' || type === 'time') ? ' picker-input' : ''}`}
+            style={{ ...inputBase, borderColor: errors[key] ? '#ef4444' : 'rgba(255,255,255,0.12)', minHeight: (type === 'date' || type === 'time') ? 52 : 'auto', cursor: fieldsLocked ? 'not-allowed' : 'auto' }}
+            onFocus={e  => { if (!errors[key] && !fieldsLocked) e.target.style.borderColor = GOLD }}
+            onBlur={e   => { if (!errors[key]) e.target.style.borderColor = 'rgba(255,255,255,0.12)' }}
+            {...extra}
+          />
+        )}
+        {errors[key] && (
+          <p className="text-red-400 text-xs mt-1.5" style={{ fontFamily: fontStyle(lang) }}>
+            {errors[key] === 'unavailable'
+              ? t('ئەم رۆژە بەردەست نییە', 'هذا اليوم غير متاح', 'This day is not available', lang)
+              : errors[key] === 'outofrange'
+              ? t(`کات دەبێت لە نێوان ${availableHours.start} و ${availableHours.end} بێت`, `يجب أن يكون الوقت بين ${availableHours.start} و ${availableHours.end}`, `Time must be between ${availableHours.start} and ${availableHours.end}`, lang)
+              : t('ئەم خانەیە پێویستە', 'هذا الحقل مطلوب', 'This field is required', lang)
+            }
+          </p>
+        )}
+      </div>
+    )
+  }
 
   // ── Success screen ───────────────────────────────────────────
   if (reservation) {
@@ -432,7 +480,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             <i className="ri-download-2-line text-base" style={{ color: GOLD }} />
             {t('داونلۆدی QR','تحميل QR','Download QR',lang)}
           </button>
-          <button onClick={() => { setReservation(null); setForm(EMPTY) }}
+          <button onClick={() => { setReservation(null); setForm(EMPTY); setFaceImageUrl(null); setFaceScanOpen(false) }}
             className="flex items-center justify-center gap-2 px-5 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
             style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: fontStyle(lang) }}>
             <i className="ri-add-line" />
@@ -644,10 +692,130 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
         {pageTab === 'book' && (
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Form card */}
-            <div className="rounded-2xl p-6 space-y-5 relative overflow-hidden"
+            <div className="rounded-2xl overflow-hidden relative"
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(200,169,110,0.15)' }}>
               {/* Gold top accent */}
               <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
+
+              {/* ── Face ID Widget ────────────────────────────────── */}
+              <div style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+
+                {/* IDLE — click to scan */}
+                {!faceImageUrl && !faceScanOpen && !faceUploading && (
+                  <button
+                    type="button"
+                    onClick={() => setFaceScanOpen(true)}
+                    className="w-full flex items-center gap-3 px-5 py-4 group transition-all hover:bg-white/[0.03]"
+                  >
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all group-hover:scale-105"
+                      style={{ background: 'rgba(200,169,110,0.1)', border: '1px solid rgba(200,169,110,0.3)' }}>
+                      <i className="ri-scan-2-line text-lg" style={{ color: GOLD }} />
+                    </div>
+                    <div className="flex-1 text-start" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                      <p className="text-white text-sm font-semibold" style={{ fontFamily: fontStyle(lang) }}>
+                        {t('پشکنینی ناسنامەی ڕووخسار', 'التحقق من هوية الوجه', 'Face ID Verification', lang)}
+                      </p>
+                      <p className="text-white/40 text-xs mt-0.5" style={{ fontFamily: fontStyle(lang) }}>
+                        {t('کلیک بکە بۆ سکانکردنی ڕووخسار', 'انقر لمسح وجهك', 'Click to scan your face', lang)}
+                      </p>
+                    </div>
+                    <i className={`ri-arrow-${isRtl ? 'left' : 'right'}-s-line text-white/30 text-lg group-hover:text-white/60 transition-colors`} />
+                  </button>
+                )}
+
+                {/* UPLOADING */}
+                {faceUploading && (
+                  <div className="flex items-center gap-3 px-5 py-4">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                      style={{ background: 'rgba(200,169,110,0.1)', border: '1px solid rgba(200,169,110,0.3)' }}>
+                      <span className="w-5 h-5 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
+                    </div>
+                    <p className="text-white/60 text-sm" style={{ fontFamily: fontStyle(lang) }}>
+                      {t('ڕووخسار بارکراوە...', 'جاري رفع الوجه...', 'Uploading face…', lang)}
+                    </p>
+                  </div>
+                )}
+
+                {/* SCANNER OPEN */}
+                {!faceImageUrl && faceScanOpen && !faceUploading && (
+                  <div className="px-5 pt-4 pb-5">
+                    {/* Scanner header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-white text-sm font-semibold" style={{ fontFamily: fontStyle(lang) }}>
+                        {t('ڕووخسارت لە ناوەڕاست بگرە', 'ضع وجهك في المنتصف', 'Center your face in the frame', lang)}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setFaceScanOpen(false)}
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                      >
+                        <i className="ri-close-line text-base" />
+                      </button>
+                    </div>
+                    <LiveCameraCapture
+                      compact
+                      lang={lang === 'ku' ? 'ku' : lang === 'ar' ? 'ar' : 'en'}
+                      onCapture={handleFaceCapture}
+                      onSkip={() => setFaceScanOpen(false)}
+                    />
+                  </div>
+                )}
+
+                {/* VERIFIED */}
+                {faceImageUrl && !faceUploading && (
+                  <div className="flex items-center gap-3 px-5 py-3.5">
+                    <div className="relative shrink-0">
+                      <img src={faceImageUrl} alt="" className="w-10 h-10 rounded-full object-cover"
+                        style={{ border: '2px solid rgba(16,185,129,0.6)' }} />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center"
+                        style={{ border: '1.5px solid #000' }}>
+                        <i className="ri-check-line text-white text-[9px]" />
+                      </span>
+                    </div>
+                    <div className="flex-1" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
+                      <p className="text-emerald-400 text-xs font-bold flex items-center gap-1" style={{ fontFamily: fontStyle(lang) }}>
+                        <i className="ri-shield-check-fill text-xs" />
+                        {t('ڕووخسار پشکنراوە', 'تم التحقق من الوجه', 'Face Verified', lang)}
+                      </p>
+                      <p className="text-white/40 text-xs mt-0.5" style={{ fontFamily: fontStyle(lang) }}>
+                        {t('ناسنامەی ڕووخسارت پاشەکەوتکرا', 'تم حفظ صورة وجهك', 'Face image saved', lang)}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => { setFaceImageUrl(null); setFaceScanOpen(true) }}
+                      className="flex items-center gap-1 text-white/35 hover:text-white/70 text-xs transition-colors"
+                      style={{ fontFamily: fontStyle(lang) }}
+                    >
+                      <i className="ri-camera-line text-sm" />
+                      {t('دووبارە', 'إعادة', 'Retake', lang)}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* ── Form fields ───────────────────────────────────── */}
+              <div className="p-6 space-y-5 relative">
+
+                {/* Lock overlay — tap hint when fields are locked */}
+                {fieldsLocked && (
+                  <div
+                    className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-b-2xl cursor-pointer"
+                    style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(1px)' }}
+                    onClick={() => setFaceScanOpen(true)}
+                  >
+                    <div className="w-11 h-11 rounded-full flex items-center justify-center"
+                      style={{ background: 'rgba(200,169,110,0.12)', border: '1.5px solid rgba(200,169,110,0.4)' }}>
+                      <i className="ri-lock-line text-xl" style={{ color: GOLD }} />
+                    </div>
+                    <p className="text-white/80 text-sm font-semibold text-center px-6" style={{ fontFamily: fontStyle(lang) }}>
+                      {t('سەرەتا ڕووخسارت سکان بکە', 'امسح وجهك أولاً', 'Scan your face first', lang)}
+                    </p>
+                    <p className="text-white/40 text-xs text-center px-6" style={{ fontFamily: fontStyle(lang) }}>
+                      {t('کلیک بکە بۆ کردنەوەی کامێرا', 'انقر لفتح الكاميرا', 'Click to open camera', lang)}
+                    </p>
+                  </div>
+                )}
 
               {field('name',
                 t('ناوی تەواو', 'الاسم الكامل', 'Full Name', lang),
@@ -670,22 +838,30 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                 'textarea',
                 { placeholder: t('هەر تێبینییەک...', 'أي ملاحظات...', 'Any notes...', lang) }
               )}
-            </div>
+              </div>{/* /fields wrapper */}
+            </div>{/* /form card */}
 
             {/* Submit button */}
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-4 text-white font-black text-lg rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              disabled={loading || fieldsLocked}
+              onClick={fieldsLocked ? (e) => { e.preventDefault(); setFaceScanOpen(true) } : undefined}
+              className="w-full py-4 text-white font-black text-lg rounded-2xl disabled:cursor-not-allowed transition-all"
               style={{
-                background: RED,
-                border: `1px solid rgba(200,169,110,0.35)`,
-                boxShadow: '0 8px 32px rgba(122,0,0,0.4)',
+                background: fieldsLocked ? 'rgba(122,0,0,0.35)' : RED,
+                border: `1px solid rgba(200,169,110,${fieldsLocked ? '0.15' : '0.35'})`,
+                boxShadow: fieldsLocked ? 'none' : '0 8px 32px rgba(122,0,0,0.4)',
+                opacity: loading ? 0.5 : fieldsLocked ? 0.45 : 1,
                 fontFamily: fontStyle(lang),
               }}
             >
               {loading
                 ? t('ناردن...', 'جاري الإرسال...', 'Submitting...', lang)
+                : fieldsLocked
+                ? <span className="flex items-center justify-center gap-2">
+                    <i className="ri-lock-line" />
+                    {t('سەرەتا ڕووخسارت سکان بکە', 'امسح وجهك أولاً', 'Scan face first', lang)}
+                  </span>
                 : t('تۆمارکردن و وەرگرتنی QR', 'تسجيل والحصول على QR', 'Submit & Get QR Code', lang)
               }
             </button>

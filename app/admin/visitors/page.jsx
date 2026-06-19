@@ -1026,6 +1026,7 @@ export default function VisitorsPage() {
                 <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Date</th>
                 <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Time</th>
                 <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Note</th>
+                <th className="hidden md:table-cell px-4 py-3 text-center text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Face</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Status</th>
                 <th className="hidden md:table-cell px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Created</th>
                 <th className="px-2 sm:px-4 py-3 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider whitespace-nowrap">Actions</th>
@@ -1068,6 +1069,20 @@ export default function VisitorsPage() {
                   <td className="hidden md:table-cell px-4 py-3 text-gray-600 whitespace-nowrap">{r.date}</td>
                   <td className="hidden md:table-cell px-4 py-3 text-gray-600 whitespace-nowrap">{r.time?.slice(0, 5)}</td>
                   <td className="hidden md:table-cell px-4 py-3 text-gray-400 max-w-[130px] truncate italic">{r.note || '—'}</td>
+                  <td className="hidden md:table-cell px-4 py-3 text-center">
+                    {r.face_image_url
+                      ? (
+                        <img
+                          src={r.face_image_url}
+                          alt="Face"
+                          className="w-9 h-9 rounded-full object-cover mx-auto ring-2 ring-emerald-400/60 cursor-pointer hover:ring-emerald-500 transition-all"
+                          onClick={() => setQrModal(r)}
+                          title="Click to view details"
+                        />
+                      )
+                      : <span className="inline-block w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center mx-auto text-gray-300 text-xs">—</span>
+                    }
+                  </td>
                   <td className="px-4 py-3">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${STATUS_STYLES[r.status]}`}>
                       {STATUS_LABELS[r.status]}
@@ -1165,6 +1180,26 @@ export default function VisitorsPage() {
               </div>
             </div>
 
+            {/* Face image (if captured) */}
+            {qrModal.face_image_url && (
+              <div className="flex flex-col items-center gap-2 px-5 pb-4">
+                <div className="relative">
+                  <img
+                    src={qrModal.face_image_url}
+                    alt="Visitor face"
+                    className="w-20 h-20 rounded-full object-cover ring-2 ring-emerald-400/60"
+                  />
+                  <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414L8.414 15l-4.121-4.121a1 1 0 011.414-1.414L8.414 12.172l7.879-7.879a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                  </span>
+                </div>
+                <span className="text-xs font-medium text-emerald-600 flex items-center gap-1">
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/></svg>
+                  Face ID Captured
+                </span>
+              </div>
+            )}
+
             {/* Details */}
             <div className="px-5 pb-4 border-t border-gray-100 pt-4 space-y-2.5">
               {[
@@ -1230,9 +1265,20 @@ export default function VisitorsPage() {
             {/* Guest info */}
             <div className="px-5 py-4 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <span className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
-                  {longPressRow.name?.trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
-                </span>
+                {longPressRow.face_image_url
+                  ? (
+                    <img
+                      src={longPressRow.face_image_url}
+                      alt="Face"
+                      className="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-emerald-400/60"
+                    />
+                  )
+                  : (
+                    <span className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white text-sm font-bold shrink-0">
+                      {longPressRow.name?.trim().split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+                    </span>
+                  )
+                }
                 <div className="min-w-0">
                   <p className="font-bold text-gray-900">{longPressRow.name}</p>
                   <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-2 flex-wrap">

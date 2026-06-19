@@ -1,5 +1,9 @@
-import { redirect } from 'next/navigation'
+import ReservePageContent from '../../components/ReservePageContent'
+
+export const metadata = {
+  title: 'داواکاری سەردانکردن — مۆزەخانەی ئەمنە سورەکە',
+}
 
 export default function Page() {
-  redirect('/kurdish')
+  return <ReservePageContent initialLang="ku" />
 }

@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase-client'
 
 const defaultCategories = [
@@ -223,7 +223,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
                 {/* Read more hint */}
                 <div className="flex items-center gap-2 mt-2">
                   <span className="text-[#c8a96e] text-xs font-semibold tracking-wide" style={font}>
-                    {isAr ? 'اقرأ المزيد' : isKu ? 'زیاتر بخوێنەوە' : 'Read more'}
+                    {isAr ? 'اقرأ المزيد' : isKu ? 'زیاتر ' : 'Read more'}
                   </span>
                   <i className={`ri-arrow-${isAr ? 'left' : 'right'}-line text-[#c8a96e] text-xs`} />
                 </div>

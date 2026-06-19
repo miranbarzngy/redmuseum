@@ -14,7 +14,7 @@ export async function POST(request) {
   })
 
   const body = await request.json()
-  const { name, guest_count, phone, date, time, note } = body
+  const { name, guest_count, phone, date, time, note, face_image_url } = body
 
   if (!name || !guest_count || !phone || !date || !time) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -45,19 +45,37 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Note too long (max 500 characters)' }, { status: 400 })
   }
 
-  const { data, error } = await supabase
+  // Validate and sanitise optional face_image_url
+  const faceUrl = (typeof face_image_url === 'string' && face_image_url.startsWith('https://'))
+    ? face_image_url.slice(0, 500)
+    : null
+
+  const payload = {
+    name: nameStr,
+    guest_count: guestNum,
+    phone: phoneStr,
+    date,
+    time,
+    note: noteStr,
+    status: 'pending',
+    ...(faceUrl ? { face_image_url: faceUrl } : {}),
+  }
+
+  let { data, error } = await supabase
     .from('reservations')
-    .insert([{
-      name: nameStr,
-      guest_count: guestNum,
-      phone: phoneStr,
-      date,
-      time,
-      note: noteStr,
-      status: 'pending'
-    }])
+    .insert([payload])
     .select()
     .single()
+
+  // Graceful fallback if face_image_url column doesn't exist yet in schema
+  if (error && faceUrl && error.message.includes('face_image_url')) {
+    delete payload.face_image_url
+    ;({ data, error } = await supabase
+      .from('reservations')
+      .insert([payload])
+      .select()
+      .single())
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 })
