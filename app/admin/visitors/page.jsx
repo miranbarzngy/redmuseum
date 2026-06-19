@@ -45,6 +45,7 @@ export default function VisitorsPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [qrModal, setQrModal] = useState(null)
+  const [faceModal, setFaceModal] = useState(null)  // { url, name }
   const [filterFrom, setFilterFrom] = useState('')
   const [filterTo, setFilterTo] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
@@ -1072,15 +1073,29 @@ export default function VisitorsPage() {
                   <td className="hidden md:table-cell px-4 py-3 text-center">
                     {r.face_image_url
                       ? (
-                        <img
-                          src={r.face_image_url}
-                          alt="Face"
-                          className="w-9 h-9 rounded-full object-cover mx-auto ring-2 ring-emerald-400/60 cursor-pointer hover:ring-emerald-500 transition-all"
-                          onClick={() => setQrModal(r)}
-                          title="Click to view details"
-                        />
+                        <button
+                          onClick={() => setFaceModal({ url: r.face_image_url, name: r.name })}
+                          className="relative inline-block group"
+                          title="Click to view face photo"
+                        >
+                          <img
+                            src={r.face_image_url}
+                            alt="Face"
+                            className="w-11 h-11 rounded-xl object-cover ring-2 ring-emerald-400/70 group-hover:ring-emerald-500 transition-all shadow-sm"
+                          />
+                          <span className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 rounded-xl transition-all">
+                            <svg className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+                          </span>
+                          <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center border border-white">
+                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"/></svg>
+                          </span>
+                        </button>
                       )
-                      : <span className="inline-block w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center mx-auto text-gray-300 text-xs">—</span>
+                      : (
+                        <div className="w-11 h-11 rounded-xl bg-gray-100 flex items-center justify-center mx-auto text-gray-300">
+                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                        </div>
+                      )
                     }
                   </td>
                   <td className="px-4 py-3">
@@ -1183,19 +1198,26 @@ export default function VisitorsPage() {
             {/* Face image (if captured) */}
             {qrModal.face_image_url && (
               <div className="flex flex-col items-center gap-2 px-5 pb-4">
-                <div className="relative">
+                <button
+                  onClick={() => { setQrModal(null); setFaceModal({ url: qrModal.face_image_url, name: qrModal.name }) }}
+                  className="relative group"
+                  title="Click to view full face photo"
+                >
                   <img
                     src={qrModal.face_image_url}
                     alt="Visitor face"
-                    className="w-20 h-20 rounded-full object-cover ring-2 ring-emerald-400/60"
+                    className="w-24 h-24 rounded-2xl object-cover ring-2 ring-emerald-400/60 group-hover:ring-emerald-500 transition-all"
                   />
-                  <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white text-xs">
-                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414L8.414 15l-4.121-4.121a1 1 0 011.414-1.414L8.414 12.172l7.879-7.879a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 rounded-2xl transition-all">
+                    <svg className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+                  </div>
+                  <span className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center border-2 border-white">
+                    <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5 text-white"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414L8.414 15l-4.121-4.121a1 1 0 011.414-1.414L8.414 12.172l7.879-7.879a1 1 0 011.414 0z" clipRule="evenodd"/></svg>
                   </span>
-                </div>
+                </button>
                 <span className="text-xs font-medium text-emerald-600 flex items-center gap-1">
                   <svg viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/></svg>
-                  Face ID Captured
+                  Face ID Captured · tap to enlarge
                 </span>
               </div>
             )}
@@ -1243,6 +1265,65 @@ export default function VisitorsPage() {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Face Image Lightbox */}
+      {faceModal && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 backdrop-blur-sm"
+          onClick={() => setFaceModal(null)}
+        >
+          <div
+            className="relative flex flex-col items-center gap-4 p-5 rounded-3xl shadow-2xl max-w-sm w-full mx-4"
+            style={{ background: '#111' }}
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Close */}
+            <button
+              onClick={() => setFaceModal(null)}
+              className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors z-10"
+            >
+              <X size={15} />
+            </button>
+
+            {/* Header */}
+            <div className="flex items-center gap-2 w-full pt-1">
+              <div className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div>
+                <p className="text-white text-sm font-bold">{faceModal.name}</p>
+                <p className="text-emerald-400 text-xs font-medium">Face ID Verified</p>
+              </div>
+            </div>
+
+            {/* Face photo */}
+            <div className="relative">
+              <img
+                src={faceModal.url}
+                alt={faceModal.name}
+                className="rounded-2xl object-cover shadow-2xl"
+                style={{ width: 260, height: 320, border: '2px solid rgba(16,185,129,0.5)' }}
+              />
+              {/* Emerald glow overlay on edges */}
+              <div className="absolute inset-0 rounded-2xl pointer-events-none"
+                style={{ boxShadow: 'inset 0 0 0 1.5px rgba(16,185,129,0.4)' }} />
+            </div>
+
+            {/* Badge */}
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-600/20 border border-emerald-500/30">
+              <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
+              <span className="text-emerald-300 text-xs font-semibold">Identity Verified via Face Scan</span>
+            </div>
+
+            <button
+              onClick={() => setFaceModal(null)}
+              className="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-sm font-semibold transition-colors"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

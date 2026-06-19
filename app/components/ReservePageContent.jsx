@@ -199,10 +199,25 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       img.src = faceImageUrl
     }) : null
 
+    // Helper: draw image with object-cover (center-crop to fill box)
+    const drawCover = (ctx, img, x, y, w, h) => {
+      const imgR = img.naturalWidth / img.naturalHeight
+      const boxR = w / h
+      let sx, sy, sw, sh
+      if (imgR > boxR) {
+        sh = img.naturalHeight; sw = sh * boxR
+        sx = (img.naturalWidth - sw) / 2; sy = 0
+      } else {
+        sw = img.naturalWidth; sh = sw / boxR
+        sx = 0; sy = (img.naturalHeight - sh) / 2
+      }
+      ctx.drawImage(img, sx, sy, sw, sh, x, y, w, h)
+    }
+
     // Generate QR as image
     const hasFace = !!faceImg
     const qrUrl = `${window.location.origin}/reservation/${reservation.id}`
-    const qrPixels = hasFace ? 300 : 464
+    const qrPixels = hasFace ? 320 : 464
     const qrDataUrl = await QRCode.toDataURL(qrUrl, { width: qrPixels, margin: 2, errorCorrectionLevel: 'H', color: { dark: '#0a0a0a', light: '#ffffff' } })
     const qrImg = await new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = qrDataUrl })
 
@@ -211,10 +226,11 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     const FOOTER_H = 96
 
     // QR + face row
-    const QR_SIZE  = hasFace ? 240 : W - PAD * 2   // QR square size
-    const FACE_W   = hasFace ? 168 : 0              // face panel width
+    // Face panel: 160px wide, same height as QR, face image is square (1:1 crop)
+    const QR_SIZE  = hasFace ? 264 : W - PAD * 2
+    const FACE_W   = hasFace ? 176 : 0
     const FACE_GAP = hasFace ? 16  : 0
-    const ROW_PAD  = 24                              // top/bottom padding inside dark row
+    const ROW_PAD  = 24
     const ROW_H    = QR_SIZE + ROW_PAD * 2
 
     const H = LOGO_H + GOLD_H + TITLE_H + GOLD_H + ROW_H + FOOTER_H + 5
@@ -275,40 +291,53 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     ctx.fillStyle = '#111111'; ctx.fillRect(0, y, W, ROW_H)
 
     if (hasFace) {
-      // Centre the QR+gap+face group horizontally
-      const groupW  = QR_SIZE + FACE_GAP + FACE_W
-      const groupX  = (W - groupW) / 2
-      const itemY   = y + ROW_PAD
+      const groupW = QR_SIZE + FACE_GAP + FACE_W
+      const groupX = (W - groupW) / 2
+      const itemY  = y + ROW_PAD
 
-      // QR block (white rounded card)
+      // ── QR block (white rounded card) ──
       ctx.fillStyle = '#ffffff'
       ctx.beginPath(); ctx.roundRect(groupX, itemY, QR_SIZE, QR_SIZE, 10); ctx.fill()
-      ctx.drawImage(qrImg, groupX + 6, itemY + 6, QR_SIZE - 12, QR_SIZE - 12)
+      // slight inset so QR doesn't bleed to edges
+      ctx.drawImage(qrImg, groupX + 8, itemY + 8, QR_SIZE - 16, QR_SIZE - 16)
 
-      // Face panel
-      const faceX    = groupX + QR_SIZE + FACE_GAP
-      const BADGE_H  = 26
-      const IMG_H    = QR_SIZE - BADGE_H - 8   // image area, leaving room for badge
+      // ── Face panel ──
+      const faceX   = groupX + QR_SIZE + FACE_GAP
+      const IP      = 6     // inner padding around face image
+      // Face image occupies top portion, badge sits below
+      const BADGE_H = 28
+      const LABEL_H = 18    // "Face ID" label line
+      const IMG_W   = FACE_W - IP * 2
+      // Keep face image at 4:5 portrait ratio (good for close-up selfie)
+      const IMG_H   = Math.round(IMG_W * 1.25)
+      const PANEL_H = IP + IMG_H + 6 + BADGE_H + 4 + LABEL_H + IP
+      // Vertically centre the panel within QR_SIZE
+      const panelY  = itemY + Math.max(0, (QR_SIZE - PANEL_H) / 2)
 
-      // Panel background + emerald border
+      // Panel background
       ctx.fillStyle = '#1a1a1a'
-      ctx.beginPath(); ctx.roundRect(faceX, itemY, FACE_W, QR_SIZE, 10); ctx.fill()
-      ctx.strokeStyle = '#10b981'; ctx.lineWidth = 1.5
-      ctx.beginPath(); ctx.roundRect(faceX, itemY, FACE_W, QR_SIZE, 10); ctx.stroke()
+      ctx.beginPath(); ctx.roundRect(faceX, panelY, FACE_W, PANEL_H, 12); ctx.fill()
+      ctx.strokeStyle = 'rgba(16,185,129,0.6)'; ctx.lineWidth = 1.5
+      ctx.beginPath(); ctx.roundRect(faceX, panelY, FACE_W, PANEL_H, 12); ctx.stroke()
 
-      // Face image clipped to rounded rect
-      const IP = 5   // inner padding
+      // Face image with object-cover center crop + rounded clip
       ctx.save()
-      ctx.beginPath(); ctx.roundRect(faceX + IP, itemY + IP, FACE_W - IP * 2, IMG_H, 7); ctx.clip()
-      ctx.drawImage(faceImg, faceX + IP, itemY + IP, FACE_W - IP * 2, IMG_H)
+      ctx.beginPath(); ctx.roundRect(faceX + IP, panelY + IP, IMG_W, IMG_H, 8); ctx.clip()
+      drawCover(ctx, faceImg, faceX + IP, panelY + IP, IMG_W, IMG_H)
       ctx.restore()
 
-      // Emerald "Verified" badge at bottom of face panel
-      const badgeY = itemY + IMG_H + 5
+      // Emerald verified badge
+      const badgeY = panelY + IP + IMG_H + 6
       ctx.fillStyle = '#10b981'
-      ctx.beginPath(); ctx.roundRect(faceX + 8, badgeY, FACE_W - 16, BADGE_H - 5, 6); ctx.fill()
-      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 10px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'
-      ctx.fillText('✓  Face Verified', faceX + FACE_W / 2, badgeY + (BADGE_H - 5) / 2)
+      ctx.beginPath(); ctx.roundRect(faceX + IP, badgeY, IMG_W, BADGE_H, 7); ctx.fill()
+      ctx.fillStyle = '#ffffff'; ctx.font = 'bold 11px Arial'
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'
+      ctx.fillText('✓  Face Verified', faceX + FACE_W / 2, badgeY + BADGE_H / 2)
+
+      // "Face ID" sub-label
+      const labelY = badgeY + BADGE_H + 4
+      ctx.fillStyle = '#6b7280'; ctx.font = '9px Arial'
+      ctx.fillText('Face ID', faceX + FACE_W / 2, labelY + LABEL_H / 2)
     } else {
       // No face — QR full width centred
       const qx = (W - QR_SIZE) / 2
@@ -969,7 +998,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             {/* Submit button */}
             <button
               type="submit"
-              disabled={loading || fieldsLocked}
+              disabled={loading || fieldsLocked || faceUploading}
               onClick={fieldsLocked ? (e) => { e.preventDefault(); setFaceScanOpen(true) } : undefined}
               className="w-full py-4 text-white font-black text-lg rounded-2xl disabled:cursor-not-allowed transition-all"
               style={{
@@ -982,6 +1011,11 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             >
               {loading
                 ? t('ناردن...', 'جاري الإرسال...', 'Submitting...', lang)
+                : faceUploading
+                ? <span className="flex items-center justify-center gap-2">
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
+                    {t('چاوەڕوانی بارکردنی ڕووخسار...', 'جاري رفع صورة الوجه...', 'Uploading face…', lang)}
+                  </span>
                 : fieldsLocked
                 ? <span className="flex items-center justify-center gap-2">
                     <i className="ri-lock-line" />
