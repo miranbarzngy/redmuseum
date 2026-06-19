@@ -9,6 +9,7 @@ import {
   Users, CalendarDays, Clock, Search, X, QrCode, Printer, Download,
   CheckCircle2, Trash2, Filter, SlidersHorizontal, UserCheck,
   Users2, Hourglass, Check, RefreshCw, Palette, Loader2, ChevronDown,
+  Eye, Phone, Calendar, Hash, FileText, UserCircle2, ShieldCheck,
 } from 'lucide-react'
 
 const STATUS_STYLES = {
@@ -46,6 +47,7 @@ export default function VisitorsPage() {
   const [search, setSearch] = useState('')
   const [qrModal, setQrModal] = useState(null)
   const [faceModal, setFaceModal] = useState(null)  // { url, name }
+  const [viewModal, setViewModal] = useState(null)  // full reservation object
   const [filterFrom, setFilterFrom] = useState('')
   const [filterTo, setFilterTo] = useState('')
   const [filterStatus, setFilterStatus] = useState('')
@@ -1110,6 +1112,13 @@ export default function VisitorsPage() {
                   <td className="pl-2 pr-4 sm:px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-1">
                       <button
+                        onClick={() => setViewModal(r)}
+                        className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-gradient-to-br from-indigo-600 to-indigo-800 hover:from-indigo-700 hover:to-indigo-900 text-white rounded-lg text-xs font-medium transition-all shadow-sm shadow-indigo-950/30"
+                      >
+                        <Eye size={12} />
+                        <span className="hidden sm:inline">View</span>
+                      </button>
+                      <button
                         onClick={() => setQrModal(r)}
                         className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-medium transition-colors"
                       >
@@ -1268,6 +1277,243 @@ export default function VisitorsPage() {
           </div>
         </div>
       )}
+
+      {/* ── High-end Reservation View Modal ── */}
+      {viewModal && (() => {
+        const r = viewModal
+        const sc = STATUS_STYLES[r.status] || STATUS_STYLES.pending
+        const statusLabel = STATUS_LABELS[r.status] || r.status
+        const statusDot = { pending: '#f59e0b', approved: '#6366f1', visited: '#10b981' }[r.status] || '#f59e0b'
+        const ref = r.id.slice(0, 8).toUpperCase()
+        const dateFormatted = r.date
+          ? new Date(r.date + 'T00:00:00').toLocaleDateString('en-GB', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+          : '—'
+        const timeFormatted = (() => {
+          const t = r.time?.slice(0, 5)
+          if (!t) return '—'
+          const [h, m] = t.split(':').map(Number)
+          return `${String(h % 12 || 12).padStart(2, '0')}:${String(m).padStart(2, '0')} ${h >= 12 ? 'PM' : 'AM'}`
+        })()
+        const createdAt = r.created_at
+          ? new Date(r.created_at).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })
+          : '—'
+
+        return (
+          <div
+            className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+            style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(6px)' }}
+            onClick={() => setViewModal(null)}
+          >
+            <div
+              className="relative w-full max-w-3xl rounded-3xl overflow-hidden shadow-2xl flex flex-col"
+              style={{ background: '#0f0f13', maxHeight: '90vh' }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* ── Header bar ── */}
+              <div className="flex items-center justify-between px-6 py-4 shrink-0"
+                style={{ background: 'linear-gradient(135deg, #7a0000 0%, #3d0000 100%)', borderBottom: '1px solid rgba(200,169,110,0.25)' }}>
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center">
+                    <UserCircle2 size={18} className="text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-white font-bold text-base leading-tight">{r.name}</h2>
+                    <p className="text-[11px] font-mono text-white/50 mt-0.5">REF #{ref}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${sc}`}>
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: statusDot }} />
+                    {statusLabel}
+                  </span>
+                  <button
+                    onClick={() => setViewModal(null)}
+                    className="w-8 h-8 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Gold accent line */}
+              <div className="h-[2px] shrink-0" style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
+
+              {/* ── Body ── */}
+              <div className="flex flex-col md:flex-row gap-0 overflow-y-auto flex-1 min-h-0">
+
+                {/* Left column: face + QR */}
+                <div className="md:w-56 shrink-0 flex flex-col items-center gap-5 px-6 py-6"
+                  style={{ background: 'rgba(255,255,255,0.02)', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+
+                  {/* Face photo */}
+                  {r.face_image_url ? (
+                    <div className="flex flex-col items-center gap-2 w-full">
+                      <button
+                        onClick={() => { setViewModal(null); setFaceModal({ url: r.face_image_url, name: r.name }) }}
+                        className="relative group"
+                        title="Click to enlarge"
+                      >
+                        <img
+                          src={r.face_image_url}
+                          alt={r.name}
+                          className="rounded-2xl object-cover group-hover:brightness-110 transition-all"
+                          style={{ width: 176, height: 220, border: '2px solid rgba(16,185,129,0.45)', boxShadow: '0 8px 32px rgba(16,185,129,0.15)' }}
+                        />
+                        <div className="absolute inset-0 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all" style={{ background: 'rgba(0,0,0,0.25)' }}>
+                          <Eye size={20} className="text-white" />
+                        </div>
+                        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-bold text-white whitespace-nowrap"
+                          style={{ background: '#10b981', border: '1.5px solid #0f0f13' }}>
+                          <ShieldCheck size={9} />
+                          Face Verified
+                        </div>
+                      </button>
+                      <p className="text-gray-600 text-[10px] uppercase tracking-wider mt-3">Face ID</p>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="rounded-2xl flex items-center justify-center"
+                        style={{ width: 176, height: 176, background: 'rgba(255,255,255,0.04)', border: '2px dashed rgba(255,255,255,0.1)' }}>
+                        <div className="flex flex-col items-center gap-2 text-gray-600">
+                          <UserCircle2 size={40} strokeWidth={1} />
+                          <span className="text-[11px]">No Face ID</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* QR code */}
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="p-3 rounded-xl" style={{ background: '#fff' }}>
+                      <QRCodeSVG
+                        value={`${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${r.id}`}
+                        size={120}
+                        bgColor="#ffffff"
+                        fgColor="#0a0a0a"
+                        level="H"
+                      />
+                    </div>
+                    <p className="text-gray-600 text-[10px] uppercase tracking-wider">Scan to Verify</p>
+                  </div>
+                </div>
+
+                {/* Right column: all details */}
+                <div className="flex-1 px-6 py-6 space-y-4 overflow-y-auto">
+
+                  {/* Details grid */}
+                  <div>
+                    <p className="text-[10px] font-semibold text-gray-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                      <FileText size={10} /> Reservation Details
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {[
+                        { icon: UserCircle2, label: 'Full Name',     value: r.name,           wide: true  },
+                        { icon: Phone,       label: 'Phone Number',  value: r.phone,           mono: true  },
+                        { icon: Users,       label: 'Guests',        value: `${r.guest_count} ${Number(r.guest_count) === 1 ? 'person' : 'people'}` },
+                        { icon: Calendar,    label: 'Visit Date',    value: dateFormatted,     wide: true  },
+                        { icon: Clock,       label: 'Visit Time',    value: timeFormatted                  },
+                        { icon: Hash,        label: 'Reservation ID', value: ref,              mono: true  },
+                      ].map(({ icon: Icon, label, value, wide, mono }) => (
+                        <div key={label}
+                          className={`rounded-xl px-4 py-3 ${wide ? 'sm:col-span-2' : ''}`}
+                          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <Icon size={10} className="text-amber-500/70" />
+                            <span className="text-[10px] text-gray-500 uppercase tracking-wider">{label}</span>
+                          </div>
+                          <p className={`font-semibold text-white text-sm ${mono ? 'font-mono tracking-wide' : ''}`}>{value}</p>
+                        </div>
+                      ))}
+
+                      {/* Status */}
+                      <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <ShieldCheck size={10} className="text-amber-500/70" />
+                          <span className="text-[10px] text-gray-500 uppercase tracking-wider">Status</span>
+                        </div>
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${sc}`}>
+                          <span className="w-1.5 h-1.5 rounded-full" style={{ background: statusDot }} />
+                          {statusLabel}
+                        </span>
+                      </div>
+
+                      {/* Submitted */}
+                      <div className="rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                        <div className="flex items-center gap-1.5 mb-1">
+                          <CalendarDays size={10} className="text-amber-500/70" />
+                          <span className="text-[10px] text-gray-500 uppercase tracking-wider">Submitted</span>
+                        </div>
+                        <p className="text-white text-xs font-mono">{createdAt}</p>
+                      </div>
+
+                      {/* Note */}
+                      {r.note && (
+                        <div className="sm:col-span-2 rounded-xl px-4 py-3" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
+                          <div className="flex items-center gap-1.5 mb-1">
+                            <FileText size={10} className="text-amber-500/70" />
+                            <span className="text-[10px] text-gray-500 uppercase tracking-wider">Note</span>
+                          </div>
+                          <p className="text-gray-300 text-sm italic">{r.note}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="h-px" style={{ background: 'rgba(255,255,255,0.07)' }} />
+
+                  {/* Action buttons */}
+                  <div className="flex flex-wrap gap-2">
+                    {r.status === 'pending' && (
+                      <button
+                        onClick={() => { updateStatus(r.id, 'approved'); setViewModal(p => ({ ...p, status: 'approved' })) }}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+                        style={{ background: 'linear-gradient(135deg,#4f46e5,#3730a3)', boxShadow: '0 4px 14px rgba(79,70,229,0.35)' }}
+                      >
+                        <Check size={14} /> Approve
+                      </button>
+                    )}
+                    {r.status === 'approved' && (
+                      <button
+                        onClick={() => { updateStatus(r.id, 'visited'); setViewModal(p => ({ ...p, status: 'visited' })) }}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+                        style={{ background: 'linear-gradient(135deg,#059669,#047857)', boxShadow: '0 4px 14px rgba(5,150,105,0.35)' }}
+                      >
+                        <CheckCircle2 size={14} /> Mark as Visited
+                      </button>
+                    )}
+                    <button
+                      onClick={() => { printGuest(r) }}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+                      style={{ background: 'linear-gradient(135deg,#374151,#1f2937)', boxShadow: '0 4px 14px rgba(0,0,0,0.3)' }}
+                    >
+                      <Printer size={14} /> Print Pass
+                    </button>
+                    <button
+                      onClick={() => { setViewModal(null); setQrModal(r) }}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-white transition-all"
+                      style={{ background: 'linear-gradient(135deg,#1e293b,#0f172a)', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                      <QrCode size={14} /> QR Code
+                    </button>
+                    <button
+                      onClick={() => { if (confirm(`Delete reservation for ${r.name}?`)) { handleDelete(r.id); setViewModal(null) } }}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all ml-auto"
+                      style={{ background: 'rgba(239,68,68,0.12)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171' }}
+                    >
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+
+              {/* Bottom gold bar */}
+              <div className="h-[3px] shrink-0" style={{ background: 'linear-gradient(to right, #7a0000, #c8a96e, #7a0000)' }} />
+            </div>
+          </div>
+        )
+      })()}
 
       {/* Face Image Lightbox */}
       {faceModal && (
