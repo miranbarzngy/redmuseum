@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
-const MAX_BYTES = 2 * 1024 * 1024  // 2 MB max for face captures
+const MAX_BYTES = 512 * 1024  // 512 KB max — client compresses to ~40-80 KB before upload
 
 export async function POST(request) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL

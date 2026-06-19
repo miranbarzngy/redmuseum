@@ -79,6 +79,23 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   }
 
   // Upload captured face data URL → Supabase storage
+  // Resize & compress a face dataUrl to at most maxPx on the longest side at JPEG quality 0-1
+  const compressFace = (dataUrl, maxPx = 480, quality = 0.78) =>
+    new Promise(resolve => {
+      const img = new Image()
+      img.onload = () => {
+        const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+        const w = Math.round(img.width * scale)
+        const h = Math.round(img.height * scale)
+        const c = document.createElement('canvas')
+        c.width = w; c.height = h
+        c.getContext('2d').drawImage(img, 0, 0, w, h)
+        resolve(c.toDataURL('image/jpeg', quality))
+      }
+      img.onerror = () => resolve(dataUrl)   // fallback: use original
+      img.src = dataUrl
+    })
+
   const handleFaceCapture = async (dataUrl) => {
     // Unlock the form immediately — upload is for admin review only
     setFaceVerified(true)
@@ -86,7 +103,9 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     setFaceImageUrl(dataUrl)   // show local preview while uploading
     setFaceUploading(true)
     try {
-      const res  = await fetch(dataUrl)
+      // Compress to ≤480px / 78% JPEG before upload (~40-80 KB vs raw 1-5 MB)
+      const compressed = await compressFace(dataUrl, 480, 0.78)
+      const res  = await fetch(compressed)
       const blob = await res.blob()
       const fd   = new FormData()
       fd.append('face', blob, 'face.jpg')
