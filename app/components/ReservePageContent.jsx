@@ -84,17 +84,29 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     new Promise(resolve => {
       const img = new Image()
       img.onload = () => {
-        const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
-        const w = Math.round(img.width * scale)
-        const h = Math.round(img.height * scale)
-        const c = document.createElement('canvas')
-        c.width = w; c.height = h
-        c.getContext('2d').drawImage(img, 0, 0, w, h)
-        resolve(c.toDataURL('image/jpeg', quality))
+        try {
+          const scale = Math.min(1, maxPx / Math.max(img.width, img.height))
+          const w = Math.round(img.width * scale)
+          const h = Math.round(img.height * scale)
+          const c = document.createElement('canvas')
+          c.width = w; c.height = h
+          c.getContext('2d').drawImage(img, 0, 0, w, h)
+          resolve(c.toDataURL('image/jpeg', quality))
+        } catch { resolve(dataUrl) }
       }
-      img.onerror = () => resolve(dataUrl)   // fallback: use original
+      img.onerror = () => resolve(dataUrl)
       img.src = dataUrl
     })
+
+  // Convert a data URL to Blob directly — avoids fetch(dataUrl) which fails on iOS Safari
+  const dataUrlToBlob = (dataUrl) => {
+    const [header, b64] = dataUrl.split(',')
+    const mime = header.match(/:(.*?);/)[1]
+    const binary = atob(b64)
+    const bytes = new Uint8Array(binary.length)
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+    return new Blob([bytes], { type: mime })
+  }
 
   const handleFaceCapture = async (dataUrl) => {
     // Unlock the form immediately — upload is for admin review only
@@ -103,11 +115,11 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     setFaceImageUrl(dataUrl)   // show local preview while uploading
     setFaceUploading(true)
     try {
-      // Compress to ≤480px / 78% JPEG before upload (~40-80 KB vs raw 1-5 MB)
+      // 1. Compress to ≤480px / 78% JPEG (~40-80 KB vs raw 1-5 MB)
       const compressed = await compressFace(dataUrl, 480, 0.78)
-      const res  = await fetch(compressed)
-      const blob = await res.blob()
-      const fd   = new FormData()
+      // 2. Convert data URL → Blob without fetch() (reliable on iOS Safari & all browsers)
+      const blob = dataUrlToBlob(compressed)
+      const fd = new FormData()
       fd.append('face', blob, 'face.jpg')
       const r    = await fetch('/api/reserve/upload-face', { method: 'POST', body: fd })
       const json = await r.json()
