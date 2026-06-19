@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type FaceApiModule = typeof import('face-api.js')
-type ScanState = 'loading' | 'searching' | 'locked' | 'captured' | 'error'
+type ScanState = 'loading' | 'searching' | 'locked' | 'captured' | 'error' | 'model-error'
 
 interface Props {
   onCapture: (dataUrl: string) => void
@@ -16,49 +16,53 @@ interface Props {
 // ─── Translations ─────────────────────────────────────────────────────────────
 const T = {
   ku: {
-    title:     'پشکنینی ناسنامەی ڕووخسار',
-    subtitle:  'ڕوخسارت سکان بکە',
-    loading:   'مۆدێل بارکراوە...',
-    searching: 'تکایە ڕوخسارت بهێنە ناوەڕاستی چوارچێوەکە',
-    locked:    'ڕووخسار ڕێکە، ئێستا چاو بتروکێنە',
-    captured:  'ڕووخسار تۆمارکرا!',
-    error:     'کامێرا نەکرایەوە — مۆڵەتی کامێرا چالاک بکە',
-    skip:      'تێپەڕاندن (بێ ڕووخسار)',
-    retake:    'دووبارە وەرگرتن',
-    confirm:   'پشکنین و بەردەوامبوون',
+    title:      'پشکنینی ناسنامەی ڕووخسار',
+    subtitle:   'ڕوخسارت سکان بکە',
+    loading:    'مۆدێل بارکراوە...',
+    searching:  'تکایە ڕوخسارت بهێنە ناوەڕاستی چوارچێوەکە',
+    locked:     'ڕووخسار ڕێکە، ئێستا چاو بتروکێنە',
+    captured:   'ڕووخسار تۆمارکرا!',
+    error:      'کامێرا نەکرایەوە — مۆڵەتی کامێرا چالاک بکە',
+    modelError: 'نەتوانرا مۆدێلی دیاریکردنی ڕووخسار بار بکرێت',
+    skip:       'تێپەڕاندن (بێ ڕووخسار)',
+    retake:     'دووبارە وەرگرتن',
+    confirm:    'پشکنین و بەردەوامبوون',
   },
   ar: {
-    title:     'التحقق من هوية الوجه',
-    subtitle:  'ضع وجهك مباشرةً أمام الكاميرا',
-    loading:   'جاري تحميل النموذج...',
-    searching: 'يرجى توسيط وجهك داخل الإطار',
-    locked:    'الوجه في الموضع الصحيح، ابقَ ثابتاً',
-    captured:  'تم التقاط الوجه!',
-    error:     'تعذر الوصول إلى الكاميرا — يرجى منح الإذن',
-    skip:      'تخطي (بدون وجه)',
-    retake:    'إعادة الالتقاط',
-    confirm:   'تأكيد والمتابعة',
+    title:      'التحقق من هوية الوجه',
+    subtitle:   'ضع وجهك مباشرةً أمام الكاميرا',
+    loading:    'جاري تحميل النموذج...',
+    searching:  'يرجى توسيط وجهك داخل الإطار',
+    locked:     'الوجه في الموضع الصحيح، ابقَ ثابتاً',
+    captured:   'تم التقاط الوجه!',
+    error:      'تعذر الوصول إلى الكاميرا — يرجى منح الإذن',
+    modelError: 'فشل تحميل نموذج الكشف عن الوجه',
+    skip:       'تخطي (بدون وجه)',
+    retake:     'إعادة الالتقاط',
+    confirm:    'تأكيد والمتابعة',
   },
   en: {
-    title:     'Face ID Verification',
-    subtitle:  'Look directly at the camera',
-    loading:   'Loading detection model…',
-    searching: 'Please center your face inside the frame',
-    locked:    'Face aligned — hold still',
-    captured:  'Face captured!',
-    error:     'Camera access denied — please allow camera',
-    skip:      'Skip (no face)',
-    retake:    'Retake',
-    confirm:   'Confirm & Continue',
+    title:      'Face ID Verification',
+    subtitle:   'Look directly at the camera',
+    loading:    'Loading detection model…',
+    searching:  'Please center your face inside the frame',
+    locked:     'Face aligned — hold still',
+    captured:   'Face captured!',
+    error:      'Camera access denied — please allow camera',
+    modelError: 'Failed to load face detection model',
+    skip:       'Skip (no face)',
+    retake:     'Retake',
+    confirm:    'Confirm & Continue',
   },
 }
 type Tx = typeof T['ku']
 
 // ─── Config ───────────────────────────────────────────────────────────────────
-const MODEL_CDN    = 'https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights'
+// Models served locally from public/models/ — avoids CORS and CDN failures on mobile
+const MODEL_PATH   = '/models'
 const LOCK_HOLD_MS = 1500
 const DETECT_PAUSE = 120
-const INPUT_SIZE   = 320   // slightly higher for better landmark accuracy
+const INPUT_SIZE   = 320
 
 // ─── Singleton model loader ───────────────────────────────────────────────────
 let faceApiPromise: Promise<FaceApiModule> | null = null
@@ -66,17 +70,33 @@ function getFaceApi(): Promise<FaceApiModule> {
   if (!faceApiPromise) {
     faceApiPromise = import('face-api.js').then(async (fa) => {
       await Promise.all([
-        fa.nets.tinyFaceDetector.loadFromUri(MODEL_CDN),
-        fa.nets.faceLandmark68Net.loadFromUri(MODEL_CDN),
+        fa.nets.tinyFaceDetector.loadFromUri(MODEL_PATH),
+        fa.nets.faceLandmark68Net.loadFromUri(MODEL_PATH),
       ])
       return fa
     }).catch((err) => {
-      // Reset so next call can retry
-      faceApiPromise = null
+      console.error('[FaceScan] Model loading failed:', err)
+      faceApiPromise = null   // allow retry on next mount
       throw err
     })
   }
   return faceApiPromise
+}
+
+// Wait until the video element has real dimensions (iOS Safari race fix)
+function waitForVideoReady(video: HTMLVideoElement, timeoutMs = 8000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (video.videoWidth > 0 && video.videoHeight > 0) { resolve(); return }
+    const deadline = setTimeout(() => reject(new Error('video metadata timeout')), timeoutMs)
+    const onReady = () => {
+      clearTimeout(deadline)
+      video.removeEventListener('loadedmetadata', onReady)
+      video.removeEventListener('loadeddata', onReady)
+      resolve()
+    }
+    video.addEventListener('loadedmetadata', onReady)
+    video.addEventListener('loadeddata', onReady)
+  })
 }
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
@@ -249,50 +269,62 @@ function CameraView({
     }
 
     const init = async () => {
+      // ── Step 1: Camera access ───────────────────────────────────────────
       try {
-        // ── Camera constraints compatible with iOS Safari, Android, PC ──────
-        const constraints: MediaStreamConstraints = {
-          video: {
-            facingMode: 'user',
-            width:  { ideal: 1280 },
-            height: { ideal: 720  },
-          },
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } },
           audio: false,
-        }
-
-        stream = await navigator.mediaDevices.getUserMedia(constraints)
-
-        if (cancelled) {
-          stream.getTracks().forEach(t => t.stop())
-          return
-        }
-
-        const video = videoRef.current!
-        video.srcObject = stream
-
-        // iOS Safari requires explicit play() after setting srcObject
-        await video.play()
-
-        // Load models (singleton — instant on second mount)
-        setScanState('loading')
-        setStatusMsg(tx.loading)
-        const fa = await getFaceApi()
-
-        if (cancelled) return
-
-        setScanState('searching')
-        setStatusMsg(tx.searching)
-
-        // Brief stabilisation delay before first detection
-        detectTimer = setTimeout(() => runDetect(fa), 800)
+        })
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err)
-        console.warn('[FaceScan] camera init failed:', msg)
-        if (!cancelled) {
-          setScanState('error')
-          setStatusMsg(tx.error)
-        }
+        console.warn('[FaceScan] Camera access failed:', msg)
+        if (!cancelled) { setScanState('error'); setStatusMsg(tx.error) }
+        return
       }
+
+      if (cancelled) { stream.getTracks().forEach(t => t.stop()); return }
+
+      const video = videoRef.current!
+      video.srcObject = stream
+
+      // iOS Safari: play() must be awaited; otherwise srcObject is ignored
+      try {
+        await video.play()
+      } catch (err) {
+        console.warn('[FaceScan] video.play() failed:', err)
+      }
+
+      // ── Step 2: Wait for real video dimensions (iOS Safari race fix) ────
+      try {
+        await waitForVideoReady(video)
+      } catch (err) {
+        console.warn('[FaceScan] Video metadata timeout:', err)
+        // Non-fatal — the detection loop guards against 0-dimension frames
+      }
+
+      if (cancelled) return
+
+      // ── Step 3: Load face-api models from local /models path ────────────
+      setScanState('loading')
+      setStatusMsg(tx.loading)
+
+      let fa: FaceApiModule
+      try {
+        fa = await getFaceApi()
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error('[FaceScan] Model loading failed:', msg)
+        if (!cancelled) { setScanState('model-error'); setStatusMsg(tx.modelError) }
+        return
+      }
+
+      if (cancelled) return
+
+      setScanState('searching')
+      setStatusMsg(tx.searching)
+
+      // Brief stabilisation delay before first detection tick
+      detectTimer = setTimeout(() => runDetect(fa), 600)
     }
 
     init()
@@ -306,19 +338,21 @@ function CameraView({
 
   // ── Ring colours ───────────────────────────────────────────────────────────
   const ringColor = ({
-    loading:   '#6b7280',
-    searching: '#f59e0b',
-    locked:    '#10b981',
-    captured:  '#10b981',
-    error:     '#ef4444',
+    loading:      '#6b7280',
+    searching:    '#f59e0b',
+    locked:       '#10b981',
+    captured:     '#10b981',
+    error:        '#ef4444',
+    'model-error':'#f97316',
   } as Record<ScanState, string>)[scanState] ?? '#6b7280'
 
   const badgeCls = ({
-    loading:   'bg-gray-700/60 border-gray-600 text-gray-300',
-    searching: 'bg-amber-500/15 border-amber-500/40 text-amber-300',
-    locked:    'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
-    captured:  'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
-    error:     'bg-red-500/15 border-red-500/40 text-red-300',
+    loading:      'bg-gray-700/60 border-gray-600 text-gray-300',
+    searching:    'bg-amber-500/15 border-amber-500/40 text-amber-300',
+    locked:       'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
+    captured:     'bg-emerald-500/15 border-emerald-500/40 text-emerald-300',
+    error:        'bg-red-500/15 border-red-500/40 text-red-300',
+    'model-error':'bg-orange-500/15 border-orange-500/40 text-orange-300',
   } as Record<ScanState, string>)[scanState] ?? ''
 
   const half         = size / 2
