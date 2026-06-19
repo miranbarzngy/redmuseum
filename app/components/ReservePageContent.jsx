@@ -92,9 +92,14 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       fd.append('face', blob, 'face.jpg')
       const r    = await fetch('/api/reserve/upload-face', { method: 'POST', body: fd })
       const json = await r.json()
-      if (r.ok && json.url) setFaceImageUrl(json.url)   // replace with Supabase URL if upload worked
-    } catch {
-      // Upload failed — form is already unlocked, local preview stays as thumbnail
+      if (r.ok && json.url) {
+        setFaceImageUrl(json.url)   // replace local preview with Supabase URL
+      } else {
+        console.warn('[face-upload] API error:', json?.error)
+      }
+    } catch (err) {
+      console.warn('[face-upload] failed:', err?.message || err)
+      // Form stays unlocked with local preview; face won't be saved to DB
     } finally {
       setFaceUploading(false)
     }

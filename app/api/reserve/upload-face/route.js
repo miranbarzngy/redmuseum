@@ -42,9 +42,15 @@ export async function POST(request) {
     .upload(fileName, buffer, { contentType: 'image/jpeg', upsert: false })
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 400 })
+    // Common cause: bucket 'museum-images' does not exist or is not public.
+    // Go to Supabase → Storage → New bucket → name: museum-images → Public: ON
+    console.error('[upload-face] Storage error:', error.message)
+    return NextResponse.json({ error: `Storage error: ${error.message}` }, { status: 400 })
   }
 
   const { data } = supabase.storage.from('museum-images').getPublicUrl(fileName)
+  if (!data?.publicUrl) {
+    return NextResponse.json({ error: 'Could not get public URL — make sure the bucket is set to Public' }, { status: 500 })
+  }
   return NextResponse.json({ url: data.publicUrl })
 }
