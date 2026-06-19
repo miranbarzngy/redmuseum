@@ -476,28 +476,32 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
           <div className="h-[5px]" style={{ background: 'linear-gradient(to right, #7a0000, #c8a96e, #7a0000)' }} />
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-3 flex-wrap">
+        {/* Actions — QR full-width on top, secondary pair below */}
+        <div className="flex flex-col gap-3">
+          {/* Row 1: Download QR — full width on all sizes */}
           <button onClick={downloadQR}
-            className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
+            className="w-full flex items-center justify-center gap-2 py-4 text-white text-base font-bold rounded-2xl transition-all"
             style={{ background: RED, border: `1px solid rgba(200,169,110,0.35)`, boxShadow: '0 4px 20px rgba(122,0,0,0.35)', fontFamily: fontStyle(lang) }}>
-            <i className="ri-download-2-line text-base" style={{ color: GOLD }} />
+            <i className="ri-download-2-line text-lg" style={{ color: GOLD }} />
             {t('داونلۆدی QR','تحميل QR','Download QR',lang)}
           </button>
-          <button onClick={() => { setReservation(null); setForm(EMPTY); setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(false) }}
-            className="flex items-center justify-center gap-2 px-5 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: fontStyle(lang) }}>
-            <i className="ri-add-line" />
-            {t('داواکارییەکی تر','حجز آخر','New Booking',lang)}
-          </button>
-          {!inline && (
-            <Link href={homeHref}
-              className="flex items-center justify-center gap-2 px-5 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
+          {/* Row 2: New Booking + Home side by side */}
+          <div className="flex gap-3">
+            <button onClick={() => { setReservation(null); setForm(EMPTY); setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(false) }}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
               style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: fontStyle(lang) }}>
-              <i className="ri-home-5-line" />
-              {t('سەرەتا','الرئيسية','Home',lang)}
-            </Link>
-          )}
+              <i className="ri-add-line" />
+              {t('داواکارییەکی تر','حجز آخر','New Booking',lang)}
+            </button>
+            {!inline && (
+              <Link href={homeHref}
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
+                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: fontStyle(lang) }}>
+                <i className="ri-home-5-line" />
+                {t('سەرەتا','الرئيسية','Home',lang)}
+              </Link>
+            )}
+          </div>
         </div>
 
         {/* Bottom gold accent */}
