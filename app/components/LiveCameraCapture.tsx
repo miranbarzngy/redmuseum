@@ -560,7 +560,7 @@ function FacePreview({
         <button
           onClick={onRetake}
           disabled={uploading}
-          className="flex items-center gap-2 px-5 py-3 text-white/70 font-medium text-sm rounded-xl disabled:opacity-40 transition-all"
+          className="flex items-center gap-2 px-5 py-3 text-gray-300 font-medium text-sm rounded-xl disabled:opacity-40 transition-all"
           style={{
             background: 'rgba(255,255,255,0.06)',
             border:     '1px solid rgba(255,255,255,0.1)',
@@ -641,7 +641,7 @@ export default function LiveCameraCapture({ onCapture, onSkip, lang = 'ku', comp
       {phase === 'active' && (
         <button
           onClick={onSkip}
-          className="text-white/35 hover:text-white/60 text-xs underline underline-offset-2 transition-colors mt-1"
+          className="text-gray-500 hover:text-gray-400 text-xs underline underline-offset-2 transition-colors mt-1"
           style={{ fontFamily: ff }}
         >
           {tx.skip}

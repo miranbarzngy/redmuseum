@@ -156,7 +156,7 @@ export default function Gallery({ currentLang = 'en' }) {
 
   if (!galleries.length || galleries.every(g => !g.images.length)) return (
     <section id="gallery" className="min-h-screen flex items-center justify-center" style={{ background: bgColor }}>
-      <p className="text-white/40 text-sm" style={font}>
+      <p className="text-gray-500 text-sm" style={font}>
         {isAr ? 'لا توجد صور في المعرض.' : isKu ? 'هیچ وێنەیەک لە گەلەریدا نییە.' : 'No images found in the gallery.'}
       </p>
     </section>

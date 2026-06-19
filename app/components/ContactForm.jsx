@@ -132,7 +132,7 @@ export default function ContactForm({ currentLang = 'en' }) {
                     style={{ background: 'rgba(122,0,0,0.5)', border: '1px solid rgba(200,169,110,0.25)' }}>
                     <i className={`${icon} text-lg`} style={{ color: '#c8a96e' }} />
                   </div>
-                  <p className="text-white/70 text-xs md:text-sm break-all leading-relaxed" style={font}>{value}</p>
+                  <p className="text-gray-300 text-xs md:text-sm break-all leading-relaxed" style={font}>{value}</p>
                 </div>
               ))}
             </div>
@@ -150,7 +150,7 @@ export default function ContactForm({ currentLang = 'en' }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Name */}
                 <div>
-                  <label className="block text-sm font-semibold mb-1.5" style={{ color: 'rgba(255,255,255,0.75)', ...font }}>
+                  <label className="block text-sm font-semibold mb-1.5" style={{ color: '#d1d5db', ...font }}>
                     <span style={{ color: '#c8a96e' }}>* </span>{t('ناوی تەواو', 'الاسم الكامل', 'Full Name')}
                   </label>
                   <input type="text" name="name" value={formData.name} onChange={handleChange}
@@ -165,7 +165,7 @@ export default function ContactForm({ currentLang = 'en' }) {
 
                 {/* Phone */}
                 <div>
-                  <label className="block text-sm font-semibold mb-1.5" style={{ color: 'rgba(255,255,255,0.75)', ...font }}>
+                  <label className="block text-sm font-semibold mb-1.5" style={{ color: '#d1d5db', ...font }}>
                     <span style={{ color: '#c8a96e' }}>* </span>{t('ژمارەی مۆبایل', 'رقم الهاتف', 'Phone Number')}
                   </label>
                   <input type="tel" name="phone" value={formData.phone} onChange={handleChange}
@@ -181,7 +181,7 @@ export default function ContactForm({ currentLang = 'en' }) {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-semibold mb-1.5" style={{ color: 'rgba(255,255,255,0.75)', ...font }}>
+                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#d1d5db', ...font }}>
                   <span style={{ color: '#c8a96e' }}>* </span>{t('ئیمەیڵ', 'البريد الإلكتروني', 'Email')}
                 </label>
                 <input type="email" name="email" value={formData.email} onChange={handleChange}
@@ -196,7 +196,7 @@ export default function ContactForm({ currentLang = 'en' }) {
 
               {/* Message */}
               <div>
-                <label className="block text-sm font-semibold mb-1.5" style={{ color: 'rgba(255,255,255,0.75)', ...font }}>
+                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#d1d5db', ...font }}>
                   <span style={{ color: '#c8a96e' }}>* </span>{t('پەیام', 'الرسالة', 'Message')}
                 </label>
                 <textarea name="message" rows={5} value={formData.message} onChange={handleChange}

@@ -122,7 +122,7 @@ export default function ArabicArchive() {
             <h1 className="text-4xl md:text-5xl font-black text-white" style={AR}>الأرشيف الرقمي</h1>
             <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #cc0000)' }} />
           </div>
-          <p className="text-white/60 text-lg" style={AR}>{museumName.ar}</p>
+          <p className="text-gray-400 text-lg" style={AR}>{museumName.ar}</p>
 
           <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm"
             style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(200,169,110,0.15)', color: '#9ca3af', ...AR }}>
@@ -244,7 +244,7 @@ export default function ArabicArchive() {
               <i className="ri-file-search-line text-3xl" style={{ color: '#c8a96e' }} />
             </div>
             <p className="text-gray-400 text-lg mb-1" style={AR}>لم يتم العثور على أرشيف</p>
-            <p className="text-white/25 text-sm">No archive items found</p>
+            <p className="text-gray-500 text-sm">No archive items found</p>
           </div>
         )}
 

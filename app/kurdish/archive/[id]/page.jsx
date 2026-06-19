@@ -107,7 +107,7 @@ export default function KurdishArchiveDetail() {
           <i className="ri-file-search-line text-3xl" style={{ color: '#c8a96e' }} />
         </div>
         <h1 className="text-2xl font-bold text-white mb-2" style={KU}>ئەرشیفەکە نەدۆزرایەوە</h1>
-        <p className="text-white/40 mb-8 text-sm">Archive item not found</p>
+        <p className="text-gray-500 mb-8 text-sm">Archive item not found</p>
         <Link href="/kurdish/archive"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-white font-semibold text-sm"
           style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.3)', ...KU }}>
@@ -167,7 +167,7 @@ export default function KurdishArchiveDetail() {
               )}
               {item.date_created && (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.6)', ...KU }}>
+                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#9ca3af', ...KU }}>
                   <i className="ri-calendar-line text-[#c8a96e] text-[10px]" />
                   {formatDate(item.date_created)}
                 </span>

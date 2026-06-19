@@ -123,7 +123,7 @@ export default function KurdishArchive() {
             <h1 className="text-4xl md:text-5xl font-black text-white" style={KU}>ئەرشیفی دیجیتاڵی</h1>
             <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
           </div>
-          <p className="text-white/60 text-lg" style={KU}>{museumName.kr}</p>
+          <p className="text-gray-400 text-lg" style={KU}>{museumName.kr}</p>
 
           {/* Stats strip */}
           <div className="mt-8 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm"
@@ -254,7 +254,7 @@ export default function KurdishArchive() {
               <i className="ri-file-search-line text-3xl" style={{ color: '#c8a96e' }} />
             </div>
             <p className="text-gray-400 text-lg mb-1" style={KU}>هیچ ئەرشیفێک نەدۆزرایەوە</p>
-            <p className="text-white/25 text-sm">No archive items found</p>
+            <p className="text-gray-500 text-sm">No archive items found</p>
           </div>
         )}
 

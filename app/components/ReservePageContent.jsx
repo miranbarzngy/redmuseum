@@ -309,7 +309,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
     return (
       <div style={{ transition: 'opacity 0.35s', ...disabledStyle }}>
-        <label className="block text-sm font-semibold mb-2" style={{ fontFamily: fontStyle(lang), color: fieldsLocked ? 'rgba(255,255,255,0.4)' : '#fff' }}>
+        <label className="block text-sm font-semibold mb-2" style={{ fontFamily: fontStyle(lang), color: fieldsLocked ? '#6b7280' : '#fff' }}>
           {label}
           {key !== 'note' && <span className="ml-1" style={{ color: fieldsLocked ? 'rgba(200,169,110,0.4)' : GOLD }}>*</span>}
         </label>
@@ -410,7 +410,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
               <span className="font-bold text-white text-sm leading-tight" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
                 {museumName.kr}
               </span>
-              <span className="text-white/60 text-[10px] mt-0.5">{museumName.en}</span>
+              <span className="text-gray-400 text-[10px] mt-0.5">{museumName.en}</span>
             </div>
             {/* Logo icon */}
             <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 ms-3"
@@ -451,7 +451,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                   style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
                   <div className="flex items-center gap-1.5 mb-1">
                     <i className={`${icon} text-[10px]`} style={{ color: GOLD }} />
-                    <span className="text-[10px] text-white/70 uppercase tracking-wider" style={{ fontFamily: fontStyle(lang) }}>{label}</span>
+                    <span className="text-[10px] text-gray-300 uppercase tracking-wider" style={{ fontFamily: fontStyle(lang) }}>{label}</span>
                   </div>
                   {numeric
                     ? <bdo dir="ltr" className="res-id text-white font-bold text-sm block">{val}</bdo>
@@ -464,7 +464,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             {/* Reservation ID row */}
             <div className="mt-2.5 flex items-center justify-between px-3 py-2.5 rounded-xl"
               style={{ background: 'rgba(200,169,110,0.06)', border: '1px solid rgba(200,169,110,0.15)' }}>
-              <span className="text-[10px] text-white/70 uppercase tracking-wider flex items-center gap-1.5" style={{ fontFamily: fontStyle(lang) }}>
+              <span className="text-[10px] text-gray-300 uppercase tracking-wider flex items-center gap-1.5" style={{ fontFamily: fontStyle(lang) }}>
                 <i className="ri-fingerprint-line text-[10px]" style={{ color: GOLD }} />
                 {t('ناسنامەی داواکاری','معرف الحجز','Reservation ID',lang)}
               </span>
@@ -613,7 +613,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             <div className="rounded-2xl p-6 space-y-4 relative overflow-hidden"
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(200,169,110,0.15)' }}>
               <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
-              <p className="text-white/60 text-sm" style={{ fontFamily: fontStyle(lang) }}>
+              <p className="text-gray-400 text-sm" style={{ fontFamily: fontStyle(lang) }}>
                 {t('ژمارەی تەلەفۆنەکەت بنووسە بۆ بینینی بارودۆخی داواکارییەکەت', 'أدخل رقم هاتفك لمعرفة حالة حجزك', 'Enter your phone number to check your reservation status', lang)}
               </p>
               <div className="flex gap-3">
@@ -645,7 +645,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             {trackError && <p className="text-red-400 text-sm text-center" style={{ fontFamily: fontStyle(lang) }}>{trackError}</p>}
 
             {trackResults !== null && trackResults.length === 0 && (
-              <div className="text-center py-12 text-white/40">
+              <div className="text-center py-12 text-gray-500">
                 <i className="ri-inbox-line text-4xl mb-3 block" />
                 <p style={{ fontFamily: fontStyle(lang) }}>{t('هیچ داواکارییەک نەدۆزرایەوە', 'لا توجد حجوزات بهذا الرقم', 'No reservations found for this number', lang)}</p>
               </div>
@@ -653,7 +653,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
             {trackResults && trackResults.length > 0 && (
               <div className="space-y-3">
-                <p className="text-xs text-white/30 font-semibold uppercase tracking-wider" style={{ fontFamily: fontStyle(lang) }}>
+                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider" style={{ fontFamily: fontStyle(lang) }}>
                   {trackResults.length} {t('داواکاری', 'حجز', 'reservation(s) found', lang)}
                 </p>
                 {trackResults.map(res => {
@@ -664,7 +664,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                       <div className="flex items-start justify-between gap-3 mb-4">
                         <div>
                           <p className="font-bold text-white text-base" style={{ fontFamily: fontStyle(lang) }}>{res.name}</p>
-                          <p className="text-xs text-white/30 font-mono mt-0.5">#{res.id.slice(0,8).toUpperCase()}</p>
+                          <p className="text-xs text-gray-500 font-mono mt-0.5">#{res.id.slice(0,8).toUpperCase()}</p>
                         </div>
                         <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${sc.bg} ${sc.border} ${sc.text} whitespace-nowrap`} style={{ fontFamily: fontStyle(lang) }}>
                           <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />{statusLabel}
@@ -678,12 +678,12 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                           [t('تۆمارکراوە','تاريخ التسجيل','Booked on',lang), new Date(res.created_at).toLocaleDateString()],
                         ].map(([label, val]) => (
                           <div key={label} className="bg-black/20 rounded-xl px-3 py-2">
-                            <p className="text-white/40 text-xs mb-0.5" style={{ fontFamily: fontStyle(lang) }}>{label}</p>
+                            <p className="text-gray-500 text-xs mb-0.5" style={{ fontFamily: fontStyle(lang) }}>{label}</p>
                             <p className="text-white font-semibold">{val}</p>
                           </div>
                         ))}
                       </div>
-                      {res.note && <p className="mt-3 text-xs text-white/40 italic border-t border-white/5 pt-3" style={{ fontFamily: fontStyle(lang) }}>{res.note}</p>}
+                      {res.note && <p className="mt-3 text-xs text-gray-500 italic border-t border-white/5 pt-3" style={{ fontFamily: fontStyle(lang) }}>{res.note}</p>}
                     </div>
                   )
                 })}
@@ -719,11 +719,11 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                       <p className="text-white text-sm font-semibold" style={{ fontFamily: fontStyle(lang) }}>
                         {t('پشکنینی ناسنامەی ڕووخسار', 'التحقق من هوية الوجه', 'Face ID Verification', lang)}
                       </p>
-                      <p className="text-white/40 text-xs mt-0.5" style={{ fontFamily: fontStyle(lang) }}>
+                      <p className="text-gray-500 text-xs mt-0.5" style={{ fontFamily: fontStyle(lang) }}>
                         {t('کلیک بکە بۆ سکانکردنی ڕووخسار', 'انقر لمسح وجهك', 'Click to scan your face', lang)}
                       </p>
                     </div>
-                    <i className={`ri-arrow-${isRtl ? 'left' : 'right'}-s-line text-white/30 text-lg group-hover:text-white/60 transition-colors`} />
+                    <i className={`ri-arrow-${isRtl ? 'left' : 'right'}-s-line text-gray-500 text-lg group-hover:text-gray-400 transition-colors`} />
                   </button>
                 )}
 
@@ -734,7 +734,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                       style={{ background: 'rgba(200,169,110,0.1)', border: '1px solid rgba(200,169,110,0.3)' }}>
                       <span className="w-5 h-5 border-2 border-white/20 border-t-white/70 rounded-full animate-spin" />
                     </div>
-                    <p className="text-white/60 text-sm" style={{ fontFamily: fontStyle(lang) }}>
+                    <p className="text-gray-400 text-sm" style={{ fontFamily: fontStyle(lang) }}>
                       {t('ڕووخسار بارکراوە...', 'جاري رفع الوجه...', 'Uploading face…', lang)}
                     </p>
                   </div>
@@ -751,7 +751,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                       <button
                         type="button"
                         onClick={() => setFaceScanOpen(false)}
-                        className="w-7 h-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/10 transition-all"
+                        className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition-all"
                       >
                         <i className="ri-close-line text-base" />
                       </button>
@@ -781,14 +781,14 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                         <i className="ri-shield-check-fill text-xs" />
                         {t('ڕووخسار پشکنراوە', 'تم التحقق من الوجه', 'Face Verified', lang)}
                       </p>
-                      <p className="text-white/40 text-xs mt-0.5" style={{ fontFamily: fontStyle(lang) }}>
+                      <p className="text-gray-500 text-xs mt-0.5" style={{ fontFamily: fontStyle(lang) }}>
                         {t('ناسنامەی ڕووخسارت پاشەکەوتکرا', 'تم حفظ صورة وجهك', 'Face image saved', lang)}
                       </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => { setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(true) }}
-                      className="flex items-center gap-1 text-white/35 hover:text-white/70 text-xs transition-colors"
+                      className="flex items-center gap-1 text-gray-500 hover:text-gray-300 text-xs transition-colors"
                       style={{ fontFamily: fontStyle(lang) }}
                     >
                       <i className="ri-camera-line text-sm" />
@@ -815,7 +815,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                     <p className="text-white/80 text-sm font-semibold text-center px-6" style={{ fontFamily: fontStyle(lang) }}>
                       {t('سەرەتا ڕووخسارت سکان بکە', 'امسح وجهك أولاً', 'Scan your face first', lang)}
                     </p>
-                    <p className="text-white/40 text-xs text-center px-6" style={{ fontFamily: fontStyle(lang) }}>
+                    <p className="text-gray-500 text-xs text-center px-6" style={{ fontFamily: fontStyle(lang) }}>
                       {t('کلیک بکە بۆ کردنەوەی کامێرا', 'انقر لفتح الكاميرا', 'Click to open camera', lang)}
                     </p>
                   </div>

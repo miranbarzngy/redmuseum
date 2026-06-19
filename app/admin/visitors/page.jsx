@@ -322,11 +322,11 @@ export default function VisitorsPage() {
   }
   .logo-box img { width:100%; height:100%; object-fit:contain; display:block; }
   .museum-name { color:#fff; font-family:'UniSalar',Tahoma,sans-serif; font-size:11pt; font-weight:700; line-height:1.4; }
-  .museum-sub  { color:rgba(255,255,255,0.55); font-family:'UniSalar',Tahoma,sans-serif; font-size:7pt; margin-top:1px; }
+  .museum-sub  { color:#9ca3af; font-family:'UniSalar',Tahoma,sans-serif; font-size:7pt; margin-top:1px; }
   .pass-label  { text-align:left; }
-  .pass-ku     { font-family:'UniSalar',Tahoma,sans-serif; font-size:7.5pt; font-weight:700; color:rgba(255,255,255,0.6); margin-bottom:3px; }
+  .pass-ku     { font-family:'UniSalar',Tahoma,sans-serif; font-size:7.5pt; font-weight:700; color:#9ca3af; margin-bottom:3px; }
   .pass-title  { font-family:'UniSalar',Tahoma,sans-serif; font-size:17pt; font-weight:900; letter-spacing:0.2em; color:#fff; line-height:1; }
-  .pass-ref    { font-family:'Courier New',Courier,monospace; font-size:7pt; color:rgba(255,255,255,0.45); margin-top:4px; letter-spacing:0.06em; }
+  .pass-ref    { font-family:'Courier New',Courier,monospace; font-size:7pt; color:#6b7280; margin-top:4px; letter-spacing:0.06em; }
 
   /* ── Status bar ── */
   .status-bar {
@@ -403,7 +403,7 @@ export default function VisitorsPage() {
     display:flex; align-items:center; justify-content:space-between; direction:rtl;
   }
   .footer-ku   { font-family:'UniSalar',Tahoma,sans-serif; font-size:8.5pt; font-weight:700; color:#fff; }
-  .footer-en   { font-family:'UniSalar',Tahoma,sans-serif; font-size:6.5pt; color:rgba(255,255,255,0.45); margin-top:2px; }
+  .footer-en   { font-family:'UniSalar',Tahoma,sans-serif; font-size:6.5pt; color:#6b7280; margin-top:2px; }
   .bottom-bar  { flex-shrink:0; height:6px; background:linear-gradient(90deg,#7a0000,#c8a96e,#7a0000); }
 </style>
 </head>
