@@ -544,36 +544,58 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             )}
           </div>
 
-          <div className="px-5 pb-5 pt-1" style={{ background: '#111' }} dir={isRtl ? 'rtl' : 'ltr'}>
-            <div className="grid grid-cols-2 gap-2.5">
-              {[
-                { icon: 'ri-user-line',     label: t('ناو','الاسم','Name',lang),    val: reservation.name,                     span: true, numeric: false },
-                { icon: 'ri-calendar-line', label: t('بەروار','التاريخ','Date',lang), val: reservation.date,                                numeric: true  },
-                { icon: 'ri-time-line',     label: t('کات','الوقت','Time',lang),     val: (reservation.time || '').slice(0, 5),            numeric: true  },
-                { icon: 'ri-group-line',    label: t('میوان','الضيوف','Guests',lang), val: reservation.guest_count,                         numeric: true  },
-              ].map(({ icon, label, val, span, numeric }) => (
-                <div key={label}
-                  className={`rounded-xl px-3 py-2.5 ${span ? 'col-span-2' : ''}`}
-                  style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <i className={`${icon} text-[10px]`} style={{ color: GOLD }} />
-                    <span className="text-[10px] text-gray-300 uppercase tracking-wider" style={{ fontFamily: fontStyle(lang) }}>{label}</span>
-                  </div>
-                  {numeric
-                    ? <bdo dir="ltr" className="res-id text-white font-bold text-sm block">{val}</bdo>
-                    : <p className="text-white font-bold text-sm" style={{ fontFamily: fontStyle(lang) }}>{val}</p>
-                  }
-                </div>
-              ))}
+          <div className="px-5 pb-6 pt-5" style={{ background: '#111' }}>
+
+            {/* Visitor name */}
+            <div className="text-center mb-5">
+              <p className="text-[9px] uppercase tracking-widest mb-2" style={{ color: '#4b5563', fontFamily: fontStyle(lang) }}>
+                {t('ناوی سەردانکار', 'اسم الزائر', 'Visitor Name', lang)}
+              </p>
+              <p className="text-xl font-black text-white leading-tight" style={{ fontFamily: fontStyle(lang) }}>
+                {reservation.name}
+              </p>
             </div>
 
-            <div className="mt-2.5 flex items-center justify-between px-3 py-2.5 rounded-xl"
-              style={{ background: 'rgba(200,169,110,0.06)', border: '1px solid rgba(200,169,110,0.15)' }}>
-              <span className="text-[10px] text-gray-300 uppercase tracking-wider flex items-center gap-1.5" style={{ fontFamily: fontStyle(lang) }}>
-                <i className="ri-fingerprint-line text-[10px]" style={{ color: GOLD }} />
-                {t('ناسنامەی داواکاری','معرف الحجز','Reservation ID',lang)}
-              </span>
-              <bdo dir="ltr" className="res-id text-sm font-bold" style={{ color: GOLD }}>{resId}</bdo>
+            {/* Divider */}
+            <div className="h-px mb-5" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent)' }} />
+
+            {/* Date · Time · Guests */}
+            <div className="flex items-center justify-center gap-4 mb-5">
+              <div className="text-center">
+                <p className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#4b5563', fontFamily: fontStyle(lang) }}>
+                  {t('بەروار', 'التاريخ', 'Date', lang)}
+                </p>
+                <bdo dir="ltr" className="res-id block text-sm font-extrabold" style={{ color: '#fbbf24' }}>{reservation.date}</bdo>
+              </div>
+              <div className="w-px h-8 shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }} />
+              <div className="text-center">
+                <p className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#4b5563', fontFamily: fontStyle(lang) }}>
+                  {t('کات', 'الوقت', 'Time', lang)}
+                </p>
+                <bdo dir="ltr" className="res-id block text-sm font-extrabold" style={{ color: '#fbbf24' }}>{(reservation.time || '').slice(0, 5)}</bdo>
+              </div>
+              <div className="w-px h-8 shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }} />
+              <div className="text-center">
+                <p className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#4b5563', fontFamily: fontStyle(lang) }}>
+                  {t('میوان', 'الضيوف', 'Guests', lang)}
+                </p>
+                <bdo dir="ltr" className="res-id block text-sm font-extrabold text-white">{reservation.guest_count}</bdo>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="h-px mb-5" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent)' }} />
+
+            {/* Booking ID badge */}
+            <div className="flex flex-col items-center gap-1.5">
+              <p className="text-[9px] uppercase tracking-widest" style={{ color: '#4b5563', fontFamily: fontStyle(lang) }}>
+                {t('ناسنامەی داواکاری', 'معرف الحجز', 'Booking ID', lang)}
+              </p>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl"
+                style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.25)', boxShadow: '0 0 16px rgba(16,185,129,0.07)' }}>
+                <i className="ri-fingerprint-line text-xs" style={{ color: '#10b981' }} />
+                <bdo dir="ltr" className="res-id text-sm font-black" style={{ color: '#34d399' }}>{resId}</bdo>
+              </div>
             </div>
           </div>
 
