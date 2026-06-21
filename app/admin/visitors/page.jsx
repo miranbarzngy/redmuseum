@@ -225,7 +225,13 @@ export default function VisitorsPage() {
   }
 
   const filtered = reservations.filter(r => {
-    if (search && !(r.name || '').toLowerCase().includes(search.toLowerCase()) && !(r.phone || '').includes(search)) return false
+    if (search) {
+      const q = search.toLowerCase().replace(/^#/, '')
+      const matchName  = (r.name  || '').toLowerCase().includes(q)
+      const matchPhone = (r.phone || '').includes(search.replace(/^#/, ''))
+      const matchId    = r.id.slice(0, 8).toLowerCase().includes(q)
+      if (!matchName && !matchPhone && !matchId) return false
+    }
     if (filterFrom && r.date < filterFrom) return false
     if (filterTo && r.date > filterTo) return false
     if (filterStatus && r.status !== filterStatus) return false
@@ -963,7 +969,7 @@ export default function VisitorsPage() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name or phone..."
+              placeholder="Search by name, phone or booking ID..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 text-sm bg-white"
