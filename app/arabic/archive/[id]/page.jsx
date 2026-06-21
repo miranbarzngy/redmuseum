@@ -20,7 +20,7 @@ const normalizePath = (path) => {
 }
 
 const KU = { fontFamily: 'UniSalar, Tahoma, sans-serif' }
-const AR = { fontFamily: 'Cairo, Tahoma, sans-serif' }
+const AR = { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
 
 export default function ArabicArchiveDetail() {
   const params = useParams()

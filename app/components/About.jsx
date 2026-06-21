@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase-client'
@@ -13,7 +13,7 @@ export default function About({ currentLang = 'en' }) {
   const isKu = currentLang === 'ku'
   const isAr = currentLang === 'ar'
   const font = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
-             : isAr ? { fontFamily: 'Cairo, Tahoma, sans-serif' }
+             : isAr ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
              : {}
 
   const [counters, setCounters] = useState({ museums: 0, archives: 0, visitors: 0 })

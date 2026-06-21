@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import {
@@ -62,7 +62,7 @@ const inputCls = 'w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl f
 const langCols = [
   { field: 'ku', label: 'Kurdish', badge: 'bg-emerald-100 text-emerald-700', dir: 'rtl', font: 'UniSalar, Tahoma, sans-serif' },
   { field: 'en', label: 'English', badge: 'bg-blue-100 text-blue-700',       dir: 'ltr', font: undefined },
-  { field: 'ar', label: 'Arabic',  badge: 'bg-amber-100 text-amber-700',     dir: 'rtl', font: 'Cairo, Tahoma, sans-serif' },
+  { field: 'ar', label: 'Arabic',  badge: 'bg-amber-100 text-amber-700',     dir: 'rtl', font: 'ArabicFont, Tahoma, sans-serif' },
 ]
 
 function LangBadge({ label, cls }) {

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import {
@@ -38,7 +38,7 @@ function SectionCard({ icon: Icon, title, grad, shadow, children, collapsible, o
 const langCols = [
   { suffix: '_en', label: 'English', badge: 'bg-blue-100 text-blue-700',       dir: 'ltr', font: undefined },
   { suffix: '_kr', label: 'Kurdish', badge: 'bg-emerald-100 text-emerald-700', dir: 'rtl', font: 'UniSalar, Tahoma, sans-serif' },
-  { suffix: '_ar', label: 'Arabic',  badge: 'bg-amber-100 text-amber-700',     dir: 'rtl', font: 'Cairo, Tahoma, sans-serif' },
+  { suffix: '_ar', label: 'Arabic',  badge: 'bg-amber-100 text-amber-700',     dir: 'rtl', font: 'ArabicFont, Tahoma, sans-serif' },
 ]
 
 function LangBadge({ label, cls }) {

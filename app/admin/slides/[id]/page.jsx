@@ -33,7 +33,7 @@ function SectionCard({ icon: Icon, title, grad, shadow, children }) {
 const langCols = [
   { key: '',     label: 'English', badge: 'bg-blue-100 text-blue-700',   dir: 'ltr', font: undefined },
   { key: '_kr',  label: 'Kurdish', badge: 'bg-emerald-100 text-emerald-700', dir: 'ltr', font: undefined },
-  { key: '_ar',  label: 'Arabic',  badge: 'bg-amber-100 text-amber-700', dir: 'rtl', font: 'Cairo, Tahoma, sans-serif' },
+  { key: '_ar',  label: 'Arabic',  badge: 'bg-amber-100 text-amber-700', dir: 'rtl', font: 'ArabicFont, Tahoma, sans-serif' },
 ]
 
 function LangBadge({ label, cls }) {

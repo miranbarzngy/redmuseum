@@ -1,8 +1,15 @@
-/* ============================================
-   Google Fonts - Cairo (Arabic)
-   ============================================ */
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+
+/* ============================================
+   Arabic Font - Local Arabic.ttf
+   ============================================ */
+@font-face {
+  font-family: 'ArabicFont';
+  src: url('/fonts/Arabic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
 
 @tailwind base;
 @tailwind components;
@@ -49,13 +56,13 @@ section {
 
 /* Arabic font class */
 .font-arabic {
-  font-family: 'Cairo', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
+  font-family: 'ArabicFont', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
 }
 
 /* Apply Arabic font to RTL elements for Arabic content */
 [dir="rtl"] .font-arabic,
 .font-arabic {
-  font-family: 'Cairo', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
+  font-family: 'ArabicFont', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
 }
 
 /* Adjustments for Kurdish text */
@@ -86,7 +93,7 @@ section {
 .font-arabic label,
 .font-arabic input,
 .font-arabic textarea {
-  font-family: 'Cairo', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
+  font-family: 'ArabicFont', 'Noto Naskh Arabic', 'Tahoma', sans-serif !important;
   line-height: 1.6;
 }
 

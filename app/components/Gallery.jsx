@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase-client'
@@ -111,7 +111,7 @@ export default function Gallery({ currentLang = 'en' }) {
   const [bgColor, setBgColor] = useState('#0a0a0a')
 
   const langKey = isAr ? 'ar' : isKu ? 'ku' : 'en'
-  const font = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' } : isAr ? { fontFamily: 'Cairo, Tahoma, sans-serif' } : {}
+  const font = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' } : isAr ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' } : {}
 
   useEffect(() => {
     supabase?.from('settings').select('gallery_bg_color').single()

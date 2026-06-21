@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState } from 'react'
 import { LayoutGrid, Plus, Trash2, ChevronUp, ChevronDown, Loader2, CheckCircle2, Edit3, X, ExternalLink, Palette } from 'lucide-react'
@@ -343,7 +343,7 @@ export default function ShowcaseCardsPage() {
             {[
               { key: 'title_ku', label: 'Title (Kurdish)', dir: 'rtl', font: 'UniSalar, Tahoma, sans-serif', badge: 'bg-emerald-50 text-emerald-700' },
               { key: 'title_en', label: 'Title (English)', dir: 'ltr', font: '', badge: 'bg-blue-50 text-blue-700' },
-              { key: 'title_ar', label: 'Title (Arabic)',  dir: 'rtl', font: 'Cairo, Tahoma, sans-serif',    badge: 'bg-amber-50 text-amber-700' },
+              { key: 'title_ar', label: 'Title (Arabic)',  dir: 'rtl', font: 'ArabicFont, Tahoma, sans-serif',    badge: 'bg-amber-50 text-amber-700' },
             ].map(f => (
               <div key={f.key}>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-2">

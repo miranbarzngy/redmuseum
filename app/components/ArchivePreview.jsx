@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
@@ -32,7 +32,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const isKu = currentLang === 'ku'
   const isAr = currentLang === 'ar'
   const font = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
-             : isAr ? { fontFamily: 'Cairo, Tahoma, sans-serif' }
+             : isAr ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
              : {}
 
   useEffect(() => {

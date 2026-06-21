@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
@@ -17,7 +17,7 @@ const t = (ku, ar, en, lang) =>
 
 const fontStyle = (lang) =>
   lang === 'ku' ? 'UniSalar, Tahoma, sans-serif'
-  : lang === 'ar' ? 'Cairo, Tahoma, sans-serif'
+  : lang === 'ar' ? 'ArabicFont, Tahoma, sans-serif'
   : 'inherit'
 
 const EMPTY = { name: '', guest_count: '', phone: '', date: '', time: '', note: '' }
@@ -1104,7 +1104,6 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                           compact
                           lang={lang === 'ku' ? 'ku' : lang === 'ar' ? 'ar' : 'en'}
                           onCapture={handleFaceCapture}
-                          onSkip={() => setFaceScanOpen(false)}
                         />
                       </div>
                     )}

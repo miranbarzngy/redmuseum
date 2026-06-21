@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase-client'
@@ -15,7 +15,7 @@ export default function ContactForm({ currentLang = 'en' }) {
   const isAr = currentLang === 'ar'
   const isRtl = isKu || isAr
   const font = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
-             : isAr ? { fontFamily: 'Cairo, Tahoma, sans-serif' }
+             : isAr ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
              : {}
 
   const t = (ku, ar, en) => isAr ? ar : isKu ? ku : en

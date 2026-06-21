@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 
@@ -8,7 +8,7 @@ export default function VRSection({ currentLang = 'en' }) {
   const [showVideo, setShowVideo] = useState(false)
 
   const font = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
-             : isAr ? { fontFamily: 'Cairo, Tahoma, sans-serif' }
+             : isAr ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
              : {}
 
   const t = (ku, ar, en) => isAr ? ar : isKu ? ku : en

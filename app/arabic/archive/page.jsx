@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
@@ -20,7 +20,7 @@ const normalizePath = (path) => {
   return path.startsWith('/') ? path : `/${path}`
 }
 
-const AR = { fontFamily: 'Cairo, Tahoma, sans-serif' }
+const AR = { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
 
 export default function ArabicArchive() {
   const [categories, setCategories] = useState([])

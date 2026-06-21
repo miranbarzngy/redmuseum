@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase-client'
@@ -206,7 +206,7 @@ export default function Slider({ currentLang = 'en' }) {
                   fontWeight: '700',
                   letterSpacing: isKurdish ? '0' : isArabic ? '0' : '0.2em',
                   textTransform: isKurdish ? 'none' : isArabic ? 'none' : 'uppercase',
-                  fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : isArabic ? 'Cairo, Tahoma, sans-serif' : 'system-ui, sans-serif',
+                  fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : isArabic ? 'ArabicFont, Tahoma, sans-serif' : 'system-ui, sans-serif',
                   textShadow: '0 2px 10px rgba(0,0,0,0.5)'
                 }}
               >
@@ -218,7 +218,7 @@ export default function Slider({ currentLang = 'en' }) {
                   dir={isKurdish || isArabic ? 'rtl' : 'ltr'}
                   style={{
                     textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
-                    fontFamily: isArabic ? 'Cairo, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif'
+                    fontFamily: isArabic ? 'ArabicFont, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif'
                   }}>
                 {getLocalizedContent(slide, 'title', lang)}
                 <br />
@@ -233,7 +233,7 @@ export default function Slider({ currentLang = 'en' }) {
                 style={{ 
                    textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
                    backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                   fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : isArabic ? 'Cairo, Tahoma, sans-serif' : 'system-ui, sans-serif',
+                   fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : isArabic ? 'ArabicFont, Tahoma, sans-serif' : 'system-ui, sans-serif',
                    lineHeight: isKurdish ? '1.8' : '1.6'
                  }}
                  dir={isArabic ? 'rtl' : 'ltr'}

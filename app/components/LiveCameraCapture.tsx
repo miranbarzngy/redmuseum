@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -8,7 +8,6 @@ type ScanState = 'loading' | 'searching' | 'locked' | 'captured' | 'error' | 'mo
 
 interface Props {
   onCapture: (dataUrl: string) => void
-  onSkip: () => void
   lang?: 'ku' | 'ar' | 'en'
   compact?: boolean
 }
@@ -24,7 +23,6 @@ const T = {
     captured:   'ڕووخسار تۆمارکرا!',
     error:      'کامێرا نەکرایەوە — مۆڵەتی کامێرا چالاک بکە',
     modelError: 'نەتوانرا مۆدێلی دیاریکردنی ڕووخسار بار بکرێت',
-    skip:       'تێپەڕاندن (بێ ڕووخسار)',
     retake:     'دووبارە وەرگرتن',
     confirm:    'پشکنین و بەردەوامبوون',
   },
@@ -37,7 +35,6 @@ const T = {
     captured:   'تم التقاط الوجه!',
     error:      'تعذر الوصول إلى الكاميرا — يرجى منح الإذن',
     modelError: 'فشل تحميل نموذج الكشف عن الوجه',
-    skip:       'تخطي (بدون وجه)',
     retake:     'إعادة الالتقاط',
     confirm:    'تأكيد والمتابعة',
   },
@@ -50,7 +47,6 @@ const T = {
     captured:   'Face captured!',
     error:      'Camera access denied — please allow camera',
     modelError: 'Failed to load face detection model',
-    skip:       'Skip (no face)',
     retake:     'Retake',
     confirm:    'Confirm & Continue',
   },
@@ -504,7 +500,7 @@ function FacePreview({
 }) {
   const GOLD    = '#c8a96e'
   const RED     = '#7a0000'
-  const ff      = lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : lang === 'ar' ? 'Cairo, Tahoma, sans-serif' : 'inherit'
+  const ff      = lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : lang === 'ar' ? 'ArabicFont, Tahoma, sans-serif' : 'inherit'
   const imgSize = Math.round(size * 0.74)
 
   return (
@@ -576,10 +572,10 @@ function FacePreview({
 }
 
 // ─── Main export ──────────────────────────────────────────────────────────────
-export default function LiveCameraCapture({ onCapture, onSkip, lang = 'ku', compact = false }: Props) {
+export default function LiveCameraCapture({ onCapture, lang = 'ku', compact = false }: Props) {
   const tx    = T[lang] ?? T.ku
   const size  = compact ? 200 : 272
-  const ff    = lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : lang === 'ar' ? 'Cairo, Tahoma, sans-serif' : 'inherit'
+  const ff    = lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : lang === 'ar' ? 'ArabicFont, Tahoma, sans-serif' : 'inherit'
   const isRtl = lang === 'ku' || lang === 'ar'
   const GOLD  = '#c8a96e'
 
@@ -637,16 +633,6 @@ export default function LiveCameraCapture({ onCapture, onSkip, lang = 'ku', comp
         />
       )}
 
-      {/* Skip */}
-      {phase === 'active' && (
-        <button
-          onClick={onSkip}
-          className="text-gray-500 hover:text-gray-400 text-xs underline underline-offset-2 transition-colors mt-1"
-          style={{ fontFamily: ff }}
-        >
-          {tx.skip}
-        </button>
-      )}
     </div>
   )
 }

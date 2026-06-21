@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import Image from 'next/image'
@@ -104,7 +104,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
           className="text-2xl md:text-3xl font-black text-white tracking-wide text-center"
           style={
             currentLang === 'ku' ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
-            : currentLang === 'ar' ? { fontFamily: 'Cairo, Tahoma, sans-serif' }
+            : currentLang === 'ar' ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
             : {}
           }
         >
@@ -194,7 +194,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
                   dir={isRTL ? 'rtl' : 'ltr'}
                   style={{
                     color: isActive ? '#c8a96e' : 'rgba(255,255,255,0.4)',
-                    fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : currentLang === 'ar' ? 'Cairo, Tahoma, sans-serif' : 'inherit',
+                    fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : currentLang === 'ar' ? 'ArabicFont, Tahoma, sans-serif' : 'inherit',
                     transition: 'color 0.4s ease',
                   }}
                 >
