@@ -1,17 +1,20 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
-import About from '../components/About'
-import ArchivePreview from '../components/ArchivePreview'
-import ContactForm from '../components/ContactForm'
-import ExclusiveSection from '../components/ExclusiveSection'
-import Gallery from '../components/Gallery'
-import ReservePageContent from '../components/ReservePageContent'
-import ShowcaseCards from '../components/ShowcaseCards'
 import Sidebar from '../components/Sidebar'
 import Slider from '../components/Slider'
-import VRSection from '../components/VRSection'
 import { useMuseumName } from '../lib/useMuseumName'
+
+// Lazy-load below-the-fold sections — reduces initial JS parse on mobile
+const About            = dynamic(() => import('../components/About'),            { ssr: false })
+const VRSection        = dynamic(() => import('../components/VRSection'),        { ssr: false })
+const Gallery          = dynamic(() => import('../components/Gallery'),          { ssr: false })
+const ArchivePreview   = dynamic(() => import('../components/ArchivePreview'),   { ssr: false })
+const ExclusiveSection = dynamic(() => import('../components/ExclusiveSection'), { ssr: false })
+const ShowcaseCards    = dynamic(() => import('../components/ShowcaseCards'),    { ssr: false })
+const ContactForm      = dynamic(() => import('../components/ContactForm'),      { ssr: false })
+const ReservePageContent = dynamic(() => import('../components/ReservePageContent'), { ssr: false })
 
 const SECTION_KEYS = ['show_slides','show_about','show_gallery','show_archive','show_activities','show_exclusive','show_messages','show_visitor_tab','show_showcase']
 
