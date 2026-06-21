@@ -924,7 +924,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
               {/* Description */}
               <p className="text-center text-sm leading-loose mb-8" style={{ color: '#9ca3af', fontFamily: fontStyle(lang) }}>
                 {t(
-                  'بۆ تۆمارکردنی داواکارییەکەت، پێویستە سەرەتا ناسنامەی بایۆمێتریکی ڕووخسارت پشکنراوە بێت. ئەمەش مستەقیم بە کامێرای ئامێرەکەت دەکرێت.',
+                  'بۆ تۆمارکردنی داواکارییەکەت، پێویستە سەرەتا وێنەی ڕوخسارت تۆمار بکەیت',
                   'لتسجيل طلبك، يجب أولاً التحقق من هويتك عبر الكاميرا.',
                   'To complete your reservation, we first need to verify your identity through a quick face scan using your device camera.',
                   lang
@@ -936,7 +936,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                 {[
                   { n: '1', label: t('سکانی ڕووخسار', 'مسح الوجه', 'Face Scan', lang), active: true },
                   { n: '2', label: t('داواکاری',       'التسجيل',   'Booking',   lang), active: false },
-                  { n: '3', label: t('وەرگرتنی QR',    'الحصول على QR', 'Get QR', lang), active: false },
+                  { n: '3', label: t('وەرگرتنی کۆد',    'الحصول على QR', 'Get QR', lang), active: false },
                 ].map((step, i) => (
                   <div key={i} className="flex items-center">
                     <div className="flex flex-col items-center gap-1.5 px-4">
@@ -1001,13 +1001,13 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                     </div>
                     <div className="flex-1 min-w-0" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
                       <p className="text-white text-sm font-bold" style={{ fontFamily: fontStyle(lang) }}>
-                        {t('ترمینالی بایۆمێتریک', 'محطة القياس الحيوي', 'Biometric Terminal', lang)}
+                        {t('فۆڕمی سەردانیکردن', 'محطة القياس الحيوي', 'Biometric Terminal', lang)}
                       </p>
                       <p className="text-xs mt-0.5 transition-colors duration-300"
                         style={{ color: faceVerified ? '#10b981' : '#6b7280', fontFamily: fontStyle(lang) }}>
                         {faceVerified
                           ? t('ناسنامە پشکنراوە ✓', 'تم التحقق ✓', 'Identity Verified ✓', lang)
-                          : t('چاوەڕوانی سکانی ڕووخسار', 'في انتظار مسح الوجه', 'Awaiting face scan', lang)
+                          : t('سەرەتا ڕووخسارت سکان بکە', 'في انتظار مسح الوجه', 'Awaiting face scan', lang)
                         }
                       </p>
                     </div>
@@ -1090,7 +1090,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                       <div>
                         <div className="flex items-center justify-between mb-4">
                           <p className="text-white text-sm font-semibold" style={{ fontFamily: fontStyle(lang) }}>
-                            {t('ڕووخسارت لە ناوەڕاست بگرە', 'ضع وجهك في المنتصف', 'Center your face in the frame', lang)}
+                            {t('ڕوخسارت لە ناوەڕاستی کامێراکە جێگیر بکە', 'ضع وجهك في المنتصف', 'Center your face in the frame', lang)}
                           </p>
                           <button
                             type="button"
