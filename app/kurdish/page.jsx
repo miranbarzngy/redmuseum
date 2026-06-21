@@ -212,7 +212,7 @@ export default function KurdishPageContent({ initialSection = null }) {
   }
 
   return (
-    <main dir="rtl" className={currentLang === 'ku' ? 'font-kurdish' : ''}>
+    <main dir="rtl" className={`pt-16 md:pt-0 ${currentLang === 'ku' ? 'font-kurdish' : ''}`}>
       <Sidebar
         activeSection={activeSection}
         onSectionClick={handleSectionClick}

@@ -205,7 +205,7 @@ export default function ArabicPageContent({ initialSection = null }) {
   }
 
   return (
-    <main dir="rtl" className={currentLang === 'ar' ? 'font-arabic' : ''}>
+    <main dir="rtl" className={`pt-16 md:pt-0 ${currentLang === 'ar' ? 'font-arabic' : ''}`}>
       <Sidebar
         activeSection={activeSection}
         onSectionClick={handleSectionClick}
