@@ -244,7 +244,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     const qrImg = await new Promise(resolve => { const img = new Image(); img.onload = () => resolve(img); img.src = qrDataUrl })
 
     const W = 520, LOGO_H = 80, GOLD_H = 3, TITLE_H = 56, PAD = 24
-    const FOOTER_H = 96
+    const FOOTER_H = 184
     const QR_SIZE  = hasFace ? 264 : W - PAD * 2
     const FACE_W   = hasFace ? 176 : 0
     const FACE_GAP = hasFace ? 16  : 0
@@ -347,19 +347,68 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
     y += ROW_H
 
+    // ── Details footer (mirrors success screen layout) ──────────
     ctx.fillStyle = '#111111'; ctx.fillRect(0, y, W, FOOTER_H)
-    const fMid = y + FOOTER_H / 2
-    ctx.fillStyle = '#ffffff'; ctx.font = `bold 15px ${kuFont}`
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'rtl'
-    ctx.fillText(reservation.name, W / 2, fMid - 18)
-    ctx.direction = 'ltr'; ctx.font = '12px Arial, sans-serif'; ctx.fillStyle = '#9ca3af'
-    ctx.fillText(`${reservation.date}  ·  ${(reservation.time || '').slice(0, 5)}  ·  ${reservation.guest_count} guests`, W / 2, fMid + 4)
-    const ag = ctx.createLinearGradient(0, 0, W, 0)
-    ag.addColorStop(0, 'transparent'); ag.addColorStop(0.5, '#c8a96e'); ag.addColorStop(1, 'transparent')
-    ctx.fillStyle = ag; ctx.fillRect(0, y + FOOTER_H - 24, W, 1)
-    ctx.fillStyle = '#6b7280'; ctx.font = '10px Arial'; ctx.textAlign = 'center'
-    ctx.fillText(museumNameEn, W / 2, y + FOOTER_H - 10)
 
+    const drawFooterDivider = (dy) => {
+      const gd = ctx.createLinearGradient(PAD, 0, W - PAD, 0)
+      gd.addColorStop(0, 'transparent'); gd.addColorStop(0.5, 'rgba(255,255,255,0.08)'); gd.addColorStop(1, 'transparent')
+      ctx.fillStyle = gd; ctx.fillRect(PAD, dy, W - PAD * 2, 1)
+    }
+
+    let fy = y + 20
+
+    // Visitor name label
+    ctx.fillStyle = '#4b5563'; ctx.font = '8px Arial'
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'
+    ctx.fillText('VISITOR NAME', W / 2, fy); fy += 15
+
+    // Visitor name value
+    ctx.fillStyle = '#ffffff'; ctx.font = `bold 17px ${kuFont}`
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'rtl'
+    ctx.fillText(reservation.name, W / 2, fy); fy += 22
+
+    drawFooterDivider(fy); fy += 14
+
+    // Date / Time / Guests — 3-column row with vertical separators
+    const COL_W = (W - PAD * 2) / 3
+    const colX  = [PAD + COL_W * 0.5, PAD + COL_W * 1.5, PAD + COL_W * 2.5]
+
+    ctx.fillStyle = 'rgba(255,255,255,0.08)'
+    ctx.fillRect(PAD + COL_W,     fy - 2, 1, 32)
+    ctx.fillRect(PAD + COL_W * 2, fy - 2, 1, 32)
+
+    ctx.fillStyle = '#4b5563'; ctx.font = '8px Arial'; ctx.direction = 'ltr'
+    ;['DATE', 'TIME', 'GUESTS'].forEach((lbl, i) => {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+      ctx.fillText(lbl, colX[i], fy + 4)
+    })
+
+    ctx.fillStyle = '#fbbf24'; ctx.font = "bold 12px 'Courier New', monospace"; ctx.direction = 'ltr'
+    ;[reservation.date, (reservation.time || '').slice(0, 5), String(reservation.guest_count)].forEach((val, i) => {
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+      ctx.fillText(val, colX[i], fy + 20)
+    })
+    fy += 36
+
+    drawFooterDivider(fy); fy += 14
+
+    // Booking ID label
+    ctx.fillStyle = '#4b5563'; ctx.font = '8px Arial'
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'
+    ctx.fillText('BOOKING ID', W / 2, fy); fy += 14
+
+    // Booking ID badge
+    const badgeW = 200, badgeH = 30, badgeX = (W - badgeW) / 2
+    ctx.fillStyle = 'rgba(16,185,129,0.1)'
+    ctx.beginPath(); ctx.roundRect(badgeX, fy, badgeW, badgeH, 8); ctx.fill()
+    ctx.strokeStyle = 'rgba(16,185,129,0.3)'; ctx.lineWidth = 1
+    ctx.beginPath(); ctx.roundRect(badgeX, fy, badgeW, badgeH, 8); ctx.stroke()
+    ctx.fillStyle = '#34d399'; ctx.font = "bold 13px 'Courier New', monospace"
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'
+    ctx.fillText(resId, W / 2, fy + badgeH / 2)
+
+    // ── Gold bottom bar ──
     const bg = ctx.createLinearGradient(0, 0, W, 0)
     bg.addColorStop(0, '#7a0000'); bg.addColorStop(0.5, '#c8a96e'); bg.addColorStop(1, '#7a0000')
     ctx.fillStyle = bg; ctx.fillRect(0, y + FOOTER_H, W, 5)
