@@ -42,7 +42,8 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   const [faceImageUrl, setFaceImageUrl]   = useState(null)
   const [faceVerified, setFaceVerified]   = useState(false)
   const [faceUploading, setFaceUploading] = useState(false)
-  const [faceScanOpen, setFaceScanOpen]   = useState(false)
+  const [faceScanOpen, setFaceScanOpen]     = useState(false)
+  const [hasStartedProcess, setHasStartedProcess] = useState(false)
   const [availableDays, setAvailableDays]   = useState(['1','2','3','4','5'])
   const [availableHours, setAvailableHours] = useState({ start: '09:00', end: '17:00' })
   const qrRef = useRef(null)
@@ -587,7 +588,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             {t('داونلۆدی QR','تحميل QR','Download QR',lang)}
           </button>
           <div className="flex gap-3">
-            <button onClick={() => { setReservation(null); setForm(EMPTY); setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(false) }}
+            <button onClick={() => { setReservation(null); setForm(EMPTY); setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(false); setHasStartedProcess(false) }}
               className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
               style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: fontStyle(lang) }}>
               <i className="ri-add-line" />
@@ -829,13 +830,92 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
           </div>
         )}
 
-        {/* ── BOOK TAB — split layout ────────────────────────── */}
-        {pageTab === 'book' && (
+        {/* ── BOOK TAB ──────────────────────────────────────── */}
+        {pageTab === 'book' && !hasStartedProcess && (
+          <div className="max-w-xl mx-auto">
+            <div className="rounded-2xl p-8 relative overflow-hidden"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(200,169,110,0.2)' }}>
+              <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
+
+              {/* Icon */}
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(200,169,110,0.06)', border: '1.5px solid rgba(200,169,110,0.3)' }}>
+                  <i className="ri-scan-2-line text-5xl" style={{ color: GOLD }} />
+                </div>
+              </div>
+
+              {/* Title */}
+              <h2 className="text-xl font-black text-white text-center mb-3" style={{ fontFamily: fontStyle(lang) }}>
+                {t('تۆمارکردنی سەردانکردن', 'تسجيل الزيارة', 'Visit Registration', lang)}
+              </h2>
+
+              {/* Description */}
+              <p className="text-center text-sm leading-loose mb-8" style={{ color: '#9ca3af', fontFamily: fontStyle(lang) }}>
+                {t(
+                  'بۆ تۆمارکردنی داواکارییەکەت، پێویستە سەرەتا ناسنامەی بایۆمێتریکی ڕووخسارت پشکنراوە بێت. ئەمەش مستەقیم بە کامێرای ئامێرەکەت دەکرێت.',
+                  'لتسجيل طلبك، يجب أولاً التحقق من هويتك عبر الكاميرا.',
+                  'To complete your reservation, we first need to verify your identity through a quick face scan using your device camera.',
+                  lang
+                )}
+              </p>
+
+              {/* Steps */}
+              <div className="flex items-start justify-center gap-0 mb-8">
+                {[
+                  { n: '1', label: t('سکانی ڕووخسار', 'مسح الوجه', 'Face Scan', lang), active: true },
+                  { n: '2', label: t('داواکاری',       'التسجيل',   'Booking',   lang), active: false },
+                  { n: '3', label: t('وەرگرتنی QR',    'الحصول على QR', 'Get QR', lang), active: false },
+                ].map((step, i) => (
+                  <div key={i} className="flex items-center">
+                    <div className="flex flex-col items-center gap-1.5 px-4">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black"
+                        style={{
+                          background: step.active ? GOLD : 'rgba(255,255,255,0.05)',
+                          color: step.active ? '#000' : '#4b5563',
+                          border: step.active ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                        }}>
+                        {step.n}
+                      </div>
+                      <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: step.active ? '#f5e6c8' : '#6b7280', fontFamily: fontStyle(lang) }}>
+                        {step.label}
+                      </span>
+                    </div>
+                    {i < 2 && <div className="w-6 h-px mb-4" style={{ background: 'rgba(255,255,255,0.08)' }} />}
+                  </div>
+                ))}
+              </div>
+
+              {/* Start button */}
+              <button
+                type="button"
+                onClick={() => { setHasStartedProcess(true); setFaceScanOpen(true) }}
+                className="w-full py-4 rounded-2xl font-black text-base transition-all hover:brightness-110 active:scale-[0.99]"
+                style={{
+                  background: `linear-gradient(135deg, ${RED}, rgba(122,0,0,0.85))`,
+                  border: `1px solid rgba(200,169,110,0.4)`,
+                  boxShadow: `0 8px 32px rgba(122,0,0,0.45)`,
+                  color: '#fff',
+                  fontFamily: fontStyle(lang),
+                }}
+              >
+                <span className="flex items-center justify-center gap-3">
+                  <i className="ri-scan-2-line text-xl" style={{ color: GOLD }} />
+                  {t('دەستپێکردنی تۆمارکردن و سکانی ڕووخسار', 'بدء التسجيل ومسح الوجه', 'Start Registration & Face Scan', lang)}
+                </span>
+              </button>
+
+              <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, rgba(200,169,110,0.2), transparent)` }} />
+            </div>
+          </div>
+        )}
+
+        {pageTab === 'book' && hasStartedProcess && (
           <form onSubmit={handleSubmit}>
-            <div className="flex flex-col md:grid md:grid-cols-12 gap-6 md:gap-8 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto w-full items-stretch">
 
               {/* ── LEFT: Biometric Terminal ─────────────────── */}
-              <div className="md:col-span-5">
+              <div>
                 <div className="rounded-2xl overflow-hidden transition-all duration-500" style={terminalStyle}>
 
                   {/* Terminal header bar */}
@@ -993,7 +1073,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
               </div>
 
               {/* ── RIGHT: Form ──────────────────────────────── */}
-              <div className="md:col-span-7 flex flex-col gap-4">
+              <div className="flex flex-col gap-4">
 
                 {/* Form card */}
                 <div className="relative rounded-2xl overflow-hidden"
