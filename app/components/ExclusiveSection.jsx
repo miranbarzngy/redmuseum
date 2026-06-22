@@ -289,24 +289,6 @@ function Countdown({ targetTime, lang, onFinish }) {
                 </div>
               </div>
 
-              {i < 3 && (
-                /* Wrapper is exactly CARD_H tall; dots are absolutely centred inside it */
-                <div style={{ position: 'relative', height: CARD_H, width: dotSize, flexShrink: 0 }}>
-                  <div
-                    className="colon-pulse flex flex-col"
-                    style={{
-                      gap: dotGap,
-                      position: 'absolute',
-                      top: '50%',
-                      left: 0,
-                      transform: 'translateY(-50%)',
-                    }}
-                  >
-                    <span className="rounded-full bg-[#c8a96e] block" style={{ width: dotSize, height: dotSize, boxShadow: '0 0 6px rgba(200,169,110,0.8)' }} />
-                    <span className="rounded-full bg-[#c8a96e] block" style={{ width: dotSize, height: dotSize, boxShadow: '0 0 6px rgba(200,169,110,0.8)' }} />
-                  </div>
-                </div>
-              )}
             </div>
           ))}
         </div>
