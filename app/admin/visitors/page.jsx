@@ -264,6 +264,14 @@ export default function VisitorsPage() {
       .then(res => res.blob())
       .then(blob => new Promise(resolve => { const fr = new FileReader(); fr.onload = () => resolve(fr.result); fr.readAsDataURL(blob) }))
     const qrDataUrl = await QRCode.toDataURL(qrTarget, { width: 220, margin: 1, errorCorrectionLevel: 'H', color: { dark: '#111111', light: '#ffffff' } })
+    let faceDataUrl = null
+    if (r.face_image_url) {
+      try {
+        faceDataUrl = await fetch(r.face_image_url)
+          .then(res => res.blob())
+          .then(blob => new Promise(resolve => { const fr = new FileReader(); fr.onload = () => resolve(fr.result); fr.readAsDataURL(blob) }))
+      } catch {}
+    }
 
     // Fetch address and museum name from settings
     let addrKu = 'سلێمانی، کوردستان، عێراق'
@@ -331,11 +339,11 @@ export default function VisitorsPage() {
   }
   .logo-box img { width:100%; height:100%; object-fit:contain; display:block; }
   .museum-name { color:#fff; font-family:'UniSalar',Tahoma,sans-serif; font-size:11pt; font-weight:700; line-height:1.4; }
-  .museum-sub  { color:#9ca3af; font-family:'UniSalar',Tahoma,sans-serif; font-size:7pt; margin-top:1px; }
+  .museum-sub  { color:#fff; font-family:'UniSalar',Tahoma,sans-serif; font-size:7pt; margin-top:1px; }
   .pass-label  { text-align:left; }
-  .pass-ku     { font-family:'UniSalar',Tahoma,sans-serif; font-size:7.5pt; font-weight:700; color:#9ca3af; margin-bottom:3px; }
+  .pass-ku     { font-family:'UniSalar',Tahoma,sans-serif; font-size:7.5pt; font-weight:700; color:#fff; margin-bottom:3px; }
   .pass-title  { font-family:'UniSalar',Tahoma,sans-serif; font-size:17pt; font-weight:900; letter-spacing:0.2em; color:#fff; line-height:1; }
-  .pass-ref    { font-family:'Courier New',Courier,monospace; font-size:7pt; color:#6b7280; margin-top:4px; letter-spacing:0.06em; }
+  .pass-ref    { font-family:'Courier New',Courier,monospace; font-size:7pt; color:#fff; margin-top:4px; letter-spacing:0.06em; }
 
   /* ── Status bar ── */
   .status-bar {
@@ -349,37 +357,52 @@ export default function VisitorsPage() {
 
   /* ── Details section ── */
   .details {
-    flex-shrink:0; padding:14px 28px 10px;
-    border-bottom:1px solid #e0e0e0; direction:rtl;
+    flex-shrink:0; padding:16px 28px 14px;
+    background:#fff;
+    border-top:1.5px solid #7a0000;
+    border-bottom:1.5px solid #7a0000;
+    direction:rtl;
   }
   .spacer { flex:1; }
   .section-title {
     font-family:'UniSalar',Tahoma,sans-serif;
-    font-size:12pt; font-weight:800; color:#000;
-    margin-bottom:10px;
-    display:flex; align-items:center; justify-content:center; gap:8px;
+    font-size:11pt; font-weight:800; color:#7a0000;
+    margin-bottom:13px;
+    display:flex; align-items:center; justify-content:center; gap:10px;
+    letter-spacing:0.01em;
   }
-  .section-title .en { color:#000; opacity:0.5; font-size:10.5pt; font-family:'UniSalar',Tahoma,sans-serif; }
-  .fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 28px; }
-  .field { padding:7px 0; border-bottom:1px solid #ebebeb; display:flex; flex-direction:column; align-items:center; text-align:center; }
-  .field:last-child { border-bottom:none; }
+  .section-title .deco { display:block; height:1.5px; width:48px; background:linear-gradient(90deg,transparent,#c8a96e); flex-shrink:0; }
+  .section-title .deco-r { background:linear-gradient(90deg,#c8a96e,transparent); }
+  .section-title .en { color:#7a0000; opacity:0.45; font-size:9pt; font-family:'UniSalar',Tahoma,sans-serif; }
+  .fields-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .field {
+    padding:10px 14px;
+    background:#fff;
+    border:1.5px solid #111;
+    border-radius:8px;
+    display:flex; flex-direction:column; align-items:center; text-align:center;
+    box-shadow:0 2px 8px rgba(122,0,0,0.12);
+  }
   .field.full-width { grid-column:1 / -1; }
   .field .lbl {
     font-family:'UniSalar',Tahoma,sans-serif;
-    font-size:10.5pt; color:#000; opacity:0.55;
-    margin-bottom:2px; display:flex; align-items:center; justify-content:center; gap:4px;
+    font-size:7.5pt; color:#7a0000; opacity:0.6;
+    margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:4px;
+    text-transform:uppercase; letter-spacing:0.05em;
   }
   .field .lbl .en { font-family:'UniSalar',Tahoma,sans-serif; }
-  .field .val { font-family:'UniSalar',Tahoma,sans-serif; font-size:18pt; font-weight:700; color:#000; line-height:1.3; text-align:center; }
-  .field .val.mono { font-family:'Courier New',Courier,monospace; font-size:16.5pt; direction:ltr; text-align:center; }
-  .field .val.sm { font-family:'UniSalar',Tahoma,sans-serif; font-size:15pt; font-weight:400; color:#000; text-align:center; }
+  .field .val { font-family:'UniSalar',Tahoma,sans-serif; font-size:16pt; font-weight:800; color:#111; line-height:1.2; text-align:center; }
+  .field .val.mono { font-family:'Courier New',Courier,monospace; font-size:14.5pt; direction:ltr; text-align:center; font-weight:900; color:#111; -webkit-text-stroke:0.4px #111; }
+  .field .val.sm { font-family:'UniSalar',Tahoma,sans-serif; font-size:13pt; font-weight:500; color:#555; text-align:center; font-style:italic; }
 
   /* ── QR section ── */
   .qr-section {
     flex-shrink:0;
-    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px;
-    background:#fff; padding:20px 0;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;
+    background:#fff; padding:20px 28px;
   }
+  .qr-row { display:flex; flex-direction:row; align-items:flex-start; justify-content:center; gap:36px; }
+  .qr-col { display:flex; flex-direction:column; align-items:center; gap:10px; }
   .qr-wrapper { position:relative; display:inline-block; }
   .qr-frame {
     padding:3px; border-radius:16px;
@@ -387,7 +410,14 @@ export default function VisitorsPage() {
     box-shadow:0 8px 32px rgba(122,0,0,0.22), 0 2px 8px rgba(200,169,110,0.15);
   }
   .qr-inner { background:#fff; border-radius:13px; padding:13px; }
-  .qr-frame img { display:block; width:190px; height:190px; }
+  .qr-frame img { display:block; width:215px; height:215px; }
+  .face-frame {
+    padding:3px; border-radius:16px;
+    background:linear-gradient(135deg,#7a0000 0%,#c8a96e 50%,#7a0000 100%);
+    box-shadow:0 8px 32px rgba(122,0,0,0.22), 0 2px 8px rgba(200,169,110,0.15);
+  }
+  .face-inner { background:#fff; border-radius:13px; overflow:hidden; }
+  .face-inner img { display:block; width:215px; height:215px; object-fit:cover; }
   .qr-caption {
     font-family:'UniSalar',Tahoma,sans-serif;
     font-size:9pt; color:#000; text-align:center; line-height:1.8;
@@ -412,7 +442,7 @@ export default function VisitorsPage() {
     display:flex; align-items:center; justify-content:space-between; direction:rtl;
   }
   .footer-ku   { font-family:'UniSalar',Tahoma,sans-serif; font-size:8.5pt; font-weight:700; color:#fff; }
-  .footer-en   { font-family:'UniSalar',Tahoma,sans-serif; font-size:6.5pt; color:#6b7280; margin-top:2px; }
+  .footer-en   { font-family:'UniSalar',Tahoma,sans-serif; font-size:6.5pt; color:#fff; margin-top:2px; }
   .bottom-bar  { flex-shrink:0; height:6px; background:linear-gradient(90deg,#7a0000,#c8a96e,#7a0000); }
 </style>
 </head>
@@ -442,7 +472,7 @@ export default function VisitorsPage() {
 </div>
 
 <div class="details">
-  <div class="section-title">وردەکاری داواکاری <span class="en">· Reservation Details</span></div>
+  <div class="section-title"><span class="deco"></span>وردەکاری داواکاری <span class="en">· Reservation Details</span><span class="deco deco-r"></span></div>
   <div class="fields-grid">
     <div class="field">
       <div class="lbl">ناوی تەواو <span class="en">· Full Name</span></div>
@@ -472,14 +502,27 @@ export default function VisitorsPage() {
 <div class="spacer"></div>
 
 <div class="qr-section">
-  <div class="qr-wrapper">
-    <div class="qr-frame">
-      <div class="qr-inner"><img src="${qrDataUrl}" alt="QR Code"/></div>
+  <div class="qr-row">
+    <div class="qr-col">
+      <div class="qr-wrapper">
+        <div class="qr-frame">
+          <div class="qr-inner"><img src="${qrDataUrl}" alt="QR Code"/></div>
+        </div>
+      </div>
+      <div class="qr-caption">
+        سکان بکە بۆ پشتڕاستکردنەوە
+        <span class="en">Scan to Verify</span>
+      </div>
     </div>
-  </div>
-  <div class="qr-caption">
-    سکان بکە بۆ پشتڕاستکردنەوە
-    <span class="en">Scan to Verify</span>
+    ${faceDataUrl ? `<div class="qr-col">
+      <div class="face-frame">
+        <div class="face-inner"><img src="${faceDataUrl}" alt="Visitor Face"/></div>
+      </div>
+      <div class="qr-caption">
+        وێنەی میوان
+        <span class="en">Visitor Photo</span>
+      </div>
+    </div>` : ''}
   </div>
   <div class="qr-ref">RESERVATION · ${ref}</div>
 </div>

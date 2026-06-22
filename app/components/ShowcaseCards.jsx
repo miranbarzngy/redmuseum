@@ -228,7 +228,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
         <>
           <button
             onClick={prev}
-            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 md:w-10 md:h-10 rounded-xl bg-red-700 hover:bg-red-800 transition-all flex items-center justify-center text-white"
+            className="absolute left-2 md:left-20 top-1/2 -translate-y-1/2 z-20 w-8 h-8 md:w-10 md:h-10 rounded-xl bg-red-700 hover:bg-red-800 transition-all flex items-center justify-center text-white"
           >
             <i className="ri-arrow-left-s-line text-lg md:text-xl" />
           </button>

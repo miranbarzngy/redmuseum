@@ -189,7 +189,7 @@ export default function Slider({ currentLang = 'en' }) {
                 src={slide.museum_image}
                 alt=""
                 className="absolute object-contain pointer-events-none z-[776]
-                  top-[100px] left-1/2 -translate-x-1/2 h-[310px] w-auto
+                  top-0 left-0 h-full w-full scale-[1.6] origin-center
                   md:top-0 md:left-0 md:translate-x-0 md:h-full md:w-full md:scale-100 md:translate-y-[75px]"
               />
             )}
@@ -236,8 +236,8 @@ export default function Slider({ currentLang = 'en' }) {
               {/* Description */}
               <p
                 className="absolute text-white font-semibold rounded-lg leading-relaxed
-                  text-xs top-[420px] left-0 right-0 px-4 py-2 mx-auto w-[92%] text-center
-                  md:text-2xl md:top-auto md:bottom-16 lg:bottom-20 md:max-w-4xl md:px-16 md:py-4 md:w-auto md:left-auto md:right-auto md:mx-0 md:text-start"
+                  text-xs bottom-[58px] left-0 right-0 px-4 py-2 mx-auto w-[92%] text-center
+                  md:text-2xl md:bottom-16 lg:bottom-20 md:max-w-4xl md:px-16 md:py-4 md:w-auto md:left-auto md:right-auto md:mx-0 md:text-start"
                 style={{
                   textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
                   backgroundColor: 'rgba(0,0,0,0.75)',
