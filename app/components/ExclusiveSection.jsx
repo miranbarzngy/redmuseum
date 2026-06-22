@@ -435,9 +435,9 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
       <div className="flex-1 min-h-0 lg:flex-none max-w-screen-2xl mx-auto w-full flex flex-col lg:flex-row overflow-hidden">
 
         {/* IMAGE */}
-        <div className="flex-1 min-h-0 lg:flex-none lg:w-[60%] flex flex-col justify-center p-2 lg:p-3 xl:p-4">
+        <div className="h-[240px] md:h-[300px] lg:h-auto lg:flex-none lg:w-[60%] flex flex-col justify-center p-2 lg:p-3 xl:p-4">
           <div
-            className="relative rounded-2xl overflow-hidden w-full h-full lg:h-auto lg:aspect-video"
+            className="relative rounded-2xl overflow-hidden w-full h-full lg:aspect-video"
             style={{
               border: '1.5px solid rgba(200,169,110,0.5)',
               boxShadow: '0 0 0 4px rgba(200,169,110,0.06), 0 24px 80px rgba(0,0,0,0.85)',
