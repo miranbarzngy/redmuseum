@@ -78,72 +78,63 @@ export default function About({ currentLang = 'en' }) {
   )
 
   return (
-    <section id="about" className="py-20 overflow-hidden" style={{ background: bgColor }}>
-      <div className="container mx-auto px-4 md:px-8 lg:px-16">
+    <section id="about" className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col justify-between py-6 md:py-10" style={{ background: bgColor }}>
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col flex-1 justify-between">
 
         {/* Decorative top line */}
-        <div className="flex items-center gap-0 mb-16" style={{ opacity: 1 }}>
+        <div className="flex items-center gap-0" style={{ opacity: 1 }}>
           <div className="flex-1 h-0.5 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
           <div className="w-1.5 h-1.5 rounded-full mx-2" style={{ background: '#c8a96e' }} />
           <div className="flex-1 h-0.5 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
         </div>
 
-        <div className="max-w-4xl mx-auto">
+        {/* Main content — distributes available space evenly */}
+        <div className="flex flex-col items-center justify-around flex-1 py-4 gap-y-2 md:gap-y-4 max-w-4xl mx-auto w-full">
 
           {/* Logo */}
-          <div className="flex justify-center mb-10">
-            <img
-              src="/assets/images/amnasuraka_logo-removebg-preview.png"
-              alt="Amna Suraka Logo"
-              className="w-36 h-36 md:w-44 md:h-44 object-contain"
-              style={{ filter: 'drop-shadow(0 0 16px rgba(204,0,0,0.5)) drop-shadow(0 0 40px rgba(204,0,0,0.2))' }}
-            />
-          </div>
+          <img
+            src="/assets/images/amnasuraka_logo-removebg-preview.png"
+            alt="Amna Suraka Logo"
+            className="h-16 md:h-20 lg:h-24 xl:h-28 w-auto object-contain"
+          />
 
-          {/* Title */}
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <span className="block w-10 h-px" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
-            <h2 className="text-3xl md:text-4xl font-black text-center leading-snug"
-              dir={isAr ? 'rtl' : 'ltr'} style={{ color: '#1a0a0a', ...font }}>
-              {title}
-            </h2>
-            <span className="block w-10 h-px" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
+          {/* Title + Description */}
+          <div className="flex flex-col items-center gap-2 md:gap-3">
+            <div className="flex items-center justify-center gap-3">
+              <span className="block w-8 md:w-10 h-px" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
+              <h2 className="text-xl sm:text-3xl md:text-3xl xl:text-5xl font-black text-center leading-snug"
+                dir={isAr ? 'rtl' : 'ltr'} style={{ color: '#1a0a0a', ...font }}>
+                {title}
+              </h2>
+              <span className="block w-8 md:w-10 h-px" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
+            </div>
+            <p className="text-xs sm:text-sm md:text-sm xl:text-base leading-relaxed text-center max-w-2xl"
+              dir={isAr ? 'rtl' : 'ltr'} style={{ color: '#3a2a2a', ...font }}>
+              {desc}
+            </p>
           </div>
-
-          {/* Description */}
-          <p className="text-base md:text-lg leading-loose text-center mb-16 max-w-2xl mx-auto"
-            dir={isAr ? 'rtl' : 'ltr'} style={{ color: '#3a2a2a', ...font }}>
-            {desc}
-          </p>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 md:gap-6">
+          <div className="grid grid-cols-3 gap-2 md:gap-4 xl:gap-6 w-full">
             {stats.map(s => (
               <div key={s.key}
-                className="relative flex flex-col items-center gap-3 py-8 px-4 rounded-2xl overflow-hidden"
+                className="relative flex flex-col items-center gap-1.5 md:gap-2 py-3 md:py-5 px-2 md:px-3 xl:px-4 rounded-xl md:rounded-2xl overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, rgba(122,0,0,0.06) 0%, rgba(255,255,255,0) 100%)',
                   border: '1px solid rgba(122,0,0,0.12)',
                   boxShadow: '0 4px 24px rgba(122,0,0,0.06)',
                 }}>
-                {/* Top accent */}
                 <div className="absolute top-0 left-1/4 right-1/4 h-px"
                   style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
-
-                {/* Icon */}
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                <div className="w-6 h-6 md:w-8 md:h-8 xl:w-10 xl:h-10 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(122,0,0,0.1)', border: '1px solid rgba(122,0,0,0.2)' }}>
-                  <i className={`${s.icon} text-lg`} style={{ color: '#7a0000' }} />
+                  <i className={`${s.icon} text-xs md:text-sm xl:text-lg`} style={{ color: '#7a0000' }} />
                 </div>
-
-                {/* Number */}
-                <div className="text-4xl md:text-5xl font-black leading-none"
+                <div className="text-xl md:text-3xl xl:text-5xl font-black leading-none"
                   style={{ color: '#7a0000', fontVariantNumeric: 'tabular-nums' }}>
                   {s.value.toLocaleString()}
                 </div>
-
-                {/* Label */}
-                <div className="text-xs md:text-sm text-center leading-snug" style={{ color: '#5a3a3a', ...font }}>
+                <div className="text-[9px] md:text-xs xl:text-sm text-center leading-snug" style={{ color: '#5a3a3a', ...font }}>
                   {s.label}
                 </div>
               </div>
@@ -153,7 +144,7 @@ export default function About({ currentLang = 'en' }) {
         </div>
 
         {/* Decorative bottom line */}
-        <div className="flex items-center gap-0 mt-16" style={{ opacity: 1 }}>
+        <div className="flex items-center gap-0" style={{ opacity: 1 }}>
           <div className="flex-1 h-0.5 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
           <div className="w-1.5 h-1.5 rounded-full mx-2" style={{ background: '#c8a96e' }} />
           <div className="flex-1 h-0.5 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />

@@ -19,27 +19,28 @@ export default function VRSection({ currentLang = 'en' }) {
   const caption  = t('مۆزەخانەی نیشتمانی ئەمنە سورەکە - سلێمانی، کوردستان', 'متحف أمنة سراكر الوطني - السليمانية، كوردستان', 'Amna Suraka National Museum - Sulaymaniyah, Kurdistan')
 
   return (
-    <section id="virtual-tour" className="py-16" style={{ background: '#0a0f1e' }}>
-      <div className="container mx-auto px-4 md:px-8 lg:px-16">
+    <section id="virtual-tour" className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-5 md:py-10" style={{ background: '#0a0f1e' }}>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col flex-1 min-h-0">
 
         {/* Section header */}
-        <div className="flex flex-col items-center mb-10">
-          <div className="flex items-center gap-4 mb-3">
-            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
-            <h2 className="text-2xl md:text-3xl font-black text-white tracking-wide text-center" style={font}>
+        <div className="flex flex-col items-center mb-3 md:mb-6 flex-shrink-0">
+          <div className="flex items-center gap-3 md:gap-4 mb-1 md:mb-2">
+            <span className="block w-10 md:w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
+            <h2 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-white tracking-wide text-center" style={font}>
               {title}
             </h2>
-            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
+            <span className="block w-10 md:w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
           </div>
-          <p className="text-white text-sm text-center" style={font}>{subtitle}</p>
+          <p className="text-white/80 text-xs md:text-sm text-center" style={font}>{subtitle}</p>
         </div>
 
-        {/* Video container */}
-        <div className="max-w-4xl mx-auto">
+        {/* Video wrapper — grows to fill remaining height */}
+        <div className="max-w-4xl mx-auto w-full flex-1 min-h-0 flex flex-col">
+
+          {/* Video container — fills flex space; all children are absolute inset-0 */}
           <div
-            className="w-full overflow-hidden rounded-2xl relative"
+            className="w-full overflow-hidden rounded-2xl relative flex-1 min-h-0"
             style={{
-              aspectRatio: '16/9',
               border: '1px solid rgba(200,169,110,0.2)',
               boxShadow: '0 0 0 1px rgba(200,169,110,0.08), 0 32px 80px rgba(0,0,0,0.7)',
             }}
@@ -65,7 +66,7 @@ export default function VRSection({ currentLang = 'en' }) {
                 />
 
                 {/* 360° badge */}
-                <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-bold text-white z-10"
+                <div className="absolute top-3 right-3 md:top-4 md:right-4 flex items-center gap-1 md:gap-1.5 px-2.5 py-1 md:px-3 md:py-1.5 rounded-full text-xs md:text-sm font-bold text-white z-10"
                   style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.4)', boxShadow: '0 4px 12px rgba(122,0,0,0.5)', ...font }}>
                   <i className="ri-vip-crown-line text-[#c8a96e] text-xs" />
                   360°
@@ -74,17 +75,17 @@ export default function VRSection({ currentLang = 'en' }) {
                 {/* Play button */}
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div
-                    className="relative w-20 h-20 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
+                    className="relative w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-110"
                     style={{ background: 'rgba(122,0,0,0.85)', border: '2px solid rgba(200,169,110,0.5)', boxShadow: '0 0 0 8px rgba(122,0,0,0.2), 0 8px 32px rgba(0,0,0,0.6)' }}
                   >
-                    <i className="ri-play-fill text-white text-3xl ml-1" />
+                    <i className="ri-play-fill text-white text-2xl md:text-3xl ml-1" />
                   </div>
                 </div>
 
                 {/* Explore button */}
-                <div className="absolute bottom-6 left-0 right-0 flex justify-center">
+                <div className="absolute bottom-4 md:bottom-6 left-0 right-0 flex justify-center">
                   <span
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold text-white"
+                    className="flex items-center gap-2 px-4 py-2 md:px-5 md:py-2.5 rounded-full text-xs md:text-sm font-semibold text-white"
                     style={{ background: 'rgba(0,0,0,0.65)', border: '1px solid rgba(200,169,110,0.3)', backdropFilter: 'blur(8px)', ...font }}
                   >
                     <i className="ri-compass-3-line text-[#c8a96e]" />
@@ -109,7 +110,7 @@ export default function VRSection({ currentLang = 'en' }) {
           </div>
 
           {/* Caption */}
-          <p className="text-center text-white text-xs mt-4 flex items-center justify-center gap-2" style={font}>
+          <p className="text-center text-white/70 text-[10px] md:text-xs mt-2 md:mt-3 flex-shrink-0 flex items-center justify-center gap-2" style={font}>
             <i className="ri-map-pin-line text-[#c8a96e]" />
             {caption}
           </p>

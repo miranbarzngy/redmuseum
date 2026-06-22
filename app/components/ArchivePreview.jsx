@@ -150,80 +150,67 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   return (
     <section
       id="archive-section"
-      className="py-16"
+      className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-5 md:py-10"
       style={{ background: bgColor }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="container mx-auto px-4 md:px-8 lg:px-16">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col flex-1 min-h-0">
 
         {/* Section header */}
-        <div className="flex flex-col items-center mb-12">
-          <div className="flex items-center gap-4 mb-3">
-            <span className="block w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
-            <h2 className="text-2xl md:text-3xl font-black text-white tracking-wide" style={font}>{sectionTitle}</h2>
-            <span className="block w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
+        <div className="flex flex-col items-center mb-3 md:mb-6 flex-shrink-0">
+          <div className="flex items-center gap-3 md:gap-4 mb-1 md:mb-2">
+            <span className="block w-12 md:w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
+            <h2 className="text-2xl sm:text-3xl md:text-3xl xl:text-4xl font-black text-white tracking-wide" style={font}>{sectionTitle}</h2>
+            <span className="block w-12 md:w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
           </div>
-          <p className="text-white text-sm" style={font}>{sectionSub}</p>
+          <p className="text-white/70 text-sm" style={font}>{sectionSub}</p>
         </div>
 
-        {/* Card */}
-        <div className="relative max-w-4xl mx-auto">
+        {/* Card — grows to fill remaining space */}
+        <div className="relative max-w-4xl mx-auto w-full flex-1 min-h-0">
           <Link
             href={getDetailLink(item)}
-            className="block rounded-2xl overflow-hidden"
+            className="block rounded-2xl overflow-hidden h-full"
             style={{ background: 'linear-gradient(135deg, #111 0%, #0d0d0d 100%)', boxShadow: '0 0 0 1px rgba(200,169,110,0.15), 0 24px 60px rgba(0,0,0,0.7)' }}
           >
-            <div className="flex flex-col md:flex-row" dir={isAr ? 'rtl' : 'ltr'}>
+            <div className="flex flex-col md:flex-row h-full" dir={isAr ? 'rtl' : 'ltr'}>
 
-              {/* Image panel */}
-              <div className="relative w-full md:w-[45%] flex-shrink-0 bg-[#080808] flex items-center justify-center overflow-hidden"
-                style={{ minHeight: 280 }}>
-                {/* Gold top accent */}
+              {/* Image panel — flex-1 on mobile (fills top), fixed 45% width on desktop */}
+              <div className="relative flex-1 min-h-0 md:flex-none md:w-[45%] bg-[#080808] flex items-center justify-center overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-0.5 opacity-60"
                   style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
 
                 <img
                   src={normalizePath(item?.image_url)}
                   alt={getTitle(item)}
-                  className="w-full h-full object-contain p-6 transition-transform duration-700 hover:scale-105"
-                  style={{ maxHeight: 380 }}
+                  className="w-full h-full object-contain p-2 md:p-6 transition-transform duration-700 hover:scale-105"
                   onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
                 />
 
-                {/* Category badge */}
                 <span
-                  className="absolute top-4 left-4 text-xs font-semibold px-3 py-1.5 rounded-full tracking-wide"
+                  className="absolute top-3 left-3 md:top-4 md:left-4 text-xs font-semibold px-3 py-1 rounded-full tracking-wide"
                   style={{ background: 'rgba(122,0,0,0.85)', color: '#c8a96e', border: '1px solid rgba(200,169,110,0.4)', fontFamily: font.fontFamily || 'inherit' }}
                 >
                   {getCategoryName(item)}
                 </span>
 
-                {/* Slide counter */}
-                <span className="absolute bottom-4 right-4 text-white/30 text-xs font-mono">
+                <span className="absolute bottom-2 right-2 text-white/30 text-[10px] font-mono">
                   {currentIndex + 1} / {archive.length}
                 </span>
               </div>
 
-              {/* Content panel */}
-              <div className="flex-1 p-6 md:p-10 flex flex-col justify-center gap-4">
-                <h3 className="text-xl md:text-2xl font-bold text-white leading-snug" style={font}>
+              {/* Content panel — fixed height on mobile, flex-1 on desktop */}
+              <div className="flex-shrink-0 md:flex-1 px-4 py-3 md:p-10 flex flex-col justify-center gap-2 md:gap-4">
+                <h3 className="text-base md:text-2xl font-bold text-white leading-snug" style={font}>
                   {getTitle(item)}
                 </h3>
-                <p className="text-white text-sm md:text-base leading-relaxed line-clamp-4" style={font}>
+                <p className="text-white/80 text-sm md:text-base leading-relaxed line-clamp-2 md:line-clamp-4" style={font}>
                   {getDescription(item)}
                 </p>
-                {item?.date_created && (
-                  <p className="text-gray-400 text-xs mt-auto flex items-center gap-1.5">
-                    <i className="ri-calendar-line" />
-                    {formatDate(item.date_created)}
-                  </p>
-                )}
-
-                {/* Read more hint */}
-                <div className="flex items-center gap-2 mt-2">
+                <div className="flex items-center gap-2">
                   <span className="text-[#c8a96e] text-xs font-semibold tracking-wide" style={font}>
-                    {isAr ? 'اقرأ المزيد' : isKu ? 'زیاتر ' : 'Read more'}
+                    {isAr ? 'اقرأ المزيد' : isKu ? 'زیاتر بخوێنەوە' : 'Read more'}
                   </span>
                   <i className={`ri-arrow-${isAr ? 'left' : 'right'}-line text-[#c8a96e] text-xs`} />
                 </div>
@@ -231,21 +218,19 @@ export default function ArchivePreview({ currentLang = 'en' }) {
             </div>
           </Link>
 
-          {/* Prev arrow */}
+          {/* Arrows — vertically centred on the image portion (top 40% on mobile, 50% on desktop) */}
           {archive.length > 1 && (
             <button
               onClick={e => { e.preventDefault(); prev() }}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-xl flex items-center justify-center text-white text-xl transition-all duration-200 bg-red-700 hover:bg-red-800"
+              className="absolute left-2 md:left-4 top-[38%] md:top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-white text-lg transition-all duration-200 bg-red-700 hover:bg-red-800"
             >
               <i className="ri-arrow-left-s-line" />
             </button>
           )}
-
-          {/* Next arrow */}
           {archive.length > 1 && (
             <button
               onClick={e => { e.preventDefault(); next() }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-xl flex items-center justify-center text-white text-xl transition-all duration-200 bg-red-700 hover:bg-red-800"
+              className="absolute right-2 md:right-4 top-[38%] md:top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-white text-lg transition-all duration-200 bg-red-700 hover:bg-red-800"
             >
               <i className="ri-arrow-right-s-line" />
             </button>
@@ -254,7 +239,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
 
         {/* Progress dots */}
         {archive.length > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-6">
+          <div className="flex justify-center items-center gap-2 mt-2 md:mt-4 flex-shrink-0">
             {archive.map((_, i) => (
               <button
                 key={i}
@@ -278,10 +263,10 @@ export default function ArchivePreview({ currentLang = 'en' }) {
         )}
 
         {/* View All */}
-        <div className="text-center mt-10">
+        <div className="text-center mt-2 md:mt-5 flex-shrink-0">
           <Link
             href={archiveLink}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold text-white transition-all duration-300"
+            className="inline-flex items-center gap-2 px-5 md:px-6 py-2 md:py-3 rounded-full text-xs md:text-sm font-semibold text-white transition-all duration-300"
             style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.3)', boxShadow: '0 4px 20px rgba(122,0,0,0.35)', ...font }}
             onMouseEnter={e => { e.currentTarget.style.background = '#8a0000'; e.currentTarget.style.borderColor = '#c8a96e' }}
             onMouseLeave={e => { e.currentTarget.style.background = '#7a0000'; e.currentTarget.style.borderColor = 'rgba(200,169,110,0.3)' }}

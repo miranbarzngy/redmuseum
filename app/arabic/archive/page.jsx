@@ -111,7 +111,7 @@ export default function ArabicArchive() {
         <div className="absolute top-0 left-0 right-0 h-px"
           style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
 
-        <div className="relative px-4 md:px-8 lg:px-16 py-20 text-center">
+        <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6"
             style={{ background: 'rgba(122,0,0,0.3)', border: '1px solid rgba(200,169,110,0.3)' }}>
             <i className="ri-archive-line text-3xl" style={{ color: '#c8a96e' }} />
@@ -135,7 +135,7 @@ export default function ArabicArchive() {
           style={{ background: 'linear-gradient(to right, transparent, rgba(200,169,110,0.3), transparent)' }} />
       </div>
 
-      <div className="px-4 md:px-8 lg:px-16 py-10">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         {/* Search + filter row */}
         <div className="flex flex-col md:flex-row items-center gap-4 mb-10">

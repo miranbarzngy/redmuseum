@@ -97,17 +97,17 @@ export default function ContactForm({ currentLang = 'en' }) {
   ]
 
   return (
-    <section id="contact" className="text-white py-16" style={{ background: settings?.contact_bg_color || '#0a0f1e' }}>
-      <div className="container mx-auto px-4 md:px-8 lg:px-16">
+    <section id="contact" className="text-white h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-4 md:py-8" style={{ background: settings?.contact_bg_color || '#0a0f1e' }}>
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col flex-1 min-h-0">
 
         {/* Section header */}
-        <div className="flex flex-col items-center mb-12">
-          <div className="flex items-center gap-4 mb-3">
-            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
-            <h2 className="text-2xl md:text-3xl font-black text-white tracking-wide" style={font}>
+        <div className="flex flex-col items-center mb-3 md:mb-6 flex-shrink-0">
+          <div className="flex items-center gap-3 md:gap-4 mb-1 md:mb-2">
+            <span className="block w-10 md:w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
+            <h2 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-white tracking-wide" style={font}>
               {t('پەیوەندی بکە', 'اتصل بنا', 'Contact Us')}
             </h2>
-            <span className="block w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
+            <span className="block w-10 md:w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
           </div>
           <div className="flex items-center gap-2">
             <div className="w-8 h-px" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
@@ -116,102 +116,101 @@ export default function ContactForm({ currentLang = 'en' }) {
           </div>
         </div>
 
-        <div className="max-w-3xl mx-auto">
+        {/* Scrollable content — graceful fallback on very short screens */}
+        <div className="max-w-3xl mx-auto w-full flex-1 min-h-0 overflow-y-auto">
 
           {/* Contact info cards */}
           {settingsLoading ? (
-            <div className="flex justify-center mb-10">
+            <div className="flex justify-center mb-3">
               <div className="w-8 h-8 border-2 border-[#c8a96e] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-3 md:gap-5 mb-10">
+            <div className="grid grid-cols-3 gap-2 md:gap-4 mb-3 md:mb-6">
               {contactItems.map(({ icon, value }) => (
-                <div key={icon} className="flex flex-col items-center gap-3 py-6 px-3 rounded-2xl text-center"
+                <div key={icon} className="flex flex-col items-center gap-1.5 md:gap-2 py-2.5 md:py-4 px-2 md:px-3 rounded-xl md:rounded-2xl text-center"
                   style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(200,169,110,0.15)' }}>
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  <div className="w-7 h-7 md:w-9 md:h-9 rounded-lg md:rounded-xl flex items-center justify-center flex-shrink-0"
                     style={{ background: 'rgba(122,0,0,0.5)', border: '1px solid rgba(200,169,110,0.25)' }}>
-                    <i className={`${icon} text-lg`} style={{ color: '#c8a96e' }} />
+                    <i className={`${icon} text-sm md:text-base`} style={{ color: '#c8a96e' }} />
                   </div>
-                  <p className="text-gray-300 text-xs md:text-sm break-all leading-relaxed" style={font}>{value}</p>
+                  <p className="text-gray-300 text-[9px] md:text-xs break-all leading-snug" style={font}>{value}</p>
                 </div>
               ))}
             </div>
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4" dir={isRtl ? 'rtl' : 'ltr'}>
-            <div className="rounded-2xl p-5 md:p-6 space-y-5"
+          <form onSubmit={handleSubmit} className="space-y-2 md:space-y-3" dir={isRtl ? 'rtl' : 'ltr'}>
+            <div className="rounded-xl md:rounded-2xl p-3 md:p-5 space-y-2.5 md:space-y-4"
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(200,169,110,0.15)', boxShadow: '0 8px 40px rgba(0,0,0,0.4)' }}>
 
               {/* Gold top accent */}
-              <div className="h-px -mx-5 md:-mx-6 -mt-5 md:-mt-6 mb-5 rounded-t-2xl"
+              <div className="h-px -mx-3 md:-mx-5 -mt-3 md:-mt-5 mb-2.5 md:mb-4 rounded-t-2xl"
                 style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Name */}
+              {/* Name + Phone */}
+              <div className="grid grid-cols-2 gap-2 md:gap-3">
                 <div>
-                  <label className="block text-sm font-semibold mb-1.5" style={{ color: '#d1d5db', ...font }}>
+                  <label className="block text-xs md:text-sm font-semibold mb-1" style={{ color: '#d1d5db', ...font }}>
                     <span style={{ color: '#c8a96e' }}>* </span>{t('ناوی تەواو', 'الاسم الكامل', 'Full Name')}
                   </label>
                   <input type="text" name="name" value={formData.name} onChange={handleChange}
                     placeholder={t('ناوی سیانی', 'اسمك الكامل', 'Your Name')}
-                    className="w-full px-4 py-3 rounded-xl text-white placeholder-white/25 focus:outline-none transition-all"
+                    className="w-full px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl text-white text-sm placeholder-white/25 focus:outline-none transition-all"
                     style={{ ...inputCls('name'), ...font }}
                     onFocus={e => { if (!errors.name) e.target.style.borderColor = '#c8a96e' }}
                     onBlur={e => { if (!errors.name) e.target.style.borderColor = 'rgba(255,255,255,0.1)' }}
                   />
-                  {errors.name && <p className="text-red-400 text-xs mt-1" style={font}>{errors.name}</p>}
+                  {errors.name && <p className="text-red-400 text-[10px] mt-0.5" style={font}>{errors.name}</p>}
                 </div>
-
-                {/* Phone */}
                 <div>
-                  <label className="block text-sm font-semibold mb-1.5" style={{ color: '#d1d5db', ...font }}>
-                    <span style={{ color: '#c8a96e' }}>* </span>{t('ژمارەی مۆبایل', 'رقم الهاتف', 'Phone Number')}
+                  <label className="block text-xs md:text-sm font-semibold mb-1" style={{ color: '#d1d5db', ...font }}>
+                    <span style={{ color: '#c8a96e' }}>* </span>{t('ژمارەی مۆبایل', 'رقم الهاتف', 'Phone')}
                   </label>
                   <input type="tel" name="phone" value={formData.phone} onChange={handleChange}
-                    placeholder={t('ژمارەی مۆبایل', 'رقم الهاتف', 'Phone Number')} dir="ltr"
-                    className="w-full px-4 py-3 rounded-xl text-white placeholder-white/25 focus:outline-none transition-all"
+                    placeholder={t('مۆبایل', 'الهاتف', 'Phone')} dir="ltr"
+                    className="w-full px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl text-white text-sm placeholder-white/25 focus:outline-none transition-all"
                     style={{ ...inputCls('phone') }}
                     onFocus={e => { if (!errors.phone) e.target.style.borderColor = '#c8a96e' }}
                     onBlur={e => { if (!errors.phone) e.target.style.borderColor = 'rgba(255,255,255,0.1)' }}
                   />
-                  {errors.phone && <p className="text-red-400 text-xs mt-1" style={font}>{errors.phone}</p>}
+                  {errors.phone && <p className="text-red-400 text-[10px] mt-0.5" style={font}>{errors.phone}</p>}
                 </div>
               </div>
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#d1d5db', ...font }}>
+                <label className="block text-xs md:text-sm font-semibold mb-1" style={{ color: '#d1d5db', ...font }}>
                   <span style={{ color: '#c8a96e' }}>* </span>{t('ئیمەیڵ', 'البريد الإلكتروني', 'Email')}
                 </label>
                 <input type="email" name="email" value={formData.email} onChange={handleChange}
                   placeholder={t('ئیمەیڵ', 'بريدك الإلكتروني', 'Your Email')} dir="ltr"
-                  className="w-full px-4 py-3 rounded-xl text-white placeholder-white/25 focus:outline-none transition-all"
+                  className="w-full px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl text-white text-sm placeholder-white/25 focus:outline-none transition-all"
                   style={{ ...inputCls('email') }}
                   onFocus={e => { if (!errors.email) e.target.style.borderColor = '#c8a96e' }}
                   onBlur={e => { if (!errors.email) e.target.style.borderColor = 'rgba(255,255,255,0.1)' }}
                 />
-                {errors.email && <p className="text-red-400 text-xs mt-1" style={font}>{errors.email}</p>}
+                {errors.email && <p className="text-red-400 text-[10px] mt-0.5" style={font}>{errors.email}</p>}
               </div>
 
               {/* Message */}
               <div>
-                <label className="block text-sm font-semibold mb-1.5" style={{ color: '#d1d5db', ...font }}>
+                <label className="block text-xs md:text-sm font-semibold mb-1" style={{ color: '#d1d5db', ...font }}>
                   <span style={{ color: '#c8a96e' }}>* </span>{t('پەیام', 'الرسالة', 'Message')}
                 </label>
-                <textarea name="message" rows={5} value={formData.message} onChange={handleChange}
+                <textarea name="message" rows={3} value={formData.message} onChange={handleChange}
                   placeholder={t('پەیام', 'رسالتك', 'Your Message')}
-                  className="w-full px-4 py-3 rounded-xl text-white placeholder-white/25 focus:outline-none transition-all resize-none"
+                  className="w-full px-3 py-2 md:py-2.5 rounded-lg md:rounded-xl text-white text-sm placeholder-white/25 focus:outline-none transition-all resize-none"
                   style={{ ...inputCls('message'), ...font }}
                   onFocus={e => { if (!errors.message) e.target.style.borderColor = '#c8a96e' }}
                   onBlur={e => { if (!errors.message) e.target.style.borderColor = 'rgba(255,255,255,0.1)' }}
                 />
-                {errors.message && <p className="text-red-400 text-xs mt-1" style={font}>{errors.message}</p>}
+                {errors.message && <p className="text-red-400 text-[10px] mt-0.5" style={font}>{errors.message}</p>}
               </div>
             </div>
 
             <button type="submit" disabled={loading}
-              className="w-full py-4 text-white font-bold text-lg rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 md:py-3.5 text-white font-bold text-sm md:text-base rounded-xl md:rounded-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.4)', boxShadow: '0 8px 32px rgba(122,0,0,0.4)', ...font }}>
               {loading
                 ? t('ناردن...', 'جاري الإرسال...', 'Sending...')
@@ -222,7 +221,7 @@ export default function ContactForm({ currentLang = 'en' }) {
 
           {/* Social links */}
           {(socialLinks?.length > 0 ? socialLinks : null) && (
-            <div className="flex justify-center gap-4 mt-10">
+            <div className="hidden md:flex justify-center gap-4 mt-5">
               {socialLinks.map(link =>
                 link.url && /^https?:\/\//i.test(link.url) && (
                   <a key={link.id || link.platform_name} href={link.url} target="_blank" rel="noopener noreferrer"
@@ -237,7 +236,7 @@ export default function ContactForm({ currentLang = 'en' }) {
           )}
 
           {(!socialLinks || socialLinks.length === 0) && (
-            <div className="flex justify-center gap-4 mt-10">
+            <div className="hidden md:flex justify-center gap-4 mt-5">
               {[
                 { icon: 'ri-facebook-fill', href: '#' },
                 { icon: 'ri-instagram-line', href: '#' },
@@ -257,7 +256,7 @@ export default function ContactForm({ currentLang = 'en' }) {
 
       {/* Toast */}
       {toast.show && (
-        <div className={`fixed top-5 right-5 z-50 flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-xl transition-all`}
+        <div className="fixed top-5 right-5 z-50 flex items-center gap-2 px-5 py-3 rounded-xl text-white text-sm font-semibold shadow-xl transition-all"
           style={{ background: toast.type === 'success' ? 'rgba(16,185,129,0.95)' : 'rgba(239,68,68,0.95)', border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}>
           <i className={toast.type === 'success' ? 'ri-check-circle-fill' : 'ri-error-warning-fill'} />
           <span style={font}>{toast.message}</span>

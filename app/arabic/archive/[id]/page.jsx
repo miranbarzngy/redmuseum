@@ -133,7 +133,7 @@ export default function ArabicArchiveDetail() {
     <div className="min-h-screen" style={{ background: '#0a0a0a' }} dir="rtl">
 
       {/* Sticky top nav */}
-      <div className="sticky top-0 z-30 px-4 md:px-8 lg:px-16 py-4 flex items-center justify-between"
+      <div className="sticky top-0 z-30 py-4 px-4 sm:px-6 lg:px-8 flex items-center justify-between"
         style={{ background: 'rgba(10,10,10,0.92)', backdropFilter: 'blur(12px)', borderBottom: '1px solid rgba(200,169,110,0.1)' }}>
         <Link href="/arabic/archive"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all"
@@ -148,7 +148,7 @@ export default function ArabicArchiveDetail() {
         </div>
       </div>
 
-      <div className="px-4 md:px-8 lg:px-16 py-12">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="max-w-4xl mx-auto">
 
           {/* Title header */}

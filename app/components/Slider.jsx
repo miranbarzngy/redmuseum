@@ -160,7 +160,7 @@ export default function Slider({ currentLang = 'en' }) {
   const currentSlideData = slides[currentSlide]
 
   return (
-    <section id="home" className="relative w-full h-screen overflow-hidden">
+    <section id="home" className="relative w-full h-[calc(100dvh-4rem)] md:h-screen overflow-hidden">
       {/* Bottom gradient overlay - more subtle with smoother transition */}
       <div className="absolute bottom-0 left-0 w-full h-[35%] bg-gradient-to-t from-black/60 via-black/20 to-transparent z-[778]"></div>
       
@@ -169,7 +169,7 @@ export default function Slider({ currentLang = 'en' }) {
         {slides.map((slide, index) => (
           <div
             key={slide.slide_number}
-            className={`absolute top-0 left-0 w-full h-screen transition-opacity duration-1000 ${
+            className={`absolute top-0 left-0 w-full h-full transition-opacity duration-1000 ${
               index === currentSlide ? 'opacity-100' : 'opacity-0'
             }`}
           >
@@ -177,66 +177,74 @@ export default function Slider({ currentLang = 'en' }) {
             <img
               src={slide.background_image}
               alt=""
-              className="absolute top-0 left-0 w-full h-screen object-cover museum-bg-animation"
+              className="absolute top-0 left-0 w-full h-full object-cover museum-bg-animation"
             />
             
             {/* Overlay */}
             <div className="absolute inset-0 bg-black/50"></div>
 
-            {/* Cutout Image (museum_image/Peshmerga) - absolute top-0 left-0 w-full h-screen object-contain with pointer-events-none */}
+            {/* Cutout image — mobile: fixed 360px height centred; desktop: full-screen */}
             {slide.museum_image && (
               <img
                 src={slide.museum_image}
                 alt=""
-                className="absolute top-0 left-0 w-full h-screen object-contain pointer-events-none z-[776] scale-150 md:scale-100 md:translate-y-[75px]"
+                className="absolute object-contain pointer-events-none z-[776]
+                  top-[100px] left-1/2 -translate-x-1/2 h-[310px] w-auto
+                  md:top-0 md:left-0 md:translate-x-0 md:h-full md:w-full md:scale-100 md:translate-y-[75px]"
               />
             )}
 
-            {/* Text Content Layer - z-[777] absolute container flex flex-col items-center justify-center */}
-            <div 
-              className="absolute top-0 left-0 w-full h-screen flex flex-col items-center justify-center z-[777]"
+            {/* Text Content Layer */}
+            <div
+              className="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center z-[777]"
               dir={isArabic ? 'rtl' : 'ltr'}
             >
-              {/* Caption - NOT TO BE FORGOTTEN - styled to match slide titles */}
-              <h3 
-                className="absolute top-[80px] lg:top-[70px]"
-                style={{ 
-                  color: '#dc2626', // Red color matching museum theme
-                  fontSize: '1.5rem',
-                  fontWeight: '700',
-                  letterSpacing: isKurdish ? '0' : isArabic ? '0' : '0.2em',
-                  textTransform: isKurdish ? 'none' : isArabic ? 'none' : 'uppercase',
+              {/* NOT TO BE FORGOTTEN */}
+              <h3
+                className="absolute top-[8px] left-0 right-0 text-center md:top-[70px]"
+                style={{
+                  color: '#dc2626',
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  letterSpacing: isKurdish || isArabic ? 0 : '0.2em',
+                  textTransform: isKurdish || isArabic ? 'none' : 'uppercase',
                   fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : isArabic ? 'ArabicFont, Tahoma, sans-serif' : 'system-ui, sans-serif',
-                  textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+                  textShadow: '0 2px 10px rgba(0,0,0,0.5)',
                 }}
               >
                 {isKurdish ? 'تا لە یادمان نەچێت' : isArabic ? 'لن ننسى' : 'Not To Be Forgotten'}
               </h3>
-              
-              {/* Museum Name - position absolute top-[170px] right-[190px] (adjusted for mobile) */}
-              <h1 className="museum-name absolute text-white font-bold md:text-6xl drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] max-[400px]:text-[.9em] max-[400px]:top-[100px] max-[400px]:right-[40px] max-[580px]:text-[1em] max-[580px]:top-[160px] max-[580px]:right-[40px] max-[850px]:text-[1em] max-[850px]:top-[150px] lg:top-[170px] lg:right-[190px] max-[990px]:right-[90px] max-[990px]:top-[170px]"
-                  dir={isKurdish || isArabic ? 'rtl' : 'ltr'}
-                  style={{
-                    textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
-                    fontFamily: isArabic ? 'ArabicFont, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif'
-                  }}>
+
+              {/* Museum Name */}
+              <h1
+                className="museum-name absolute text-white font-bold drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]
+                  text-[1.15rem] top-[48px] left-[16px] right-[16px] text-center
+                  md:text-6xl md:top-[170px] md:left-auto md:text-start md:right-[90px] lg:right-[190px]"
+                dir={isKurdish || isArabic ? 'rtl' : 'ltr'}
+                style={{
+                  textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
+                  fontFamily: isArabic ? 'ArabicFont, Tahoma, sans-serif' : isKurdish ? 'UniSalar, Tahoma, sans-serif' : 'system-ui, sans-serif',
+                }}
+              >
                 {getLocalizedContent(slide, 'title', lang)}
                 <br />
-                <span className="museum-span text-sm md:text-xl font-light bg-red-600 px-2">
+                <span className="museum-span text-[0.75rem] md:text-xl font-light bg-red-600 px-2">
                   {getLocalizedContent(slide, 'subtitle', lang)}
                 </span>
               </h1>
-              
-              {/* Paragraph - enhanced for better readability with higher contrast background */}
-              <p 
-                className="absolute bottom-16 lg:bottom-20 text-white text-lg md:text-2xl font-semibold max-w-4xl px-6 md:px-16 py-3 md:py-4 rounded-lg max-[580px]:text-base max-[580px]:w-[90%] max-[580px]:text-center leading-relaxed"
-                style={{ 
-                   textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
-                   backgroundColor: 'rgba(0, 0, 0, 0.75)',
-                   fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : isArabic ? 'ArabicFont, Tahoma, sans-serif' : 'system-ui, sans-serif',
-                   lineHeight: isKurdish ? '1.8' : '1.6'
-                 }}
-                 dir={isArabic ? 'rtl' : 'ltr'}
+
+              {/* Description */}
+              <p
+                className="absolute text-white font-semibold rounded-lg leading-relaxed
+                  text-xs top-[420px] left-0 right-0 px-4 py-2 mx-auto w-[92%] text-center
+                  md:text-2xl md:top-auto md:bottom-16 lg:bottom-20 md:max-w-4xl md:px-16 md:py-4 md:w-auto md:left-auto md:right-auto md:mx-0 md:text-start"
+                style={{
+                  textShadow: '0 2px 4px rgba(0,0,0,0.8), 0 4px 8px rgba(0,0,0,0.6)',
+                  backgroundColor: 'rgba(0,0,0,0.75)',
+                  fontFamily: isKurdish ? 'UniSalar, Tahoma, sans-serif' : isArabic ? 'ArabicFont, Tahoma, sans-serif' : 'system-ui, sans-serif',
+                  lineHeight: isKurdish ? '1.8' : '1.6',
+                }}
+                dir={isArabic ? 'rtl' : 'ltr'}
               >
                 {getLocalizedContent(slide, 'description', lang)}
               </p>
@@ -298,7 +306,7 @@ export default function Slider({ currentLang = 'en' }) {
       </div>
 
       {/* Pagination Bars - Slide Orders - styled according to original CSS (vertical on right) */}
-      <div className="absolute right-[40px] top-1/2 -translate-y-1/2 flex flex-col gap-[6px] z-[888] max-[580px]:bottom-[280px] max-[580px]:right-[16px] max-[580px]:top-auto max-[580px]:translate-y-0">
+      <div className="absolute right-[40px] top-1/2 -translate-y-1/2 flex flex-col gap-[6px] z-[888] max-[580px]:right-[8px]">
         {slides.map((_, index) => (
           <button
             key={index}

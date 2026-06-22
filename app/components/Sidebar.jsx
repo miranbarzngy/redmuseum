@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { getSupabaseClient } from '../lib/supabase-client'
 import { useMuseumName } from '../lib/useMuseumName'
@@ -27,8 +28,24 @@ const FLAG_URLS = {
   iraq:      'https://flagcdn.com/w80/iq.png',
 }
 
+// Map URL path segments to sidebar item IDs
+const PATH_TO_ID = {
+  slides:            'home',
+  about:             'about',
+  'virtual-tour':    'virtual-tour',
+  gallery:           'gallery',
+  archive:           'archive-section',
+  museumactivities:  'exclusive-section',
+  showcase:          'showcase',
+  contact:           'contact',
+  reserve:           'reserve',
+}
+const ROOT_PATHS = ['/', '/kurdish', '/arabic']
+
 export default function Sidebar({ activeSection = 'home', onSectionClick, currentLang = 'en', onLangChange }) {
+  const pathname = usePathname()
   const [currentHash, setCurrentHash]       = useState('')
+  const [scrollActive, setScrollActive]     = useState(null)
   const [showExclusive, setShowExclusive]   = useState(false)
   const [sectionVis, setSectionVis]         = useState({
     show_visitor_tab: true, show_about: true, show_gallery: true,
@@ -95,6 +112,28 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
+  // Scroll-based active section — works on any page with section elements
+  useEffect(() => {
+    if (!mounted) return
+    const SECTION_IDS = [
+      'home', 'about', 'virtual-tour', 'gallery', 'archive-section',
+      'exclusive-section', 'showcase', 'contact', 'reserve',
+    ]
+    const update = () => {
+      const trigger = window.innerHeight * 0.4 // section top must be above 40% of viewport
+      let found = null
+      for (const id of SECTION_IDS) {
+        const el = document.getElementById(id)
+        if (!el) continue
+        if (el.getBoundingClientRect().top <= trigger) found = id
+      }
+      setScrollActive(found)
+    }
+    window.addEventListener('scroll', update, { passive: true })
+    update()
+    return () => window.removeEventListener('scroll', update)
+  }, [mounted])
+
   // ── Languages ──────────────────────────────────────────────
   const allLanguages = [
     { code: 'ku', name: 'کوردی',   flag: 'kurdistan', href: '/kurdish' },
@@ -116,7 +155,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     { id: 'virtual-tour',    icon: 'ri-eye-2-line',           title: 'بینینی ٣٦٠', href: '/kurdish#virtual-tour' },
     { id: 'gallery',         icon: 'ri-image-line',           title: 'گەلەری',     href: '/kurdish#gallery' },
     { id: 'archive-section', icon: 'ri-archive-line',         title: 'ئەرشیف',     href: '/kurdish#archive-section' },
-    { id: 'showcase',        icon: 'ri-layout-grid-line',     title: 'کارتەکان',   href: '/kurdish#showcase' },
+    { id: 'showcase',        icon: 'ri-layout-grid-line',     title: 'میدیا',      href: '/kurdish#showcase' },
     { id: 'contact',         icon: 'ri-contacts-book-3-line', title: 'پەیوەندی',   href: '/kurdish#contact' },
   ] : currentLang === 'ar' ? [
     { id: 'home',            icon: 'ri-home-6-line',          title: 'الرئيسية',   href: '/arabic' },
@@ -124,7 +163,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     { id: 'virtual-tour',    icon: 'ri-eye-2-line',           title: 'جولة ٣٦٠',  href: '/arabic#virtual-tour' },
     { id: 'gallery',         icon: 'ri-image-line',           title: 'معرض',       href: '/arabic#gallery' },
     { id: 'archive-section', icon: 'ri-archive-line',         title: 'الأرشيف',   href: '/arabic#archive-section' },
-    { id: 'showcase',        icon: 'ri-layout-grid-line',     title: 'البطاقات',   href: '/arabic#showcase' },
+    { id: 'showcase',        icon: 'ri-layout-grid-line',     title: 'میدیا',      href: '/arabic#showcase' },
     { id: 'contact',         icon: 'ri-contacts-book-3-line', title: 'اتصل بنا',  href: '/arabic#contact' },
   ] : [
     { id: 'home',            icon: 'ri-home-6-line',          title: 'Home',     href: '/' },
@@ -132,7 +171,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     { id: 'virtual-tour',    icon: 'ri-eye-2-line',           title: 'VR Tour',  href: '/#virtual-tour' },
     { id: 'gallery',         icon: 'ri-image-line',           title: 'Gallery',  href: '/#gallery' },
     { id: 'archive-section', icon: 'ri-archive-line',         title: 'Archive',  href: '/#archive-section' },
-    { id: 'showcase',        icon: 'ri-layout-grid-line',     title: 'Cards',    href: '/#showcase' },
+    { id: 'showcase',        icon: 'ri-layout-grid-line',     title: 'Media',    href: '/#showcase' },
     { id: 'contact',         icon: 'ri-contacts-book-3-line', title: 'Contact',  href: '/#contact' },
   ]
 
@@ -166,7 +205,25 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     ...Object.values(itemPool).filter(item => !orderedIds.includes(item.id)),
   ]
 
-  const isActive = (id) => activeSection === id || currentHash === id
+  // Derive active item from URL path for standalone sub-pages
+  const isStandalonePage = !ROOT_PATHS.includes(pathname)
+  const lastSegment      = pathname.split('/').filter(Boolean).pop() || ''
+  const pathActiveId     = PATH_TO_ID[lastSegment] ?? null
+
+  const isActive = (id) => {
+    // Home-page layouts drive activeSection via IntersectionObserver — trust the prop first.
+    // scrollActive (Sidebar's own listener) is kept as a fallback for standalone pages
+    // that don't pass a dynamically updated activeSection.
+    if (activeSection && activeSection !== 'home') return id === activeSection
+    // On pages that don't manage their own scroll spy, fall back to internal tracking
+    if (scrollActive !== null) return id === scrollActive
+    // URL hash (set by hashchange events)
+    if (currentHash) return id === currentHash
+    // Path-based for standalone pages when not yet scrolled
+    if (isStandalonePage && pathActiveId !== null) return id === pathActiveId
+    // Final fallback
+    return id === activeSection
+  }
 
   const handleClick = (item) => {
     setDrawerOpen(false)
@@ -176,7 +233,10 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     }
     if (onSectionClick) onSectionClick(item.id)
     const el = document.getElementById(item.id)
-    if (el) window.scrollTo({ top: el.offsetTop - 80, behavior: 'smooth' })
+    if (el) {
+      const offset = window.innerWidth < 768 ? 64 : 0
+      window.scrollTo({ top: el.offsetTop - offset, behavior: 'smooth' })
+    }
   }
 
   const toggleLanguage = (langCode, href) => {
@@ -194,7 +254,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     <>
       <div className="fixed top-0 left-0 right-0 z-[999] h-16 md:hidden" style={{ background: 'rgba(0,0,0,0.85)' }} />
       <div className="hidden md:block fixed z-[999] rounded-r-2xl"
-           style={{ left: 0, top: '50%', transform: 'translateY(-50%)', width: 72, height: 220, background: 'rgba(0,0,0,0.8)' }} />
+           style={{ left: 0, top: '50%', transform: 'translateY(-50%)', width: 72, height: 220, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(12px)' }} />
     </>
   )
 
@@ -204,31 +264,44 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
           MOBILE — sticky top header
       ════════════════════════════════════════════ */}
       <header
-        className="fixed top-0 left-0 right-0 z-[999] h-16 flex items-center justify-between px-4 md:hidden"
-        dir={isRtl ? 'rtl' : 'ltr'}
-        style={{ background: 'rgba(0,0,0,0.88)', backdropFilter: 'blur(14px)', borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        className="fixed top-0 left-0 right-0 z-[999] h-16 flex items-center gap-3 px-3 md:hidden"
+        dir="ltr"
+        style={{ background: RED, borderBottom: '1px solid rgba(0,0,0,0.25)' }}
       >
-        {/* Museum name */}
-        <span
-          className="font-bold text-sm leading-tight truncate"
-          style={{ maxWidth: '72%', fontFamily: ff, color: GOLD }}
-        >
-          {headerTitle}
-        </span>
-
         {/* Hamburger */}
         <button
           onClick={() => setDrawerOpen(true)}
           aria-label="Open navigation"
-          className="w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-200 active:scale-90"
-          style={{
-            background: 'rgba(200,169,110,0.10)',
-            border: '1px solid rgba(200,169,110,0.35)',
-            boxShadow: '0 0 18px rgba(200,169,110,0.14)',
-          }}
+          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl active:scale-90 transition-transform duration-150"
+          style={{ background: 'rgba(0,0,0,0.25)' }}
         >
-          <i className="ri-menu-3-line text-xl" style={{ color: GOLD }} />
+          <i className="ri-menu-3-line text-xl text-white" />
         </button>
+
+        {/* Logo */}
+        <div
+          className="flex-shrink-0 rounded-xl overflow-hidden"
+          style={{ width: 40, height: 40, background: '#ffffff', padding: 0 }}
+        >
+          <Image
+            src="/android-chrome-512x512.png"
+            alt="Museum logo"
+            width={40}
+            height={40}
+            className="w-full h-full object-cover"
+            unoptimized
+          />
+        </div>
+
+        {/* Name stack */}
+        <div dir={isRtl ? 'rtl' : 'ltr'} className="min-w-0 flex-1">
+          <p className="font-bold leading-tight truncate" style={{ fontSize: 13.5, color: '#ffffff', fontFamily: ff }}>
+            {headerTitle}
+          </p>
+          <p className="leading-tight mt-0.5 truncate" style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.60)' }}>
+            Amnasuraka National Museum
+          </p>
+        </div>
       </header>
 
       {/* ════════════════════════════════════════════
@@ -243,22 +316,46 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
         }}
         dir={isRtl ? 'rtl' : 'ltr'}
       >
-        {/* Drawer header */}
+        {/* Drawer header — mirrors the main header layout */}
         <div
-          className="h-16 flex items-center justify-between px-4 flex-shrink-0"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}
+          className="h-16 flex items-center gap-3 px-3 flex-shrink-0"
+          dir="ltr"
+          style={{ background: RED, borderBottom: '1px solid rgba(0,0,0,0.25)' }}
         >
-          <span className="font-bold text-sm leading-tight truncate" style={{ maxWidth: '72%', fontFamily: ff, color: GOLD }}>
-            {headerTitle}
-          </span>
+          {/* Close button (same size/shape as hamburger) */}
           <button
             onClick={() => setDrawerOpen(false)}
             aria-label="Close navigation"
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-gray-400 transition-all duration-200 active:scale-90"
-            style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.10)' }}
+            className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl active:scale-90 transition-transform duration-150"
+            style={{ background: 'rgba(255,255,255,0.08)' }}
           >
-            <i className="ri-close-line text-xl" />
+            <i className="ri-close-line text-xl text-white" />
           </button>
+
+          {/* Logo (same as main header) */}
+          <div
+            className="flex-shrink-0 rounded-xl overflow-hidden"
+            style={{ width: 40, height: 40, background: '#ffffff', padding: 0 }}
+          >
+            <Image
+              src="/android-chrome-512x512.png"
+              alt="Museum logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+              unoptimized
+            />
+          </div>
+
+          {/* Name + subtitle */}
+          <div dir={isRtl ? 'rtl' : 'ltr'} className="min-w-0 flex-1">
+            <p className="font-bold leading-tight truncate" style={{ fontSize: 13.5, color: '#ffffff', fontFamily: ff }}>
+              {headerTitle}
+            </p>
+            <p className="leading-tight mt-0.5" style={{ fontSize: 10.5, color: 'rgba(255,255,255,0.45)' }}>
+              Amnasuraka National Museum
+            </p>
+          </div>
         </div>
 
         {/* Drawer body */}

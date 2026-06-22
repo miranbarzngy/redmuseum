@@ -10,8 +10,8 @@ const LABELS = {
   en: { title: 'Social Media', empty: 'No cards available' },
 }
 
-const CARD_W   = 260  // base card px width
-const CARD_GAP = 28   // gap between cards
+const CARD_W   = 260  // base card px width (desktop)
+const CARD_GAP = 28   // gap between cards (desktop)
 const INTERVAL = 5000 // auto-advance ms
 
 function getTitle(card, lang) {
@@ -28,9 +28,28 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
   const [paused, setPaused]     = useState(false)
   const [progress, setProgress] = useState(0)
   const [bgColor, setBgColor]   = useState('#0a0a0a')
+  const [cardWidth, setCardWidth] = useState(CARD_W)
+  const [cardGap,  setCardGap]   = useState(CARD_GAP)
   const progressRef             = useRef(null)
   const isRTL = currentLang === 'ku' || currentLang === 'ar'
   const labels = LABELS[currentLang] || LABELS.ku
+
+  // Responsive card dimensions — height-aware so cards never overflow viewport
+  useEffect(() => {
+    const update = () => {
+      const mobile = window.innerWidth < 768
+      const vh = window.innerHeight
+      // overhead = section py + title block + dots + scale breathing room
+      const overhead = mobile ? 190 : 260
+      const maxCardH = vh - overhead
+      const wFromH = Math.round(maxCardH * 9 / 16)
+      setCardWidth(mobile ? Math.min(wFromH, 155) : Math.min(wFromH, CARD_W))
+      setCardGap(mobile ? 12 : CARD_GAP)
+    }
+    update()
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
 
   useEffect(() => {
     fetch('/api/showcase-cards')
@@ -84,24 +103,26 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
   if (!cards.length) return null
 
   // Center-offset: translate the strip so activeIdx card is horizontally centered
-  // Each card slot = CARD_W + CARD_GAP; center = 50vw - activeIdx*slot - CARD_W/2
-  const slot = CARD_W + CARD_GAP
-  const stripTranslate = `calc(50vw - ${activeIdx * slot + CARD_W / 2}px)`
+  // Each card slot = cardWidth + cardGap; center = 50vw - activeIdx*slot - cardWidth/2
+  const slot = cardWidth + cardGap
+  const stripTranslate = `calc(50vw - ${activeIdx * slot + cardWidth / 2}px)`
+
+  const pb = cardWidth < CARD_W ? 16 : 36
 
   return (
     <section
       id="showcase"
-      className="relative py-16 overflow-hidden"
+      className="relative h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-5 md:py-8"
       style={{ background: bgColor }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
 
-      {/* Section title — centered */}
-      <div className="flex items-center justify-center gap-4 mb-24 px-8">
-        <span className="block w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
+      {/* Section title */}
+      <div className="flex items-center justify-center gap-3 md:gap-4 mb-3 md:mb-5 px-8 flex-shrink-0">
+        <span className="block w-10 md:w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
         <h2
-          className="text-2xl md:text-3xl font-black text-white tracking-wide text-center"
+          className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-white tracking-wide text-center"
           style={
             currentLang === 'ku' ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
             : currentLang === 'ar' ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
@@ -110,123 +131,119 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
         >
           {labels.title}
         </h2>
-        <span className="block w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
+        <span className="block w-10 md:w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
       </div>
 
-      {/* Card strip — translate to center active card */}
-      <div
-        dir="ltr"
-        className="relative flex items-end"
-        style={{
-          transform: `translateX(${stripTranslate})`,
-          transition: 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-          gap: CARD_GAP,
-          paddingBottom: 48, // room for title below
-          willChange: 'transform',
-        }}
-      >
-        {cards.map((card, i) => {
-          const isActive = i === activeIdx
-          const dist = Math.abs(i - activeIdx)
+      {/* Card strip zone — fills remaining height, centers strip vertically */}
+      <div dir="ltr" className="flex-1 min-h-0 relative flex items-center">
+        <div
+          dir="ltr"
+          className="flex items-end"
+          style={{
+            transform: `translateX(${stripTranslate})`,
+            transition: 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+            gap: cardGap,
+            paddingBottom: pb,
+            willChange: 'transform',
+          }}
+        >
+          {cards.map((card, i) => {
+            const isActive = i === activeIdx
+            const dist = Math.abs(i - activeIdx)
 
-          return (
-            <div
-              key={card.id}
-              className="flex-shrink-0 flex flex-col items-center cursor-pointer"
-              style={{
-                width: CARD_W,
-                transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease',
-                transform: isActive ? 'scale(1.18) translateY(-12px)' : dist === 1 ? 'scale(0.88) translateY(0)' : 'scale(0.75) translateY(8px)',
-                opacity: isActive ? 1 : dist === 1 ? 0.5 : 0.25,
-                zIndex: isActive ? 10 : 10 - dist,
-              }}
-              onClick={() => {
-                if (isActive && card.redirect_url) window.open(card.redirect_url, '_blank', 'noopener')
-                else goTo(i)
-              }}
-            >
-              {/* Card image */}
+            return (
               <div
-                className="relative w-full overflow-hidden rounded-2xl"
+                key={card.id}
+                className="flex-shrink-0 flex flex-col items-center cursor-pointer"
                 style={{
-                  aspectRatio: '9 / 16',
-                  boxShadow: isActive
-                    ? '0 0 0 2px #c8a96e, 0 32px 80px rgba(0,0,0,0.85)'
-                    : '0 8px 24px rgba(0,0,0,0.5)',
-                  transition: 'box-shadow 0.5s ease',
+                  width: cardWidth,
+                  transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.5s ease',
+                  transform: isActive ? 'scale(1.18) translateY(-12px)' : dist === 1 ? 'scale(0.88) translateY(0)' : 'scale(0.75) translateY(8px)',
+                  opacity: isActive ? 1 : dist === 1 ? 0.5 : 0.25,
+                  zIndex: isActive ? 10 : 10 - dist,
+                }}
+                onClick={() => {
+                  if (isActive && card.redirect_url) window.open(card.redirect_url, '_blank', 'noopener')
+                  else goTo(i)
                 }}
               >
-                <Image
-                  src={card.image_url}
-                  alt={getTitle(card, currentLang)}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
-
-                {/* Gradient bottom overlay */}
+                {/* Card image */}
                 <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0) 55%, rgba(0,0,0,0.7) 100%)' }}
-                />
-
-                {/* Gold top accent */}
-                <div
-                  className="absolute top-0 left-0 right-0 h-0.5 opacity-70"
-                  style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }}
-                />
-
-                {/* Click hint on active card */}
-                {isActive && card.redirect_url && (
-                  <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                    <i className="ri-external-link-line text-[#c8a96e] text-xs" />
-                    <span className="text-white text-[10px] font-semibold tracking-wide whitespace-nowrap">
-                      {currentLang === 'ku' ? 'کلیک بکە' : currentLang === 'ar' ? 'انقر هنا' : 'Visit'}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Title below */}
-              {getTitle(card, currentLang) && (
-                <p
-                  className="mt-3 text-center text-sm font-semibold transition-colors duration-300 max-w-full px-1"
-                  dir={isRTL ? 'rtl' : 'ltr'}
+                  className="relative w-full overflow-hidden rounded-2xl"
                   style={{
-                    color: isActive ? '#c8a96e' : 'rgba(255,255,255,0.4)',
-                    fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : currentLang === 'ar' ? 'ArabicFont, Tahoma, sans-serif' : 'inherit',
-                    transition: 'color 0.4s ease',
+                    aspectRatio: '9 / 16',
+                    boxShadow: isActive
+                      ? '0 0 0 2px #c8a96e, 0 32px 80px rgba(0,0,0,0.85)'
+                      : '0 8px 24px rgba(0,0,0,0.5)',
+                    transition: 'box-shadow 0.5s ease',
                   }}
                 >
-                  {getTitle(card, currentLang)}
-                </p>
-              )}
-            </div>
-          )
-        })}
+                  <Image
+                    src={card.image_url}
+                    alt={getTitle(card, currentLang)}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0) 55%, rgba(0,0,0,0.7) 100%)' }}
+                  />
+                  <div
+                    className="absolute top-0 left-0 right-0 h-0.5 opacity-70"
+                    style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }}
+                  />
+                  {isActive && card.redirect_url && (
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm px-3 py-1.5 rounded-full">
+                      <i className="ri-external-link-line text-[#c8a96e] text-xs" />
+                      <span className="text-white text-[10px] font-semibold tracking-wide whitespace-nowrap">
+                        {currentLang === 'ku' ? 'کلیک بکە' : currentLang === 'ar' ? 'انقر هنا' : 'Visit'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Title below */}
+                {getTitle(card, currentLang) && (
+                  <p
+                    className="mt-2 md:mt-3 text-center text-xs md:text-sm font-semibold transition-colors duration-300 max-w-full px-1"
+                    dir={isRTL ? 'rtl' : 'ltr'}
+                    style={{
+                      color: isActive ? '#c8a96e' : 'rgba(255,255,255,0.4)',
+                      fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : currentLang === 'ar' ? 'ArabicFont, Tahoma, sans-serif' : 'inherit',
+                      transition: 'color 0.4s ease',
+                    }}
+                  >
+                    {getTitle(card, currentLang)}
+                  </p>
+                )}
+              </div>
+            )
+          })}
+        </div>
       </div>
 
-      {/* Navigation arrows */}
+      {/* Navigation arrows — absolute within section, centred on the card strip zone */}
       {cards.length > 1 && (
         <>
           <button
             onClick={prev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-xl bg-red-700 hover:bg-red-800 transition-all flex items-center justify-center text-white"
+            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 md:w-10 md:h-10 rounded-xl bg-red-700 hover:bg-red-800 transition-all flex items-center justify-center text-white"
           >
-            <i className="ri-arrow-left-s-line text-xl" />
+            <i className="ri-arrow-left-s-line text-lg md:text-xl" />
           </button>
           <button
             onClick={next}
-            className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-xl bg-red-700 hover:bg-red-800 transition-all flex items-center justify-center text-white"
+            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 md:w-10 md:h-10 rounded-xl bg-red-700 hover:bg-red-800 transition-all flex items-center justify-center text-white"
           >
-            <i className="ri-arrow-right-s-line text-xl" />
+            <i className="ri-arrow-right-s-line text-lg md:text-xl" />
           </button>
         </>
       )}
 
-      {/* Progress + dot indicators */}
+      {/* Progress dots */}
       {cards.length > 1 && (
-        <div className="flex justify-center items-center gap-2 mt-2">
+        <div className="flex justify-center items-center gap-2 mt-2 md:mt-3 flex-shrink-0">
           {cards.map((_, i) => (
             <button
               key={i}
@@ -241,11 +258,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
               {activeIdx === i && (
                 <span
                   className="absolute inset-y-0 left-0 rounded-full"
-                  style={{
-                    width: `${progress}%`,
-                    background: '#c8a96e',
-                    transition: 'width 50ms linear',
-                  }}
+                  style={{ width: `${progress}%`, background: '#c8a96e', transition: 'width 50ms linear' }}
                 />
               )}
             </button>

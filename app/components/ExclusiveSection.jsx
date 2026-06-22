@@ -25,7 +25,7 @@ function DateDisplay({ dateStr, lang }) {
               style={{
                 ...DIGIT_STYLE,
                 fontSize: '18px',
-                textShadow: '0 0 12px rgba(200,169,110,0.4)',
+                textShadow: '0 0 14px rgba(255,100,100,0.4)',
               }}
               lang="en"
             >
@@ -52,29 +52,29 @@ const flipStyles = `
 
   .flip-top {
     position: absolute; top: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(180deg, #1a0000 0%, #8b0000 50%, #cc0000 100%);
+    background: linear-gradient(180deg, #1a0000 0%, #4a0000 50%, #6b0000 100%);
     border-radius: 10px 10px 0 0;
     overflow: hidden; transform-origin: bottom;
     backface-visibility: hidden;
     display: flex; align-items: flex-end; justify-content: center;
-    border: 1px solid rgba(255,160,0,0.18);
+    border: 1.5px solid rgba(200,169,110,0.45);
     border-bottom: none;
   }
   .flip-top::after {
     content: '';
-    position: absolute; inset-x-0; top: 0; height: 35%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.12) 0%, transparent 100%);
+    position: absolute; inset-x-0; top: 0; height: 45%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
     border-radius: 10px 10px 0 0;
   }
 
   .flip-bottom {
     position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(180deg, #cc0000 0%, #8b0000 50%, #2a0000 100%);
+    background: linear-gradient(180deg, #6b0000 0%, #3a0000 50%, #0d0000 100%);
     border-radius: 0 0 10px 10px;
     overflow: hidden; transform-origin: top;
     backface-visibility: hidden;
     display: flex; align-items: flex-start; justify-content: center;
-    border: 1px solid rgba(255,160,0,0.18);
+    border: 1.5px solid rgba(200,169,110,0.45);
     border-top: none;
   }
 
@@ -84,14 +84,14 @@ const flipStyles = `
   /* Flap that animates — top half folding down */
   .flip-flap {
     position: absolute; top: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(180deg, #1a0000 0%, #8b0000 50%, #cc0000 100%);
+    background: linear-gradient(180deg, #1a0000 0%, #4a0000 50%, #6b0000 100%);
     border-radius: 10px 10px 0 0;
     overflow: hidden; transform-origin: bottom;
     animation: flipDown 0.45s ease-in-out forwards;
     z-index: 30;
     display: flex; align-items: flex-end; justify-content: center;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.7), 0 2px 8px rgba(200,0,0,0.4);
-    border: 1px solid rgba(255,160,0,0.18); border-bottom: none;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 3px 10px rgba(100,0,0,0.4);
+    border: 1.5px solid rgba(200,169,110,0.45); border-bottom: none;
   }
   .flip-flap span { transform: translateY(50%); }
 
@@ -103,13 +103,13 @@ const flipStyles = `
   /* Bottom reveal that appears after flap passes */
   .flip-reveal {
     position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(180deg, #cc0000 0%, #8b0000 50%, #2a0000 100%);
+    background: linear-gradient(180deg, #6b0000 0%, #3a0000 50%, #0d0000 100%);
     border-radius: 0 0 10px 10px;
     overflow: hidden; transform-origin: top;
     animation: flipReveal 0.45s ease-in-out forwards;
     z-index: 25;
     display: flex; align-items: flex-start; justify-content: center;
-    border: 1px solid rgba(255,160,0,0.18); border-top: none;
+    border: 1.5px solid rgba(200,169,110,0.45); border-top: none;
   }
   .flip-reveal span { transform: translateY(-50%); }
 
@@ -122,7 +122,7 @@ const flipStyles = `
   .flip-divider {
     position: absolute; top: 50%; left: 0; right: 0;
     height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(0,0,0,0.7) 20%, rgba(0,0,0,0.7) 80%, transparent);
+    background: linear-gradient(90deg, transparent, rgba(200,169,110,0.6) 20%, rgba(200,169,110,0.6) 80%, transparent);
     z-index: 40;
     transform: translateY(-50%);
   }
@@ -186,7 +186,7 @@ function FlipCard({ value }) {
       style={{
         width: cardW, height: cardH,
         perspective: 600,
-        filter: 'drop-shadow(0 6px 18px rgba(180,0,0,0.55)) drop-shadow(0 2px 6px rgba(0,0,0,0.7))',
+        filter: 'drop-shadow(0 6px 18px rgba(80,0,0,0.7)) drop-shadow(0 2px 6px rgba(0,0,0,0.9))',
       }}
     >
       <div className="flip-bottom">
@@ -260,7 +260,7 @@ function Countdown({ targetTime, lang, onFinish }) {
       <div
         className="relative rounded-2xl w-full"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(120,0,0,0.25) 0%, transparent 75%)',
+          background: 'transparent',
           padding: 'clamp(10px, 2.5vw, 28px) clamp(6px, 1.5vw, 32px)',
         }}
       >
@@ -401,14 +401,14 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
   const slide = slides[displayed]
 
   return (
-    <section id="exclusive-section" className="relative text-white overflow-hidden" style={{ background: bgColor, minHeight: '35svh' }}>
+    <section id="exclusive-section" className="relative text-white flex flex-col md:h-screen md:overflow-hidden" style={{ background: bgColor }}>
 
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-red-950/20 via-black to-black" />
 
-      {/* Fade wrapper */}
+      {/* Fade wrapper — fills all remaining flex space */}
       <div
-        className="relative z-10"
+        className="relative z-10 flex flex-col flex-1 min-h-0 md:h-full lg:justify-center"
         style={{
           opacity: fading ? 0 : 1,
           transform: fading ? 'translateY(12px)' : 'translateY(0)',
@@ -416,30 +416,29 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
         }}
       >
 
-      {/* Title — full width, truly centered */}
-      <div className="text-center pt-8 pb-4 px-4">
-        <span className="inline-block text-xs font-bold uppercase tracking-[0.3em] text-red-400 bg-red-600/10 border border-red-600/30 px-4 py-1.5 rounded-full mb-4">
+      {/* Title */}
+      <div className="text-center pt-3 pb-1 md:pt-4 md:pb-2 px-4 flex-shrink-0">
+        <span className="hidden md:inline-block text-xs font-bold uppercase tracking-[0.3em] text-red-400 bg-red-600/10 border border-red-600/30 px-4 py-1 rounded-full mb-2">
           ⭐&nbsp;{lang === 'ku' ? 'چالاکییەکانی مۆزەخانە' : lang === 'ar' ? 'أنشطة المتحف' : 'Museum Activities'}
         </span>
         <h2
-          className="text-2xl md:text-4xl lg:text-4xl font-bold leading-tight"
+          className="text-lg md:text-3xl font-bold leading-tight"
           style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
           dir={isRtl ? 'rtl' : 'ltr'}
         >
           {getText(slide, 'title')}
         </h2>
-        <div className="w-20 h-1 bg-red-600 mx-auto mt-4" />
+        <div className="w-12 md:w-20 h-1 bg-red-600 mx-auto mt-2" />
       </div>
 
-      {/* Split layout — grid */}
-      <div className="max-w-screen-2xl mx-auto w-full grid grid-cols-1 lg:grid-cols-[60%_40%] lg:items-start">
+      {/* Split layout — flex row on desktop, stacked on mobile */}
+      <div className="flex-1 min-h-0 lg:flex-none max-w-screen-2xl mx-auto w-full flex flex-col lg:flex-row overflow-hidden">
 
-        {/* IMAGE — col 1 = RIGHT in RTL, stacks on top on mobile */}
-        <div className="w-full flex items-center justify-center p-3 pt-5 lg:p-3 xl:p-4 lg:self-center">
+        {/* IMAGE */}
+        <div className="flex-1 min-h-0 lg:flex-none lg:w-[60%] flex flex-col justify-center p-2 lg:p-3 xl:p-4">
           <div
-            className="relative rounded-2xl overflow-hidden w-full"
+            className="relative rounded-2xl overflow-hidden w-full h-full lg:h-auto lg:aspect-video"
             style={{
-              aspectRatio: '16/9',
               border: '1.5px solid rgba(200,169,110,0.5)',
               boxShadow: '0 0 0 4px rgba(200,169,110,0.06), 0 24px 80px rgba(0,0,0,0.85)',
             }}
@@ -488,13 +487,12 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
           </div>
         </div>
 
-        {/* CARD SIDE — col 2 = LEFT in RTL */}
-        <div
-          className="w-full px-4 md:px-6 lg:pl-8 lg:pr-8 pt-6 pb-8 lg:pt-8 lg:pb-8 flex flex-col overflow-y-auto"
-        >
-          {/* Invitation card */}
+        {/* CARD SIDE */}
+        <div className="flex-1 min-h-0 lg:flex-none lg:w-[40%] px-3 md:px-6 lg:pl-8 lg:pr-8 pt-2 md:pt-4 pb-4 lg:pb-6 flex flex-col overflow-hidden">
+
+          {/* Invitation card — scrolls internally if content overflows */}
           <div
-            className="flex-1 relative rounded-2xl overflow-hidden flex flex-col"
+            className="flex-1 min-h-0 relative rounded-2xl overflow-hidden flex flex-col"
             style={{
               background: 'linear-gradient(160deg, #0d0000 0%, #180000 50%, #0a0a0a 100%)',
               border: '1px solid rgba(200,169,110,0.2)',
@@ -502,150 +500,155 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
             }}
             dir={isRtl ? 'rtl' : 'ltr'}
           >
-            {/* Top gold highlight */}
+            {/* Top gold highlight — pinned */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/50 to-transparent" />
 
-            {/* Museum header */}
-            <div
-              className="px-5 pt-5 pb-3"
-              style={{ background: 'linear-gradient(180deg, rgba(100,0,0,0.35) 0%, transparent 100%)' }}
-            >
-              <div className="flex items-center gap-3" dir="ltr">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/android-chrome-192x192.png"
-                  alt=""
-                  className="w-10 h-10 rounded-xl object-cover shrink-0 bg-white p-0.5"
-                  style={{ border: '1px solid rgba(200,169,110,0.3)' }}
-                />
-                <div className={isRtl ? 'text-right flex-1' : 'flex-1'}>
-                  <p className="text-[9px] text-[#c8a96e]/60 uppercase tracking-[0.25em] leading-none mb-1">
-                    {museumName.en}
-                  </p>
-                  <p
-                    className="text-sm text-white/90 font-semibold leading-snug"
-                    style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
-                  >
-                    {museumNameDisplay}
-                  </p>
-                </div>
-              </div>
-              <div className="mt-3 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/40 to-transparent" />
-            </div>
+            {/* Scrollable content */}
+            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
 
-            {/* Title in gold */}
-            <div className="px-5 pt-4 pb-3">
-              <p
-                className="text-[#c8a96e] text-lg font-bold leading-snug"
-                style={{
-                  fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit',
-                  textShadow: '0 0 20px rgba(200,169,110,0.35)',
-                }}
-              >
-                {getText(slide, 'title')}
-              </p>
-              <div className="mt-3 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/30 to-transparent" />
-            </div>
-
-            {/* Description */}
-            {getText(slide, 'description') && (
-              <div className="px-5 pb-4 flex-1">
-                <p
-                  className="text-gray-300 text-sm md:text-base leading-loose"
-                  style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
-                >
-                  {getText(slide, 'description')}
-                </p>
-              </div>
-            )}
-
-            {/* Phone numbers */}
-            {(slide.phone || slide.phone2) && (
-              <div className="px-5 pb-4 space-y-2">
-                <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent mb-2" />
-                {slide.phone && (
-                  <a href={`tel:${slide.phone}`} className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit" dir="rtl">
-                    <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
-                    <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone}</span>
-                  </a>
-                )}
-                {slide.phone2 && (
-                  <a href={`tel:${slide.phone2}`} className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit" dir="rtl">
-                    <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
-                    <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone2}</span>
-                  </a>
-                )}
-              </div>
-            )}
-
-            {/* Countdown */}
-            {slide.countdown_to && !countdownDone && (
-              <div className="px-5 pb-4 flex flex-col items-center">
-                <div className="flex items-center gap-3 mb-3 w-full">
-                  <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[#c8a96e]/30" />
-                  <p
-                    className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c8a96e]"
-                    style={{
-                      fontFamily: lang === 'ku' || lang === 'ar' ? 'UniSalar, Tahoma, sans-serif' : 'inherit',
-                      textShadow: '0 0 14px rgba(200,169,110,0.5)',
-                    }}
-                  >
-                    {lang === 'ku' ? 'کاتژمێر بۆ دەستپێکردن' : lang === 'ar' ? 'العد التنازلي للبدء' : 'Countdown to Start'}
-                  </p>
-                  <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#c8a96e]/30" />
-                </div>
-                <Countdown targetTime={slide.countdown_to} lang={lang} onFinish={() => setCountdownDone(true)} />
-              </div>
-            )}
-
-            {/* Event poster */}
-            {slide.event_date && (
+              {/* Museum header — hidden on mobile */}
               <div
-                className="mx-3 mb-3 rounded-lg overflow-hidden"
-                style={{
-                  background: 'linear-gradient(135deg, #5a0000 0%, #3a0000 100%)',
-                  border: '1px solid rgba(200,169,110,0.25)',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-                }}
+                className="hidden md:block px-4 md:px-5 pt-3 md:pt-4 pb-2 flex-shrink-0"
+                style={{ background: 'linear-gradient(180deg, rgba(100,0,0,0.35) 0%, transparent 100%)' }}
               >
+                <div className="flex items-center gap-2 md:gap-3" dir="ltr">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/android-chrome-192x192.png"
+                    alt=""
+                    className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl object-cover shrink-0 bg-white p-0.5"
+                    style={{ border: '1px solid rgba(200,169,110,0.3)' }}
+                  />
+                  <div className={isRtl ? 'text-right flex-1' : 'flex-1'}>
+                    <p className="text-[9px] text-[#c8a96e]/60 uppercase tracking-[0.25em] leading-none mb-1">
+                      {museumName.en}
+                    </p>
+                    <p
+                      className="text-sm text-white/90 font-semibold leading-snug"
+                      style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
+                    >
+                      {museumNameDisplay}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-2 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/40 to-transparent" />
+              </div>
+
+              {/* Title in gold */}
+              <div className="px-4 md:px-5 pt-2 md:pt-3 pb-2">
+                <p
+                  className="text-[#c8a96e] text-base md:text-lg font-bold leading-snug"
+                  style={{
+                    fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit',
+                    textShadow: '0 0 20px rgba(200,169,110,0.35)',
+                  }}
+                >
+                  {getText(slide, 'title')}
+                </p>
+                <div className="mt-2 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/30 to-transparent" />
+              </div>
+
+              {/* Description */}
+              {getText(slide, 'description') && (
+                <div className="px-4 md:px-5 pb-2 md:pb-3 flex-1">
+                  <p
+                    className="text-gray-300 text-sm leading-relaxed line-clamp-3 md:line-clamp-none"
+                    style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
+                  >
+                    {getText(slide, 'description')}
+                  </p>
+                </div>
+              )}
+
+              {/* Phone numbers */}
+              {(slide.phone || slide.phone2) && (
+                <div className="px-4 md:px-5 pb-3 space-y-2">
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent mb-2" />
+                  {slide.phone && (
+                    <a href={`tel:${slide.phone}`} className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit" dir="rtl">
+                      <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
+                      <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone}</span>
+                    </a>
+                  )}
+                  {slide.phone2 && (
+                    <a href={`tel:${slide.phone2}`} className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit" dir="rtl">
+                      <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
+                      <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone2}</span>
+                    </a>
+                  )}
+                </div>
+              )}
+
+              {/* Countdown */}
+              {slide.countdown_to && !countdownDone && (
+                <div className="px-3 md:px-5 pb-3 flex flex-col items-center">
+                  <div className="flex items-center gap-3 mb-2 w-full">
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[#c8a96e]/30" />
+                    <p
+                      className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c8a96e]"
+                      style={{
+                        fontFamily: lang === 'ku' || lang === 'ar' ? 'UniSalar, Tahoma, sans-serif' : 'inherit',
+                        textShadow: '0 0 14px rgba(200,169,110,0.5)',
+                      }}
+                    >
+                      {lang === 'ku' ? 'کاتژمێر بۆ دەستپێکردن' : lang === 'ar' ? 'العد التنازلي للبدء' : 'Countdown to Start'}
+                    </p>
+                    <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#c8a96e]/30" />
+                  </div>
+                  <Countdown targetTime={slide.countdown_to} lang={lang} onFinish={() => setCountdownDone(true)} />
+                </div>
+              )}
+
+              {/* Event date */}
+              {slide.event_date && (
                 <div
-                  className={`px-4 py-1 flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}
-                  style={{ background: 'rgba(0,0,0,0.25)' }}
+                  className="mx-3 mb-3 rounded-lg overflow-hidden"
+                  style={{
+                    background: 'linear-gradient(135deg, #5a0000 0%, #3a0000 100%)',
+                    border: '1px solid rgba(200,169,110,0.25)',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
+                  }}
                 >
-                  <span className="text-[10px] text-[#c8a96e]/70 uppercase tracking-[0.2em]"
-                    style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                    {lang === 'ku' ? 'بەروار' : lang === 'ar' ? 'التاريخ' : 'Date'}
-                  </span>
-                  <div className="flex-1 h-px bg-[#c8a96e]/20" />
+                  <div
+                    className={`px-4 py-1 flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}
+                    style={{ background: 'rgba(0,0,0,0.25)' }}
+                  >
+                    <span className="text-[10px] text-[#c8a96e]/70 uppercase tracking-[0.2em]"
+                      style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
+                      {lang === 'ku' ? 'بەروار' : lang === 'ar' ? 'التاريخ' : 'Date'}
+                    </span>
+                    <div className="flex-1 h-px bg-[#c8a96e]/20" />
+                  </div>
+                  <div className="px-4 pb-3 pt-2 flex justify-center">
+                    <DateDisplay dateStr={slide.event_date} lang={lang} />
+                  </div>
                 </div>
-                <div className="px-4 pb-3 pt-2 flex justify-center">
-                  <DateDisplay dateStr={slide.event_date} lang={lang} />
+              )}
+
+              {/* Link button */}
+              {slide.link && (
+                <div className="px-4 md:px-5 pb-4">
+                  <a
+                    href={slide.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 bg-red-700 hover:bg-red-600 text-white font-semibold rounded-full transition-all shadow-lg border border-red-600/30 w-full text-sm"
+                    style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
+                  >
+                    🔗&nbsp;{lang === 'ku' ? 'لینک' : lang === 'ar' ? 'زيارة الرابط' : 'Visit Link'}
+                  </a>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Link button */}
-            {slide.link && (
-              <div className="px-5 pb-5">
-                <a
-                  href={slide.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-red-700 hover:bg-red-600 text-white font-semibold rounded-full transition-all shadow-lg border border-red-600/30 w-full"
-                  style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
-                >
-                  🔗&nbsp;{lang === 'ku' ? 'لینک' : lang === 'ar' ? 'زيارة الرابط' : 'Visit Link'}
-                </a>
-              </div>
-            )}
+            </div>{/* end scrollable content */}
 
-            {/* Gold bottom bar */}
-            <div className="h-1.5 bg-gradient-to-r from-[#c8a96e] via-[#7a0000] to-[#c8a96e]" />
+            {/* Gold bottom bar — pinned */}
+            <div className="h-1.5 flex-shrink-0 bg-gradient-to-r from-[#c8a96e] via-[#7a0000] to-[#c8a96e]" />
           </div>{/* end invitation card */}
 
           {/* Slide dots */}
           {slides.length > 1 && (
-            <div className="flex justify-center gap-2 mt-6">
+            <div className="flex justify-center gap-2 mt-3 flex-shrink-0">
               {slides.map((s, i) => (
                 <button
                   key={s.id}

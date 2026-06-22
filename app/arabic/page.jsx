@@ -95,7 +95,8 @@ export default function ArabicPageContent({ initialSection = null }) {
     const tryScroll = (attempts = 0) => {
       const el = document.getElementById(initialSection)
       if (el) {
-        window.scrollTo({ top: el.offsetTop - 80, behavior: 'instant' })
+        const offset = window.innerWidth < 768 ? 64 : 0
+        window.scrollTo({ top: el.offsetTop - offset, behavior: 'instant' })
         setActiveSection(initialSection)
         activeSectionRef.current = initialSection
         const url = ELEMENT_URL[initialSection]
@@ -147,48 +148,64 @@ export default function ArabicPageContent({ initialSection = null }) {
     window.addEventListener('hashchange', handleHashChange)
     if (window.location.hash) handleHashChange()
 
-    const handleScroll = () => {
-      if (!urlGateRef.current) return
-      if (window.scrollY < 100) {
-        if (activeSectionRef.current !== 'home') {
-          setActiveSection('home')
-          activeSectionRef.current = 'home'
-        }
-        safeReplaceState('/arabic/slides')
-      }
+    // Every known section element ID, in default scroll order
+    const ALL_IDS = ['home', 'about', 'virtual-tour', 'gallery', 'archive-section', 'exclusive-section', 'showcase', 'contact', 'reserve']
+    const ratios = Object.fromEntries(ALL_IDS.map(id => [id, 0]))
+
+    const commit = (id) => {
+      if (id === activeSectionRef.current) return
+      setActiveSection(id)
+      activeSectionRef.current = id
+      const url = ELEMENT_URL[id]
+      if (url) safeReplaceState(url)
     }
-    window.addEventListener('scroll', handleScroll, { passive: true })
 
-    const observableIds = ['about', 'virtual-tour', 'gallery', 'archive-section', 'exclusive-section', 'showcase', 'contact', 'reserve']
-    const sectionRatios = {}
-    observableIds.forEach(id => sectionRatios[id] = 0)
-
-    const observer = new IntersectionObserver((entries) => {
+    const pick = () => {
       if (!urlGateRef.current) return
-      if (window.scrollY < 100) return
-      entries.forEach(entry => { sectionRatios[entry.target.id] = entry.intersectionRatio })
-      let maxRatio = 0, maxSection = activeSectionRef.current
-      observableIds.forEach(id => {
-        if (sectionRatios[id] > maxRatio) { maxRatio = sectionRatios[id]; maxSection = id }
-      })
-      if (maxRatio > 0.1 && maxSection !== activeSectionRef.current) {
-        setActiveSection(maxSection)
-        activeSectionRef.current = maxSection
-        const url = ELEMENT_URL[maxSection]
-        if (url) safeReplaceState(url)
-      }
-    }, { root: null, rootMargin: '-20% 0px -20% 0px', threshold: [0, 0.25, 0.5, 0.75, 1.0] })
+      if (window.scrollY < 80) { commit('home'); return }
+      let best = null, bestR = 0
+      ALL_IDS.forEach(id => { if (ratios[id] > bestR) { bestR = ratios[id]; best = id } })
+      if (best && bestR > 0.05) commit(best)
+    }
 
-    observableIds.forEach(id => {
-      const el = document.getElementById(id)
-      if (el) observer.observe(el)
-    })
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!urlGateRef.current) return
+        entries.forEach(e => { ratios[e.target.id] = e.intersectionRatio })
+        pick()
+      },
+      {
+        root: null,
+        rootMargin: '-30% 0px -45% 0px',
+        threshold: [0, 0.05, 0.1, 0.25, 0.5, 0.75, 1],
+      }
+    )
+
+    const observed = new Set()
+    const tryObserve = () => {
+      ALL_IDS.forEach(id => {
+        if (observed.has(id)) return
+        const el = document.getElementById(id)
+        if (el) { io.observe(el); observed.add(id) }
+      })
+    }
+    tryObserve()
+
+    const mutObs = new MutationObserver(tryObserve)
+    mutObs.observe(document.body, { childList: true, subtree: true })
+
+    const onScroll = () => {
+      if (!urlGateRef.current) return
+      if (window.scrollY < 80) commit('home')
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
 
     return () => {
       if (replaceTimer) clearTimeout(replaceTimer)
       window.removeEventListener('hashchange', handleHashChange)
-      window.removeEventListener('scroll', handleScroll)
-      observer.disconnect()
+      window.removeEventListener('scroll', onScroll)
+      io.disconnect()
+      mutObs.disconnect()
     }
   }, [])
 
