@@ -24,7 +24,9 @@ function DateDisplay({ dateStr, lang }) {
               className="flip-digit text-white font-bold tracking-widest"
               style={{
                 ...DIGIT_STYLE,
-                fontSize: '18px',
+                fontSize: '11px',
+                fontWeight: 900,
+                WebkitTextStroke: '0.5px white',
                 textShadow: '0 0 14px rgba(255,100,100,0.4)',
               }}
               lang="en"
@@ -158,9 +160,9 @@ const DIGIT_STYLE = {
 }
 
 // Shared sizing — used by both FlipCard and Countdown's separator wrapper
-const CARD_W = 'clamp(28px, calc((100vw - 140px) / 8), 58px)'
-const CARD_H = 'clamp(34px, calc((100vw - 140px) / 7), 70px)'
-const NUM_FS = 'clamp(10px, calc((100vw - 140px) / 19), 24px)'
+const CARD_W = 'clamp(36px, calc((100vw - 100px) / 6), 66px)'
+const CARD_H = 'clamp(44px, calc((100vw - 100px) / 5), 80px)'
+const NUM_FS = 'clamp(14px, calc((100vw - 100px) / 13), 30px)'
 
 function FlipCard({ value }) {
   const [display, setDisplay] = useState(value)
@@ -186,7 +188,6 @@ function FlipCard({ value }) {
       style={{
         width: cardW, height: cardH,
         perspective: 600,
-        filter: 'drop-shadow(0 6px 18px rgba(80,0,0,0.7)) drop-shadow(0 2px 6px rgba(0,0,0,0.9))',
       }}
     >
       <div className="flip-bottom">
@@ -398,31 +399,37 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
         }}
       >
 
-      {/* Title */}
-      <div className="text-center pt-3 pb-1 md:pt-4 md:pb-2 px-4 flex-shrink-0">
-        <span className="hidden md:inline-block text-xs font-bold uppercase tracking-[0.3em] text-red-400 bg-red-600/10 border border-red-600/30 px-4 py-1 rounded-full mb-2">
-          ⭐&nbsp;{lang === 'ku' ? 'چالاکییەکانی مۆزەخانە' : lang === 'ar' ? 'أنشطة المتحف' : 'Museum Activities'}
-        </span>
-        <h2
-          className="text-lg md:text-3xl font-bold leading-tight text-stone-900"
-          style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
-          dir={isRtl ? 'rtl' : 'ltr'}
+      {/* Section title */}
+      <div className="text-center pt-4 pb-1 md:pt-6 md:pb-2 px-4 flex-shrink-0">
+        {/* Archive-style decorative title */}
+        <div className="flex items-center justify-center gap-3 md:gap-4 mb-1">
+          <span className="block w-10 md:w-16 h-0.5 md:h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
+          <h2
+            className="text-xl sm:text-2xl md:text-4xl font-black text-stone-900 leading-tight"
+            style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : lang === 'ar' ? 'ArabicFont, Tahoma, sans-serif' : 'inherit' }}
+            dir={isRtl ? 'rtl' : 'ltr'}
+          >
+            {lang === 'ku' ? 'چالاکییەکانی مۆزەخانە' : lang === 'ar' ? 'أنشطة المتحف' : 'Museum Activities'}
+          </h2>
+          <span className="block w-10 md:w-16 h-0.5 md:h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
+        </div>
+        <p
+          className="text-stone-500 text-xs md:text-base mt-1"
+          style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : lang === 'ar' ? 'ArabicFont, Tahoma, sans-serif' : 'inherit' }}
         >
           {getText(slide, 'title')}
-        </h2>
-        <div className="w-12 md:w-20 h-1 bg-red-600 mx-auto mt-2" />
+        </p>
       </div>
 
       {/* Split layout — flex row on desktop, stacked on mobile */}
       <div className="flex-1 min-h-0 lg:flex-none max-w-screen-2xl mx-auto w-full flex flex-col lg:flex-row overflow-hidden">
 
         {/* IMAGE */}
-        <div className="h-[240px] md:h-[300px] lg:h-auto lg:flex-none lg:w-[60%] flex flex-col justify-center p-2 lg:p-3 xl:p-4">
+        <div className="h-[200px] sm:h-[230px] md:h-[300px] lg:h-auto lg:flex-none lg:w-[60%] flex flex-col justify-center px-20 py-2 lg:p-3 xl:p-4">
           <div
             className="relative rounded-2xl overflow-hidden w-full h-full lg:aspect-video"
             style={{
               border: '1.5px solid rgba(200,169,110,0.5)',
-              boxShadow: '0 0 0 4px rgba(200,169,110,0.06), 0 24px 80px rgba(0,0,0,0.85)',
             }}
           >
             {slide.image_url ? (
@@ -470,7 +477,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
         </div>
 
         {/* CARD SIDE */}
-        <div className="flex-1 min-h-0 lg:flex-none lg:w-[40%] px-3 md:px-6 lg:pl-8 lg:pr-8 pt-2 md:pt-4 pb-4 lg:pb-6 flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-0 lg:flex-none lg:w-[40%] px-20 md:px-6 lg:pl-8 lg:pr-8 pt-2 md:pt-4 pb-4 lg:pb-6 flex flex-col overflow-hidden">
 
           {/* Invitation card — scrolls internally if content overflows */}
           <div
@@ -534,30 +541,11 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
               {getText(slide, 'description') && (
                 <div className="px-4 md:px-5 pb-2 md:pb-3 flex-1">
                   <p
-                    className="text-stone-600 text-sm leading-relaxed line-clamp-3 md:line-clamp-none"
+                    className="text-stone-600 text-[10px] md:text-sm leading-relaxed line-clamp-3 md:line-clamp-none"
                     style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
                   >
                     {getText(slide, 'description')}
                   </p>
-                </div>
-              )}
-
-              {/* Phone numbers */}
-              {(slide.phone || slide.phone2) && (
-                <div className="px-4 md:px-5 pb-3 space-y-2">
-                  <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent mb-2" />
-                  {slide.phone && (
-                    <a href={`tel:${slide.phone}`} className="flex items-center gap-3 text-stone-600 hover:text-stone-900 transition-colors w-fit" dir="rtl">
-                      <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
-                      <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone}</span>
-                    </a>
-                  )}
-                  {slide.phone2 && (
-                    <a href={`tel:${slide.phone2}`} className="flex items-center gap-3 text-stone-600 hover:text-stone-900 transition-colors w-fit" dir="rtl">
-                      <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
-                      <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone2}</span>
-                    </a>
-                  )}
                 </div>
               )}
 
@@ -580,6 +568,26 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
                   <Countdown targetTime={slide.countdown_to} lang={lang} onFinish={() => setCountdownDone(true)} />
                 </div>
               )}
+
+              {/* Phone numbers */}
+              {(slide.phone || slide.phone2) && (
+                <div className="px-4 md:px-5 pb-3 space-y-2">
+                  <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent mb-2" />
+                  {slide.phone && (
+                    <a href={`tel:${slide.phone}`} className="flex items-center gap-3 text-stone-600 hover:text-stone-900 transition-colors w-fit" dir="rtl">
+                      <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
+                      <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone}</span>
+                    </a>
+                  )}
+                  {slide.phone2 && (
+                    <a href={`tel:${slide.phone2}`} className="flex items-center gap-3 text-stone-600 hover:text-stone-900 transition-colors w-fit" dir="rtl">
+                      <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
+                      <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone2}</span>
+                    </a>
+                  )}
+                </div>
+              )}
+
 
               {/* Event date */}
               {slide.event_date && (

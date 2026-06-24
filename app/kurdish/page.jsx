@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Slider from '../components/Slider'
+import MuseumBackground from '../components/MuseumBackground'
 import { useMuseumName } from '../lib/useMuseumName'
 
 // Lazy-load below-the-fold sections — reduces initial JS parse on mobile
@@ -14,11 +15,10 @@ const ArchivePreview   = dynamic(() => import('../components/ArchivePreview'),  
 const ExclusiveSection = dynamic(() => import('../components/ExclusiveSection'), { ssr: false })
 const ShowcaseCards    = dynamic(() => import('../components/ShowcaseCards'),    { ssr: false })
 const ContactForm      = dynamic(() => import('../components/ContactForm'),      { ssr: false })
-const ReservePageContent = dynamic(() => import('../components/ReservePageContent'), { ssr: false })
 
-const SECTION_KEYS = ['show_slides','show_about','show_gallery','show_archive','show_activities','show_exclusive','show_messages','show_visitor_tab','show_showcase']
+const SECTION_KEYS = ['show_slides','show_about','show_gallery','show_archive','show_activities','show_exclusive','show_messages','show_visitor_tab','show_showcase','show_virtual_tour']
 
-const DEFAULT_ORDER = ['slides','about','virtual-tour','gallery','archive','exclusive','showcase','messages','reserve']
+const DEFAULT_ORDER = ['slides','about','virtual-tour','gallery','archive','exclusive','showcase','messages']
 
 const SECTION_ELEMENT_ID = {
   slides:         'home',
@@ -29,7 +29,6 @@ const SECTION_ELEMENT_ID = {
   exclusive:      'exclusive-section',
   showcase:       'showcase',
   messages:       'contact',
-  reserve:        'reserve',
 }
 
 const ELEMENT_URL = {
@@ -155,7 +154,7 @@ export default function KurdishPageContent({ initialSection = null }) {
     if (window.location.hash) handleHashChange()
 
     // Every known section element ID, in default scroll order
-    const ALL_IDS = ['home', 'about', 'virtual-tour', 'gallery', 'archive-section', 'exclusive-section', 'showcase', 'contact', 'reserve']
+    const ALL_IDS = ['home', 'about', 'virtual-tour', 'gallery', 'archive-section', 'exclusive-section', 'showcase', 'contact']
     const ratios = Object.fromEntries(ALL_IDS.map(id => [id, 0]))
 
     const commit = (id) => {
@@ -222,17 +221,17 @@ export default function KurdishPageContent({ initialSection = null }) {
   const sectionComponents = {
     slides:         vis.show_slides             ? <Slider key="slides" currentLang={currentLang} />                                 : null,
     about:          vis.show_about              ? <About key="about" currentLang={currentLang} />                                   : null,
-    'virtual-tour':                               <VRSection key="virtual-tour" currentLang={currentLang} />,
+    'virtual-tour': vis.show_virtual_tour          ? <VRSection key="virtual-tour" currentLang={currentLang} /> : null,
     gallery:        vis.show_gallery            ? <Gallery key="gallery" currentLang={currentLang} />                              : null,
     archive:        vis.show_archive            ? <ArchivePreview key="archive" currentLang={currentLang} />                       : null,
     exclusive:      vis.show_exclusive          ? <ExclusiveSection key="exclusive" currentLang={currentLang} />                   : null,
     showcase:       vis.show_showcase !== false ? <ShowcaseCards key="showcase" currentLang={currentLang} />                       : null,
     messages:       vis.show_messages           ? <ContactForm key="messages" currentLang={currentLang} />                         : null,
-    reserve:        vis.show_visitor_tab !== false ? <ReservePageContent key="reserve" inline initialLang={currentLang} />          : null,
   }
 
   return (
     <main dir="rtl" className={`pt-16 md:pt-0 ${currentLang === 'ku' ? 'font-kurdish' : ''}`}>
+      <MuseumBackground />
       <Sidebar
         activeSection={activeSection}
         onSectionClick={handleSectionClick}

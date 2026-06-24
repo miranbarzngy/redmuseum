@@ -181,12 +181,6 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     ? { id: 'exclusive-section', icon: 'ri-star-line', title: 'الأنشطة',       href: '/arabic#exclusive-section' }
     : { id: 'exclusive-section', icon: 'ri-star-line', title: 'Activities',     href: '/#exclusive-section' }
 
-  const reserveItem = currentLang === 'ku'
-    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'سەردان',    href: '/kurdish#reserve' }
-    : currentLang === 'ar'
-    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'حجز',       href: '/arabic#reserve' }
-    : { id: 'reserve', icon: 'ri-calendar-check-line', title: 'Reserve',   href: '/#reserve' }
-
   const sectionKeyMap = {
     about: 'show_about', gallery: 'show_gallery',
     'archive-section': 'show_archive', showcase: 'show_showcase',
@@ -196,8 +190,7 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
   const showExcl        = showExclusive && sectionVis.show_exclusive !== false
   const itemPool        = {
     ...Object.fromEntries(filteredBase.map(item => [item.id, item])),
-    ...(showExcl                       ? { 'exclusive-section': exclusiveItem } : {}),
-    ...(sectionVis.show_visitor_tab    ? { reserve: reserveItem }               : {}),
+    ...(showExcl ? { 'exclusive-section': exclusiveItem } : {}),
   }
   const orderedIds      = ['home', ...sectionOrder.map(k => ORDER_TO_SIDEBAR_ID[k]).filter(id => id && id !== 'home')]
   const menuItems       = [
@@ -278,19 +271,34 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
           <i className="ri-menu-3-line text-xl text-white" />
         </button>
 
-        {/* Logo */}
-        <div
-          className="flex-shrink-0 rounded-xl overflow-hidden"
-          style={{ width: 40, height: 40, background: '#ffffff', padding: 0 }}
-        >
-          <Image
-            src="/android-chrome-512x512.png"
-            alt="Museum logo"
-            width={40}
-            height={40}
-            className="w-full h-full object-cover"
-            unoptimized
-          />
+        {/* Logo + Reserve button side by side */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <div
+            className="rounded-xl overflow-hidden"
+            style={{ width: 40, height: 40, background: '#ffffff', padding: 0 }}
+          >
+            <Image
+              src="/android-chrome-512x512.png"
+              alt="Museum logo"
+              width={40}
+              height={40}
+              className="w-full h-full object-cover"
+              unoptimized
+            />
+          </div>
+
+          {/* Reserve button */}
+          <a
+            href={currentLang === 'ku' ? '/kurdish/reserve' : currentLang === 'ar' ? '/arabic/reserve' : '/reserve'}
+            aria-label="Reserve a visit"
+            className="flex flex-col items-center justify-center gap-0.5 px-1.5 py-1 rounded-xl active:scale-90 transition-transform duration-150"
+            style={{ background: 'rgba(200,169,110,0.20)', border: '1px solid rgba(200,169,110,0.45)', minWidth: 44 }}
+          >
+            <i className="ri-body-scan-line text-base" style={{ color: '#c8a96e' }} />
+            <span style={{ color: '#c8a96e', fontSize: 7, fontFamily: 'UniSalar, Tahoma, sans-serif', lineHeight: 1, whiteSpace: 'nowrap' }}>
+              سەردانیکردن
+            </span>
+          </a>
         </div>
 
         {/* Name stack */}
@@ -450,6 +458,23 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
           scrollbarWidth: 'none',
         }}
       >
+        {/* Reserve / visit icon */}
+        <a
+          href={currentLang === 'ku' ? '/kurdish/reserve' : currentLang === 'ar' ? '/arabic/reserve' : '/reserve'}
+          aria-label="Reserve a visit"
+          className="flex flex-col items-center justify-center gap-0.5 w-full py-2 mb-1 transition-all duration-200 active:scale-90"
+          style={{ color: GOLD }}
+          title={currentLang === 'ku' ? 'سەردانیکردن' : currentLang === 'ar' ? 'حجز زيارة' : 'Reserve Visit'}
+        >
+          <i className="ri-body-scan-line text-xl" style={{ color: GOLD }} />
+          <span style={{ fontSize: 8, fontFamily: ff, color: GOLD, lineHeight: 1, whiteSpace: 'nowrap' }}>
+            {currentLang === 'ku' ? 'سەردانیکردن' : currentLang === 'ar' ? 'حجز زيارة' : 'Reserve'}
+          </span>
+        </a>
+
+        {/* Divider */}
+        <div className="w-9 h-px mb-1.5" style={{ background: 'rgba(200,169,110,0.25)' }} />
+
         {/* Language flags */}
         <div className="flex flex-col items-center w-full mb-1.5">
           {languages.map(lang => (

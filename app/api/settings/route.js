@@ -40,7 +40,7 @@ export async function GET(request) {
 
 const ALLOWED_KEYS = new Set([
   'show_slides','show_about','show_gallery','show_archive','show_activities',
-  'show_exclusive','show_messages','show_visitor_tab','show_showcase',
+  'show_exclusive','show_messages','show_visitor_tab','show_showcase','show_virtual_tour',
   'show_english','show_arabic',
   'section_order','available_days','available_hours',
   'contact_email','contact_phone','contact_address',

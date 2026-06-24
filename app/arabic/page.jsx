@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import Sidebar from '../components/Sidebar'
 import Slider from '../components/Slider'
+import MuseumBackground from '../components/MuseumBackground'
 import { useMuseumName } from '../lib/useMuseumName'
 
 // Lazy-load below-the-fold sections — reduces initial JS parse on mobile
@@ -223,6 +224,7 @@ export default function ArabicPageContent({ initialSection = null }) {
 
   return (
     <main dir="rtl" className={`pt-16 md:pt-0 ${currentLang === 'ar' ? 'font-arabic' : ''}`}>
+      <MuseumBackground />
       <Sidebar
         activeSection={activeSection}
         onSectionClick={handleSectionClick}

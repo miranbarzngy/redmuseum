@@ -1,6 +1,7 @@
 ﻿'use client'
 
 import { useEffect, useState } from 'react'
+import { compressImage } from '../../lib/compressImage'
 import {
   DndContext,
   closestCenter,
@@ -63,8 +64,11 @@ const categoryStringToSlug = { Documents: 'documents', Letters: 'letters', Photo
 const downloadQR = async (item) => {
   const url = `${window.location.origin}/kurdish/archive/${item.id}`
   const label = item.title_ku || item.title_en || 'Archive Item'
+  const descriptionKu = item.description_ku || ''
+  const descriptionAr = item.description_ar || ''
+  const descriptionEn = item.description_en || ''
 
-  // Fetch museum name from settings
+  // Fetch museum name
   let museumNameKr = 'مۆزەخانەی نیشتمانی ئەمنە سورەکە'
   let museumNameEn = 'Amna Suraka National Museum'
   try {
@@ -85,8 +89,19 @@ const downloadQR = async (item) => {
     uniSalarLoaded = true
   } catch {}
   const kuFont = uniSalarLoaded ? 'UniSalar, Tahoma, sans-serif' : 'Tahoma, sans-serif'
+  const enFont = 'Arial, sans-serif'
 
-  // Load museum square icon
+  // Load Arabic font
+  let arabicLoaded = false
+  try {
+    const arabicFace = new FontFace('ArabicQR', 'url(/fonts/Arabic.ttf)')
+    await arabicFace.load()
+    document.fonts.add(arabicFace)
+    arabicLoaded = true
+  } catch {}
+  const arFont = arabicLoaded ? 'ArabicQR, Tahoma, sans-serif' : 'Tahoma, Arial, sans-serif'
+
+  // Load museum logo
   const logoImg = await new Promise(resolve => {
     const img = new Image()
     img.onload = () => resolve(img)
@@ -94,137 +109,249 @@ const downloadQR = async (item) => {
     img.src = '/android-chrome-192x192.png'
   })
 
-  // --- canvas dimensions ---
-  const W = 520
-  const LOGO_H = 80        // museum logo banner
-  const GOLD_LINE = 3      // gold separator
-  const TITLE_H = 56       // archive item title bar
-  const PAD = 28
-  const QR_SIZE = W - PAD * 2
-  const FOOTER_H = 90
-  const H = LOGO_H + GOLD_LINE + TITLE_H + GOLD_LINE + QR_SIZE + FOOTER_H + 5
+  // Load archive item image
+  const archiveImg = item.image_url ? await new Promise(resolve => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => resolve(img)
+    img.onerror = () => resolve(null)
+    img.src = item.image_url
+  }) : null
+
+  // Helper: wrap text into lines
+  const wrapText = (ctx, text, maxWidth) => {
+    const words = text.split(' ')
+    const lines = []
+    let line = ''
+    for (const word of words) {
+      const test = line ? line + ' ' + word : word
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line)
+        line = word
+      } else { line = test }
+    }
+    if (line) lines.push(line)
+    return lines
+  }
+
+  // A4 at 96 DPI: 794 × 1123
+  const W = 794
+  const H = 1123
+  const PAD = 36
+  const GAP = 20
+  const GOLD_LINE = 3
+  const LOGO_H = 90
+  const TITLE_H = 62
+
+  // Side-by-side section: image left, QR right
+  const HALF_W = (W - PAD * 2 - GAP) / 2   // 351px each
+  const SIDE_H = 380
+  const QR_SIZE = 260
+
+  // Description section height
+  const DESC_FONT_SIZE = 15
+  const DESC_LINE_H = 24
+  const DESC_PAD = 28
 
   const canvas = document.createElement('canvas')
-  canvas.width = W; canvas.height = H
+  canvas.width = W
+  canvas.height = H
   const ctx = canvas.getContext('2d')
 
-  // ── White base ──
+  // White base
   ctx.fillStyle = '#ffffff'
   ctx.fillRect(0, 0, W, H)
 
-  // ── Logo banner (dark red bg) ──
+  // ── Museum logo banner ──
   ctx.fillStyle = '#6b0000'
   ctx.fillRect(0, 0, W, LOGO_H)
 
-  // Measure text widths to center the group (text + icon) horizontally
-  const ICON_SIZE = 44
-  const GAP = 14
-  ctx.font = `bold 15px ${kuFont}`
+  const ICON_SIZE = 52
+  const ICON_GAP = 16
+  ctx.font = `bold 18px ${kuFont}`
   const titleW = ctx.measureText(museumNameKr).width
-  ctx.font = '11px Arial, sans-serif'
+  ctx.font = '13px Arial, sans-serif'
   const subW = ctx.measureText(museumNameEn).width
   const textBlockW = Math.max(titleW, subW)
-  const totalGroupW = textBlockW + GAP + ICON_SIZE
-  const groupStartX = (W - totalGroupW) / 2   // left edge of text block
-  const ICON_X = groupStartX + textBlockW + GAP
+  const totalGroupW = textBlockW + ICON_GAP + ICON_SIZE
+  const groupStartX = (W - totalGroupW) / 2
+  const ICON_X = groupStartX + textBlockW + ICON_GAP
   const ICON_Y = (LOGO_H - ICON_SIZE) / 2
 
-  // Logo icon — white background box, logo fills the box
   if (logoImg) {
     const BOX_PAD = 3
-    const BOX_X = ICON_X - BOX_PAD
-    const BOX_Y = ICON_Y - BOX_PAD
-    const BOX_W = ICON_SIZE + BOX_PAD * 2
-    const BOX_H = ICON_SIZE + BOX_PAD * 2
-    // White fill
     ctx.fillStyle = '#ffffff'
     ctx.beginPath()
-    ctx.roundRect(BOX_X, BOX_Y, BOX_W, BOX_H, 8)
+    ctx.roundRect(ICON_X - BOX_PAD, ICON_Y - BOX_PAD, ICON_SIZE + BOX_PAD * 2, ICON_SIZE + BOX_PAD * 2, 10)
     ctx.fill()
-    // Clip to rounded box so logo doesn't bleed outside corners
     ctx.save()
     ctx.beginPath()
-    ctx.roundRect(BOX_X, BOX_Y, BOX_W, BOX_H, 8)
+    ctx.roundRect(ICON_X - BOX_PAD, ICON_Y - BOX_PAD, ICON_SIZE + BOX_PAD * 2, ICON_SIZE + BOX_PAD * 2, 10)
     ctx.clip()
-    ctx.drawImage(logoImg, BOX_X, BOX_Y, BOX_W, BOX_H)
+    ctx.drawImage(logoImg, ICON_X - BOX_PAD, ICON_Y - BOX_PAD, ICON_SIZE + BOX_PAD * 2, ICON_SIZE + BOX_PAD * 2)
     ctx.restore()
   }
 
-  // Kurdish title — right-aligned to the right edge of the text block
   const textRightX = groupStartX + textBlockW
   ctx.fillStyle = '#ffffff'
-  ctx.font = `bold 15px ${kuFont}`
+  ctx.font = `bold 18px ${kuFont}`
   ctx.textAlign = 'right'
   ctx.textBaseline = 'middle'
   ctx.direction = 'rtl'
-  ctx.fillText(museumNameKr, textRightX, LOGO_H / 2 - 11)
+  ctx.fillText(museumNameKr, textRightX, LOGO_H / 2 - 13)
   ctx.direction = 'ltr'
-  // English subtitle
-  ctx.font = '11px Arial, sans-serif'
+  ctx.font = '13px Arial, sans-serif'
   ctx.fillStyle = 'rgba(255,255,255,0.65)'
   ctx.textAlign = 'right'
-  ctx.fillText(museumNameEn, textRightX, LOGO_H / 2 + 11)
+  ctx.fillText(museumNameEn, textRightX, LOGO_H / 2 + 13)
 
-  // ── Gold separator ──
+  const goldGrad = () => {
+    const g = ctx.createLinearGradient(0, 0, W, 0)
+    g.addColorStop(0, 'transparent'); g.addColorStop(0.5, '#c8a96e'); g.addColorStop(1, 'transparent')
+    return g
+  }
+
   let y = LOGO_H
-  const grad1 = ctx.createLinearGradient(0, 0, W, 0)
-  grad1.addColorStop(0, 'transparent')
-  grad1.addColorStop(0.5, '#c8a96e')
-  grad1.addColorStop(1, 'transparent')
-  ctx.fillStyle = grad1
+  ctx.fillStyle = goldGrad()
   ctx.fillRect(0, y, W, GOLD_LINE)
   y += GOLD_LINE
 
-  // ── Archive item title bar (museum red) ──
+  // ── Title bar ──
   ctx.fillStyle = '#7a0000'
   ctx.fillRect(0, y, W, TITLE_H)
   ctx.fillStyle = '#ffffff'
-  ctx.font = `bold 17px ${kuFont}`
+  ctx.font = `bold 20px ${kuFont}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.direction = 'rtl'
-  const maxLen = 38
-  const displayLabel = label.length > maxLen ? label.slice(0, maxLen) + '…' : label
+  const displayLabel = label.length > 55 ? label.slice(0, 55) + '…' : label
   ctx.fillText(displayLabel, W / 2, y + TITLE_H / 2)
   ctx.direction = 'ltr'
   y += TITLE_H
 
-  // ── Gold separator ──
-  const grad2 = ctx.createLinearGradient(0, 0, W, 0)
-  grad2.addColorStop(0, 'transparent')
-  grad2.addColorStop(0.5, '#c8a96e')
-  grad2.addColorStop(1, 'transparent')
-  ctx.fillStyle = grad2
+  ctx.fillStyle = goldGrad()
   ctx.fillRect(0, y, W, GOLD_LINE)
   y += GOLD_LINE
 
-  // ── QR code ──
+  // ── Side-by-side: image (left) + QR (right) ──
+  const sideTop = y
+  ctx.fillStyle = '#f8f7f5'
+  ctx.fillRect(0, sideTop, W, SIDE_H)
+
+  // Left: archive image (smaller, centered with extra padding)
+  const IMG_EXTRA = 40
+  const imgAreaW = HALF_W - IMG_EXTRA * 2
+  const imgAreaH = SIDE_H - PAD * 2 - IMG_EXTRA
+  const imgX = PAD + IMG_EXTRA
+  const imgAreaTop = sideTop + PAD + IMG_EXTRA / 2
+
+  if (archiveImg) {
+    const aspect = archiveImg.width / archiveImg.height
+    const areaAspect = imgAreaW / imgAreaH
+    let dw, dh, dx, dy
+    if (aspect > areaAspect) {
+      dw = imgAreaW; dh = imgAreaW / aspect
+      dx = imgX; dy = imgAreaTop + (imgAreaH - dh) / 2
+    } else {
+      dh = imgAreaH; dw = imgAreaH * aspect
+      dx = imgX + (imgAreaW - dw) / 2; dy = imgAreaTop
+    }
+    // Subtle border around image area
+    ctx.strokeStyle = 'rgba(200,169,110,0.4)'
+    ctx.lineWidth = 1
+    ctx.strokeRect(imgX, imgAreaTop, imgAreaW, imgAreaH)
+    ctx.drawImage(archiveImg, dx, dy, dw, dh)
+  }
+
+  // Right: QR code
   const qrCanvas = document.createElement('canvas')
   await QRCode.toCanvas(qrCanvas, url, {
-    width: QR_SIZE, margin: 1,
+    width: QR_SIZE, margin: 2,
     color: { dark: '#1a0a0a', light: '#ffffff' },
     errorCorrectionLevel: 'H',
   })
-  ctx.drawImage(qrCanvas, PAD, y)
-  y += QR_SIZE
+  const qrX = PAD + HALF_W + GAP + (HALF_W - QR_SIZE) / 2
+  const qrY = sideTop + (SIDE_H - QR_SIZE - 28) / 2
+  ctx.drawImage(qrCanvas, qrX, qrY)
 
-  // ── Footer ──
-  ctx.fillStyle = '#fafafa'
-  ctx.fillRect(0, y, W, FOOTER_H)
-  ctx.fillStyle = 'rgba(200,169,110,0.5)'
-  ctx.fillRect(0, y, W, 1.5)
-  ctx.fillStyle = '#000000'
-  ctx.font = `bold 26px ${kuFont}`
+  // Scan label under QR
+  ctx.fillStyle = '#1c1917'
+  ctx.font = `bold 16px ${kuFont}`
   ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
+  ctx.textBaseline = 'top'
   ctx.direction = 'rtl'
-  ctx.fillText('سکان بکە', W / 2, y + FOOTER_H / 2)
+  ctx.fillText('سکان بکە بۆ زیاتر', qrX + QR_SIZE / 2, qrY + QR_SIZE + 6)
   ctx.direction = 'ltr'
-  y += FOOTER_H
+
+  y = sideTop + SIDE_H
+
+  ctx.fillStyle = goldGrad()
+  ctx.fillRect(0, y, W, GOLD_LINE)
+  y += GOLD_LINE
+
+  // ── Description — three language sections ──
+  const descSections = [
+    { text: descriptionKu, label: 'کوردی',  font: kuFont, dir: 'rtl', align: 'right', textX: W - DESC_PAD },
+    { text: descriptionAr, label: 'عربي',   font: arFont, dir: 'rtl', align: 'right', textX: W - DESC_PAD },
+    { text: descriptionEn, label: 'English', font: enFont, dir: 'ltr', align: 'left',  textX: DESC_PAD },
+  ].filter(s => s.text)
+
+  if (descSections.length > 0) {
+    const LABEL_H = 22
+    const SECTION_V_PAD = 14
+
+    for (let si = 0; si < descSections.length; si++) {
+      const section = descSections[si]
+      ctx.font = `${DESC_FONT_SIZE}px ${section.font}`
+      ctx.direction = section.dir
+      const lines = wrapText(ctx, section.text, W - DESC_PAD * 2)
+      const sectionH = LABEL_H + lines.length * DESC_LINE_H + SECTION_V_PAD * 2
+
+      ctx.fillStyle = si % 2 === 0 ? '#faf9f7' : '#f5f4f1'
+      ctx.fillRect(0, y, W, sectionH)
+
+      // Language label
+      ctx.font = `bold 10px ${enFont}`
+      ctx.fillStyle = '#c8a96e'
+      ctx.textAlign = section.dir === 'rtl' ? 'right' : 'left'
+      ctx.textBaseline = 'top'
+      ctx.direction = section.dir
+      ctx.fillText(section.label, section.textX, y + SECTION_V_PAD)
+
+      // Description text
+      ctx.font = `${DESC_FONT_SIZE}px ${section.font}`
+      ctx.fillStyle = '#44403c'
+      ctx.textAlign = section.align
+      ctx.direction = section.dir
+      lines.forEach((line, i) => {
+        ctx.fillText(line, section.textX, y + SECTION_V_PAD + LABEL_H + i * DESC_LINE_H)
+      })
+      ctx.direction = 'ltr'
+      y += sectionH
+
+      // Thin divider between sections
+      if (si < descSections.length - 1) {
+        ctx.fillStyle = 'rgba(200,169,110,0.18)'
+        ctx.fillRect(DESC_PAD, y, W - DESC_PAD * 2, 1)
+        y += 1
+      }
+    }
+
+    ctx.fillStyle = goldGrad()
+    ctx.fillRect(0, y, W, GOLD_LINE)
+    y += GOLD_LINE
+  }
+
+  // ── Fill remaining space before bottom bar ──
+  const footerH = H - y - 5
+  if (footerH > 0) {
+    ctx.fillStyle = '#ffffff'
+    ctx.fillRect(0, y, W, footerH)
+  }
 
   // ── Bottom gold bar ──
   ctx.fillStyle = '#c8a96e'
-  ctx.fillRect(0, y, W, 5)
+  ctx.fillRect(0, H - 5, W, 5)
 
   // ── Download ──
   const link = document.createElement('a')
@@ -451,11 +578,12 @@ export default function ArchiveManagement() {
     if (!file) return null
     setUploading(true)
     try {
-      const fileExt = file.name.split('.').pop()
+      const toUpload = type === 'image' ? await compressImage(file) : file
+      const fileExt = toUpload.name.split('.').pop()
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
       const folder = type === 'image' ? 'archive-images' : 'archive-files'
       const filePath = `${folder}/${fileName}`
-      const { error } = await supabase.storage.from('museum-images').upload(filePath, file, { cacheControl: '3600', upsert: false })
+      const { error } = await supabase.storage.from('museum-images').upload(filePath, toUpload, { cacheControl: '3600', upsert: false })
       if (error) throw error
       const { data: urlData } = supabase.storage.from('museum-images').getPublicUrl(filePath)
       return urlData.publicUrl

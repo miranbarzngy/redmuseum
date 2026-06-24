@@ -233,6 +233,32 @@ body {
   animation-play-state: paused;
 }
 
+/* ── Museum white-theme ambient background ── */
+@keyframes museum-particle-float {
+  0%   { transform: translateY(0px)    translateX(0px);   opacity: 0;   }
+  12%  { opacity: 1;                                                      }
+  88%  { opacity: 1;                                                      }
+  100% { transform: translateY(-220px) translateX(14px);  opacity: 0;   }
+}
+
+@keyframes museum-particle-drift {
+  0%   { transform: translateY(0px)    translateX(0px);   opacity: 0;   }
+  10%  { opacity: 1;                                                      }
+  50%  { transform: translateY(-120px) translateX(-12px);               }
+  90%  { opacity: 1;                                                      }
+  100% { transform: translateY(-240px) translateX(8px);   opacity: 0;   }
+}
+
+@keyframes museum-ambient-glow {
+  0%,100% { transform: translate(0%,   0%)   scale(1);    opacity: 1;    }
+  50%      { transform: translate(4%,   3%)   scale(1.07); opacity: 0.7; }
+}
+
+@keyframes museum-ambient-glow-2 {
+  0%,100% { transform: translate(0%,   0%)   scale(1);    opacity: 0.75; }
+  50%      { transform: translate(-3%, -2%)   scale(1.06); opacity: 1;   }
+}
+
 /* Admin sidebar scrollbar */
 .admin-nav-scroll::-webkit-scrollbar {
   width: 4px;

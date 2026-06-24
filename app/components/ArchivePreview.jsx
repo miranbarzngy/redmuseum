@@ -167,45 +167,49 @@ export default function ArchivePreview({ currentLang = 'en' }) {
           <p className="text-stone-500 text-sm" style={font}>{sectionSub}</p>
         </div>
 
-        {/* Card — grows to fill remaining space */}
-        <div className="relative max-w-4xl mx-auto w-full flex-1 min-h-0">
+        {/* Card — A4 proportions (2:1.414) */}
+        <div className="relative max-w-4xl mx-auto w-full" style={{ aspectRatio: '2 / 1.414', maxHeight: '70vh' }}>
           <Link
             href={getDetailLink(item)}
             className="block rounded-2xl overflow-hidden h-full"
             style={{ background: '#ffffff', boxShadow: '0 0 0 1px rgba(0,0,0,0.07), 0 8px 32px rgba(0,0,0,0.10)' }}
           >
-            <div className="flex flex-col md:flex-row h-full" dir={isAr ? 'rtl' : 'ltr'}>
+            <div className="flex flex-row h-full" dir={isAr ? 'rtl' : 'ltr'}>
 
-              {/* Image panel — flex-1 on mobile (fills top), fixed 45% width on desktop */}
-              <div className="relative flex-1 min-h-0 md:flex-none md:w-[45%] bg-stone-100 flex items-center justify-center overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-0.5 opacity-60"
+              {/* Image panel — left half */}
+              <div className="relative w-1/2 flex-shrink-0 overflow-hidden bg-stone-100">
+                <div className="absolute top-0 left-0 right-0 h-0.5 opacity-60 z-10"
                   style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
 
                 <img
                   src={normalizePath(item?.image_url)}
                   alt={getTitle(item)}
-                  className="w-full h-full object-contain p-2 md:p-6 transition-transform duration-700 hover:scale-105"
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                   onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
                 />
 
+                {/* Vertical divider */}
+                <div className="absolute top-0 right-0 bottom-0 w-px z-10"
+                  style={{ background: 'linear-gradient(to bottom, transparent, rgba(200,169,110,0.3), transparent)' }} />
+
                 <span
-                  className="absolute top-3 left-3 md:top-4 md:left-4 text-xs font-semibold px-3 py-1 rounded-full tracking-wide"
+                  className="absolute top-3 left-3 text-xs font-semibold px-3 py-1 rounded-full tracking-wide z-10"
                   style={{ background: 'rgba(122,0,0,0.85)', color: '#c8a96e', border: '1px solid rgba(200,169,110,0.4)', fontFamily: font.fontFamily || 'inherit' }}
                 >
                   {getCategoryName(item)}
                 </span>
 
-                <span className="absolute bottom-2 right-2 text-stone-400 text-[10px] font-mono">
+                <span className="absolute bottom-2 right-2 text-stone-400 text-[10px] font-mono z-10">
                   {currentIndex + 1} / {archive.length}
                 </span>
               </div>
 
-              {/* Content panel — fixed height on mobile, flex-1 on desktop */}
-              <div className="flex-shrink-0 md:flex-1 px-4 py-3 md:p-10 flex flex-col justify-center gap-2 md:gap-4">
-                <h3 className="text-base md:text-2xl font-bold text-stone-900 leading-snug" style={font}>
+              {/* Content panel — right half */}
+              <div className="w-1/2 flex flex-col justify-center gap-3 md:gap-5 px-5 md:px-10 py-4">
+                <h3 className="text-base md:text-2xl font-bold text-stone-900 leading-snug line-clamp-3" style={font}>
                   {getTitle(item)}
                 </h3>
-                <p className="text-stone-600 text-sm md:text-base leading-relaxed line-clamp-2 md:line-clamp-4" style={font}>
+                <p className="text-stone-600 text-xs md:text-sm leading-relaxed line-clamp-4" style={font}>
                   {getDescription(item)}
                 </p>
                 <div className="flex items-center gap-2">

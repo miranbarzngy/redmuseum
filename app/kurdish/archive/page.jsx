@@ -184,16 +184,17 @@ export default function KurdishArchive() {
 
         {/* Grid */}
         {filteredItems.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             {filteredItems.map(item => (
               <Link
                 key={item.id}
                 href={`/kurdish/archive/${item.id}`}
-                className="group relative flex flex-col rounded-2xl overflow-hidden transition-all duration-300"
+                className="group relative flex flex-row rounded-2xl overflow-hidden transition-all duration-300"
                 style={{
                   background: 'rgba(255,255,255,0.03)',
                   border: '1px solid rgba(200,169,110,0.12)',
                   boxShadow: '0 4px 24px rgba(0,0,0,0.3)',
+                  aspectRatio: '2 / 1.414',
                 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(200,169,110,0.35)'; e.currentTarget.style.boxShadow = '0 8px 40px rgba(122,0,0,0.2)' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(200,169,110,0.12)'; e.currentTarget.style.boxShadow = '0 4px 24px rgba(0,0,0,0.3)' }}
@@ -202,18 +203,18 @@ export default function KurdishArchive() {
                 <div className="absolute top-0 left-0 right-0 h-px z-10"
                   style={{ background: 'linear-gradient(to right, transparent, rgba(200,169,110,0.4), transparent)' }} />
 
-                {/* Image */}
-                <div className="relative aspect-square overflow-hidden bg-[#0d0d0d]">
+                {/* Image — left half, A4 portrait ratio */}
+                <div className="relative w-1/2 flex-shrink-0 overflow-hidden bg-[#0d0d0d]">
                   <img
                     src={normalizePath(item.image_url)}
                     alt={item.title_ku || item.title_en || ''}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
                   />
                   {/* Hover overlay */}
                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    style={{ background: 'rgba(10,10,10,0.7)' }}>
-                    <div className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold text-white"
+                    style={{ background: 'rgba(10,10,10,0.6)' }}>
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold text-white"
                       style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.4)', ...KU }}>
                       <i className="ri-eye-line text-[#c8a96e]" />
                       بینین
@@ -221,27 +222,29 @@ export default function KurdishArchive() {
                   </div>
                   {/* Category badge */}
                   {getCategoryName(item) && (
-                    <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold text-white z-10"
+                    <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold text-white z-10"
                       style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.3)', ...KU }}>
                       {getCategoryName(item)}
                     </span>
                   )}
+                  {/* Vertical divider */}
+                  <div className="absolute top-0 left-0 bottom-0 w-px"
+                    style={{ background: 'linear-gradient(to bottom, transparent, rgba(200,169,110,0.3), transparent)' }} />
                 </div>
 
-                {/* Card body */}
-                <div className="p-4 flex flex-col gap-1.5 flex-1">
-                  <h3 className="text-base font-bold text-white leading-snug line-clamp-2" style={KU}>
+                {/* Card body — right half */}
+                <div className="w-1/2 flex flex-col justify-center gap-2 p-4" dir="rtl">
+                  <h3 className="text-sm font-bold text-white leading-snug line-clamp-3" style={KU}>
                     {item.title_ku || item.title_en}
                   </h3>
                   {(item.description_ku || item.description_en) && (
-                    <p className="text-xs text-white line-clamp-2 leading-relaxed" style={KU}>
+                    <p className="text-[11px] text-gray-400 line-clamp-4 leading-relaxed" style={KU}>
                       {item.description_ku || item.description_en}
                     </p>
                   )}
-                  {/* Arrow */}
-                  <div className="mt-auto pt-2 flex items-center justify-between">
-                    <span className="text-[11px]" style={{ color: 'rgba(200,169,110,0.5)', ...KU }}>بینینی زیاتر</span>
-                    <i className="ri-arrow-left-line text-[#c8a96e] text-sm transition-transform duration-200 group-hover:-translate-x-1" />
+                  <div className="mt-auto flex items-center gap-1.5" style={{ color: '#c8a96e' }}>
+                    <span className="text-[11px]" style={KU}>زیاتر بخوێنەوە</span>
+                    <i className="ri-arrow-left-line text-xs transition-transform duration-200 group-hover:-translate-x-1" />
                   </div>
                 </div>
               </Link>

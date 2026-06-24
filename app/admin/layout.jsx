@@ -19,6 +19,7 @@ import {
   Settings,
   ClipboardList,
   LogOut,
+  Compass,
 } from 'lucide-react'
 import { supabase } from '../lib/supabase-client'
 import { AdminContext } from './AdminContext'
@@ -35,6 +36,7 @@ const BASE_NAV = [
   { section: 'visitors',      href: '/admin/visitors',       Icon: Ticket,          label: 'Visitors',       exact: true,  grad: 'from-indigo-600 to-indigo-900',   shadow: 'shadow-indigo-950/60'  },
   { section: 'section_order', href: '/admin/section-order',  Icon: Layers,          label: 'Section Order',  exact: true,  grad: 'from-emerald-700 to-emerald-900', shadow: 'shadow-emerald-950/60' },
   { section: 'showcase_cards',href: '/admin/showcase-cards', Icon: LayoutGrid,      label: 'Social Media Post', exact: true,  grad: 'from-fuchsia-600 to-fuchsia-900', shadow: 'shadow-fuchsia-950/60' },
+  { section: 'virtual_tour',  href: '/admin/virtual-tour',  Icon: Compass,         label: 'Virtual Tour',      exact: true,  grad: 'from-cyan-600 to-cyan-900',       shadow: 'shadow-cyan-950/60'    },
   { section: 'languages',     href: '/admin/languages',      Icon: Globe,           label: 'Languages',      exact: true,  grad: 'from-sky-600 to-sky-900',         shadow: 'shadow-sky-950/60'     },
   { section: 'users',         href: '/admin/users',          Icon: ShieldCheck,     label: 'Users & Roles',  exact: true,  grad: 'from-violet-700 to-violet-900',   shadow: 'shadow-violet-950/60'  },
   { section: 'settings',      href: '/admin/settings',       Icon: Settings,        label: 'Museum Settings',exact: true,  grad: 'from-indigo-600 to-indigo-900',   shadow: 'shadow-indigo-950/60'  },
@@ -56,6 +58,7 @@ const ROUTE_SECTION = {
   'section-order': 'section_order',
   languages: 'languages',
   'showcase-cards': 'showcase_cards',
+  'virtual-tour': 'virtual_tour',
   settings: 'settings',
   audit: 'audit',
 }
@@ -73,7 +76,7 @@ export default function AdminLayout({ children }) {
   const museumName = useMuseumName()
 
   const FULL_PERMS = Object.fromEntries(
-    ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','users','section_order','languages','showcase_cards','settings','audit']
+    ['dashboard','slides','gallery','archive','exclusive','visitors','messages','about','users','section_order','languages','showcase_cards','virtual_tour','settings','audit']
       .map(s => [s, { view: true, edit: true, delete: true }])
   )
 

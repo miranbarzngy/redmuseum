@@ -686,7 +686,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       </section>
     )
     return (
-      <div className="min-h-screen text-stone-900 flex items-center justify-center px-4 py-16 md:pl-[88px]" style={{ background: '#fbfbfa' }}>
+      <div className="min-h-screen text-stone-900 flex items-center justify-center px-4 pt-20 pb-8 md:py-16 md:pl-[88px]" style={{ background: '#fbfbfa' }}>
         <Sidebar activeSection="reserve" currentLang={lang} onLangChange={setLang} />
         {successContent}
       </div>
@@ -706,7 +706,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   return (
     <Wrapper
       id={inline ? 'reserve' : undefined}
-      className={inline ? 'text-stone-900 px-4 md:px-8 py-5 md:py-10 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col' : 'min-h-screen text-stone-900 px-4 py-5 md:py-16 md:pl-[88px]'}
+      className={inline ? 'text-stone-900 px-4 md:px-8 py-5 md:py-10 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col' : 'min-h-screen text-stone-900 px-4 pt-20 pb-8 md:py-16 md:pl-[88px]'}
       style={{ background: '#fbfbfa' }}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
@@ -733,7 +733,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
         {/* ── Header ─────────────────────────────────────────── */}
         <div className="text-center mb-4 md:mb-6 max-w-2xl mx-auto flex-shrink-0">
           {!inline && (
-            <Link href={homeHref} className="inline-flex items-center gap-2 text-stone-500 hover:text-stone-900 text-sm mb-3 md:mb-8 transition-colors" style={{ fontFamily: fontStyle(lang) }}>
+            <Link href={homeHref} className="inline-flex items-center gap-2 text-sm font-semibold mb-3 md:mb-8 transition-colors px-4 py-2 rounded-xl" style={{ fontFamily: fontStyle(lang), background: '#7a0000', color: '#ffffff' }}>
               <i className={`ri-arrow-${isRtl ? 'right' : 'left'}-line`} />
               {t('گەڕانەوە', 'رجوع', 'Back', lang)}
             </Link>
@@ -947,11 +947,12 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                         style={{
                           background: step.active ? GOLD : 'rgba(255,255,255,0.05)',
                           color: step.active ? '#000' : '#4b5563',
-                          border: step.active ? 'none' : '1px solid rgba(255,255,255,0.08)',
+                          border: step.active ? '2px solid #111' : '1px solid rgba(255,255,255,0.08)',
+                          boxShadow: step.active ? '0 0 0 2px ' + GOLD : 'none',
                         }}>
                         {step.n}
                       </div>
-                      <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: step.active ? '#f5e6c8' : '#6b7280', fontFamily: fontStyle(lang) }}>
+                      <span className="text-[10px] font-bold whitespace-nowrap" style={{ color: step.active ? '#111' : '#6b7280', fontFamily: fontStyle(lang) }}>
                         {step.label}
                       </span>
                     </div>
@@ -975,7 +976,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
               >
                 <span className="flex items-center justify-center gap-3">
                   <i className="ri-scan-2-line text-xl" style={{ color: GOLD }} />
-                  {t('دەستپێکردنی تۆمارکردن و سکانی ڕووخسار', 'بدء التسجيل ومسح الوجه', 'Start Registration & Face Scan', lang)}
+                  {t('دەستپێکردن', 'بدء', 'Start', lang)}
                 </span>
               </button>
 
