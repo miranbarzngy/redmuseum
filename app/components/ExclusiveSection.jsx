@@ -372,7 +372,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
 
   if (loading) {
     return (
-      <section id="exclusive-section" className="py-20 flex items-center justify-center min-h-[300px]" style={{ background: bgColor }}>
+      <section id="exclusive-section" className="py-20 flex items-center justify-center min-h-[300px]" style={{ background: '#fbfbfa' }}>
         <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
       </section>
     )
@@ -383,7 +383,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
   const slide = slides[displayed]
 
   return (
-    <section id="exclusive-section" className="relative text-stone-900 flex flex-col md:h-screen md:overflow-hidden" style={{ background: bgColor }}>
+    <section id="exclusive-section" className="relative text-stone-900 flex flex-col md:h-screen md:overflow-hidden" style={{ background: '#fbfbfa' }}>
 
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-red-950/5 via-transparent to-transparent" />

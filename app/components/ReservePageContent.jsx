@@ -681,12 +681,12 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     )
 
     if (inline) return (
-      <section id="reserve" className="text-stone-900 px-4 py-6 h-[calc(100dvh-4rem)] md:h-screen overflow-y-auto flex items-center justify-center" style={{ background: bgColor }} dir={isRtl ? 'rtl' : 'ltr'}>
+      <section id="reserve" className="text-stone-900 px-4 py-6 h-[calc(100dvh-4rem)] md:h-screen overflow-y-auto flex items-center justify-center" style={{ background: '#fbfbfa' }} dir={isRtl ? 'rtl' : 'ltr'}>
         {successContent}
       </section>
     )
     return (
-      <div className="min-h-screen text-stone-900 flex items-center justify-center px-4 py-16 md:pl-[88px]" style={{ background: bgColor }}>
+      <div className="min-h-screen text-stone-900 flex items-center justify-center px-4 py-16 md:pl-[88px]" style={{ background: '#fbfbfa' }}>
         <Sidebar activeSection="reserve" currentLang={lang} onLangChange={setLang} />
         {successContent}
       </div>
@@ -707,7 +707,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     <Wrapper
       id={inline ? 'reserve' : undefined}
       className={inline ? 'text-stone-900 px-4 md:px-8 py-5 md:py-10 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col' : 'min-h-screen text-stone-900 px-4 py-5 md:py-16 md:pl-[88px]'}
-      style={{ background: bgColor }}
+      style={{ background: '#fbfbfa' }}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <style>{`

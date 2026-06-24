@@ -98,7 +98,7 @@ export default function ContactForm({ currentLang = 'en' }) {
   ]
 
   return (
-    <section id="contact" className="text-stone-900 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-4 md:py-8" style={{ background: settings?.contact_bg_color || '#fbfbfa' }}>
+    <section id="contact" className="text-stone-900 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-4 md:py-8" style={{ background: '#fbfbfa' }}>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col flex-1 min-h-0">
 
         {/* Section header */}

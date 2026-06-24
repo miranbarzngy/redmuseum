@@ -147,13 +147,13 @@ export default function Gallery({ currentLang = 'en' }) {
   const title = isAr ? 'المعرض' : isKu ? 'گەلەری' : 'Gallery'
 
   if (loading) return (
-    <section id="gallery" className="h-[calc(100dvh-4rem)] md:h-screen flex items-center justify-center" style={{ background: bgColor }}>
+    <section id="gallery" className="h-[calc(100dvh-4rem)] md:h-screen flex items-center justify-center" style={{ background: '#fbfbfa' }}>
       <div className="w-10 h-10 border-2 border-[#c8a96e] border-t-transparent rounded-full animate-spin" />
     </section>
   )
 
   if (!galleries.length || galleries.every(g => !g.images.length)) return (
-    <section id="gallery" className="h-[calc(100dvh-4rem)] md:h-screen flex items-center justify-center" style={{ background: bgColor }}>
+    <section id="gallery" className="h-[calc(100dvh-4rem)] md:h-screen flex items-center justify-center" style={{ background: '#fbfbfa' }}>
       <p className="text-gray-500 text-sm" style={font}>
         {isAr ? 'لا توجد صور في المعرض.' : isKu ? 'هیچ وێنەیەک لە گەلەریدا نییە.' : 'No images found in the gallery.'}
       </p>
@@ -164,7 +164,7 @@ export default function Gallery({ currentLang = 'en' }) {
 
   return (
     <>
-      <section id="gallery" className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-3 md:py-8" style={{ background: bgColor }}>
+      <section id="gallery" className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-3 md:py-8" style={{ background: '#fbfbfa' }}>
 
         {/* Section header */}
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-shrink-0">

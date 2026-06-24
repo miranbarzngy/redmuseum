@@ -138,7 +138,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const viewAllLabel = isAr ? 'عرض كل الأرشيف' : isKu ? 'بینینی هەموو ئەرشیفەکە' : 'View All Archive'
 
   if (loading) return (
-    <section id="archive-section" className="min-h-[400px] flex items-center justify-center" style={{ background: bgColor }}>
+    <section id="archive-section" className="min-h-[400px] flex items-center justify-center" style={{ background: '#fbfbfa' }}>
       <div className="w-10 h-10 border-2 border-[#c8a96e] border-t-transparent rounded-full animate-spin" />
     </section>
   )
@@ -151,7 +151,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
     <section
       id="archive-section"
       className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-5 md:py-10"
-      style={{ background: bgColor }}
+      style={{ background: '#fbfbfa' }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >

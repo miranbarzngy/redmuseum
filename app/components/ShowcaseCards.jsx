@@ -95,7 +95,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
   }, [cards.length, paused, activeIdx])
 
   if (loading) return (
-    <section id="showcase" className="py-20 flex items-center justify-center" style={{ background: bgColor }}>
+    <section id="showcase" className="py-20 flex items-center justify-center" style={{ background: '#fbfbfa' }}>
       <div className="w-6 h-6 border-2 border-[#c8a96e] border-t-transparent rounded-full animate-spin" />
     </section>
   )
@@ -113,7 +113,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
     <section
       id="showcase"
       className="relative h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-5 md:py-8"
-      style={{ background: bgColor }}
+      style={{ background: '#fbfbfa' }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
