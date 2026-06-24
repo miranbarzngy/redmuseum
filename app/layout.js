@@ -50,7 +50,7 @@ export default function RootLayout({ children }) {
           href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/4.2.0/remixicon.css"
         />
       </head>
-      <body className="antialiased" style={{ background: '#000' }}>
+      <body className="antialiased" style={{ background: '#fbfbfa' }}>
         {children}
       </body>
     </html>
