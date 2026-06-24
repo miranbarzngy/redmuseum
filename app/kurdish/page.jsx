@@ -240,7 +240,7 @@ export default function KurdishPageContent({ initialSection = null }) {
         onLangChange={handleLangChange}
       />
       {sectionOrder.map(id => sectionComponents[id] ?? null)}
-      <footer className="pt-6 text-stone-500 text-center" style={{ background: '#f0eeeb', borderTop: '1px solid rgba(0,0,0,0.07)', paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
+      <footer className="py-3 text-stone-400 text-center text-xs" style={{ background: '#f0eeeb', borderTop: '1px solid rgba(0,0,0,0.07)', paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
         <p>{currentLang === 'ku' ? ` ${museumName.kr} -    © ٢٠٢٦` : `© 2026 ${museumName.en}. All rights reserved.`}</p>
       </footer>
     </main>
