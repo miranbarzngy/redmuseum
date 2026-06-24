@@ -27,7 +27,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const [categories,   setCategories]   = useState(defaultCategories)
   const [progress,     setProgress]     = useState(0)
   const [paused,       setPaused]       = useState(false)
-  const [bgColor,      setBgColor]      = useState('#0a0a0a')
+  const [bgColor,      setBgColor]      = useState('#fbfbfa')
 
   const isKu = currentLang === 'ku'
   const isAr = currentLang === 'ar'
@@ -161,10 +161,10 @@ export default function ArchivePreview({ currentLang = 'en' }) {
         <div className="flex flex-col items-center mb-3 md:mb-6 flex-shrink-0">
           <div className="flex items-center gap-3 md:gap-4 mb-1 md:mb-2">
             <span className="block w-12 md:w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
-            <h2 className="text-2xl sm:text-3xl md:text-3xl xl:text-4xl font-black text-white tracking-wide" style={font}>{sectionTitle}</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-3xl xl:text-4xl font-black text-stone-900 tracking-wide" style={font}>{sectionTitle}</h2>
             <span className="block w-12 md:w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
           </div>
-          <p className="text-white/70 text-sm" style={font}>{sectionSub}</p>
+          <p className="text-stone-500 text-sm" style={font}>{sectionSub}</p>
         </div>
 
         {/* Card — grows to fill remaining space */}
@@ -172,12 +172,12 @@ export default function ArchivePreview({ currentLang = 'en' }) {
           <Link
             href={getDetailLink(item)}
             className="block rounded-2xl overflow-hidden h-full"
-            style={{ background: 'linear-gradient(135deg, #111 0%, #0d0d0d 100%)', boxShadow: '0 0 0 1px rgba(200,169,110,0.15), 0 24px 60px rgba(0,0,0,0.7)' }}
+            style={{ background: '#ffffff', boxShadow: '0 0 0 1px rgba(0,0,0,0.07), 0 8px 32px rgba(0,0,0,0.10)' }}
           >
             <div className="flex flex-col md:flex-row h-full" dir={isAr ? 'rtl' : 'ltr'}>
 
               {/* Image panel — flex-1 on mobile (fills top), fixed 45% width on desktop */}
-              <div className="relative flex-1 min-h-0 md:flex-none md:w-[45%] bg-[#080808] flex items-center justify-center overflow-hidden">
+              <div className="relative flex-1 min-h-0 md:flex-none md:w-[45%] bg-stone-100 flex items-center justify-center overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-0.5 opacity-60"
                   style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
 
@@ -195,17 +195,17 @@ export default function ArchivePreview({ currentLang = 'en' }) {
                   {getCategoryName(item)}
                 </span>
 
-                <span className="absolute bottom-2 right-2 text-white/30 text-[10px] font-mono">
+                <span className="absolute bottom-2 right-2 text-stone-400 text-[10px] font-mono">
                   {currentIndex + 1} / {archive.length}
                 </span>
               </div>
 
               {/* Content panel — fixed height on mobile, flex-1 on desktop */}
               <div className="flex-shrink-0 md:flex-1 px-4 py-3 md:p-10 flex flex-col justify-center gap-2 md:gap-4">
-                <h3 className="text-base md:text-2xl font-bold text-white leading-snug" style={font}>
+                <h3 className="text-base md:text-2xl font-bold text-stone-900 leading-snug" style={font}>
                   {getTitle(item)}
                 </h3>
-                <p className="text-white/80 text-sm md:text-base leading-relaxed line-clamp-2 md:line-clamp-4" style={font}>
+                <p className="text-stone-600 text-sm md:text-base leading-relaxed line-clamp-2 md:line-clamp-4" style={font}>
                   {getDescription(item)}
                 </p>
                 <div className="flex items-center gap-2">
@@ -248,7 +248,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
                 style={{
                   width: i === currentIndex ? 28 : 6,
                   height: 6,
-                  background: i === currentIndex ? 'rgba(200,169,110,0.3)' : 'rgba(255,255,255,0.15)',
+                  background: i === currentIndex ? 'rgba(200,169,110,0.3)' : 'rgba(0,0,0,0.12)',
                 }}
               >
                 {i === currentIndex && (

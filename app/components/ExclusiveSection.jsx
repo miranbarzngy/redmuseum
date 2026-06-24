@@ -304,7 +304,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
   const [displayed, setDisplayed] = useState(0)
   const [fading, setFading] = useState(false)
   const [countdownDone, setCountdownDone] = useState(false)
-  const [bgColor, setBgColor] = useState('#000000')
+  const [bgColor, setBgColor] = useState('#fbfbfa')
 
   const museumName = useMuseumName()
 
@@ -383,10 +383,10 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
   const slide = slides[displayed]
 
   return (
-    <section id="exclusive-section" className="relative text-white flex flex-col md:h-screen md:overflow-hidden" style={{ background: bgColor }}>
+    <section id="exclusive-section" className="relative text-stone-900 flex flex-col md:h-screen md:overflow-hidden" style={{ background: bgColor }}>
 
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-red-950/20 via-black to-black" />
+      <div className="absolute inset-0 bg-gradient-to-br from-red-950/5 via-transparent to-transparent" />
 
       {/* Fade wrapper — fills all remaining flex space */}
       <div
@@ -404,7 +404,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
           ⭐&nbsp;{lang === 'ku' ? 'چالاکییەکانی مۆزەخانە' : lang === 'ar' ? 'أنشطة المتحف' : 'Museum Activities'}
         </span>
         <h2
-          className="text-lg md:text-3xl font-bold leading-tight"
+          className="text-lg md:text-3xl font-bold leading-tight text-stone-900"
           style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
           dir={isRtl ? 'rtl' : 'ltr'}
         >
@@ -476,9 +476,9 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
           <div
             className="flex-1 min-h-0 relative rounded-2xl overflow-hidden flex flex-col"
             style={{
-              background: 'linear-gradient(160deg, #0d0000 0%, #180000 50%, #0a0a0a 100%)',
-              border: '1px solid rgba(200,169,110,0.2)',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)',
+              background: '#ffffff',
+              border: '1px solid rgba(0,0,0,0.08)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04)',
             }}
             dir={isRtl ? 'rtl' : 'ltr'}
           >
@@ -506,7 +506,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
                       {museumName.en}
                     </p>
                     <p
-                      className="text-sm text-white/90 font-semibold leading-snug"
+                      className="text-sm text-stone-800 font-semibold leading-snug"
                       style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
                     >
                       {museumNameDisplay}
@@ -534,7 +534,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
               {getText(slide, 'description') && (
                 <div className="px-4 md:px-5 pb-2 md:pb-3 flex-1">
                   <p
-                    className="text-gray-300 text-sm leading-relaxed line-clamp-3 md:line-clamp-none"
+                    className="text-stone-600 text-sm leading-relaxed line-clamp-3 md:line-clamp-none"
                     style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
                   >
                     {getText(slide, 'description')}
@@ -547,13 +547,13 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
                 <div className="px-4 md:px-5 pb-3 space-y-2">
                   <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent mb-2" />
                   {slide.phone && (
-                    <a href={`tel:${slide.phone}`} className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit" dir="rtl">
+                    <a href={`tel:${slide.phone}`} className="flex items-center gap-3 text-stone-600 hover:text-stone-900 transition-colors w-fit" dir="rtl">
                       <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
                       <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone}</span>
                     </a>
                   )}
                   {slide.phone2 && (
-                    <a href={`tel:${slide.phone2}`} className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit" dir="rtl">
+                    <a href={`tel:${slide.phone2}`} className="flex items-center gap-3 text-stone-600 hover:text-stone-900 transition-colors w-fit" dir="rtl">
                       <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
                       <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone2}</span>
                     </a>
@@ -636,7 +636,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
                   key={s.id}
                   onClick={() => setCurrent(i)}
                   className={`h-2 rounded-full transition-all duration-300 ${
-                    i === current ? 'bg-red-600 w-6' : 'bg-white/30 hover:bg-white/60 w-2'
+                    i === current ? 'bg-red-600 w-6' : 'bg-stone-300 hover:bg-stone-400 w-2'
                   }`}
                 />
               ))}

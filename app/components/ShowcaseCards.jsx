@@ -27,7 +27,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [paused, setPaused]     = useState(false)
   const [progress, setProgress] = useState(0)
-  const [bgColor, setBgColor]   = useState('#0a0a0a')
+  const [bgColor, setBgColor]   = useState('#fbfbfa')
   const [cardWidth, setCardWidth] = useState(CARD_W)
   const [cardGap,  setCardGap]   = useState(CARD_GAP)
   const progressRef             = useRef(null)
@@ -122,7 +122,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
       <div className="flex items-center justify-center gap-3 md:gap-4 mb-3 md:mb-5 px-8 flex-shrink-0">
         <span className="block w-10 md:w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
         <h2
-          className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-white tracking-wide text-center"
+          className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-stone-900 tracking-wide text-center"
           style={
             currentLang === 'ku' ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
             : currentLang === 'ar' ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
@@ -209,7 +209,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
                     className="mt-2 md:mt-3 text-center text-xs md:text-sm font-semibold transition-colors duration-300 max-w-full px-1"
                     dir={isRTL ? 'rtl' : 'ltr'}
                     style={{
-                      color: isActive ? '#c8a96e' : 'rgba(255,255,255,0.4)',
+                      color: isActive ? '#c8a96e' : 'rgba(0,0,0,0.35)',
                       fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : currentLang === 'ar' ? 'ArabicFont, Tahoma, sans-serif' : 'inherit',
                       transition: 'color 0.4s ease',
                     }}
@@ -252,7 +252,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
               style={{
                 width: activeIdx === i ? 28 : 6,
                 height: 6,
-                background: activeIdx === i ? 'rgba(200,169,110,0.3)' : 'rgba(255,255,255,0.15)',
+                background: activeIdx === i ? 'rgba(200,169,110,0.3)' : 'rgba(0,0,0,0.12)',
               }}
             >
               {activeIdx === i && (

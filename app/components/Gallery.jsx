@@ -107,7 +107,7 @@ export default function Gallery({ currentLang = 'en' }) {
   const [galleries, setGalleries] = useState([])
   const [loading, setLoading] = useState(true)
   const [lightbox, setLightbox] = useState(null) // { images, idx }
-  const [bgColor, setBgColor] = useState('#0a0a0a')
+  const [bgColor, setBgColor] = useState('#fbfbfa')
 
   const langKey = isAr ? 'ar' : isKu ? 'ku' : 'en'
   const font = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' } : isAr ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' } : {}
@@ -170,7 +170,7 @@ export default function Gallery({ currentLang = 'en' }) {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-shrink-0">
           <div className="flex items-center justify-center gap-3 md:gap-4 mb-2 md:mb-5">
             <span className="block w-10 md:w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
-            <h2 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-white tracking-wide" style={font}>{title}</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-stone-900 tracking-wide" style={font}>{title}</h2>
             <span className="block w-10 md:w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
           </div>
         </div>
@@ -193,7 +193,7 @@ export default function Gallery({ currentLang = 'en' }) {
                   <div className="w-6 h-6 md:w-8 md:h-8 rounded-md md:rounded-lg bg-[#7a0000]/80 border border-[#c8a96e]/30 flex items-center justify-center flex-shrink-0">
                     <i className={`${meta.icon || 'ri-image-line'} text-[#c8a96e] text-xs md:text-sm`} />
                   </div>
-                  <h3 className="text-sm md:text-base font-bold text-white/80" style={font}>
+                  <h3 className="text-sm md:text-base font-bold text-stone-700" style={font}>
                     {meta[langKey] || g.category}
                   </h3>
                   <div className="flex-1 h-px bg-gradient-to-r from-[#c8a96e]/30 to-transparent" />

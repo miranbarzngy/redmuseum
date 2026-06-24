@@ -19,19 +19,19 @@ export default function VRSection({ currentLang = 'en' }) {
   const caption  = t('مۆزەخانەی نیشتمانی ئەمنە سورەکە - سلێمانی، کوردستان', 'متحف أمنة سراكر الوطني - السليمانية، كوردستان', 'Amna Suraka National Museum - Sulaymaniyah, Kurdistan')
 
   return (
-    <section id="virtual-tour" className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-5 md:py-10" style={{ background: '#0a0f1e' }}>
+    <section id="virtual-tour" className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-5 md:py-10" style={{ background: '#fbfbfa' }}>
       <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col flex-1 min-h-0">
 
         {/* Section header */}
         <div className="flex flex-col items-center mb-3 md:mb-6 flex-shrink-0">
           <div className="flex items-center gap-3 md:gap-4 mb-1 md:mb-2">
             <span className="block w-10 md:w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
-            <h2 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-white tracking-wide text-center" style={font}>
+            <h2 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-stone-900 tracking-wide text-center" style={font}>
               {title}
             </h2>
             <span className="block w-10 md:w-16 h-1 rounded-full" style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
           </div>
-          <p className="text-white/80 text-xs md:text-sm text-center" style={font}>{subtitle}</p>
+          <p className="text-stone-600 text-xs md:text-sm text-center" style={font}>{subtitle}</p>
         </div>
 
         {/* Video wrapper — grows to fill remaining height */}
@@ -41,8 +41,8 @@ export default function VRSection({ currentLang = 'en' }) {
           <div
             className="w-full overflow-hidden rounded-2xl relative flex-1 min-h-0"
             style={{
-              border: '1px solid rgba(200,169,110,0.2)',
-              boxShadow: '0 0 0 1px rgba(200,169,110,0.08), 0 32px 80px rgba(0,0,0,0.7)',
+              border: '1px solid rgba(0,0,0,0.08)',
+              boxShadow: '0 4px 32px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.06)',
             }}
           >
             {/* Gold top accent */}
@@ -110,7 +110,7 @@ export default function VRSection({ currentLang = 'en' }) {
           </div>
 
           {/* Caption */}
-          <p className="text-center text-white/70 text-[10px] md:text-xs mt-2 md:mt-3 flex-shrink-0 flex items-center justify-center gap-2" style={font}>
+          <p className="text-center text-stone-500 text-[10px] md:text-xs mt-2 md:mt-3 flex-shrink-0 flex items-center justify-center gap-2" style={font}>
             <i className="ri-map-pin-line text-[#c8a96e]" />
             {caption}
           </p>
