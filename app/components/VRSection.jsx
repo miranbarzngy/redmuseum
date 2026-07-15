@@ -34,13 +34,14 @@ export default function VRSection({ currentLang = 'en' }) {
           <p className="text-white/80 text-xs md:text-sm text-center" style={font}>{subtitle}</p>
         </div>
 
-        {/* Video wrapper — grows to fill remaining height */}
-        <div className="max-w-4xl mx-auto w-full flex-1 min-h-0 flex flex-col">
+        {/* Video wrapper — proportional, never dominates the viewport */}
+        <div className="max-w-4xl mx-auto w-full flex-1 min-h-0 flex flex-col justify-center">
 
-          {/* Video container — fills flex space; all children are absolute inset-0 */}
+          {/* Video container — 16:9 aspect ratio capped to avoid oversizing */}
           <div
-            className="w-full overflow-hidden rounded-2xl relative flex-1 min-h-0"
+            className="w-full overflow-hidden rounded-2xl relative"
             style={{
+              paddingTop: 'min(56.25%, calc(100dvh - 220px))',
               border: '1px solid rgba(200,169,110,0.2)',
               boxShadow: '0 0 0 1px rgba(200,169,110,0.08), 0 32px 80px rgba(0,0,0,0.7)',
             }}

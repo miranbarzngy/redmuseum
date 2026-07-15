@@ -372,7 +372,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
 
   if (loading) {
     return (
-      <section id="exclusive-section" className="py-20 flex items-center justify-center min-h-[300px]" style={{ background: bgColor }}>
+      <section id="exclusive-section" className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex items-center justify-center" style={{ background: bgColor }}>
         <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
       </section>
     )
@@ -383,7 +383,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
   const slide = slides[displayed]
 
   return (
-    <section id="exclusive-section" className="relative text-white flex flex-col md:h-screen md:overflow-hidden" style={{ background: bgColor }}>
+    <section id="exclusive-section" className="relative text-white flex flex-col h-[calc(100dvh-4rem)] md:h-screen overflow-hidden" style={{ background: bgColor }}>
 
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-red-950/20 via-black to-black" />
@@ -417,7 +417,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
       <div className="flex-1 min-h-0 lg:flex-none max-w-screen-2xl mx-auto w-full flex flex-col lg:flex-row overflow-hidden">
 
         {/* IMAGE */}
-        <div className="h-[240px] md:h-[300px] lg:h-auto lg:flex-none lg:w-[60%] flex flex-col justify-center p-2 lg:p-3 xl:p-4">
+        <div className="h-[185px] md:h-[260px] lg:h-auto lg:flex-none lg:w-[60%] flex flex-col justify-center p-2 lg:p-3 xl:p-4">
           <div
             className="relative rounded-2xl overflow-hidden w-full h-full lg:aspect-video"
             style={{
@@ -470,7 +470,7 @@ export default function ExclusiveSection({ currentLang = 'ku' }) {
         </div>
 
         {/* CARD SIDE */}
-        <div className="flex-1 min-h-0 lg:flex-none lg:w-[40%] px-3 md:px-6 lg:pl-8 lg:pr-8 pt-2 md:pt-4 pb-4 lg:pb-6 flex flex-col overflow-hidden">
+        <div className="flex-1 min-h-0 lg:flex-none lg:w-[40%] px-3 md:px-6 lg:pl-8 lg:pr-8 pt-2 pb-2 lg:pb-4 flex flex-col overflow-hidden">
 
           {/* Invitation card — scrolls internally if content overflows */}
           <div

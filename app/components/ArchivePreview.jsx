@@ -167,8 +167,8 @@ export default function ArchivePreview({ currentLang = 'en' }) {
           <p className="text-white/70 text-sm" style={font}>{sectionSub}</p>
         </div>
 
-        {/* Card — grows to fill remaining space */}
-        <div className="relative max-w-4xl mx-auto w-full flex-1 min-h-0">
+        {/* Card — capped so it doesn't dominate the viewport */}
+        <div className="relative max-w-4xl mx-auto w-full h-[230px] md:h-[300px] lg:h-[360px]">
           <Link
             href={getDetailLink(item)}
             className="block rounded-2xl overflow-hidden h-full"
@@ -201,7 +201,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
               </div>
 
               {/* Content panel — fixed height on mobile, flex-1 on desktop */}
-              <div className="flex-shrink-0 md:flex-1 px-4 py-3 md:p-10 flex flex-col justify-center gap-2 md:gap-4">
+              <div className="flex-shrink-0 md:flex-1 px-4 py-3 md:p-6 lg:p-8 flex flex-col justify-center gap-2 md:gap-3">
                 <h3 className="text-base md:text-2xl font-bold text-white leading-snug" style={font}>
                   {getTitle(item)}
                 </h3>

@@ -118,6 +118,7 @@ export default function ContactForm({ currentLang = 'en' }) {
 
         {/* Scrollable content — graceful fallback on very short screens */}
         <div className="max-w-3xl mx-auto w-full flex-1 min-h-0 overflow-y-auto">
+          <div className="min-h-full flex flex-col justify-center py-1">
 
           {/* Contact info cards */}
           {settingsLoading ? (
@@ -251,6 +252,7 @@ export default function ContactForm({ currentLang = 'en' }) {
             </div>
           )}
 
+          </div>{/* end centering wrapper */}
         </div>
       </div>
 

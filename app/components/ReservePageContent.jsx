@@ -686,7 +686,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       </section>
     )
     return (
-      <div className="min-h-screen text-white flex items-center justify-center px-4 py-16 md:pl-[88px]" style={{ background: bgColor }}>
+      <div className="min-h-screen text-white flex flex-col items-center justify-center px-4 pt-20 pb-8 md:pt-16 md:pb-16 md:pl-[88px]" style={{ background: bgColor }}>
         <Sidebar activeSection="reserve" currentLang={lang} onLangChange={setLang} />
         {successContent}
       </div>
@@ -706,7 +706,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   return (
     <Wrapper
       id={inline ? 'reserve' : undefined}
-      className={inline ? 'text-white px-4 md:px-8 py-5 md:py-10 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col' : 'min-h-screen text-white px-4 py-5 md:py-16 md:pl-[88px]'}
+      className={inline ? 'text-white px-4 md:px-8 py-5 md:py-10 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col' : 'min-h-screen flex flex-col text-white px-4 pt-20 pb-8 md:pt-16 md:pb-16 md:pl-[88px]'}
       style={{ background: bgColor }}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
@@ -728,7 +728,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
       {!inline && <Sidebar activeSection="reserve" currentLang={lang} onLangChange={setLang} />}
 
-      <div className="w-full max-w-7xl mx-auto flex flex-col flex-1 min-h-0">
+      <div className="w-full max-w-7xl mx-auto flex flex-col flex-1">
 
         {/* ── Header ─────────────────────────────────────────── */}
         <div className="text-center mb-4 md:mb-6 max-w-2xl mx-auto flex-shrink-0">
@@ -793,7 +793,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
         </div>
 
         {/* Tab content — scrollable, fills remaining height */}
-        <div className="flex-1 min-h-0 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto">
 
         {/* ── TRACK TAB ─────────────────────────────────────── */}
         {pageTab === 'track' && (
@@ -906,7 +906,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
         {/* ── BOOK TAB ──────────────────────────────────────── */}
         {pageTab === 'book' && !hasStartedProcess && (
-          <div className="max-w-xl mx-auto">
+          <div className="max-w-xl mx-auto py-4 md:py-6">
             <div className="rounded-2xl p-4 md:p-8 relative overflow-hidden"
               style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(200,169,110,0.2)' }}>
               <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
