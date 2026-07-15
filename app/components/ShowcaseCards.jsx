@@ -28,6 +28,17 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
   const [paused, setPaused]     = useState(false)
   const [progress, setProgress] = useState(0)
   const [bgColor, setBgColor]   = useState('#0a0a0a')
+
+  const isLightBg = (() => {
+    const hex = bgColor?.replace('#', '') || ''
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16)
+      const g = parseInt(hex.slice(2, 4), 16)
+      const b = parseInt(hex.slice(4, 6), 16)
+      return (r * 0.299 + g * 0.587 + b * 0.114) > 160
+    }
+    return false
+  })()
   const [cardWidth, setCardWidth] = useState(CARD_W)
   const [cardGap,  setCardGap]   = useState(CARD_GAP)
   const progressRef             = useRef(null)
@@ -122,7 +133,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
       <div className="flex items-center justify-center gap-3 md:gap-4 mb-3 md:mb-5 px-8 flex-shrink-0">
         <span className="block w-10 md:w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
         <h2
-          className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-white tracking-wide text-center"
+          className={`text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black tracking-wide text-center ${isLightBg ? 'text-neutral-900' : 'text-white'}`}
           style={
             currentLang === 'ku' ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
             : currentLang === 'ar' ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
@@ -209,7 +220,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
                     className="mt-2 md:mt-3 text-center text-xs md:text-sm font-semibold transition-colors duration-300 max-w-full px-1"
                     dir={isRTL ? 'rtl' : 'ltr'}
                     style={{
-                      color: isActive ? '#c8a96e' : 'rgba(255,255,255,0.4)',
+                      color: isActive ? '#c8a96e' : isLightBg ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.4)',
                       fontFamily: currentLang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : currentLang === 'ar' ? 'ArabicFont, Tahoma, sans-serif' : 'inherit',
                       transition: 'color 0.4s ease',
                     }}
@@ -252,7 +263,7 @@ export default function ShowcaseCards({ currentLang = 'ku' }) {
               style={{
                 width: activeIdx === i ? 28 : 6,
                 height: 6,
-                background: activeIdx === i ? 'rgba(200,169,110,0.3)' : 'rgba(255,255,255,0.15)',
+                background: activeIdx === i ? 'rgba(200,169,110,0.3)' : isLightBg ? 'rgba(0,0,0,0.15)' : 'rgba(255,255,255,0.15)',
               }}
             >
               {activeIdx === i && (

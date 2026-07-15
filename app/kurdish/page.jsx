@@ -39,7 +39,7 @@ const ELEMENT_URL = {
   gallery:            '/kurdish/gallery',
   'archive-section':  '/kurdish/archive',
   'exclusive-section':'/kurdish/museumactivities',
-  showcase:           '/kurdish/showcase',
+  showcase:           '/kurdish/socialmedia',
   contact:            '/kurdish/contact',
   reserve:            '/kurdish/reserve',
 }

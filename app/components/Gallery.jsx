@@ -146,6 +146,24 @@ export default function Gallery({ currentLang = 'en' }) {
 
   const title = isAr ? 'المعرض' : isKu ? 'گەلەری' : 'Gallery'
 
+  // Detect light background so we can flip text to dark
+  const isLightBg = (() => {
+    const hex = bgColor?.replace('#', '') || ''
+    if (hex.length === 6) {
+      const r = parseInt(hex.slice(0, 2), 16)
+      const g = parseInt(hex.slice(2, 4), 16)
+      const b = parseInt(hex.slice(4, 6), 16)
+      return (r * 0.299 + g * 0.587 + b * 0.114) > 160
+    }
+    return false
+  })()
+
+  const titleCls    = isLightBg ? 'text-neutral-900' : 'text-white'
+  const catLabelCls = isLightBg ? 'text-neutral-700' : 'text-white/80'
+  const dividerBg   = isLightBg
+    ? 'linear-gradient(to right, rgba(0,0,0,0.15), transparent)'
+    : 'linear-gradient(to right, rgba(200,169,110,0.3), transparent)'
+
   if (loading) return (
     <section id="gallery" className="h-[calc(100dvh-4rem)] md:h-screen flex items-center justify-center" style={{ background: bgColor }}>
       <div className="w-10 h-10 border-2 border-[#c8a96e] border-t-transparent rounded-full animate-spin" />
@@ -154,7 +172,7 @@ export default function Gallery({ currentLang = 'en' }) {
 
   if (!galleries.length || galleries.every(g => !g.images.length)) return (
     <section id="gallery" className="h-[calc(100dvh-4rem)] md:h-screen flex items-center justify-center" style={{ background: bgColor }}>
-      <p className="text-gray-500 text-sm" style={font}>
+      <p className="text-neutral-500 text-sm" style={font}>
         {isAr ? 'لا توجد صور في المعرض.' : isKu ? 'هیچ وێنەیەک لە گەلەریدا نییە.' : 'No images found in the gallery.'}
       </p>
     </section>
@@ -170,7 +188,7 @@ export default function Gallery({ currentLang = 'en' }) {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-shrink-0">
           <div className="flex items-center justify-center gap-3 md:gap-4 mb-2 md:mb-5">
             <span className="block w-10 md:w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
-            <h2 className="text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black text-white tracking-wide" style={font}>{title}</h2>
+            <h2 className={`text-xl sm:text-2xl md:text-3xl xl:text-4xl font-black tracking-wide ${titleCls}`} style={font}>{title}</h2>
             <span className="block w-10 md:w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
           </div>
         </div>
@@ -193,10 +211,10 @@ export default function Gallery({ currentLang = 'en' }) {
                   <div className="w-6 h-6 md:w-8 md:h-8 rounded-md md:rounded-lg bg-[#7a0000]/80 border border-[#c8a96e]/30 flex items-center justify-center flex-shrink-0">
                     <i className={`${meta.icon || 'ri-image-line'} text-[#c8a96e] text-xs md:text-sm`} />
                   </div>
-                  <h3 className="text-sm md:text-base font-bold text-white/80" style={font}>
+                  <h3 className={`text-sm md:text-base font-bold ${catLabelCls}`} style={font}>
                     {meta[langKey] || g.category}
                   </h3>
-                  <div className="flex-1 h-px bg-gradient-to-r from-[#c8a96e]/30 to-transparent" />
+                  <div className="flex-1 h-px" style={{ background: dividerBg }} />
                 </div>
 
                 {/* Infinite scroll strip — fills remaining flex height */}

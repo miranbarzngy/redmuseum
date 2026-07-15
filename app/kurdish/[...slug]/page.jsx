@@ -13,6 +13,7 @@ const SLUG_TO_ID = {
   museumactivities: 'exclusive-section',
   exclusive:        'exclusive-section',
   showcase:       'showcase',
+  socialmedia:    'showcase',
   contact:        'contact',
   reserve:        'reserve',
 }

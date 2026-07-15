@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import Link from 'next/link'
 import { useCallback, useEffect, useState } from 'react'
@@ -29,11 +29,12 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const [paused,       setPaused]       = useState(false)
   const [bgColor,      setBgColor]      = useState('#0a0a0a')
 
-  const isKu = currentLang === 'ku'
-  const isAr = currentLang === 'ar'
-  const font = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
-             : isAr ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
-             : {}
+  const isKu  = currentLang === 'ku'
+  const isAr  = currentLang === 'ar'
+  const isRtl = isKu || isAr
+  const font  = isKu ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
+              : isAr ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
+              : {}
 
   useEffect(() => {
     supabase?.from('settings').select('archive_bg_color').single()
@@ -55,9 +56,9 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const fetchArchive = async () => {
     if (!supabase) {
       setArchive([
-        { id:'1', title_ku:'بەڵگەنامەی ئەنفال', title_en:'Anfal Campaign Document', title_ar:'وثيقة حملة الأنفال', description_ku:'بەڵگەنامەیەکی مێژوویی', description_en:'Historical document', description_ar:'وثيقة تاريخية', category:'Documents', category_id:'documents', image_url:'/assets/images/anfal.png', date_created: new Date().toISOString() },
-        { id:'2', title_ku:'نامەیەک لە ساڵانی ١٩٦٠', title_en:'Letter from 1960s', title_ar:'رسالة من الستينيات', description_ku:'نامەیەکی دەگمەن', description_en:'Rare letter', description_ar:'رسالة نادرة', category:'Letters', category_id:'letters', image_url:'/assets/images/awenakan.png', date_created: new Date().toISOString() },
-        { id:'3', title_ku:'کۆمەڵەی وێنە کۆنەکان', title_en:'Old Photo Collection', title_ar:'مجموعة الصور القديمة', description_ku:'کۆمەڵەیەک لە وێنە مێژووییە', description_en:'Collection of rare photos', description_ar:'مجموعة من الصور النادرة', category:'Photos', category_id:'photos', image_url:'/assets/images/bg-1.jpg', date_created: new Date().toISOString() },
+        { id:'1', title_ku:'بەڵگەنامەی ئەنفال', title_en:'Anfal Campaign Document', title_ar:'وثيقة حملة الأنفال', description_ku:'بەڵگەنامەیەکی مێژوویی کە لە ئەرشیفی مۆزەخانەکەدا پارێزراوە', description_en:'A rare historical document preserved in the museum archive', description_ar:'وثيقة تاريخية نادرة محفوظة في أرشيف المتحف', category:'Documents', category_id:'documents', image_url:'/assets/images/anfal.png', date_created: new Date().toISOString() },
+        { id:'2', title_ku:'نامەیەک لە ساڵانی ١٩٦٠', title_en:'Letter from the 1960s', title_ar:'رسالة من ستينيات القرن الماضي', description_ku:'نامەیەکی دەگمەن لە ساڵانی شەستەکانی سەدەی ڕابردوو', description_en:'A rare letter from the 1960s found in our archive collection', description_ar:'رسالة نادرة من ستينيات القرن الماضي من مجموعتنا', category:'Letters', category_id:'letters', image_url:'/assets/images/awenakan.png', date_created: new Date().toISOString() },
+        { id:'3', title_ku:'کۆمەڵەی وێنە کۆنەکان', title_en:'Old Photo Collection', title_ar:'مجموعة الصور القديمة', description_ku:'کۆمەڵەیەک لە وێنە مێژووییە کەمیابەکان لە ئەرشیفەکانمان', description_en:'A collection of rare historical photographs from our archives', description_ar:'مجموعة من الصور التاريخية النادرة من أرشيفنا', category:'Photos', category_id:'photos', image_url:'/assets/images/bg-1.jpg', date_created: new Date().toISOString() },
       ])
       setLoading(false)
       return
@@ -80,7 +81,6 @@ export default function ArchivePreview({ currentLang = 'en' }) {
     setProgress(0)
   }, [archive.length])
 
-  // Auto-advance with progress
   useEffect(() => {
     if (archive.length <= 1 || paused) return
     setProgress(0)
@@ -95,7 +95,6 @@ export default function ArchivePreview({ currentLang = 'en' }) {
     return () => clearInterval(id)
   }, [archive.length, paused, currentIndex])
 
-  // Category helpers
   const getItemCategoryId = (item) => {
     if (item?.category_id) return item.category_id
     if (item?.category) {
@@ -111,26 +110,10 @@ export default function ArchivePreview({ currentLang = 'en' }) {
     return isAr ? (cat.name_ar || cat.name_en) : isKu ? (cat.name_ku || cat.name_en) : cat.name_en
   }
 
-  const getTitle = (item) => {
-    if (isAr) return item?.title_ar || item?.title_ku || item?.title_en || ''
-    if (isKu) return item?.title_ku || item?.title_en || item?.title_ar || ''
-    return item?.title_en || item?.title_ku || item?.title_ar || ''
-  }
+  const getTitle       = (item) => isAr ? (item?.title_ar || item?.title_ku || item?.title_en || '') : isKu ? (item?.title_ku || item?.title_en || item?.title_ar || '') : (item?.title_en || item?.title_ku || item?.title_ar || '')
+  const getDescription = (item) => isAr ? (item?.description_ar || item?.description_ku || item?.description_en || '') : isKu ? (item?.description_ku || item?.description_en || item?.description_ar || '') : (item?.description_en || item?.description_ku || item?.description_ar || '')
 
-  const getDescription = (item) => {
-    if (isAr) return item?.description_ar || item?.description_ku || item?.description_en || ''
-    if (isKu) return item?.description_ku || item?.description_en || item?.description_ar || ''
-    return item?.description_en || item?.description_ku || item?.description_ar || ''
-  }
-
-  const formatDate = (d) => {
-    if (!d) return ''
-    const date = new Date(d)
-    const day = date.getDate(), month = date.getMonth() + 1, year = date.getFullYear()
-    return `${day}/${month}/${year}`
-  }
-
-  const archiveLink   = isKu ? '/kurdish/archive' : isAr ? '/arabic/archive' : '/archive'
+  const archiveLink   = isKu ? '/kurdish/all-archive' : isAr ? '/arabic/archive' : '/archive'
   const getDetailLink = (item) => isKu ? `/kurdish/archive/${item.id}` : isAr ? `/arabic/archive/${item.id}` : `/archive/${item.id}`
 
   const sectionTitle = isAr ? 'الأرشيف الرقمي' : isKu ? 'ئەرشیفی دیجیتاڵی' : 'Digital Archive'
@@ -145,135 +128,160 @@ export default function ArchivePreview({ currentLang = 'en' }) {
 
   if (!archive.length) return null
 
-  const item = archive[currentIndex]
+  const item        = archive[currentIndex]
+  const hasMultiple = archive.length > 1
 
   return (
     <section
       id="archive-section"
-      className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col py-5 md:py-10"
+      className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col"
       style={{ background: bgColor }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col flex-1 min-h-0">
+      {/*
+        Three-group justify-between layout:
+          ① Section header  (top)
+          ② Image carousel + text  (middle — grows to fill)
+          ③ Dots + View All  (bottom)
+        Space between groups is distributed automatically so there is
+        never a dead gap at the bottom, on any screen size.
+      */}
+      <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col flex-1 min-h-0 items-center justify-between py-4 lg:py-6">
 
-        {/* Section header */}
-        <div className="flex flex-col items-center mb-3 md:mb-6 flex-shrink-0">
-          <div className="flex items-center gap-3 md:gap-4 mb-1 md:mb-2">
-            <span className="block w-12 md:w-16 h-1 rounded-full bg-gradient-to-r from-transparent to-[#c8a96e]" />
-            <h2 className="text-2xl sm:text-3xl md:text-3xl xl:text-4xl font-black text-white tracking-wide" style={font}>{sectionTitle}</h2>
-            <span className="block w-12 md:w-16 h-1 rounded-full bg-gradient-to-l from-transparent to-[#c8a96e]" />
+        {/* ① Header */}
+        <div className="flex flex-col items-center flex-shrink-0 w-full">
+          <div className="flex items-center gap-3 lg:gap-4 mb-1">
+            <span className="block w-10 lg:w-16 h-px"
+              style={{ background: 'linear-gradient(to right, transparent, #c8a96e)' }} />
+            <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-neutral-900 tracking-wide text-center" style={font}>
+              {sectionTitle}
+            </h2>
+            <span className="block w-10 lg:w-16 h-px"
+              style={{ background: 'linear-gradient(to left, transparent, #c8a96e)' }} />
           </div>
-          <p className="text-white/70 text-sm" style={font}>{sectionSub}</p>
+          <p className="text-neutral-500 text-xs sm:text-sm text-center" style={font}>{sectionSub}</p>
         </div>
 
-        {/* Card — capped so it doesn't dominate the viewport */}
-        <div className="relative max-w-4xl mx-auto w-full h-[230px] md:h-[300px] lg:h-[360px]">
+        {/* ② Carousel + text — the image height fills whatever space is available */}
+        <div className="flex flex-col items-center gap-3 flex-shrink-0">
+
+          {/* Portrait card */}
           <Link
             href={getDetailLink(item)}
-            className="block rounded-2xl overflow-hidden h-full"
-            style={{ background: 'linear-gradient(135deg, #111 0%, #0d0d0d 100%)', boxShadow: '0 0 0 1px rgba(200,169,110,0.15), 0 24px 60px rgba(0,0,0,0.7)' }}
+            className="group relative block rounded-2xl overflow-hidden flex-shrink-0"
+            style={{
+              width: 'clamp(200px, 46vw, 280px)',
+              boxShadow: '0 0 0 1px rgba(200,169,110,0.15), 0 20px 56px rgba(0,0,0,0.28)',
+            }}
           >
-            <div className="flex flex-col md:flex-row h-full" dir={isAr ? 'rtl' : 'ltr'}>
+            <img
+              src={normalizePath(item?.image_url)}
+              alt={getTitle(item)}
+              className="w-full h-auto block transition-transform duration-700 group-hover:scale-105"
+              onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
+            />
 
-              {/* Image panel — flex-1 on mobile (fills top), fixed 45% width on desktop */}
-              <div className="relative flex-1 min-h-0 md:flex-none md:w-[45%] bg-[#080808] flex items-center justify-center overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-0.5 opacity-60"
-                  style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
+            {/* Gold hairline top */}
+            <div className="absolute top-0 inset-x-0 h-0.5 pointer-events-none z-10"
+              style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
 
-                <img
-                  src={normalizePath(item?.image_url)}
-                  alt={getTitle(item)}
-                  className="w-full h-full object-contain p-2 md:p-6 transition-transform duration-700 hover:scale-105"
-                  onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
-                />
-
-                <span
-                  className="absolute top-3 left-3 md:top-4 md:left-4 text-xs font-semibold px-3 py-1 rounded-full tracking-wide"
-                  style={{ background: 'rgba(122,0,0,0.85)', color: '#c8a96e', border: '1px solid rgba(200,169,110,0.4)', fontFamily: font.fontFamily || 'inherit' }}
-                >
-                  {getCategoryName(item)}
-                </span>
-
-                <span className="absolute bottom-2 right-2 text-white/30 text-[10px] font-mono">
-                  {currentIndex + 1} / {archive.length}
-                </span>
-              </div>
-
-              {/* Content panel — fixed height on mobile, flex-1 on desktop */}
-              <div className="flex-shrink-0 md:flex-1 px-4 py-3 md:p-6 lg:p-8 flex flex-col justify-center gap-2 md:gap-3">
-                <h3 className="text-base md:text-2xl font-bold text-white leading-snug" style={font}>
-                  {getTitle(item)}
-                </h3>
-                <p className="text-white/80 text-sm md:text-base leading-relaxed line-clamp-2 md:line-clamp-4" style={font}>
-                  {getDescription(item)}
-                </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-[#c8a96e] text-xs font-semibold tracking-wide" style={font}>
-                    {isAr ? 'اقرأ المزيد' : isKu ? 'زیاتر بخوێنەوە' : 'Read more'}
-                  </span>
-                  <i className={`ri-arrow-${isAr ? 'left' : 'right'}-line text-[#c8a96e] text-xs`} />
-                </div>
-              </div>
-            </div>
+            {/* Slide counter */}
+            {hasMultiple && (
+              <span
+                className="absolute top-3 left-3 z-10 text-white/80 text-[10px] font-mono px-2 py-0.5 rounded-full select-none"
+                style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
+              >
+                {currentIndex + 1} / {archive.length}
+              </span>
+            )}
           </Link>
 
-          {/* Arrows — vertically centred on the image portion (top 40% on mobile, 50% on desktop) */}
-          {archive.length > 1 && (
-            <button
-              onClick={e => { e.preventDefault(); prev() }}
-              className="absolute left-2 md:left-4 top-[38%] md:top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-white text-lg transition-all duration-200 bg-red-700 hover:bg-red-800"
-            >
-              <i className="ri-arrow-left-s-line" />
-            </button>
+          {/* Prev / Next — grouped pair, slides-page style, dir=ltr so arrows never flip */}
+          {hasMultiple && (
+            <div dir="ltr" className="flex gap-1 flex-shrink-0">
+              <button
+                onClick={prev}
+                className="flex items-center justify-center rounded-xl w-9 h-9 text-white bg-red-700 hover:bg-red-800 transition-colors duration-200 select-none"
+              >
+                <i className="ri-arrow-left-s-line text-xl" />
+              </button>
+              <button
+                onClick={next}
+                className="flex items-center justify-center rounded-xl w-9 h-9 text-white bg-red-700 hover:bg-red-800 transition-colors duration-200 select-none"
+              >
+                <i className="ri-arrow-right-s-line text-xl" />
+              </button>
+            </div>
           )}
-          {archive.length > 1 && (
-            <button
-              onClick={e => { e.preventDefault(); next() }}
-              className="absolute right-2 md:right-4 top-[38%] md:top-1/2 -translate-y-1/2 z-10 w-8 h-8 md:w-10 md:h-10 rounded-xl flex items-center justify-center text-white text-lg transition-all duration-200 bg-red-700 hover:bg-red-800"
-            >
-              <i className="ri-arrow-right-s-line" />
-            </button>
-          )}
+
+          {/* Text block — width tracks the image card */}
+          <div
+            className="text-center flex-shrink-0"
+            style={{ width: 'clamp(220px, 66vw, 380px)' }}
+            dir={isRtl ? 'rtl' : 'ltr'}
+          >
+            {getCategoryName(item) && (
+              <span
+                className="inline-flex items-center text-[11px] font-bold px-3 py-1 rounded-full mb-1.5"
+                style={{ background: 'rgba(122,0,0,0.09)', color: '#7a0000', border: '1px solid rgba(122,0,0,0.2)', fontFamily: font.fontFamily || 'inherit' }}
+              >
+                {getCategoryName(item)}
+              </span>
+            )}
+
+            <h3 className="text-base sm:text-lg font-black text-neutral-900 leading-snug line-clamp-1 mb-1" style={font}>
+              {getTitle(item)}
+            </h3>
+
+            <p className="text-neutral-600 text-xs sm:text-sm leading-relaxed line-clamp-2 mb-1.5" style={font}>
+              {getDescription(item)}
+            </p>
+
+            <Link href={getDetailLink(item)} className="inline-flex items-center gap-1.5 group/rm">
+              <span className="text-[#7a0000] text-[11px] sm:text-xs font-bold tracking-wide group-hover/rm:underline" style={font}>
+                {isAr ? 'اقرأ المزيد' : isKu ? 'زیاتر بخوێنەوە' : 'Read more'}
+              </span>
+              <i className={`ri-arrow-${isRtl ? 'left' : 'right'}-line text-[#7a0000] text-xs transition-transform duration-200 ${isRtl ? 'group-hover/rm:-translate-x-0.5' : 'group-hover/rm:translate-x-0.5'}`} />
+            </Link>
+          </div>
+
         </div>
 
-        {/* Progress dots */}
-        {archive.length > 1 && (
-          <div className="flex justify-center items-center gap-2 mt-2 md:mt-4 flex-shrink-0">
-            {archive.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => { setCurrentIndex(i); setProgress(0) }}
-                className="relative overflow-hidden rounded-full transition-all duration-300"
-                style={{
-                  width: i === currentIndex ? 28 : 6,
-                  height: 6,
-                  background: i === currentIndex ? 'rgba(200,169,110,0.3)' : 'rgba(255,255,255,0.15)',
-                }}
-              >
-                {i === currentIndex && (
-                  <span
-                    className="absolute inset-y-0 left-0 rounded-full"
-                    style={{ width: `${progress}%`, background: '#c8a96e', transition: 'width 50ms linear' }}
-                  />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* ③ Dots + View All — pinned to bottom */}
+        <div className="flex flex-col items-center gap-3 flex-shrink-0">
 
-        {/* View All */}
-        <div className="text-center mt-2 md:mt-5 flex-shrink-0">
+          {hasMultiple && (
+            <div className="flex justify-center items-center gap-2">
+              {archive.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setCurrentIndex(i); setProgress(0) }}
+                  className="relative overflow-hidden rounded-full transition-all duration-300"
+                  style={{ width: i === currentIndex ? 28 : 6, height: 6, background: i === currentIndex ? 'rgba(200,169,110,0.45)' : 'rgba(0,0,0,0.18)' }}
+                >
+                  {i === currentIndex && (
+                    <span
+                      className="absolute inset-y-0 left-0 rounded-full"
+                      style={{ width: `${progress}%`, background: '#c8a96e', transition: 'width 50ms linear' }}
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
+
           <Link
             href={archiveLink}
-            className="inline-flex items-center gap-2 px-5 md:px-6 py-2 md:py-3 rounded-full text-xs md:text-sm font-semibold text-white transition-all duration-300"
+            className="inline-flex items-center gap-2 px-5 lg:px-6 py-2.5 rounded-full text-xs sm:text-sm font-semibold text-white transition-all duration-300"
             style={{ background: '#7a0000', border: '1px solid rgba(200,169,110,0.3)', boxShadow: '0 4px 20px rgba(122,0,0,0.35)', ...font }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#8a0000'; e.currentTarget.style.borderColor = '#c8a96e' }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#8f0000'; e.currentTarget.style.borderColor = '#c8a96e' }}
             onMouseLeave={e => { e.currentTarget.style.background = '#7a0000'; e.currentTarget.style.borderColor = 'rgba(200,169,110,0.3)' }}
           >
             {viewAllLabel}
-            <i className={`ri-arrow-${isAr ? 'left' : 'right'}-line`} />
+            <i className={`ri-arrow-${isRtl ? 'left' : 'right'}-line`} />
           </Link>
+
         </div>
 
       </div>
