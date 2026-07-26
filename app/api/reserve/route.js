@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
+import { sendPushToAdmins } from '../../lib/firebaseAdmin'
 
 export async function POST(request) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -79,6 +80,20 @@ export async function POST(request) {
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 400 })
+  }
+
+  // Fire-and-forget push notification to all admin devices
+  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    const { data: tokenRows } = await supabase.from('admin_fcm_tokens').select('token')
+    const tokens = (tokenRows ?? []).map(r => r.token)
+    if (tokens.length) {
+      sendPushToAdmins(
+        tokens,
+        'داواکاری نوێ 📅',
+        `${nameStr} — ${guestNum} میوان — ${date} ${time}`,
+        { type: 'reservation', reservationId: String(data.id) }
+      ).catch(console.error)
+    }
   }
 
   const { phone: _omit, ...safeData } = data

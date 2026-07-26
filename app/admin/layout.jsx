@@ -23,6 +23,7 @@ import {
 import { supabase } from '../lib/supabase-client'
 import { AdminContext } from './AdminContext'
 import { useMuseumName } from '../lib/useMuseumName'
+import PushNotificationInit from '../components/PushNotificationInit'
 
 const BASE_NAV = [
   { section: 'dashboard',     href: '/admin/dashboard',      Icon: LayoutDashboard, label: 'Dashboard',      exact: true,  grad: 'from-slate-600 to-slate-800',     shadow: 'shadow-slate-950/60'   },
@@ -222,6 +223,7 @@ export default function AdminLayout({ children }) {
 
   return (
     <AdminContext.Provider value={{ perms: userPerms }}>
+      <PushNotificationInit />
       <div className="min-h-screen bg-gray-100">
 
         {/* ── Mobile top bar ── */}

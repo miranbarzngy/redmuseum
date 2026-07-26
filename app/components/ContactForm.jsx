@@ -65,12 +65,15 @@ export default function ContactForm({ currentLang = 'en' }) {
     }
     setLoading(true)
     try {
-      const { error } = await supabase.from('messages').insert([{
-        name: formData.name.trim(), phone: formData.phone.trim(),
-        email: formData.email.trim(), message: formData.message.trim(),
-        created_at: new Date().toISOString(),
-      }])
-      if (error) throw error
+      const res = await fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name.trim(), phone: formData.phone.trim(),
+          email: formData.email.trim(), message: formData.message.trim(),
+        }),
+      })
+      if (!res.ok) throw new Error('send failed')
       showToast(t('پەیامەکەت بە سەرکەوتوویی نێرا!', 'تم إرسال الرسالة بنجاح!', 'Message sent successfully!'), 'success')
       setFormData({ name: '', phone: '', email: '', message: '' })
       setErrors({})
