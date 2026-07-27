@@ -1059,10 +1059,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                     {/* SCANNER OPEN */}
                     {faceScanOpen && !faceUploading && (
                       <div>
-                        <div className="flex items-center justify-between mb-4">
-                          <p className="text-gray-800 text-sm font-semibold" style={{ fontFamily: fontStyle(lang) }}>
-                            {t('ڕوخسارت لە ناوەڕاستی کامێراکە جێگیر بکە', 'ضع وجهك في المنتصف', 'Center your face in the frame', lang)}
-                          </p>
+                        <div className="flex justify-end mb-2">
                           <button type="button" onClick={() => setFaceScanOpen(false)}
                             className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-black/5 transition-all">
                             <i className="ri-close-line text-base" />
