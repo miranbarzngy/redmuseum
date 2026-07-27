@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { getSupabaseClient } from '../lib/supabase-client'
 
 export default function PushNotificationInit() {
   useEffect(() => {
@@ -25,19 +26,38 @@ export default function PushNotificationInit() {
         // Register token with our API when FCM issues one
         PushNotifications.addListener('registration', async ({ value: fcmToken }) => {
           try {
-            await fetch('/api/admin/fcm-token', {
+            // Use Supabase session from localStorage — reliable in Capacitor WebView
+            const supabaseClient = getSupabaseClient()
+            const { data: { session } } = await supabaseClient.auth.getSession()
+            const authToken = session?.access_token
+
+            if (!authToken) {
+              console.error('[FCM] No auth session — cannot register token')
+              return
+            }
+
+            const res = await fetch('/api/admin/fcm-token', {
               method: 'POST',
-              credentials: 'include',
-              headers: { 'Content-Type': 'application/json' },
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + authToken,
+              },
               body: JSON.stringify({ token: fcmToken }),
             })
+
+            if (!res.ok) {
+              const err = await res.text()
+              console.error('[FCM] Token save failed:', res.status, err)
+            } else {
+              console.log('[FCM] Token registered successfully')
+            }
           } catch (e) {
-            console.error('FCM token save failed', e)
+            console.error('[FCM] Token save error:', e)
           }
         })
 
         PushNotifications.addListener('registrationError', (err) => {
-          console.error('FCM registration error', err)
+          console.error('[FCM] Registration error:', JSON.stringify(err))
         })
 
         // Tapping a notification — route to the relevant admin page
@@ -53,11 +73,15 @@ export default function PushNotificationInit() {
         })
 
         const perm = await PushNotifications.requestPermissions()
-        if (perm.receive !== 'granted') return
+        if (perm.receive !== 'granted') {
+          console.error('[FCM] Notification permission denied:', perm.receive)
+          return
+        }
 
         await PushNotifications.register()
+        console.log('[FCM] Registration requested')
       } catch (e) {
-        console.error('Push init error', e)
+        console.error('[FCM] Push init error:', e)
       }
     }
     init()

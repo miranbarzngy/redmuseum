@@ -17,8 +17,15 @@ async function getAdminUser(req) {
   const serviceKey  = process.env.SUPABASE_SERVICE_KEY
   if (!supabaseUrl || !serviceKey) return null
 
+  // Try Authorization header first (Capacitor WebView uses Supabase session via localStorage)
+  const authHeader = req.headers.get('authorization')
+  const headerToken = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+
+  // Fall back to cookie (desktop browser admin panel)
   const cookieStore = cookies()
-  const token = cookieStore.get('sb-access-token')?.value
+  const cookieToken = cookieStore.get('sb-access-token')?.value
+
+  const token = headerToken || cookieToken
   if (!token) return null
 
   const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })
