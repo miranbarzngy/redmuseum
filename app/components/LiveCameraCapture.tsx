@@ -108,10 +108,12 @@ function CameraView({
   onCapture,
   tx,
   size = 272,
+  ff = 'inherit',
 }: {
   onCapture: (url: string) => void
   tx: Tx
   size?: number
+  ff?: string
 }) {
   const videoRef                         = useRef<HTMLVideoElement>(null)
   const [scanState, setScanState]        = useState<ScanState>('loading')
@@ -465,6 +467,7 @@ function CameraView({
       {/* Status badge */}
       <div
         className={`px-4 py-2.5 rounded-xl border text-sm font-medium text-center max-w-[280px] leading-snug ${badgeCls}`}
+        style={{ fontFamily: ff }}
       >
         {statusMsg}
       </div>
@@ -617,7 +620,7 @@ export default function LiveCameraCapture({ onCapture, lang = 'ku', compact = fa
 
       {/* Camera / detection */}
       {phase === 'active' && (
-        <CameraView key={retakeKey} onCapture={handleCapture} tx={tx} size={size} />
+        <CameraView key={retakeKey} onCapture={handleCapture} tx={tx} size={size} ff={ff} />
       )}
 
       {/* Post-capture preview */}
