@@ -24,6 +24,7 @@ import { supabase } from '../lib/supabase-client'
 import { AdminContext } from './AdminContext'
 import { useMuseumName } from '../lib/useMuseumName'
 import PushNotificationInit from '../components/PushNotificationInit'
+import NotificationBell from '../components/NotificationBell'
 
 const BASE_NAV = [
   { section: 'dashboard',     href: '/admin/dashboard',      Icon: LayoutDashboard, label: 'Dashboard',      exact: true,  grad: 'from-slate-600 to-slate-800',     shadow: 'shadow-slate-950/60'   },
@@ -241,9 +242,12 @@ export default function AdminLayout({ children }) {
             <p className="text-sm font-bold leading-tight">Admin Panel</p>
             <p className="text-xs text-gray-400">{museumName.en}</p>
           </div>
-          <button onClick={handleLogout} className="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors font-semibold">
-            Logout
-          </button>
+          <div className="flex items-center gap-1">
+            <NotificationBell />
+            <button onClick={handleLogout} className="text-xs bg-red-600 hover:bg-red-700 px-3 py-1.5 rounded-lg transition-colors font-semibold">
+              Logout
+            </button>
+          </div>
         </div>
 
         {/* ── Backdrop (mobile) ── */}
@@ -341,14 +345,17 @@ export default function AdminLayout({ children }) {
                 </div>
               </div>
             )}
-            {/* Logout */}
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center justify-center gap-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white py-2.5 rounded-xl transition-all duration-150 text-sm font-medium border border-red-600/30 hover:border-red-600"
-            >
-              <LogOut size={16} strokeWidth={2} />
-              Logout
-            </button>
+            {/* Logout + Bell */}
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <button
+                onClick={handleLogout}
+                className="flex-1 flex items-center justify-center gap-2 bg-red-600/20 hover:bg-red-600 text-red-400 hover:text-white py-2.5 rounded-xl transition-all duration-150 text-sm font-medium border border-red-600/30 hover:border-red-600"
+              >
+                <LogOut size={16} strokeWidth={2} />
+                Logout
+              </button>
+            </div>
             <a
               href="/push-debug"
               className="block text-center text-[10px] text-gray-600 hover:text-gray-400 py-1 transition-colors"
