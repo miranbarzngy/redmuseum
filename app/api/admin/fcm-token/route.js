@@ -18,7 +18,7 @@ async function getAdminUser(req) {
   if (!supabaseUrl || !serviceKey) return null
 
   const cookieStore = cookies()
-  const token = cookieStore.get('sb-admin-token')?.value
+  const token = cookieStore.get('sb-access-token')?.value
   if (!token) return null
 
   const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } })

@@ -43,7 +43,7 @@ export default function AdminLogin() {
       if (signInError) throw signInError
       if (data.user) {
         if (data.session?.access_token) {
-          document.cookie = 'sb-access-token=' + data.session.access_token + '; path=/; max-age=3600'
+          document.cookie = 'sb-access-token=' + data.session.access_token + '; path=/; max-age=604800'
         }
         window.location.replace('/admin/slides')
       } else {
