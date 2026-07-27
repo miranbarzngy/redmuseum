@@ -986,251 +986,156 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
         {pageTab === 'book' && hasStartedProcess && (
           <form onSubmit={handleSubmit}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto w-full items-stretch">
+            <div className="max-w-2xl mx-auto w-full space-y-4">
 
-              {/* ── LEFT: Biometric Terminal ─────────────────── */}
-              <div>
+              {/* ── Face scan panel — hidden once verified ── */}
+              {!faceVerified && (
                 <div className="rounded-2xl overflow-hidden transition-all duration-500" style={terminalStyle}>
 
-                  {/* Terminal header bar */}
+                  {/* Header bar */}
                   <div className="px-5 py-4 flex items-center gap-3"
                     style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.02)' }}>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
-                      style={faceVerified
-                        ? { background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.4)' }
-                        : { background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)' }
-                      }>
-                      <i className={`text-base ${faceVerified ? 'ri-shield-check-fill text-emerald-400' : 'ri-scan-2-line text-amber-400'}`} />
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                      style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)' }}>
+                      <i className="ri-scan-2-line text-base text-amber-400" />
                     </div>
                     <div className="flex-1 min-w-0" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
                       <p className="text-gray-900 text-sm font-bold" style={{ fontFamily: fontStyle(lang) }}>
                         {t('فۆڕمی سەردانیکردن', 'محطة القياس الحيوي', 'Biometric Terminal', lang)}
                       </p>
-                      <p className="text-xs mt-0.5 transition-colors duration-300"
-                        style={{ color: faceVerified ? '#10b981' : '#6b7280', fontFamily: fontStyle(lang) }}>
-                        {faceVerified
-                          ? t('ناسنامە پشکنراوە ✓', 'تم التحقق ✓', 'Identity Verified ✓', lang)
-                          : t('سەرەتا ڕووخسارت سکان بکە', 'في انتظار مسح الوجه', 'Awaiting face scan', lang)
-                        }
+                      <p className="text-xs mt-0.5" style={{ color: faceScanOpen ? '#f59e0b' : '#6b7280', fontFamily: fontStyle(lang) }}>
+                        {t('سەرەتا ڕووخسارت سکان بکە', 'في انتظار مسح الوجه', 'Awaiting face scan', lang)}
                       </p>
                     </div>
-                    <span className={`w-2.5 h-2.5 rounded-full shrink-0 transition-colors duration-300 ${
-                      faceVerified ? 'bg-emerald-400' : faceScanOpen ? 'bg-amber-400 animate-pulse' : 'bg-neutral-600'
-                    }`} />
+                    <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${faceScanOpen ? 'bg-amber-400 animate-pulse' : 'bg-neutral-400'}`} />
                   </div>
 
-                  {/* Camera / face area */}
+                  {/* Camera area */}
                   <div className="p-5">
 
-                    {/* IDLE — invite to scan */}
-                    {!faceImageUrl && !faceScanOpen && !faceUploading && (
-                      <button
-                        type="button"
-                        onClick={() => setFaceScanOpen(true)}
-                        className="w-full group transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99]"
-                      >
-                        {/* Scan placeholder frame */}
+                    {/* IDLE */}
+                    {!faceScanOpen && !faceUploading && (
+                      <button type="button" onClick={() => setFaceScanOpen(true)}
+                        className="w-full group transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99]">
                         <div className="relative rounded-2xl overflow-hidden mb-4"
-                          style={{
-                            background: 'rgba(245,158,11,0.025)',
-                            border: '1.5px dashed rgba(245,158,11,0.35)',
-                            paddingBottom: '75%',
-                          }}>
-                          {/* Corner brackets */}
+                          style={{ background: 'rgba(245,158,11,0.025)', border: '1.5px dashed rgba(245,158,11,0.35)', paddingBottom: '65%' }}>
                           <span className="absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2" style={{ borderColor: 'rgba(245,158,11,0.55)' }} />
                           <span className="absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2" style={{ borderColor: 'rgba(245,158,11,0.55)' }} />
                           <span className="absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2" style={{ borderColor: 'rgba(245,158,11,0.55)' }} />
                           <span className="absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2" style={{ borderColor: 'rgba(245,158,11,0.55)' }} />
-
-                          {/* Center content */}
-                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-6">
-                            <div className="w-20 h-20 rounded-full flex items-center justify-center"
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6">
+                            <div className="w-16 h-16 rounded-full flex items-center justify-center"
                               style={{ background: 'rgba(245,158,11,0.08)', border: '1.5px solid rgba(245,158,11,0.3)' }}>
-                              <i className="ri-scan-2-line text-4xl text-amber-400" />
+                              <i className="ri-scan-2-line text-3xl text-amber-400" />
                             </div>
-                            <div className="text-center">
-                              <p className="text-gray-800 font-bold text-sm mb-1.5 leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
-                                {t('ڕووخسارت سکان بکە', 'امسح وجهك', 'Scan Your Face', lang)}
-                              </p>
-                              <p className="text-xs leading-relaxed" style={{ color: '#6b7280', fontFamily: fontStyle(lang) }}>
-                                {t('بۆ چالاككردنی فۆڕمی تۆمارکردن', 'لتفعيل نموذج التسجيل', 'to unlock the registration form', lang)}
-                              </p>
-                            </div>
+                            <p className="text-gray-800 font-bold text-sm text-center" style={{ fontFamily: fontStyle(lang) }}>
+                              {t('ڕووخسارت سکان بکە', 'امسح وجهك', 'Scan Your Face', lang)}
+                            </p>
                           </div>
                         </div>
-
-                        {/* CTA button */}
                         <div className="flex items-center justify-center gap-2.5 py-3.5 rounded-xl transition-all duration-300 group-hover:brightness-110"
-                          style={{
-                            background: 'linear-gradient(135deg, rgba(245,158,11,0.18), rgba(245,158,11,0.08))',
-                            border: '1px solid rgba(245,158,11,0.4)',
-                            boxShadow: '0 0 20px rgba(245,158,11,0.08)',
-                          }}>
+                          style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)' }}>
                           <i className="ri-camera-line text-amber-400 text-base" />
                           <span className="text-sm font-bold" style={{ color: '#fbbf24', fontFamily: fontStyle(lang) }}>
                             {t('کردنەوەی کامێرا', 'فتح الكاميرا', 'Open Camera', lang)}
                           </span>
-                          <i className={`ri-arrow-${isRtl ? 'left' : 'right'}-s-line text-amber-400/60 text-sm`} />
                         </div>
                       </button>
                     )}
 
                     {/* UPLOADING */}
                     {faceUploading && (
-                      <div className="flex flex-col items-center justify-center gap-4 py-16">
+                      <div className="flex flex-col items-center justify-center gap-4 py-12">
                         <div className="w-16 h-16 rounded-full flex items-center justify-center"
                           style={{ background: 'rgba(245,158,11,0.08)', border: '1.5px solid rgba(245,158,11,0.3)' }}>
                           <span className="w-7 h-7 border-2 border-amber-500/20 border-t-amber-400 rounded-full animate-spin" />
                         </div>
-                        <p className="text-amber-400 text-sm font-semibold" style={{ fontFamily: fontStyle(lang) }}>
+                        <p className="text-amber-500 text-sm font-semibold" style={{ fontFamily: fontStyle(lang) }}>
                           {t('ڕووخسار بارکراوە...', 'جاري رفع الوجه...', 'Uploading face…', lang)}
                         </p>
                       </div>
                     )}
 
                     {/* SCANNER OPEN */}
-                    {!faceImageUrl && faceScanOpen && !faceUploading && (
+                    {faceScanOpen && !faceUploading && (
                       <div>
                         <div className="flex items-center justify-between mb-4">
-                          <p className="text-white text-sm font-semibold" style={{ fontFamily: fontStyle(lang) }}>
+                          <p className="text-gray-800 text-sm font-semibold" style={{ fontFamily: fontStyle(lang) }}>
                             {t('ڕوخسارت لە ناوەڕاستی کامێراکە جێگیر بکە', 'ضع وجهك في المنتصف', 'Center your face in the frame', lang)}
                           </p>
-                          <button
-                            type="button"
-                            onClick={() => setFaceScanOpen(false)}
-                            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition-all"
-                          >
+                          <button type="button" onClick={() => setFaceScanOpen(false)}
+                            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-black/5 transition-all">
                             <i className="ri-close-line text-base" />
                           </button>
                         </div>
-                        <LiveCameraCapture
-                          compact
-                          lang={lang === 'ku' ? 'ku' : lang === 'ar' ? 'ar' : 'en'}
-                          onCapture={handleFaceCapture}
-                        />
-                      </div>
-                    )}
-
-                    {/* VERIFIED */}
-                    {faceImageUrl && !faceUploading && (
-                      <div className="flex flex-col items-center gap-5 py-2">
-                        <div className="relative">
-                          <div className="rounded-2xl overflow-hidden"
-                            style={{
-                              width: 176,
-                              height: 220,
-                              border: '2px solid rgba(16,185,129,0.5)',
-                              boxShadow: '0 0 25px rgba(16,185,129,0.2), 0 8px 40px rgba(0,0,0,0.6)',
-                            }}>
-                            <img src={faceImageUrl} alt="Face ID" className="w-full h-full object-cover" />
-                          </div>
-                          <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white whitespace-nowrap"
-                            style={{ background: '#10b981', border: '2px solid rgba(0,0,0,0.8)', boxShadow: '0 2px 12px rgba(16,185,129,0.5)' }}>
-                            <i className="ri-shield-check-fill text-xs" />
-                            {t('ڕووخسار پشکنراوە', 'تم التحقق', 'Face Verified', lang)}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => { setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(true) }}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-medium transition-all hover:bg-white/5 mt-2"
-                          style={{ color: '#9ca3af', fontFamily: fontStyle(lang) }}
-                        >
-                          <i className="ri-camera-line text-sm" />
-                          {t('دووبارە سکان بکە', 'إعادة المسح', 'Retake Scan', lang)}
-                        </button>
+                        <LiveCameraCapture compact lang={lang === 'ku' ? 'ku' : lang === 'ar' ? 'ar' : 'en'} onCapture={handleFaceCapture} />
                       </div>
                     )}
                   </div>
                 </div>
-              </div>
+              )}
 
-              {/* ── RIGHT: Form ──────────────────────────────── */}
-              <div className="flex flex-col gap-4">
+              {/* ── Verified banner — appears after face scan ── */}
+              {faceVerified && faceImageUrl && (
+                <div className="flex items-center gap-4 p-4 rounded-2xl"
+                  style={{ background: 'rgba(16,185,129,0.06)', border: '1.5px solid rgba(16,185,129,0.3)' }}>
+                  <div className="relative shrink-0">
+                    <img src={faceImageUrl} alt="Face ID" className="w-14 h-14 rounded-xl object-cover"
+                      style={{ border: '1.5px solid rgba(16,185,129,0.5)' }} />
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center"
+                      style={{ border: '2px solid #fff' }}>
+                      <i className="ri-check-line text-white text-[9px]" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm" style={{ color: '#059669', fontFamily: fontStyle(lang) }}>
+                      {t('ناسنامە پشکنراوە ✓', 'تم التحقق ✓', 'Identity Verified ✓', lang)}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: '#6b7280', fontFamily: fontStyle(lang) }}>
+                      {t('ئێستا زانیارییەکانت پڕبکەوە', 'الآن أكمل بياناتك', 'Now fill in your details below', lang)}
+                    </p>
+                  </div>
+                  <button type="button"
+                    onClick={() => { setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(true) }}
+                    className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-all hover:bg-black/5"
+                    style={{ color: '#9ca3af', fontFamily: fontStyle(lang) }}>
+                    <i className="ri-camera-line text-sm" />
+                  </button>
+                </div>
+              )}
 
-                {/* Form card */}
-                <div className="relative rounded-2xl overflow-hidden"
+              {/* ── Form fields — revealed after face verified ── */}
+              {faceVerified && (
+                <div className="rounded-2xl overflow-hidden"
                   style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
-                  {/* Gold top accent */}
                   <div className="h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
-
-                  <div className="p-4 md:p-6 space-y-3 md:space-y-5">
-                    {field('name',
-                      t('ناوی تەواو', 'الاسم الكامل', 'Full Name', lang),
-                      'text',
-                      { placeholder: t('ناوت بنووسە', 'أدخل اسمك', 'Enter your name', lang) }
-                    )}
-
+                  <div className="p-4 md:p-6 space-y-4">
+                    {field('name', t('ناوی تەواو', 'الاسم الكامل', 'Full Name', lang), 'text',
+                      { placeholder: t('ناوت بنووسە', 'أدخل اسمك', 'Enter your name', lang) })}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {field('guest_count', t('ژمارەی میوان', 'عدد الضيوف', 'Number of Guests', lang), 'number', { min: 1, max: 100, placeholder: '1' })}
                       {field('phone', t('ژمارەی تەلەفۆن', 'رقم الهاتف', 'Phone Number', lang), 'tel', { placeholder: '07XX XXX XXXX', dir: 'ltr' })}
                     </div>
-
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {field('date', t('بەروار', 'التاريخ', 'Date', lang), 'date', { min: new Date().toISOString().split('T')[0] })}
                       {field('time', t('کات', 'الوقت', 'Time', lang), 'time')}
                     </div>
-
-                    {field('note',
-                      t('تێبینی (ئارەزوو مەندانە)', 'ملاحظة (اختياري)', 'Note (optional)', lang),
-                      'textarea',
-                      { placeholder: t('هەر تێبینییەک...', 'أي ملاحظات...', 'Any notes...', lang) }
-                    )}
+                    {field('note', t('تێبینی (ئارەزوو مەندانە)', 'ملاحظة (اختياري)', 'Note (optional)', lang), 'textarea',
+                      { placeholder: t('هەر تێبینییەک...', 'أي ملاحظات...', 'Any notes...', lang) })}
                   </div>
-
-                  {/* Frosted glass lock overlay */}
-                  {fieldsLocked && (
-                    <div
-                      className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-5 cursor-pointer"
-                      style={{
-                        backdropFilter: 'blur(8px)',
-                        WebkitBackdropFilter: 'blur(8px)',
-                        background: 'rgba(0,0,0,0.58)',
-                      }}
-                      onClick={() => setFaceScanOpen(true)}
-                    >
-                      {/* Glowing lock icon */}
-                      <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                        style={{
-                          background: 'rgba(200,169,110,0.08)',
-                          border: '1.5px solid rgba(200,169,110,0.45)',
-                          boxShadow: '0 0 28px rgba(200,169,110,0.2), 0 0 70px rgba(200,169,110,0.08)',
-                        }}>
-                        <i className="ri-lock-line text-3xl" style={{ color: GOLD }} />
-                      </div>
-                      <div className="text-center px-8 max-w-xs">
-                        <p className="text-white font-bold text-sm leading-loose mb-3" style={{ fontFamily: fontStyle(lang) }}>
-                          {t(
-                            'تکایە سەرەتا ڕووخسارت سکان بکە بۆ چالاككردنی فۆڕمەکە',
-                            'يرجى مسح وجهك أولاً لتفعيل النموذج',
-                            'Please scan your face first to unlock the form',
-                            lang
-                          )}
-                        </p>
-                        <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full"
-                          style={{ color: GOLD, background: 'rgba(200,169,110,0.1)', border: '1px solid rgba(200,169,110,0.28)' }}>
-                          <i className="ri-camera-line text-xs" />
-                          {t('کلیک بکە بۆ کردنەوەی کامێرا', 'انقر لفتح الكاميرا', 'Tap to open camera', lang)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
                 </div>
+              )}
 
-                {/* Submit button */}
-                <button
-                  type="submit"
-                  disabled={loading || fieldsLocked || faceUploading}
-                  onClick={fieldsLocked ? (e) => { e.preventDefault(); setFaceScanOpen(true) } : undefined}
-                  className="w-full py-3 md:py-4 text-white font-black text-base md:text-lg rounded-xl md:rounded-2xl disabled:cursor-not-allowed transition-all"
+              {/* ── Submit — only when form is visible ── */}
+              {faceVerified && (
+                <button type="submit" disabled={loading || faceUploading}
+                  className="w-full py-3 md:py-4 text-white font-black text-base md:text-lg rounded-xl md:rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                   style={{
-                    background: fieldsLocked ? 'rgba(122,0,0,0.35)' : RED,
-                    border: `1px solid rgba(200,169,110,${fieldsLocked ? '0.15' : '0.35'})`,
-                    boxShadow: fieldsLocked ? 'none' : '0 8px 32px rgba(122,0,0,0.4)',
-                    opacity: loading ? 0.5 : fieldsLocked ? 0.45 : 1,
+                    background: RED,
+                    border: `1px solid rgba(200,169,110,0.35)`,
+                    boxShadow: '0 8px 32px rgba(122,0,0,0.4)',
                     fontFamily: fontStyle(lang),
-                  }}
-                >
+                  }}>
                   {loading
                     ? t('ناردن...', 'جاري الإرسال...', 'Submitting...', lang)
                     : faceUploading
@@ -1238,15 +1143,10 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                         <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
                         {t('چاوەڕوانی بارکردنی ڕووخسار...', 'جاري رفع صورة الوجه...', 'Uploading face…', lang)}
                       </span>
-                    : fieldsLocked
-                    ? <span className="flex items-center justify-center gap-2">
-                        <i className="ri-lock-line" />
-                        {t('سەرەتا ڕووخسارت سکان بکە', 'امسح وجهك أولاً', 'Scan face first', lang)}
-                      </span>
                     : t('تۆمارکردن و وەرگرتنی QR', 'تسجيل والحصول على QR', 'Submit & Get QR Code', lang)
                   }
                 </button>
-              </div>
+              )}
 
             </div>
           </form>
