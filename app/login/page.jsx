@@ -10,6 +10,7 @@ export default function AdminLogin() {
   const [password, setPassword] = useState('')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState(null)
+  const [showPw, setShowPw]     = useState(false)
   const [isConfigured, setIsConfigured] = useState(true)
   const museumName = useMuseumName()
   const router = useRouter()
@@ -145,21 +146,31 @@ export default function AdminLogin() {
               <label className="block text-xs font-semibold text-[#c8a96e]/80 uppercase tracking-[0.2em] mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                className="w-full px-4 py-3 rounded-xl text-white text-sm outline-none transition-all"
-                style={{
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(200,169,110,0.2)',
-                  caretColor: '#c8a96e',
-                }}
-                onFocus={e => e.target.style.border = '1px solid rgba(200,169,110,0.6)'}
-                onBlur={e => e.target.style.border = '1px solid rgba(200,169,110,0.2)'}
-              />
+              <div className="relative">
+                <input
+                  type={showPw ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  className="w-full px-4 py-3 pr-11 rounded-xl text-white text-sm outline-none transition-all"
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    border: '1px solid rgba(200,169,110,0.2)',
+                    caretColor: '#c8a96e',
+                  }}
+                  onFocus={e => e.target.style.border = '1px solid rgba(200,169,110,0.6)'}
+                  onBlur={e => e.target.style.border = '1px solid rgba(200,169,110,0.2)'}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPw(v => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#c8a96e]/60 hover:text-[#c8a96e] transition-colors"
+                  tabIndex={-1}
+                >
+                  <i className={`${showPw ? 'ri-eye-off-line' : 'ri-eye-line'} text-lg`} />
+                </button>
+              </div>
             </div>
 
             <button
