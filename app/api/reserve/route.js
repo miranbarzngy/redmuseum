@@ -83,16 +83,23 @@ export async function POST(request) {
   }
 
   // Fire-and-forget push notification to all admin devices
-  if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-    const { data: tokenRows } = await supabase.from('admin_fcm_tokens').select('token')
-    const tokens = (tokenRows ?? []).map(r => r.token)
-    if (tokens.length) {
-      sendPushToAdmins(
-        tokens,
-        'داواکاری نوێ 📅',
-        `${nameStr} — ${guestNum} میوان — ${date} ${time}`,
-        { type: 'reservation', reservationId: String(data.id) }
-      ).catch(console.error)
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
+    console.error('[push] FIREBASE_SERVICE_ACCOUNT not set — skipping push')
+  } else {
+    const { data: tokenRows, error: tokenErr } = await supabase.from('admin_fcm_tokens').select('token')
+    if (tokenErr) {
+      console.error('[push] failed to read admin_fcm_tokens:', tokenErr.message)
+    } else {
+      const tokens = (tokenRows ?? []).map(r => r.token)
+      console.log(`[push] sending reservation push to ${tokens.length} device(s)`)
+      if (tokens.length) {
+        sendPushToAdmins(
+          tokens,
+          'داواکاری نوێ 📅',
+          `${nameStr} — ${guestNum} میوان — ${date} ${time}`,
+          { type: 'reservation', reservationId: String(data.id) }
+        ).catch(e => console.error('[push] FCM send error:', e.message))
+      }
     }
   }
 
