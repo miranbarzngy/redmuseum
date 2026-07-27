@@ -53,7 +53,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   const [trackLoading, setTrackLoading] = useState(false)
   const [trackResults, setTrackResults] = useState(null)
   const [trackError, setTrackError]     = useState('')
-  const [bgColor, setBgColor]           = useState('#0a0a0a')
+  const [bgColor, setBgColor]           = useState('#ffffff')
 
   useEffect(() => {
     const supabase = getSupabaseClient()
@@ -421,10 +421,10 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   const homeHref = lang === 'ar' ? '/arabic' : lang === 'ku' ? '/kurdish' : '/'
 
   const inputBase = {
-    background: 'rgba(8,8,8,0.85)',
-    border: '1px solid rgba(255,255,255,0.1)',
+    background: '#ffffff',
+    border: '1px solid rgba(0,0,0,0.12)',
     borderRadius: 12,
-    color: '#fff',
+    color: '#111827',
     width: '100%',
     padding: '10px 12px',
     outline: 'none',
@@ -432,7 +432,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     fontWeight: 500,
     transition: 'border-color 0.2s, box-shadow 0.2s',
     fontFamily: fontStyle(lang),
-    colorScheme: 'dark',
+    colorScheme: 'light',
   }
 
   const fieldsLocked = !faceVerified
@@ -446,7 +446,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     return (
       <div style={disabledStyle}>
         <label className="block text-xs md:text-sm font-semibold mb-1 md:mb-2"
-          style={{ fontFamily: fontStyle(lang), color: fieldsLocked ? '#4b5563' : '#f5e6c8' }}>
+          style={{ fontFamily: fontStyle(lang), color: fieldsLocked ? '#9ca3af' : '#374151' }}>
           {label}
           {key !== 'note' && <span className="ml-1" style={{ color: fieldsLocked ? 'rgba(200,169,110,0.25)' : GOLD }}>*</span>}
         </label>
@@ -464,7 +464,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
               opacity: fieldsLocked ? 0.5 : 1,
             }}
             onFocus={e  => { if (!errors[key] && !fieldsLocked) { e.target.style.borderColor = 'rgba(245,158,11,0.7)'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.1)' } }}
-            onBlur={e   => { if (!errors[key]) { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' } }}
+            onBlur={e   => { if (!errors[key]) { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none' } }}
             {...extra}
           />
         ) : (
@@ -482,7 +482,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
               opacity: fieldsLocked ? 0.5 : 1,
             }}
             onFocus={e  => { if (!errors[key] && !fieldsLocked) { e.target.style.borderColor = 'rgba(245,158,11,0.7)'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.1)' } }}
-            onBlur={e   => { if (!errors[key]) { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' } }}
+            onBlur={e   => { if (!errors[key]) { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none' } }}
             {...extra}
           />
         )}
@@ -525,7 +525,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
           <div className="flex items-center justify-center gap-4 mb-3 w-full">
             <span className="block flex-1 max-w-[60px] h-px rounded-full" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
-            <h1 className="text-2xl md:text-3xl font-black text-white text-center" style={{ fontFamily: fontStyle(lang) }}>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 text-center" style={{ fontFamily: fontStyle(lang) }}>
               {t('داواکارییەکەت تۆمارکرا!', 'تم تسجيل طلبك!', 'Reservation Submitted!', lang)}
             </h1>
             <span className="block flex-1 max-w-[60px] h-px rounded-full" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
@@ -537,7 +537,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             <div className="h-px w-10" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
           </div>
 
-          <p className="text-white text-sm text-center leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
+          <p className="text-gray-600 text-sm text-center leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
             {t('تکایە وێنەیەک لەم زانیارییانەی خوارەوە لای خۆت دابگرە ، بۆ ئاگاداربوون لە ڕەوشی داواکارییەکت', 'يرجى إظهار رمز QR هذا عند مدخل المتحف للتحقق', 'Please show this QR code at the museum entrance for verification', lang)}
           </p>
         </div>
@@ -660,15 +660,15 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
           </button>
           <div className="flex gap-3">
             <button onClick={() => { setReservation(null); setForm(EMPTY); setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(false); setHasStartedProcess(false) }}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
-              style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: fontStyle(lang) }}>
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 text-gray-700 text-sm font-bold rounded-2xl transition-all"
+              style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.1)', fontFamily: fontStyle(lang) }}>
               <i className="ri-add-line" />
               {t('داواکارییەکی تر','حجز آخر','New Booking',lang)}
             </button>
             {!inline && (
               <Link href={homeHref}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 text-white text-sm font-bold rounded-2xl transition-all"
-                style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', fontFamily: fontStyle(lang) }}>
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 text-gray-700 text-sm font-bold rounded-2xl transition-all"
+                style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.1)', fontFamily: fontStyle(lang) }}>
                 <i className="ri-home-5-line" />
                 {t('سەرەتا','الرئيسية','Home',lang)}
               </Link>
@@ -686,7 +686,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       </section>
     )
     return (
-      <div className="min-h-screen text-white flex flex-col items-center justify-center px-4 pt-20 pb-8 md:pt-16 md:pb-16 md:pl-[88px]" style={{ background: bgColor }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 pt-20 pb-8 md:pt-16 md:pb-16 md:pl-[88px]" style={{ background: bgColor, color: '#111827' }}>
         <Sidebar activeSection="reserve" currentLang={lang} onLangChange={setLang} />
         {successContent}
       </div>
@@ -698,16 +698,16 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
   // Dynamic terminal glow based on scan state
   const terminalStyle = faceVerified
-    ? { background: 'rgba(6,6,6,0.92)', border: '1px solid rgba(16,185,129,0.4)', boxShadow: '0 0 30px rgba(16,185,129,0.15), 0 0 80px rgba(16,185,129,0.06)' }
+    ? { background: '#f9fafb', border: '1px solid rgba(16,185,129,0.4)', boxShadow: '0 0 30px rgba(16,185,129,0.12), 0 4px 24px rgba(0,0,0,0.06)' }
     : faceScanOpen
-    ? { background: 'rgba(6,6,6,0.92)', border: '1px solid rgba(245,158,11,0.4)', boxShadow: '0 0 24px rgba(245,158,11,0.12)' }
-    : { background: 'rgba(6,6,6,0.92)', border: '1px solid rgba(255,255,255,0.08)' }
+    ? { background: '#f9fafb', border: '1px solid rgba(245,158,11,0.4)', boxShadow: '0 0 24px rgba(245,158,11,0.1), 0 4px 24px rgba(0,0,0,0.06)' }
+    : { background: '#f9fafb', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }
 
   return (
     <Wrapper
       id={inline ? 'reserve' : undefined}
-      className={inline ? 'text-white px-4 md:px-8 py-5 md:py-10 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col' : 'min-h-dvh text-white px-4 pt-16 pb-10 md:pt-10 md:pb-12 md:pl-[88px]'}
-      style={{ background: bgColor }}
+      className={inline ? 'px-4 md:px-8 py-5 md:py-10 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col' : 'min-h-dvh flex flex-col px-4 pt-16 pb-10 md:pt-10 md:pb-12 md:pl-[88px]'}
+      style={{ background: bgColor, color: '#111827' }}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <style>{`
@@ -716,24 +716,24 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
         .date-input::-webkit-inner-spin-button,
         .date-input::-webkit-clear-button { display: none; }
         .date-input::-webkit-calendar-picker-indicator {
-          filter: brightness(0) invert(1);
-          opacity: 0.7;
+          filter: brightness(0);
+          opacity: 0.5;
           cursor: pointer;
           margin-inline-start: 8px;
         }
         .date-input::-webkit-datetime-edit { padding: 0; }
         .date-input::-webkit-datetime-edit-fields-wrapper { padding: 0; }
-        .date-input::placeholder { color: rgba(255,255,255,0.22); }
+        .date-input::placeholder { color: rgba(0,0,0,0.3); }
       `}</style>
 
       {!inline && <Sidebar activeSection="reserve" currentLang={lang} onLangChange={setLang} />}
 
-      <div className={`w-full max-w-7xl mx-auto flex flex-col${inline ? ' flex-1' : ''}`}>
+      <div className="w-full max-w-7xl mx-auto flex flex-col flex-1">
 
         {/* ── Header ─────────────────────────────────────────── */}
         <div className="text-center mb-4 md:mb-6 max-w-2xl mx-auto flex-shrink-0">
           {!inline && (
-            <Link href={homeHref} className="inline-flex items-center gap-2 text-gray-400 hover:text-white text-sm mb-3 md:mb-8 transition-colors" style={{ fontFamily: fontStyle(lang) }}>
+            <Link href={homeHref} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm mb-3 md:mb-8 transition-colors" style={{ fontFamily: fontStyle(lang) }}>
               <i className={`ri-arrow-${isRtl ? 'right' : 'left'}-line`} />
               {t('گەڕانەوە', 'رجوع', 'Back', lang)}
             </Link>
@@ -741,7 +741,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
           <div className="flex items-center justify-center gap-3 md:gap-4 mb-2 md:mb-4">
             <span className="block w-10 md:w-16 h-1 rounded-full" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
-            <h1 className="text-xl md:text-4xl font-black text-white" style={{ fontFamily: fontStyle(lang) }}>
+            <h1 className="text-xl md:text-4xl font-black text-gray-900" style={{ fontFamily: fontStyle(lang) }}>
               {t('داواکاری سەردانکردن', 'حجز زيارة', 'Reserve a Visit', lang)}
             </h1>
             <span className="block w-10 md:w-16 h-1 rounded-full" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
@@ -753,7 +753,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             <div className="h-px w-12" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
           </div>
 
-          <p className="text-gray-300 text-sm leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
+          <p className="text-gray-600 text-sm leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
             {t(
               'داواکاری پێشکەش بکە بۆ سەردانیکردنی مۆزەخانە',
               'أكمل النموذج وستحصل على رمز QR لمدخل المتحف',
@@ -766,7 +766,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
         {/* ── Tab switcher ───────────────────────────────────── */}
         <div className="max-w-2xl mx-auto mb-3 md:mb-6 flex-shrink-0">
           <div className="flex gap-1 p-1 rounded-2xl"
-            style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)' }}>
             {[
               { id: 'book',  ku: 'تۆمارکردن',            ar: 'حجز جديد',    en: 'New Booking'       },
               { id: 'track', ku: 'بەدواداچوونی داواکاری', ar: 'تتبع الحجز', en: 'Track Reservation' },
@@ -780,7 +780,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                 className="flex-1 py-3 rounded-xl text-sm font-bold transition-all"
                 style={{
                   fontFamily: fontStyle(lang),
-                  color: '#fff',
+                  color: pageTab === tab.id ? '#fff' : '#374151',
                   background: pageTab === tab.id ? RED : 'transparent',
                   border: pageTab === tab.id ? `1px solid rgba(200,169,110,0.35)` : '1px solid transparent',
                   boxShadow: pageTab === tab.id ? '0 4px 16px rgba(122,0,0,0.4)' : 'none',
@@ -793,15 +793,15 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
         </div>
 
         {/* Tab content */}
-        <div className={inline ? 'flex-1 overflow-y-auto' : ''}>
+        <div className={`flex-1${inline ? ' overflow-y-auto' : ''}`}>
 
         {/* ── TRACK TAB ─────────────────────────────────────── */}
         {pageTab === 'track' && (
           <div className="max-w-2xl mx-auto space-y-5">
             <div className="rounded-2xl p-6 space-y-4 relative overflow-hidden"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(200,169,110,0.15)' }}>
+              style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
               <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
-              <p className="text-gray-400 text-sm" style={{ fontFamily: fontStyle(lang) }}>
+              <p className="text-gray-600 text-sm" style={{ fontFamily: fontStyle(lang) }}>
                 {t('ژمارەی تەلەفۆنەکەت بنووسە بۆ بینینی بارودۆخی داواکارییەکەت', 'أدخل رقم هاتفك لمعرفة حالة حجزك', 'Enter your phone number to check your reservation status', lang)}
               </p>
               <div className="flex gap-3">
@@ -866,7 +866,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                             </div>
                           )}
                           <div>
-                            <p className="font-bold text-white text-base" style={{ fontFamily: fontStyle(lang) }}>{res.name}</p>
+                            <p className="font-bold text-gray-900 text-base" style={{ fontFamily: fontStyle(lang) }}>{res.name}</p>
                             <p className="text-xs text-gray-500 font-mono mt-0.5">#{res.id.slice(0,8).toUpperCase()}</p>
                           </div>
                         </div>
@@ -881,9 +881,9 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                           [t('ژمارەی میوان','عدد الضيوف','Guests',lang), res.guest_count],
                           [t('تۆمارکراوە','تاريخ التسجيل','Booked on',lang), new Date(res.created_at).toLocaleDateString()],
                         ].map(([label, val]) => (
-                          <div key={label} className="bg-black/20 rounded-xl px-3 py-2">
+                          <div key={label} className="bg-black/5 rounded-xl px-3 py-2">
                             <p className="text-gray-500 text-xs mb-0.5" style={{ fontFamily: fontStyle(lang) }}>{label}</p>
-                            <p className="text-white font-semibold">{val}</p>
+                            <p className="text-gray-900 font-semibold">{val}</p>
                           </div>
                         ))}
                       </div>
@@ -908,7 +908,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
         {pageTab === 'book' && !hasStartedProcess && (
           <div className="max-w-xl mx-auto py-4 md:py-6">
             <div className="rounded-2xl p-4 md:p-8 relative overflow-hidden"
-              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(200,169,110,0.2)' }}>
+              style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
               <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
 
               {/* Icon */}
@@ -920,12 +920,12 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
               </div>
 
               {/* Title */}
-              <h2 className="text-lg md:text-xl font-black text-white text-center mb-2 md:mb-3" style={{ fontFamily: fontStyle(lang) }}>
+              <h2 className="text-lg md:text-xl font-black text-gray-900 text-center mb-2 md:mb-3" style={{ fontFamily: fontStyle(lang) }}>
                 {t('تۆمارکردنی سەردانکردن', 'تسجيل الزيارة', 'Visit Registration', lang)}
               </h2>
 
               {/* Description */}
-              <p className="text-center text-xs md:text-sm leading-relaxed md:leading-loose mb-4 md:mb-8" style={{ color: '#9ca3af', fontFamily: fontStyle(lang) }}>
+              <p className="text-center text-xs md:text-sm leading-relaxed md:leading-loose mb-4 md:mb-8" style={{ color: '#6b7280', fontFamily: fontStyle(lang) }}>
                 {t(
                   'بۆ تۆمارکردنی داواکارییەکەت، پێویستە سەرەتا وێنەی ڕوخسارت تۆمار بکەیت',
                   'لتسجيل طلبك، يجب أولاً التحقق من هويتك عبر الكاميرا.',
@@ -951,11 +951,11 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                         }}>
                         {step.n}
                       </div>
-                      <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: step.active ? '#f5e6c8' : '#6b7280', fontFamily: fontStyle(lang) }}>
+                      <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: step.active ? '#374151' : '#9ca3af', fontFamily: fontStyle(lang) }}>
                         {step.label}
                       </span>
                     </div>
-                    {i < 2 && <div className="w-6 h-px mb-4" style={{ background: 'rgba(255,255,255,0.08)' }} />}
+                    {i < 2 && <div className="w-6 h-px mb-4" style={{ background: 'rgba(0,0,0,0.12)' }} />}
                   </div>
                 ))}
               </div>
@@ -994,7 +994,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
                   {/* Terminal header bar */}
                   <div className="px-5 py-4 flex items-center gap-3"
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.015)' }}>
+                    style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.02)' }}>
                     <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300"
                       style={faceVerified
                         ? { background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.4)' }
@@ -1003,7 +1003,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                       <i className={`text-base ${faceVerified ? 'ri-shield-check-fill text-emerald-400' : 'ri-scan-2-line text-amber-400'}`} />
                     </div>
                     <div className="flex-1 min-w-0" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-                      <p className="text-white text-sm font-bold" style={{ fontFamily: fontStyle(lang) }}>
+                      <p className="text-gray-900 text-sm font-bold" style={{ fontFamily: fontStyle(lang) }}>
                         {t('فۆڕمی سەردانیکردن', 'محطة القياس الحيوي', 'Biometric Terminal', lang)}
                       </p>
                       <p className="text-xs mt-0.5 transition-colors duration-300"
@@ -1049,10 +1049,10 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                               <i className="ri-scan-2-line text-4xl text-amber-400" />
                             </div>
                             <div className="text-center">
-                              <p className="text-white font-bold text-sm mb-1.5 leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
+                              <p className="text-gray-800 font-bold text-sm mb-1.5 leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
                                 {t('ڕووخسارت سکان بکە', 'امسح وجهك', 'Scan Your Face', lang)}
                               </p>
-                              <p className="text-xs leading-relaxed" style={{ color: '#9ca3af', fontFamily: fontStyle(lang) }}>
+                              <p className="text-xs leading-relaxed" style={{ color: '#6b7280', fontFamily: fontStyle(lang) }}>
                                 {t('بۆ چالاككردنی فۆڕمی تۆمارکردن', 'لتفعيل نموذج التسجيل', 'to unlock the registration form', lang)}
                               </p>
                             </div>
@@ -1150,7 +1150,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
                 {/* Form card */}
                 <div className="relative rounded-2xl overflow-hidden"
-                  style={{ background: 'rgba(8,8,8,0.8)', border: '1px solid rgba(200,169,110,0.12)' }}>
+                  style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
                   {/* Gold top accent */}
                   <div className="h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
 
