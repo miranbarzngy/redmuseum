@@ -293,6 +293,25 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
           />
         </div>
 
+        {/* Reserve / Face-scan shortcut — sits right next to the logo */}
+        <a
+          href={currentLang === 'ku' ? '/kurdish/reserve' : currentLang === 'ar' ? '/arabic/reserve' : '/reserve'}
+          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl active:scale-90 transition-transform duration-150"
+          style={{ background: 'rgba(0,0,0,0.25)' }}
+          aria-label="Reserve a visit"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 9V5.5A1.5 1.5 0 015.5 4H9" />
+            <path d="M15 4h3.5A1.5 1.5 0 0120 5.5V9" />
+            <path d="M4 15v3.5A1.5 1.5 0 005.5 20H9" />
+            <path d="M20 15v3.5a1.5 1.5 0 01-1.5 1.5H15" />
+            <path d="M9 10.5v.5" strokeWidth="2" />
+            <path d="M15 10.5v.5" strokeWidth="2" />
+            <path d="M12 10.5v2" />
+            <path d="M9.5 14.5c.7.7 1.5 1.1 2.5 1.1s1.8-.4 2.5-1.1" />
+          </svg>
+        </a>
+
         {/* Name stack */}
         <div dir={isRtl ? 'rtl' : 'ltr'} className="min-w-0 flex-1">
           <p className="font-bold leading-tight truncate" style={{ fontSize: 13.5, color: '#ffffff', fontFamily: ff }}>
@@ -302,16 +321,6 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
             Amnasuraka National Museum
           </p>
         </div>
-
-        {/* Reserve / Face-scan shortcut */}
-        <a
-          href={currentLang === 'ku' ? '/kurdish/reserve' : currentLang === 'ar' ? '/arabic/reserve' : '/reserve'}
-          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl active:scale-90 transition-transform duration-150"
-          style={{ background: 'rgba(0,0,0,0.25)' }}
-          aria-label="Reserve a visit"
-        >
-          <i className="ri-scan-2-line text-xl text-white" />
-        </a>
       </header>
 
       {/* ════════════════════════════════════════════
