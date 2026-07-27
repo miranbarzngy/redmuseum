@@ -45,7 +45,7 @@ export default function AdminLogin() {
         if (data.session?.access_token) {
           document.cookie = 'sb-access-token=' + data.session.access_token + '; path=/; max-age=604800'
         }
-        window.location.replace('/admin/slides')
+        window.location.replace('/admin')
       } else {
         setError('Authentication failed — no user data')
       }
