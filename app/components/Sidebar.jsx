@@ -302,6 +302,16 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
             Amnasuraka National Museum
           </p>
         </div>
+
+        {/* Reserve / Face-scan shortcut */}
+        <a
+          href={currentLang === 'ku' ? '/kurdish/reserve' : currentLang === 'ar' ? '/arabic/reserve' : '/reserve'}
+          className="flex-shrink-0 w-10 h-10 flex items-center justify-center rounded-xl active:scale-90 transition-transform duration-150"
+          style={{ background: 'rgba(0,0,0,0.25)' }}
+          aria-label="Reserve a visit"
+        >
+          <i className="ri-scan-2-line text-xl text-white" />
+        </a>
       </header>
 
       {/* ════════════════════════════════════════════
