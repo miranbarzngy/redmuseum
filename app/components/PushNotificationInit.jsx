@@ -3,17 +3,38 @@
 import { useEffect } from 'react'
 import { getSupabaseClient } from '../lib/supabase-client'
 
+function log(step, data) {
+  try {
+    const existing = JSON.parse(localStorage.getItem('fcm_debug') || '[]')
+    existing.push({ step, data: data ?? null, ts: new Date().toISOString() })
+    localStorage.setItem('fcm_debug', JSON.stringify(existing.slice(-30)))
+  } catch (_) {}
+}
+
+// Capacitor bridge is injected asynchronously after page load — poll for it
+async function waitForCapacitor(maxMs = 10000) {
+  const start = Date.now()
+  while (Date.now() - start < maxMs) {
+    if (window.Capacitor?.isNativePlatform?.()) return true
+    await new Promise(r => setTimeout(r, 300))
+  }
+  return false
+}
+
 export default function PushNotificationInit() {
   useEffect(() => {
     async function init() {
-      // Only runs inside the Capacitor Android WebView
-      const cap = window.Capacitor
-      if (!cap?.isNativePlatform?.()) return
+      log('start', { ua: navigator.userAgent })
+
+      const isNative = await waitForCapacitor()
+      log('capacitor_check', { isNative, hasCapacitor: !!window.Capacitor })
+
+      if (!isNative) return
 
       try {
         const { PushNotifications } = await import('@capacitor/push-notifications')
+        log('plugin_loaded', null)
 
-        // Create notification channel (Android 8+ requirement)
         await PushNotifications.createChannel({
           id: 'admin_alerts',
           name: 'ئاگادارکردنەوەی ئەدمین',
@@ -22,19 +43,17 @@ export default function PushNotificationInit() {
           vibration: true,
           visibility: 1,
         })
+        log('channel_created', null)
 
-        // Register token with our API when FCM issues one
         PushNotifications.addListener('registration', async ({ value: fcmToken }) => {
+          log('got_fcm_token', { tokenPrefix: fcmToken.slice(0, 20) })
           try {
-            // Use Supabase session from localStorage — reliable in Capacitor WebView
             const supabaseClient = getSupabaseClient()
             const { data: { session } } = await supabaseClient.auth.getSession()
             const authToken = session?.access_token
+            log('session_check', { hasSession: !!authToken })
 
-            if (!authToken) {
-              console.error('[FCM] No auth session — cannot register token')
-              return
-            }
+            if (!authToken) return
 
             const res = await fetch('/api/admin/fcm-token', {
               method: 'POST',
@@ -44,23 +63,17 @@ export default function PushNotificationInit() {
               },
               body: JSON.stringify({ token: fcmToken }),
             })
-
-            if (!res.ok) {
-              const err = await res.text()
-              console.error('[FCM] Token save failed:', res.status, err)
-            } else {
-              console.log('[FCM] Token registered successfully')
-            }
+            const body = await res.text()
+            log('token_save', { status: res.status, body })
           } catch (e) {
-            console.error('[FCM] Token save error:', e)
+            log('token_save_error', { msg: e.message })
           }
         })
 
         PushNotifications.addListener('registrationError', (err) => {
-          console.error('[FCM] Registration error:', JSON.stringify(err))
+          log('registration_error', { err: JSON.stringify(err) })
         })
 
-        // Tapping a notification — route to the relevant admin page
         PushNotifications.addListener('pushNotificationActionPerformed', (action) => {
           const data = action.notification?.data ?? {}
           if (data.type === 'reservation') {
@@ -73,15 +86,14 @@ export default function PushNotificationInit() {
         })
 
         const perm = await PushNotifications.requestPermissions()
-        if (perm.receive !== 'granted') {
-          console.error('[FCM] Notification permission denied:', perm.receive)
-          return
-        }
+        log('permission', { receive: perm.receive })
+
+        if (perm.receive !== 'granted') return
 
         await PushNotifications.register()
-        console.log('[FCM] Registration requested')
+        log('register_called', null)
       } catch (e) {
-        console.error('[FCM] Push init error:', e)
+        log('error', { msg: e.message, stack: e.stack?.slice(0, 200) })
       }
     }
     init()
