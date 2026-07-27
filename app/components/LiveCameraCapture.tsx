@@ -609,10 +609,10 @@ export default function LiveCameraCapture({ onCapture, lang = 'ku', compact = fa
       <div className="text-center">
         <div className="flex items-center justify-center gap-3 mb-2">
           <span className="block h-px w-10" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
-          <h2 className="text-xl font-bold text-white" style={{ fontFamily: ff }}>{tx.title}</h2>
+          <h2 className="text-xl font-bold text-gray-900" style={{ fontFamily: ff }}>{tx.title}</h2>
           <span className="block h-px w-10" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
         </div>
-        <p className="text-gray-400 text-sm" style={{ fontFamily: ff }}>{tx.subtitle}</p>
+        <p className="text-gray-500 text-sm" style={{ fontFamily: ff }}>{tx.subtitle}</p>
       </div>
 
       {/* Camera / detection */}
