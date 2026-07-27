@@ -182,10 +182,10 @@ export default function Sidebar({ activeSection = 'home', onSectionClick, curren
     : { id: 'exclusive-section', icon: 'ri-star-line', title: 'Activities',     href: '/#exclusive-section' }
 
   const reserveItem = currentLang === 'ku'
-    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'سەردان',    href: '/kurdish#reserve' }
+    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'سەردان',    href: '/kurdish/reserve' }
     : currentLang === 'ar'
-    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'حجز',       href: '/arabic#reserve' }
-    : { id: 'reserve', icon: 'ri-calendar-check-line', title: 'Reserve',   href: '/#reserve' }
+    ? { id: 'reserve', icon: 'ri-calendar-check-line', title: 'حجز',       href: '/arabic/reserve' }
+    : { id: 'reserve', icon: 'ri-calendar-check-line', title: 'Reserve',   href: '/reserve' }
 
   const sectionKeyMap = {
     about: 'show_about', gallery: 'show_gallery',

@@ -18,7 +18,7 @@ const ReservePageContent = dynamic(() => import('../components/ReservePageConten
 
 const SECTION_KEYS = ['show_slides','show_about','show_gallery','show_archive','show_activities','show_exclusive','show_messages','show_visitor_tab','show_showcase']
 
-const DEFAULT_ORDER = ['slides','about','virtual-tour','gallery','archive','exclusive','showcase','messages','reserve']
+const DEFAULT_ORDER = ['slides','about','virtual-tour','gallery','archive','exclusive','showcase','messages']
 
 const SECTION_ELEMENT_ID = {
   slides:         'home',
@@ -29,7 +29,6 @@ const SECTION_ELEMENT_ID = {
   exclusive:      'exclusive-section',
   showcase:       'showcase',
   messages:       'contact',
-  reserve:        'reserve',
 }
 
 const ELEMENT_URL = {
@@ -41,7 +40,6 @@ const ELEMENT_URL = {
   'exclusive-section':'/kurdish/museumactivities',
   showcase:           '/kurdish/socialmedia',
   contact:            '/kurdish/contact',
-  reserve:            '/kurdish/reserve',
 }
 
 async function fetchVisibilityAndOrder() {
@@ -155,7 +153,7 @@ export default function KurdishPageContent({ initialSection = null }) {
     if (window.location.hash) handleHashChange()
 
     // Every known section element ID, in default scroll order
-    const ALL_IDS = ['home', 'about', 'virtual-tour', 'gallery', 'archive-section', 'exclusive-section', 'showcase', 'contact', 'reserve']
+    const ALL_IDS = ['home', 'about', 'virtual-tour', 'gallery', 'archive-section', 'exclusive-section', 'showcase', 'contact']
     const ratios = Object.fromEntries(ALL_IDS.map(id => [id, 0]))
 
     const commit = (id) => {
@@ -228,7 +226,6 @@ export default function KurdishPageContent({ initialSection = null }) {
     exclusive:      vis.show_exclusive          ? <ExclusiveSection key="exclusive" currentLang={currentLang} />                   : null,
     showcase:       vis.show_showcase !== false ? <ShowcaseCards key="showcase" currentLang={currentLang} />                       : null,
     messages:       vis.show_messages           ? <ContactForm key="messages" currentLang={currentLang} />                         : null,
-    reserve:        vis.show_visitor_tab !== false ? <ReservePageContent key="reserve" inline initialLang={currentLang} />          : null,
   }
 
   return (
