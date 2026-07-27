@@ -186,6 +186,10 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Unknown error')
       setReservation(json.data)
+      if (!inline) {
+        const slug = json.data.id.slice(0, 8).toUpperCase()
+        window.history.replaceState(null, '', `?booking=${slug}`)
+      }
     } catch (err) {
       alert(t('کێشەیەک ڕوویدا، دووبارە هەوڵبدەوە', 'حدث خطأ، حاول مرة أخرى', 'An error occurred, please try again', lang) + '\n\n' + err.message)
     } finally { setLoading(false) }
@@ -686,7 +690,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
       </section>
     )
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 pt-20 pb-8 md:pt-16 md:pb-16 md:pl-[88px]" style={{ background: bgColor, color: '#111827' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 pt-20 pb-8 md:pt-16 md:pb-16 md:pl-[88px]" style={{ background: '#ffffff', color: '#111827' }}>
         <Sidebar activeSection="reserve" currentLang={lang} onLangChange={setLang} />
         {successContent}
       </div>
@@ -707,7 +711,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     <Wrapper
       id={inline ? 'reserve' : undefined}
       className={inline ? 'px-4 md:px-8 py-5 md:py-10 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col' : 'min-h-dvh flex flex-col px-4 pt-16 pb-10 md:pt-10 md:pb-12 md:pl-[88px]'}
-      style={{ background: bgColor, color: '#111827' }}
+      style={{ background: '#ffffff', color: '#111827' }}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
       <style>{`
