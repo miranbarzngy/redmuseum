@@ -349,6 +349,12 @@ export default function AdminLayout({ children }) {
               <LogOut size={16} strokeWidth={2} />
               Logout
             </button>
+            <a
+              href="/push-debug"
+              className="block text-center text-[10px] text-gray-600 hover:text-gray-400 py-1 transition-colors"
+            >
+              push debug
+            </a>
           </div>
 
         </aside>
