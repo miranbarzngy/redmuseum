@@ -975,7 +975,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
               >
                 <span className="flex items-center justify-center gap-3">
                   <i className="ri-scan-2-line text-xl" style={{ color: GOLD }} />
-                  {t('دەستپێکردنی تۆمارکردن و سکانی ڕووخسار', 'بدء التسجيل ومسح الوجه', 'Start Registration & Face Scan', lang)}
+                  {t('دەستپێکردن', 'بدء التسجيل ومسح الوجه', 'Start Registration & Face Scan', lang)}
                 </span>
               </button>
 
