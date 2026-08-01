@@ -55,6 +55,7 @@ const EMPTY_SLIDE = {
   is_active: true,
   sort_order: 0,
   image_url: '',
+  bg_image_url: '',
 }
 
 const inputCls = 'w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-400 bg-gray-50/50 transition-colors'
@@ -96,15 +97,28 @@ function SortableRow({ slide, onEdit, onDelete }) {
         </button>
       </td>
 
-      {/* Image */}
-      <td className="px-2 sm:px-4 py-3 sm:py-4 w-12 sm:w-20">
-        {slide.image_url ? (
-          <Image src={slide.image_url} alt={slide.title_en || ''} width={44} height={44} className="w-10 h-10 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl object-cover border border-gray-100 shadow-sm" unoptimized />
-        ) : (
-          <div className="w-10 h-10 sm:w-14 sm:h-14 bg-gray-100 rounded-lg sm:rounded-xl flex items-center justify-center">
-            <ImageIcon size={16} className="text-gray-300" />
-          </div>
-        )}
+      {/* Images */}
+      <td className="px-2 sm:px-4 py-3 sm:py-4 w-12 sm:w-24">
+        <div className="flex items-center gap-1.5">
+          {/* Main image */}
+          {slide.image_url ? (
+            <div className="relative">
+              <Image src={slide.image_url} alt={slide.title_en || ''} width={44} height={44} className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover border border-gray-100 shadow-sm" unoptimized />
+              <span className="absolute -bottom-1 -right-1 bg-amber-500 text-white text-[7px] font-bold px-1 py-0.5 rounded leading-none shadow">IMG</span>
+            </div>
+          ) : (
+            <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+              <ImageIcon size={14} className="text-gray-300" />
+            </div>
+          )}
+          {/* Background image badge */}
+          {slide.bg_image_url && (
+            <div className="relative">
+              <Image src={slide.bg_image_url} alt="bg" width={36} height={36} className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover border border-blue-100 shadow-sm" unoptimized />
+              <span className="absolute -bottom-1 -right-1 bg-blue-500 text-white text-[7px] font-bold px-1 py-0.5 rounded leading-none shadow">BG</span>
+            </div>
+          )}
+        </div>
       </td>
 
       {/* Title — on mobile shows date below */}
@@ -180,8 +194,9 @@ export default function ExclusiveAdmin() {
   const [showModal, setShowModal] = useState(false)
   const [editingSlide, setEditingSlide] = useState(null)
   const [formData, setFormData] = useState(EMPTY_SLIDE)
-  const [imageFile, setImageFile] = useState(null)
-  const [uploading, setUploading] = useState(false)
+  const [imageFile, setImageFile]     = useState(null)
+  const [bgImageFile, setBgImageFile] = useState(null)
+  const [uploading, setUploading]     = useState(false)
 
   // Appearance state
   const [bgColor,    setBgColor]    = useState('#000000')
@@ -294,30 +309,41 @@ export default function ExclusiveAdmin() {
     finally { setSaving(false) }
   }
 
-  const handleImageUpload = async () => {
-    if (!imageFile) return null
-    setUploading(true)
+  const doUpload = async (file, prefix) => {
+    const form = new FormData()
+    form.append('file', file)
+    form.append('prefix', prefix)
     try {
-      const form = new FormData()
-      form.append('file', imageFile)
-      form.append('prefix', 'exclusive-')
-      const res = await fetch('/api/upload', { method: 'POST', body: form })
+      const res  = await fetch('/api/upload', { method: 'POST', body: form })
       const json = await res.json()
       if (!res.ok) throw new Error(json.error || 'Upload failed')
       return json.url
     } catch (err) { console.error('Upload error:', err.message || err); return null }
-    finally { setUploading(false) }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     const supabase = getSupabaseClient()
     if (!supabase) { flash('Client not available', 'error'); return }
-    let imageUrl = formData.image_url
-    if (imageFile) { imageUrl = await handleImageUpload(); if (!imageUrl) { flash('Image upload failed', 'error'); return } }
-    const payload = { ...formData, image_url: imageUrl }
+
+    setUploading(true)
+    let imageUrl   = formData.image_url
+    let bgImageUrl = formData.bg_image_url
+
+    try {
+      if (imageFile) {
+        imageUrl = await doUpload(imageFile, 'exclusive-')
+        if (!imageUrl) { flash('Main image upload failed', 'error'); return }
+      }
+      if (bgImageFile) {
+        bgImageUrl = await doUpload(bgImageFile, 'exclusive-bg-')
+        if (!bgImageUrl) { flash('Background image upload failed', 'error'); return }
+      }
+    } finally { setUploading(false) }
+
+    const payload = { ...formData, image_url: imageUrl, bg_image_url: bgImageUrl }
     if (payload.countdown_to) {
-      // datetime-local value has no timezone — treat as local time and convert to UTC ISO for storage
+      // datetime-local has no timezone — convert to UTC ISO for storage
       payload.countdown_to = new Date(payload.countdown_to).toISOString()
     } else {
       payload.countdown_to = null
@@ -326,9 +352,9 @@ export default function ExclusiveAdmin() {
     delete payload.id
     try {
       if (editingSlide) { const { error } = await supabase.from('exclusive_slides').update(payload).eq('id', editingSlide.id); if (error) throw error }
-      else { const { error } = await supabase.from('exclusive_slides').insert([payload]); if (error) throw error }
+      else              { const { error } = await supabase.from('exclusive_slides').insert([payload]);                         if (error) throw error }
       logAudit(editingSlide ? 'update' : 'create', 'exclusive_slides', editingSlide ? String(editingSlide.id) : null, { title: formData.title_en || formData.title_ku })
-      setShowModal(false); setEditingSlide(null); setFormData(EMPTY_SLIDE); setImageFile(null)
+      setShowModal(false); setEditingSlide(null); setFormData(EMPTY_SLIDE); setImageFile(null); setBgImageFile(null)
       flash(editingSlide ? 'Slide updated' : 'Slide created')
       fetchAll()
     } catch (err) { flash('Error saving slide: ' + (err.message || 'unknown error'), 'error') }
@@ -358,9 +384,12 @@ export default function ExclusiveAdmin() {
         return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
       })() : '',
       is_locked: slide.is_locked || false, is_active: slide.is_active !== false,
-      sort_order: slide.sort_order || 0, image_url: slide.image_url || '',
+      sort_order: slide.sort_order || 0,
+      image_url: slide.image_url || '',
+      bg_image_url: slide.bg_image_url || '',
     } : EMPTY_SLIDE)
     setImageFile(null)
+    setBgImageFile(null)
     setShowModal(true)
   }
 
@@ -627,19 +656,68 @@ export default function ExclusiveAdmin() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
-              {/* Image */}
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-2">
-                  Image <span className="text-gray-400 font-normal">— Recommended: A4 landscape (297 × 210 mm)</span>
-                </label>
-                <input
-                  type="file" accept="image/*"
-                  onChange={e => setImageFile(e.target.files[0])}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-amber-500/40 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-amber-100 file:text-amber-700 hover:file:bg-amber-200 cursor-pointer"
-                />
-                {formData.image_url && (
-                  <Image src={formData.image_url} alt="Current" width={80} height={80} className="mt-3 rounded-xl object-cover border border-gray-100 shadow-sm" unoptimized />
-                )}
+              {/* Images — two separate uploads */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+                {/* 1 — Featured / card image */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded bg-amber-100 flex items-center justify-center text-amber-600 shrink-0">
+                      <ImageIcon size={11} />
+                    </span>
+                    <label className="text-xs font-semibold text-gray-700">
+                      Main Image
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-gray-400 leading-tight">
+                    Shown in the right column card on desktop. Portrait 4:5 ratio — best <strong>1080 × 1350 px</strong> · JPG or PNG
+                  </p>
+                  <input
+                    type="file" accept="image/*"
+                    onChange={e => setImageFile(e.target.files[0])}
+                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-amber-500/40 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-amber-100 file:text-amber-700 hover:file:bg-amber-200 cursor-pointer"
+                  />
+                  {formData.image_url && (
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+                      <Image src={formData.image_url} alt="Main" fill className="object-cover" unoptimized />
+                    </div>
+                  )}
+                  {imageFile && (
+                    <p className="text-[11px] text-amber-600 font-medium">✓ New file selected: {imageFile.name}</p>
+                  )}
+                </div>
+
+                {/* 2 — Background image */}
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded bg-blue-100 flex items-center justify-center text-blue-600 shrink-0">
+                      <ImageIcon size={11} />
+                    </span>
+                    <label className="text-xs font-semibold text-gray-700">
+                      Background Image
+                    </label>
+                  </div>
+                  <p className="text-[11px] text-gray-400 leading-tight">
+                    Full-screen backdrop — landscape 16:9 — best <strong>1920 × 1080 px</strong> · JPG or PNG · falls back to Main Image if empty
+                  </p>
+                  <input
+                    type="file" accept="image/*"
+                    onChange={e => setBgImageFile(e.target.files[0])}
+                    className="w-full px-3 py-2 text-xs border border-gray-200 rounded-xl bg-gray-50/50 focus:outline-none focus:ring-2 focus:ring-blue-500/40 file:mr-2 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 cursor-pointer"
+                  />
+                  {formData.bg_image_url && (
+                    <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-100 shadow-sm">
+                      <Image src={formData.bg_image_url} alt="Background" fill className="object-cover" unoptimized />
+                    </div>
+                  )}
+                  {bgImageFile && (
+                    <p className="text-[11px] text-blue-600 font-medium">✓ New file selected: {bgImageFile.name}</p>
+                  )}
+                  {!formData.bg_image_url && !bgImageFile && (
+                    <p className="text-[11px] text-gray-300 italic">No background set — will use Main Image</p>
+                  )}
+                </div>
+
               </div>
 
               {/* Titles */}

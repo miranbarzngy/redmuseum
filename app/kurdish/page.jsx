@@ -87,28 +87,68 @@ export default function KurdishPageContent({ initialSection = null }) {
     })
   }, [])
 
-  // Scroll to initialSection immediately on mount — sections are already rendered
-  // (vis defaults to all-visible, so elements are in DOM right away)
+  // Robust scroll restoration on deep-link refresh.
+  // Problem: images in earlier sections shift layout after mount, making
+  // el.offsetTop wrong at the moment tryScroll first fires.
+  // Solution: use ResizeObserver on <body> to detect any layout change,
+  // double-rAF to read coordinates after paint, and keep the IO gate
+  // closed until 1200ms after the final scroll lands.
   useEffect(() => {
     if (!initialSection || initialSection === 'home') {
       urlGateRef.current = true
       return
     }
-    const tryScroll = (attempts = 0) => {
+
+    let settled = false
+    let rafId   = null
+    let ro      = null
+
+    const commit = () => {
       const el = document.getElementById(initialSection)
-      if (el) {
-        const offset = window.innerWidth < 768 ? 64 : 0
-        window.scrollTo({ top: el.offsetTop - offset, behavior: 'instant' })
-        setActiveSection(initialSection)
-        activeSectionRef.current = initialSection
-        const url = ELEMENT_URL[initialSection]
-        if (url) window.history.replaceState(null, '', url)
-        setTimeout(() => { urlGateRef.current = true }, 600)
-      } else if (attempts < 25) {
-        setTimeout(() => tryScroll(attempts + 1), 50)
-      }
+      if (!el) return false
+      // Reject if the element has no rendered height yet (layout not ready)
+      if (el.getBoundingClientRect().height === 0) return false
+      if (settled) return true
+      settled = true
+
+      if (rafId) cancelAnimationFrame(rafId)
+
+      // Double rAF: first frame commits pending layout work,
+      // second reads the now-stable getBoundingClientRect coordinates.
+      rafId = requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const mobileOffset = window.innerWidth < 768 ? 64 : 0
+          const top = window.scrollY + el.getBoundingClientRect().top - mobileOffset
+          window.scrollTo({ top, behavior: 'instant' })
+          setActiveSection(initialSection)
+          activeSectionRef.current = initialSection
+          const url = ELEMENT_URL[initialSection]
+          if (url) window.history.replaceState(null, '', url)
+          // Hold gate closed until layout has fully stabilised post-scroll
+          setTimeout(() => { urlGateRef.current = true }, 1200)
+          if (ro) ro.disconnect()
+        })
+      })
+      return true
     }
-    tryScroll()
+
+    // ResizeObserver on body fires on every layout shift (image decode, lazy mount).
+    // This is the primary trigger — it catches shifts that setTimeout polling misses.
+    ro = new ResizeObserver(() => { if (!settled) commit() })
+    ro.observe(document.body)
+
+    // window.load is the most reliable signal: all images decoded, final coordinates.
+    const onLoad = () => { if (!settled) commit() }
+    window.addEventListener('load', onLoad)
+
+    // Attempt immediately — works when the page is already complete (e.g. fast cache).
+    commit()
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId)
+      if (ro) ro.disconnect()
+      window.removeEventListener('load', onLoad)
+    }
   }, [])
 
   // Open gate when data is ready for no-initialSection path
@@ -229,7 +269,14 @@ export default function KurdishPageContent({ initialSection = null }) {
   }
 
   return (
-    <main dir="rtl" className={`pt-16 md:pt-0 ${currentLang === 'ku' ? 'font-kurdish' : ''}`}>
+    <main
+      dir="rtl"
+      className={`pt-16 md:pt-0 ${currentLang === 'ku' ? 'font-kurdish' : ''}`}
+      style={{ overflowAnchor: 'none' }}
+    >
+      {/* Disable browser scroll-anchoring and smooth-scroll globally during mount
+          so our explicit scrollTo coords are never fought by the browser engine */}
+      <style>{`html,body{overflow-anchor:none;scroll-behavior:auto!important}`}</style>
       <Sidebar
         activeSection={activeSection}
         onSectionClick={handleSectionClick}

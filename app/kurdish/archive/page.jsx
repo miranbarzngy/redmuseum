@@ -1,5 +1,7 @@
-import { redirect } from 'next/navigation'
+'use client'
 
-export default function KurdishArchiveRedirect() {
-  redirect('/kurdish/all-archive')
+import KurdishPageContent from '../page'
+
+export default function KurdishArchivePage() {
+  return <KurdishPageContent initialSection="archive-section" />
 }

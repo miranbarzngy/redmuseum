@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { supabase } from '../lib/supabase-client'
 
 const defaultCategories = [
@@ -19,6 +19,17 @@ const normalizePath = (p) => {
 }
 
 const INTERVAL = 5000
+const TICK_MS  = 50
+
+const ARCHIVE_CSS = `
+  @keyframes archCardIn {
+    0%   { transform: scale(0.88); opacity: 0.4; }
+    60%  { transform: scale(1.04); opacity: 1; }
+    80%  { transform: scale(0.98); }
+    100% { transform: scale(1.0);  opacity: 1; }
+  }
+  .arch-card-in { animation: archCardIn 0.9s cubic-bezier(0.34,1.56,0.64,1) both; }
+`
 
 export default function ArchivePreview({ currentLang = 'en' }) {
   const [archive,      setArchive]      = useState([])
@@ -28,6 +39,11 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const [progress,     setProgress]     = useState(0)
   const [paused,       setPaused]       = useState(false)
   const [bgColor,      setBgColor]      = useState('#0a0a0a')
+  const [animKey,      setAnimKey]      = useState(0)
+  const [dims,         setDims]         = useState({ cardW: 200, gap1: 190, gap2: 350, wide: false })
+
+  const touchStartX = useRef(null)
+  const idxRef      = useRef(0)
 
   const isKu  = currentLang === 'ku'
   const isAr  = currentLang === 'ar'
@@ -36,12 +52,32 @@ export default function ArchivePreview({ currentLang = 'en' }) {
               : isAr ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' }
               : {}
 
+  /* ── Responsive dimensions ── */
+  useEffect(() => {
+    const calc = () => {
+      const w      = window.innerWidth
+      const mobile = w < 640
+      const wide  = w >= 900
+      const cardW = mobile ? Math.min(Math.round(w * 0.57), 285)
+                  : wide   ? Math.min(Math.round(w * 0.26), 330)
+                  :          Math.min(Math.round(w * 0.33), 300)
+      // ~44% of cardW — same ratio as ShowcaseCards which looked correct
+      const gap1  = Math.round(cardW * 0.44)
+      const gap2  = Math.round(cardW * 0.58)
+      setDims({ cardW, gap1, gap2, wide })
+    }
+    calc()
+    window.addEventListener('resize', calc)
+    return () => window.removeEventListener('resize', calc)
+  }, [])
+
   useEffect(() => {
     supabase?.from('settings').select('archive_bg_color').single()
       .then(({ data }) => { if (data?.archive_bg_color) setBgColor(data.archive_bg_color) })
   }, [])
 
   useEffect(() => { fetchCategories() }, [])
+  useEffect(() => { fetchArchive() }, [])
 
   const fetchCategories = async () => {
     if (!supabase) { setCategories(defaultCategories); return }
@@ -51,14 +87,12 @@ export default function ArchivePreview({ currentLang = 'en' }) {
     } catch { setCategories(defaultCategories) }
   }
 
-  useEffect(() => { fetchArchive() }, [])
-
   const fetchArchive = async () => {
     if (!supabase) {
       setArchive([
-        { id:'1', title_ku:'بەڵگەنامەی ئەنفال', title_en:'Anfal Campaign Document', title_ar:'وثيقة حملة الأنفال', description_ku:'بەڵگەنامەیەکی مێژوویی کە لە ئەرشیفی مۆزەخانەکەدا پارێزراوە', description_en:'A rare historical document preserved in the museum archive', description_ar:'وثيقة تاريخية نادرة محفوظة في أرشيف المتحف', category:'Documents', category_id:'documents', image_url:'/assets/images/anfal.png', date_created: new Date().toISOString() },
-        { id:'2', title_ku:'نامەیەک لە ساڵانی ١٩٦٠', title_en:'Letter from the 1960s', title_ar:'رسالة من ستينيات القرن الماضي', description_ku:'نامەیەکی دەگمەن لە ساڵانی شەستەکانی سەدەی ڕابردوو', description_en:'A rare letter from the 1960s found in our archive collection', description_ar:'رسالة نادرة من ستينيات القرن الماضي من مجموعتنا', category:'Letters', category_id:'letters', image_url:'/assets/images/awenakan.png', date_created: new Date().toISOString() },
-        { id:'3', title_ku:'کۆمەڵەی وێنە کۆنەکان', title_en:'Old Photo Collection', title_ar:'مجموعة الصور القديمة', description_ku:'کۆمەڵەیەک لە وێنە مێژووییە کەمیابەکان لە ئەرشیفەکانمان', description_en:'A collection of rare historical photographs from our archives', description_ar:'مجموعة من الصور التاريخية النادرة من أرشيفنا', category:'Photos', category_id:'photos', image_url:'/assets/images/bg-1.jpg', date_created: new Date().toISOString() },
+        { id:'1', title_ku:'بەڵگەنامەی ئەنفال', title_en:'Anfal Campaign Document', title_ar:'وثيقة حملة الأنفال', description_ku:'بەڵگەنامەیەکی مێژوویی کە لە ئەرشیفی مۆزەخانەکەدا پارێزراوە', description_en:'A rare historical document preserved in the museum archive', description_ar:'وثيقة تاريخية نادرة', category:'Documents', category_id:'documents', image_url:'/assets/images/anfal.png', date_created: new Date().toISOString() },
+        { id:'2', title_ku:'نامەیەک لە ساڵانی ١٩٦٠', title_en:'Letter from the 1960s', title_ar:'رسالة من ستينيات القرن الماضي', description_ku:'نامەیەکی دەگمەن لە ساڵانی شەستەکانی سەدەی ڕابردوو', description_en:'A rare letter from the 1960s', description_ar:'رسالة نادرة من ستينيات القرن الماضي', category:'Letters', category_id:'letters', image_url:'/assets/images/awenakan.png', date_created: new Date().toISOString() },
+        { id:'3', title_ku:'کۆمەڵەی وێنە کۆنەکان', title_en:'Old Photo Collection', title_ar:'مجموعة الصور القديمة', description_ku:'کۆمەڵەیەک لە وێنە مێژووییە کەمیابەکان', description_en:'A collection of rare historical photographs', description_ar:'مجموعة من الصور التاريخية النادرة', category:'Photos', category_id:'photos', image_url:'/assets/images/bg-1.jpg', date_created: new Date().toISOString() },
       ])
       setLoading(false)
       return
@@ -71,41 +105,63 @@ export default function ArchivePreview({ currentLang = 'en' }) {
     finally { setLoading(false) }
   }
 
-  const prev = useCallback(() => {
-    setCurrentIndex(i => (i <= 0 ? archive.length - 1 : i - 1))
+  const navigate = useCallback((dir) => {
+    setCurrentIndex(i => {
+      const next = dir === 'prev'
+        ? (i <= 0 ? archive.length - 1 : i - 1)
+        : (i >= archive.length - 1 ? 0 : i + 1)
+      idxRef.current = next
+      return next
+    })
     setProgress(0)
+    setAnimKey(k => k + 1)
   }, [archive.length])
 
-  const next = useCallback(() => {
-    setCurrentIndex(i => (i >= archive.length - 1 ? 0 : i + 1))
+  const goTo = useCallback((i) => {
+    idxRef.current = i
+    setCurrentIndex(i)
     setProgress(0)
-  }, [archive.length])
+    setAnimKey(k => k + 1)
+  }, [])
 
+  const prev = useCallback(() => navigate('prev'), [navigate])
+  const next = useCallback(() => navigate('next'), [navigate])
+
+  /* ── Auto-advance ── */
   useEffect(() => {
     if (archive.length <= 1 || paused) return
     setProgress(0)
-    const step = 50
-    const ticks = INTERVAL / step
+    const ticks = INTERVAL / TICK_MS
     let tick = 0
     const id = setInterval(() => {
       tick++
       setProgress(tick / ticks * 100)
-      if (tick >= ticks) { tick = 0; setProgress(0); setCurrentIndex(p => (p >= archive.length - 1 ? 0 : p + 1)) }
-    }, step)
+      if (tick >= ticks) {
+        tick = 0; setProgress(0)
+        setCurrentIndex(p => {
+          const n = p >= archive.length - 1 ? 0 : p + 1
+          idxRef.current = n; return n
+        })
+        setAnimKey(k => k + 1)
+      }
+    }, TICK_MS)
     return () => clearInterval(id)
   }, [archive.length, paused, currentIndex])
 
-  const getItemCategoryId = (item) => {
-    if (item?.category_id) return item.category_id
-    if (item?.category) {
-      const slug = categoryStringToSlug[item.category] || item.category.toLowerCase()
-      return categories.find(c => c.slug === slug)?.id
-    }
-    return null
+  /* ── Touch swipe ── */
+  const onTouchStart = (e) => { touchStartX.current = e.touches[0].clientX; setPaused(true) }
+  const onTouchEnd   = (e) => {
+    if (touchStartX.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > 44) dx > 0 ? prev() : next()
+    touchStartX.current = null; setPaused(false)
   }
 
   const getCategoryName = (item) => {
-    const cat = categories.find(c => c.id === getItemCategoryId(item))
+    const cat = categories.find(c => c.id === (item?.category_id || (() => {
+      const slug = categoryStringToSlug[item?.category] || item?.category?.toLowerCase()
+      return categories.find(c => c.slug === slug)?.id
+    })()))
     if (!cat) return item?.category || ''
     return isAr ? (cat.name_ar || cat.name_en) : isKu ? (cat.name_ku || cat.name_en) : cat.name_en
   }
@@ -119,6 +175,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
   const sectionTitle = isAr ? 'الأرشيف الرقمي' : isKu ? 'ئەرشیفی دیجیتاڵی' : 'Digital Archive'
   const sectionSub   = isAr ? 'المستندات التاريخية والصور النادرة' : isKu ? 'بەڵگەنامە و وێنە مێژووییەکان' : 'Historical Documents & Rare Photos'
   const viewAllLabel = isAr ? 'عرض كل الأرشيف' : isKu ? 'بینینی هەموو ئەرشیفەکە' : 'View All Archive'
+  const readMore     = isAr ? 'اقرأ المزيد' : isKu ? 'زیاتر بخوێنەوە' : 'Read more'
 
   if (loading) return (
     <section id="archive-section" className="min-h-[400px] flex items-center justify-center" style={{ background: bgColor }}>
@@ -128,8 +185,15 @@ export default function ArchivePreview({ currentLang = 'en' }) {
 
   if (!archive.length) return null
 
-  const item        = archive[currentIndex]
   const hasMultiple = archive.length > 1
+  const total       = archive.length
+  const { cardW, gap1, gap2, wide } = dims
+  // show ±2 only on wide screens with enough cards
+  const offsets = total === 1 ? [0]
+    : (wide && total >= 4) ? [-2, -1, 0, 1, 2]
+    : [-1, 0, 1]
+
+  const activeItem = archive[currentIndex]
 
   return (
     <section
@@ -138,15 +202,11 @@ export default function ArchivePreview({ currentLang = 'en' }) {
       style={{ background: bgColor }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
-      {/*
-        Three-group justify-between layout:
-          ① Section header  (top)
-          ② Image carousel + text  (middle — grows to fill)
-          ③ Dots + View All  (bottom)
-        Space between groups is distributed automatically so there is
-        never a dead gap at the bottom, on any screen size.
-      */}
+      <style>{ARCHIVE_CSS}</style>
+
       <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col flex-1 min-h-0 items-center justify-between py-4 lg:py-6">
 
         {/* ① Header */}
@@ -163,84 +223,92 @@ export default function ArchivePreview({ currentLang = 'en' }) {
           <p className="text-neutral-500 text-xs sm:text-sm text-center" style={font}>{sectionSub}</p>
         </div>
 
-        {/* ② Carousel + text — the image height fills whatever space is available */}
-        <div className="flex flex-col items-center gap-3 flex-shrink-0">
+        {/* ② 3-card carousel */}
+        <div className="flex flex-col items-center gap-3 flex-shrink-0 w-full">
 
-          {/* Portrait card */}
-          <Link
-            href={getDetailLink(item)}
-            className="group relative block rounded-2xl overflow-hidden flex-shrink-0"
-            style={{
-              width: 'clamp(200px, 46vw, 280px)',
-              boxShadow: '0 0 0 1px rgba(200,169,110,0.15), 0 20px 56px rgba(0,0,0,0.28)',
-            }}
+          {/* Card stack — positioned relative, overflow visible so side cards peek */}
+          <div
+            className="relative flex items-center justify-center"
+            dir="ltr"
+            style={{ width: '100%', height: Math.round(cardW * 297 / 210) }}
           >
-            <img
-              src={normalizePath(item?.image_url)}
-              alt={getTitle(item)}
-              className="w-full h-auto block transition-transform duration-700 group-hover:scale-105"
-              onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
-            />
+            {offsets.map((offset) => {
+              const idx      = ((currentIndex + offset) % total + total) % total
+              const card     = archive[idx]
+              const isActive = offset === 0
+              const abs      = Math.abs(offset)
 
-            {/* Gold hairline top */}
-            <div className="absolute top-0 inset-x-0 h-0.5 pointer-events-none z-10"
-              style={{ background: 'linear-gradient(to right, transparent, #c8a96e, transparent)' }} />
+              const scale      = abs === 0 ? 1.0  : abs === 1 ? 0.80  : 0.62
+              const opacity    = abs === 0 ? 1    : abs === 1 ? 0.52  : 0.28
+              const zIndex     = abs === 0 ? 20   : abs === 1 ? 10    : 5
+              const brightness = abs === 0 ? 1    : abs === 1 ? 0.60  : 0.42
+              const offsetPx   = abs === 0 ? 0    : abs === 1 ? offset * gap1 : offset * gap2
 
-            {/* Slide counter */}
-            {hasMultiple && (
-              <span
-                className="absolute top-3 left-3 z-10 text-white/80 text-[10px] font-mono px-2 py-0.5 rounded-full select-none"
-                style={{ background: 'rgba(0,0,0,0.45)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}
-              >
-                {currentIndex + 1} / {archive.length}
-              </span>
-            )}
-          </Link>
+              return (
+                <div
+                  key={`${offset}-${idx}`}
+                  className="absolute"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    width: cardW,
+                    transform: `translateX(calc(-50% + ${offsetPx}px)) translateY(-50%) scale(${scale})`,
+                    opacity,
+                    zIndex,
+                    filter: `brightness(${brightness})`,
+                    transition: 'transform 0.9s cubic-bezier(0.34,1.56,0.64,1), opacity 0.7s ease-out, filter 0.7s ease',
+                    cursor: 'pointer',
+                    willChange: 'transform, opacity',
+                  }}
+                  onClick={() => { if (!isActive) offset < 0 ? prev() : next() }}
+                >
+                  {/* Pop-in animation wrapper — remounts when active changes */}
+                  <div
+                    key={isActive ? animKey : 'idle'}
+                    className={isActive ? 'arch-card-in' : ''}
+                  >
+                    <Link
+                      href={isActive ? getDetailLink(card) : '#'}
+                      onClick={e => { if (!isActive) e.preventDefault() }}
+                      className="group block"
+                    >
+                      <img
+                        src={normalizePath(card?.image_url)}
+                        alt={getTitle(card)}
+                        className="w-full block transition-transform duration-700 group-hover:scale-[1.03]"
+                        style={{ aspectRatio: '210/297', objectFit: 'contain', background: '#fff', display: 'block' }}
+                        onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
+                      />
+                    </Link>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
 
-          {/* Prev / Next — grouped pair, slides-page style, dir=ltr so arrows never flip */}
-          {hasMultiple && (
-            <div dir="ltr" className="flex gap-1 flex-shrink-0">
-              <button
-                onClick={prev}
-                className="flex items-center justify-center rounded-xl w-9 h-9 text-white bg-red-700 hover:bg-red-800 transition-colors duration-200 select-none"
-              >
-                <i className="ri-arrow-left-s-line text-xl" />
-              </button>
-              <button
-                onClick={next}
-                className="flex items-center justify-center rounded-xl w-9 h-9 text-white bg-red-700 hover:bg-red-800 transition-colors duration-200 select-none"
-              >
-                <i className="ri-arrow-right-s-line text-xl" />
-              </button>
-            </div>
-          )}
-
-          {/* Text block — width tracks the image card */}
+          {/* Text for active item */}
           <div
             className="text-center flex-shrink-0"
             style={{ width: 'clamp(220px, 66vw, 380px)' }}
             dir={isRtl ? 'rtl' : 'ltr'}
           >
-            {getCategoryName(item) && (
+            {getCategoryName(activeItem) && (
               <span
                 className="inline-flex items-center text-[11px] font-bold px-3 py-1 rounded-full mb-1.5"
-                style={{ background: 'rgba(122,0,0,0.09)', color: '#7a0000', border: '1px solid rgba(122,0,0,0.2)', fontFamily: font.fontFamily || 'inherit' }}
+                style={{ background: 'rgba(122,0,0,0.09)', color: '#7a0000', border: '1px solid rgba(122,0,0,0.2)', ...font }}
               >
-                {getCategoryName(item)}
+                {getCategoryName(activeItem)}
               </span>
             )}
-
             <h3 className="text-base sm:text-lg font-black text-neutral-900 leading-snug line-clamp-1 mb-1" style={font}>
-              {getTitle(item)}
+              {getTitle(activeItem)}
             </h3>
-
             <p className="text-neutral-600 text-xs sm:text-sm leading-relaxed line-clamp-2 mb-1.5" style={font}>
-              {getDescription(item)}
+              {getDescription(activeItem)}
             </p>
-
-            <Link href={getDetailLink(item)} className="inline-flex items-center gap-1.5 group/rm">
+            <Link href={getDetailLink(activeItem)} className="inline-flex items-center gap-1.5 group/rm">
               <span className="text-[#7a0000] text-[11px] sm:text-xs font-bold tracking-wide group-hover/rm:underline" style={font}>
-                {isAr ? 'اقرأ المزيد' : isKu ? 'زیاتر بخوێنەوە' : 'Read more'}
+                {readMore}
               </span>
               <i className={`ri-arrow-${isRtl ? 'left' : 'right'}-line text-[#7a0000] text-xs transition-transform duration-200 ${isRtl ? 'group-hover/rm:-translate-x-0.5' : 'group-hover/rm:translate-x-0.5'}`} />
             </Link>
@@ -248,26 +316,51 @@ export default function ArchivePreview({ currentLang = 'en' }) {
 
         </div>
 
-        {/* ③ Dots + View All — pinned to bottom */}
+        {/* ③ Dots + View All */}
         <div className="flex flex-col items-center gap-3 flex-shrink-0">
 
           {hasMultiple && (
-            <div className="flex justify-center items-center gap-2">
+            <div className="flex justify-center items-center gap-3">
+              {/* Prev */}
+              <button
+                onClick={prev}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90"
+                style={{ background: 'rgba(122,0,0,0.12)', border: '1px solid rgba(122,0,0,0.25)', color: '#7a0000' }}
+                aria-label="Previous"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'scaleX(-1)' }}>
+                  <path d="M15 18l-6-6 6-6" />
+                </svg>
+              </button>
+
+              {/* Dots */}
               {archive.map((_, i) => (
                 <button
                   key={i}
-                  onClick={() => { setCurrentIndex(i); setProgress(0) }}
+                  onClick={() => goTo(i)}
                   className="relative overflow-hidden rounded-full transition-all duration-300"
                   style={{ width: i === currentIndex ? 28 : 6, height: 6, background: i === currentIndex ? 'rgba(200,169,110,0.45)' : 'rgba(0,0,0,0.18)' }}
                 >
                   {i === currentIndex && (
                     <span
                       className="absolute inset-y-0 left-0 rounded-full"
-                      style={{ width: `${progress}%`, background: '#c8a96e', transition: 'width 50ms linear' }}
+                      style={{ width: `${progress}%`, background: '#c8a96e', transition: `width ${TICK_MS}ms linear` }}
                     />
                   )}
                 </button>
               ))}
+
+              {/* Next */}
+              <button
+                onClick={next}
+                className="w-8 h-8 rounded-full flex items-center justify-center transition-all active:scale-90"
+                style={{ background: 'rgba(122,0,0,0.12)', border: '1px solid rgba(122,0,0,0.25)', color: '#7a0000' }}
+                aria-label="Next"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: 'scaleX(-1)' }}>
+                  <path d="M9 18l6-6-6-6" />
+                </svg>
+              </button>
             </div>
           )}
 

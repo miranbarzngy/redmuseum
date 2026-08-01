@@ -789,7 +789,10 @@ export default function ArchiveManagement() {
 
             {/* Image upload */}
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-2">Archive Image</label>
+              <label className="block text-xs font-medium text-gray-500 mb-0.5">Archive Image</label>
+              <p className="text-xs text-gray-400 mb-2">
+                A4 portrait — best <strong>2480 × 3508 px</strong> (300 dpi) · JPG or PNG · shown full image in card
+              </p>
               <div className="flex gap-2">
                 <input type="text" name="image_url" value={formData.image_url} onChange={handleInputChange} placeholder="Image URL or upload" className={inputCls} />
                 <label className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl cursor-pointer shrink-0 shadow-md transition-all ${uploading ? 'bg-gray-200 text-gray-500' : 'bg-gradient-to-br from-blue-600 to-blue-800 hover:from-blue-700 hover:to-blue-900 text-white shadow-blue-900/30'}`}>

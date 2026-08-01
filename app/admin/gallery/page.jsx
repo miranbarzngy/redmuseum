@@ -526,7 +526,10 @@ export default function GalleryManagement() {
           <form onSubmit={handleSave} className="p-6 space-y-5">
             {/* Image upload */}
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-2">Image</label>
+              <label className="block text-xs font-medium text-gray-500 mb-0.5">Image</label>
+              <p className="text-xs text-gray-400 mb-2">
+                Landscape or square recommended — best <strong>1920 × 1080 px</strong> (landscape) or <strong>1080 × 1080 px</strong> (square) · JPG or PNG
+              </p>
               <div className="flex gap-2">
                 <input
                   type="text"
