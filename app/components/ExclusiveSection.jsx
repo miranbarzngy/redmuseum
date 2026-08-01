@@ -5,228 +5,50 @@ import { getSupabaseClient } from '../lib/supabase-client'
 import { useMuseumName } from '../lib/useMuseumName'
 import Image from 'next/image'
 
-const SLIDE_DURATION = 7000
+const SLIDE_DURATION = 6000
+const TICK_MS        = 80
+const TICK_STEP      = (TICK_MS / SLIDE_DURATION) * 100
 
-function DateDisplay({ dateStr, lang }) {
-  const d = new Date(dateStr)
-  const dd = String(d.getDate()).padStart(2, '0')
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  const yyyy = String(d.getFullYear())
-
-  const label = lang === 'ku' ? 'بەروار' : lang === 'ar' ? 'التاريخ' : 'DATE'
-
-  return (
-    <div className="flex flex-col items-center py-1" dir="ltr">
-      <div className="flex items-center gap-1.5">
-        {[yyyy, mm, dd].map((part, i) => (
-          <div key={i} className="flex items-center gap-2.5">
-            <span
-              className="flip-digit text-white font-bold tracking-widest"
-              style={{
-                ...DIGIT_STYLE,
-                fontSize: '18px',
-                textShadow: '0 0 14px rgba(255,100,100,0.4)',
-              }}
-              lang="en"
-            >
-              {part}
-            </span>
-            {i < 2 && (
-              <span
-                className="text-[#c8a96e]/60 font-bold select-none"
-                style={{ fontSize: '16px' }}
-              >
-                /
-              </span>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// Flip animation styles injected once
-const flipStyles = `
-  .flip-card { perspective: 600px; }
-
-  .flip-top {
-    position: absolute; top: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(180deg, #1a0000 0%, #4a0000 50%, #6b0000 100%);
-    border-radius: 10px 10px 0 0;
-    overflow: hidden; transform-origin: bottom;
-    backface-visibility: hidden;
-    display: flex; align-items: flex-end; justify-content: center;
-    border: 1.5px solid rgba(200,169,110,0.45);
-    border-bottom: none;
+/* ─────────────────────────────────────────────────────────────────
+   Entrance keyframes
+───────────────────────────────────────────────────────────────── */
+const HERO_CSS = `
+  @keyframes hFadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
   }
-  .flip-top::after {
-    content: '';
-    position: absolute; inset-x-0; top: 0; height: 45%;
-    background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
-    border-radius: 10px 10px 0 0;
+  @keyframes hScaleIn {
+    from { opacity:0; transform:scale(0.94) translateY(14px); }
+    to   { opacity:1; transform:scale(1) translateY(0); }
   }
-
-  .flip-bottom {
-    position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(180deg, #6b0000 0%, #3a0000 50%, #0d0000 100%);
-    border-radius: 0 0 10px 10px;
-    overflow: hidden; transform-origin: top;
-    backface-visibility: hidden;
-    display: flex; align-items: flex-start; justify-content: center;
-    border: 1.5px solid rgba(200,169,110,0.45);
-    border-top: none;
+  @keyframes ambientDrift {
+    0%,100% { transform:scale(1) translate(0,0);          opacity:0.5;  }
+    33%      { transform:scale(1.10) translate(10px,-6px); opacity:0.7;  }
+    66%      { transform:scale(0.96) translate(-6px,8px);  opacity:0.45; }
   }
-
-  .flip-top span { transform: translateY(50%); }
-  .flip-bottom span { transform: translateY(-50%); }
-
-  /* Flap that animates — top half folding down */
-  .flip-flap {
-    position: absolute; top: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(180deg, #1a0000 0%, #4a0000 50%, #6b0000 100%);
-    border-radius: 10px 10px 0 0;
-    overflow: hidden; transform-origin: bottom;
-    animation: flipDown 0.45s ease-in-out forwards;
-    z-index: 30;
-    display: flex; align-items: flex-end; justify-content: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.9), 0 3px 10px rgba(100,0,0,0.4);
-    border: 1.5px solid rgba(200,169,110,0.45); border-bottom: none;
-  }
-  .flip-flap span { transform: translateY(50%); }
-
-  @keyframes flipDown {
-    0%   { transform: rotateX(0deg); }
-    100% { transform: rotateX(-90deg); }
-  }
-
-  /* Bottom reveal that appears after flap passes */
-  .flip-reveal {
-    position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
-    background: linear-gradient(180deg, #6b0000 0%, #3a0000 50%, #0d0000 100%);
-    border-radius: 0 0 10px 10px;
-    overflow: hidden; transform-origin: top;
-    animation: flipReveal 0.45s ease-in-out forwards;
-    z-index: 25;
-    display: flex; align-items: flex-start; justify-content: center;
-    border: 1.5px solid rgba(200,169,110,0.45); border-top: none;
-  }
-  .flip-reveal span { transform: translateY(-50%); }
-
-  @keyframes flipReveal {
-    0%   { transform: rotateX(90deg); }
-    100% { transform: rotateX(0deg); }
-  }
-
-  /* Center divider */
-  .flip-divider {
-    position: absolute; top: 50%; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(200,169,110,0.6) 20%, rgba(200,169,110,0.6) 80%, transparent);
-    z-index: 40;
-    transform: translateY(-50%);
-  }
-
-  /* Pulsing colon */
-  @keyframes colonPulse {
-    0%, 100% { opacity: 0.9; transform: scale(1) translateY(-12px); }
-    50%       { opacity: 0.35; transform: scale(0.85) translateY(-12px); }
-  }
-  .colon-pulse { animation: colonPulse 1s ease-in-out infinite; }
-
-  /* Force Western digits — overrides any locale/font substitution */
-  .flip-digit {
-    font-family: 'Courier New', 'Lucida Console', 'Courier', monospace !important;
-    direction: ltr !important;
-    unicode-bidi: embed !important;
-    font-variant-numeric: tabular-nums !important;
-    font-feature-settings: 'tnum' 1 !important;
-  }
-
-  @keyframes bgFadeIn {
-    from { opacity: 0; }
-    to   { opacity: 1; }
-  }
+  .h-up  { animation: hFadeUp  0.6s  cubic-bezier(.22,1,.36,1) both; }
+  .h-img { animation: hScaleIn 0.75s cubic-bezier(.22,1,.36,1) both; }
+  .d1 { animation-delay: .07s; }
+  .d2 { animation-delay: .16s; }
+  .d3 { animation-delay: .28s; }
+  .d4 { animation-delay: .42s; }
+  .d5 { animation-delay: .56s; }
 `
 
-const DIGIT_STYLE = {
-  fontFamily: "'Courier New', 'Lucida Console', 'Courier', monospace",
-  direction: 'ltr',
-  unicodeBidi: 'isolate',
-  fontVariantNumeric: 'tabular-nums',
-  fontFeatureSettings: "'tnum' 1",
-}
-
-// Shared sizing — used by both FlipCard and Countdown's separator wrapper
-const CARD_W = 'clamp(28px, calc((100vw - 140px) / 8), 58px)'
-const CARD_H = 'clamp(34px, calc((100vw - 140px) / 7), 70px)'
-const NUM_FS = 'clamp(10px, calc((100vw - 140px) / 19), 24px)'
-
-function FlipCard({ value }) {
-  const [display, setDisplay] = useState(value)
-  const [next, setNext]       = useState(value)
-  const [flipping, setFlipping] = useState(false)
-
-  useEffect(() => {
-    if (value === display) return
-    setNext(value)
-    setFlipping(true)
-    const t = setTimeout(() => { setDisplay(value); setFlipping(false) }, 450)
-    return () => clearTimeout(t)
-  }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const cardW = CARD_W
-  const cardH = CARD_H
-  const numFs = NUM_FS
-  const spanSt = { ...DIGIT_STYLE, fontSize: numFs }
-
-  return (
-    <div
-      className="relative flip-card"
-      style={{
-        width: cardW, height: cardH,
-        perspective: 600,
-        filter: 'drop-shadow(0 6px 18px rgba(80,0,0,0.7)) drop-shadow(0 2px 6px rgba(0,0,0,0.9))',
-      }}
-    >
-      <div className="flip-bottom">
-        <span className="flip-digit text-white font-bold" style={spanSt} lang="en">{display}</span>
-      </div>
-      <div className="flip-top">
-        <span className="flip-digit text-white font-bold" style={spanSt} lang="en">{display}</span>
-      </div>
-
-      {flipping && <>
-        <div className="flip-flap">
-          <span className="flip-digit text-white font-bold" style={spanSt} lang="en">{display}</span>
-        </div>
-        <div className="flip-reveal">
-          <span className="flip-digit text-white font-bold" style={spanSt} lang="en">{next}</span>
-        </div>
-        <div className="flip-top" style={{ zIndex: 20 }}>
-          <span className="flip-digit text-white font-bold" style={spanSt} lang="en">{next}</span>
-        </div>
-      </>}
-
-      <div className="flip-divider" />
-    </div>
-  )
-}
-
-function Countdown({ targetTime, lang, onFinish }) {
+/* ─────────────────────────────────────────────────────────────────
+   CountdownBadge — full-size (desktop) or compact (mobile)
+───────────────────────────────────────────────────────────────── */
+function CountdownBadge({ targetTime, lang, kuFont, compact = false, onFinish }) {
   const [parts, setParts] = useState({ d: '--', h: '--', m: '--', s: '--' })
-  const finishedRef = useRef(false)
+  const doneRef = useRef(false)
 
   useEffect(() => {
-    finishedRef.current = false
-    const calc = () => {
-      const diff = new Date(targetTime) - new Date()
+    doneRef.current = false
+    const tick = () => {
+      const diff = new Date(targetTime) - Date.now()
       if (diff <= 0) {
         setParts({ d: '00', h: '00', m: '00', s: '00' })
-        if (!finishedRef.current) {
-          finishedRef.current = true
-          onFinish?.()
-        }
+        if (!doneRef.current) { doneRef.current = true; onFinish?.() }
         return
       }
       setParts({
@@ -236,417 +58,554 @@ function Countdown({ targetTime, lang, onFinish }) {
         s: String(Math.floor((diff % 60000) / 1000)).padStart(2, '0'),
       })
     }
-    calc()
-    const id = setInterval(calc, 1000)
+    tick()
+    const id = setInterval(tick, 1000)
     return () => clearInterval(id)
-  }, [targetTime])
+  }, [targetTime]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const labels = lang === 'ku'
-    ? ['ڕۆژ', 'کاتژمێر', 'خولەک', 'چرکە']
-    : lang === 'ar'
-    ? ['يوم', 'ساعة', 'دقيقة', 'ثانية']
-    : ['DAYS', 'HOURS', 'MINS', 'SECS']
+  const labels = lang === 'ku' ? ['ڕۆژ', 'کاتژمێر', 'خولەک', 'چرکە']
+    : lang === 'ar' ? ['يوم', 'ساعة', 'دقيقة', 'ثانية']
+    : ['D', 'H', 'M', 'S']
+  const vals = [parts.d, parts.h, parts.m, parts.s]
 
-  const units = [parts.d, parts.h, parts.m, parts.s]
+  /* ── Compact inline version for mobile meta row ── */
+  if (compact) {
+    return (
+      <div
+        className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1"
+        style={{
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.15)',
+          backdropFilter: 'blur(10px)',
+        }}
+        dir="ltr"
+      >
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none" className="shrink-0">
+          <circle cx="8" cy="8" r="6.5" stroke="#f59e0b" strokeWidth="1.4"/>
+          <path d="M8 5v3.5L10 10" stroke="#f59e0b" strokeWidth="1.4" strokeLinecap="round"/>
+        </svg>
+        <span
+          className="text-white font-black"
+          style={{ fontFamily: "'Courier New',monospace", fontSize: '11px', fontVariantNumeric: 'tabular-nums' }}
+        >
+          {vals[0]}<span className="text-amber-400/60">:</span>{vals[1]}<span className="text-amber-400/60">:</span>{vals[2]}<span className="text-amber-400/60">:</span>{vals[3]}
+        </span>
+      </div>
+    )
+  }
 
-  // Tighter gaps so 4 cards + 3 separators fit in the ~440px half-column at lg
-  const itemGap = 'clamp(3px, 1vw, 13px)'
-  const dotSize = 'clamp(3px, 0.7vw, 7px)'
-  const dotGap  = 'clamp(2px, 0.5vw, 6px)'
+  /* ── Full version for desktop ── */
+  return (
+    <div
+      className="inline-flex items-center gap-1 rounded-xl px-2.5 py-1.5 sm:px-4 sm:py-2"
+      style={{
+        background: 'rgba(255,255,255,0.07)',
+        backdropFilter: 'blur(14px)',
+        border: '1px solid rgba(255,255,255,0.13)',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.22)',
+      }}
+      dir="ltr"
+    >
+      <span
+        className="hidden sm:inline text-amber-400/70 font-bold uppercase tracking-[0.2em] mr-1.5"
+        style={{ fontSize: '8px', ...kuFont }}
+      >
+        {lang === 'ku' ? 'ماوە' : lang === 'ar' ? 'العد' : 'Timer'}
+      </span>
+      {vals.map((v, i) => (
+        <div key={i} className="flex items-center gap-0.5 sm:gap-1">
+          <div className="flex flex-col items-center gap-0.5">
+            <span
+              className="text-white font-black leading-none"
+              style={{ fontFamily: "'Courier New',monospace", fontSize: 'clamp(12px,2.2vw,20px)', fontVariantNumeric: 'tabular-nums' }}
+            >
+              {v}
+            </span>
+            <span className="text-white/35 uppercase leading-none" style={{ fontSize: '6px', letterSpacing: '0.06em', ...kuFont }}>
+              {labels[i]}
+            </span>
+          </div>
+          {i < 3 && (
+            <span className="text-amber-400/50 font-black" style={{ fontSize: 'clamp(11px,1.8vw,16px)', lineHeight: 1, paddingBottom: '8px' }}>
+              :
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Arrow button — hidden on mobile via hidden md:flex
+───────────────────────────────────────────────────────────────── */
+function ArrowBtn({ onClick, dir: direction }) {
+  const [hovered, setHovered] = useState(false)
+  const posClass = direction === 'prev' ? 'left-3 md:left-4' : 'right-3 md:right-4'
 
   return (
-    <>
-      <style>{flipStyles}</style>
-      <div
-        className="relative rounded-2xl w-full"
-        style={{
-          background: 'transparent',
-          padding: 'clamp(10px, 2.5vw, 28px) clamp(6px, 1.5vw, 32px)',
-        }}
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className={`hidden md:flex absolute ${posClass} top-1/2 z-20 w-10 h-10 rounded-full items-center justify-center transition-all duration-200 active:scale-90`}
+      style={{
+        transform: 'translateY(-50%)',
+        background: hovered ? 'rgba(245,158,11,0.92)' : 'rgba(0,0,0,0.32)',
+        backdropFilter: 'blur(10px)',
+        border: `1px solid ${hovered ? 'rgba(245,158,11,0.6)' : 'rgba(255,255,255,0.18)'}`,
+        boxShadow: hovered ? '0 0 22px rgba(245,158,11,0.35)' : '0 4px 14px rgba(0,0,0,0.28)',
+      }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+        stroke={hovered ? '#0c0a09' : 'white'}
+        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
       >
-        {/* dir="ltr" ensures Days is always on the LEFT regardless of page RTL */}
-        <div
-          className="flex items-center justify-center flex-nowrap"
-          style={{ gap: itemGap, direction: 'ltr' }}
-        >
-          {units.map((val, i) => (
-            <div key={i} className="flex items-start flex-nowrap" style={{ gap: itemGap }}>
-              <div className="flex flex-col items-center" style={{ gap: 'clamp(4px, 0.8vw, 10px)' }}>
-                <FlipCard value={val} />
-                <div className="flex flex-col items-center" style={{ gap: '2px' }}>
-                  <div className="w-5 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/60 to-transparent" />
-                  <span
-                    className="font-bold text-[#c8a96e] uppercase"
-                    style={{
-                      fontSize: 'clamp(7px, 1.4vw, 12px)',
-                      letterSpacing: '0.12em',
-                      fontFamily: lang === 'ku' || lang === 'ar' ? 'UniSalar, Tahoma, sans-serif' : 'inherit',
-                      textShadow: '0 0 10px rgba(200,169,110,0.5)',
-                    }}
-                  >
-                    {labels[i]}
-                  </span>
-                </div>
-              </div>
+        {direction === 'prev' ? <path d="M15 18l-6-6 6-6" /> : <path d="M9 18l6-6-6-6" />}
+      </svg>
+    </button>
+  )
+}
 
-            </div>
-          ))}
-        </div>
-      </div>
+/* ─────────────────────────────────────────────────────────────────
+   Shared image card innards — reused in both layouts
+───────────────────────────────────────────────────────────────── */
+function ImageCardInner({ slide, current, total, getText, isRtl, kuFont }) {
+  return (
+    <>
+
+      {/* Image */}
+      {slide.image_url
+        ? <Image src={slide.image_url} alt={getText(slide, 'title')} fill className="object-cover object-center" unoptimized sizes="(max-width: 767px) 100vw, 360px" />
+        : <div className="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
+            <span className="text-5xl opacity-20">🏛️</span>
+          </div>
+      }
+
     </>
   )
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   Museum name pill (reused in both layouts)
+───────────────────────────────────────────────────────────────── */
+function MuseumPill({ musName, kuFont }) {
+  return (
+    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-slate-900/90 text-white px-3 py-1 rounded-full border border-white/20 shadow-lg backdrop-blur-md whitespace-nowrap max-w-[85vw]">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/android-chrome-192x192.png" alt="" className="w-4 h-4 rounded object-contain shrink-0" />
+      <span style={{ fontSize: '11px', ...kuFont }}>{musName}</span>
+    </div>
+  )
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Main component
+───────────────────────────────────────────────────────────────── */
 export default function ExclusiveSection({ currentLang = 'ku' }) {
-  const [slides, setSlides] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [current, setCurrent] = useState(0)
-  const [displayed, setDisplayed] = useState(0)
-  const [fading, setFading] = useState(false)
+  const [slides, setSlides]     = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [current, setCurrent]   = useState(0)
+  const [animKey, setAnimKey]   = useState(0)
+  const [progress, setProgress] = useState(0)
   const [countdownDone, setCountdownDone] = useState(false)
-  const [bgColor, setBgColor] = useState('#000000')
 
-  const museumName = useMuseumName()
+  const pausedRef    = useRef(false)
+  const progRef      = useRef(0)
+  const slidesRef    = useRef([])
+  const currRef      = useRef(0)
+  const touchStartX  = useRef(null)
+  const museumName   = useMuseumName()
 
-  useEffect(() => {
-    const supabase = getSupabaseClient()
-    supabase?.from('settings').select('exclusive_bg_color').single()
-      .then(({ data }) => { if (data?.exclusive_bg_color) setBgColor(data.exclusive_bg_color) })
-  }, [])
+  useEffect(() => { slidesRef.current = slides }, [slides])
+  useEffect(() => { currRef.current   = current }, [current])
 
-  const lang = currentLang === 'ku' ? 'ku' : currentLang === 'ar' ? 'ar' : 'en'
-  const isRtl = lang === 'ku' || lang === 'ar'
-  const museumNameDisplay = lang === 'ar' ? museumName.ar : lang === 'ku' ? museumName.kr : museumName.en
+  const lang    = currentLang === 'ku' ? 'ku' : currentLang === 'ar' ? 'ar' : 'en'
+  const isRtl   = lang === 'ku' || lang === 'ar'
+  const musName = lang === 'ar' ? museumName.ar : lang === 'ku' ? museumName.kr : museumName.en
+  const kuFont  = lang === 'ku' ? { fontFamily: 'UniSalar, Tahoma, sans-serif' }
+    : lang === 'ar' ? { fontFamily: 'ArabicFont, Tahoma, sans-serif' } : {}
 
-  const getText = (slide, field) =>
-    slide[`${field}_${lang}`] || slide[`${field}_en`] || ''
+  const getText = (s, f) => s[`${f}_${lang}`] || s[`${f}_en`] || ''
 
+  /* ── Data fetch ── */
   const fetchSlides = useCallback(async () => {
-    const supabase = getSupabaseClient()
-    if (!supabase) { setLoading(false); return }
+    const sb = getSupabaseClient()
+    if (!sb) { setLoading(false); return }
     try {
-      const { data } = await supabase
-        .from('exclusive_slides')
-        .select('*')
-        .eq('is_active', true)
-        .order('sort_order', { ascending: true })
+      const { data } = await sb.from('exclusive_slides').select('*')
+        .eq('is_active', true).order('sort_order', { ascending: true })
       setSlides(data || [])
-    } catch (err) {
-      console.error('ExclusiveSection fetch error:', err.message || err)
+    } catch (e) {
+      console.error('ExclusiveSection:', e)
     } finally {
       setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    const supabase = getSupabaseClient()
-    if (!supabase) { setLoading(false); return }
-
+    const sb = getSupabaseClient()
+    if (!sb) { setLoading(false); return }
     fetchSlides()
-
-    return () => {}
   }, [fetchSlides])
 
-  // Auto-advance — stops when current slide is locked
+  /* ── Navigation ── */
+  const goTo = useCallback((idx) => {
+    const total = slidesRef.current.length
+    if (total < 2) return
+    const next = ((idx % total) + total) % total
+    progRef.current = 0
+    setProgress(0)
+    setCurrent(next)
+    setAnimKey(k => k + 1)
+  }, [])
+
+  /* ── Auto-advance ── */
   useEffect(() => {
-    if (slides.length <= 1) return
-    if (slides[current]?.is_locked) return
-    const id = setInterval(() => setCurrent(p => (p + 1) % slides.length), SLIDE_DURATION)
+    if (slides.length < 2) return
+    const id = setInterval(() => {
+      if (pausedRef.current) return
+      if (slidesRef.current[currRef.current]?.is_locked) return
+      progRef.current += TICK_STEP
+      setProgress(progRef.current)
+      if (progRef.current >= 100) {
+        progRef.current = 0
+        setProgress(0)
+        const next = (currRef.current + 1) % slidesRef.current.length
+        setCurrent(next)
+        setAnimKey(k => k + 1)
+      }
+    }, TICK_MS)
     return () => clearInterval(id)
-  }, [slides, current])
+  }, [slides.length])
 
-  // Fade-transition when current changes
+  /* ── Countdown done flag ── */
   useEffect(() => {
-    if (current === displayed) return
-    setFading(true)
-    const t = setTimeout(() => { setDisplayed(current); setFading(false) }, 350)
-    return () => clearTimeout(t)
-  }, [current]) // eslint-disable-line react-hooks/exhaustive-deps
+    const s = slides[current]
+    if (!s?.countdown_to) { setCountdownDone(false); return }
+    setCountdownDone(new Date(s.countdown_to) <= new Date())
+  }, [current, slides])
 
-  // Reset countdownDone when displayed slide changes; pre-check if already expired
-  useEffect(() => {
-    const slide = slides[displayed]
-    if (!slide?.countdown_to) { setCountdownDone(false); return }
-    setCountdownDone(new Date(slide.countdown_to) <= new Date())
-  }, [displayed, slides])
+  /* ── Touch swipe ── */
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX
+    pausedRef.current = true
+  }
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > 50) {
+      goTo(dx > 0 ? currRef.current - 1 : currRef.current + 1)
+    }
+    touchStartX.current = null
+    pausedRef.current = false
+  }
 
+  /* ── Loading / empty ── */
   if (loading) {
     return (
-      <section id="exclusive-section" className="h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex items-center justify-center" style={{ background: bgColor }}>
-        <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin" />
+      <section id="exclusive-section" className="h-[calc(100dvh-4rem)] md:h-screen flex items-center justify-center bg-slate-950">
+        <div className="w-9 h-9 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
       </section>
     )
   }
+  if (!slides.length) return null
 
-  if (slides.length === 0) return null
+  const slide = slides[current]
 
-  const slide = slides[displayed]
+  /* ── Shared meta pill helpers ── */
+  const datePill = slide.event_date && (() => {
+    const d = new Date(slide.event_date)
+    const fmt = [d.getFullYear(), String(d.getMonth() + 1).padStart(2, '0'), String(d.getDate()).padStart(2, '0')].join(' / ')
+    return (
+      <div
+        className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5"
+        style={{ background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.25)', backdropFilter: 'blur(8px)' }}
+        dir="ltr"
+      >
+        <span className="flex items-center justify-center w-5 h-5 rounded-md shrink-0" style={{ background: 'rgba(245,158,11,0.20)' }}>
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+            <rect x="1" y="3" width="14" height="12" rx="2" stroke="#f59e0b" strokeWidth="1.5"/>
+            <path d="M5 1v4M11 1v4M1 7h14" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </span>
+        <span className="text-amber-300 font-bold text-xs leading-none" style={{ fontFamily: "'Courier New',monospace", fontVariantNumeric: 'tabular-nums', letterSpacing: '0.04em' }}>
+          {fmt}
+        </span>
+      </div>
+    )
+  })()
+
+  const phonePills = [slide.phone, slide.phone2].filter(Boolean).map((ph, i) => (
+    <a key={i} href={`tel:${ph}`}
+      className="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 transition-all hover:scale-105 active:scale-95"
+      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.14)', backdropFilter: 'blur(8px)' }}
+      dir="ltr"
+    >
+      <span className="flex items-center justify-center w-5 h-5 rounded-md shrink-0" style={{ background: 'rgba(255,255,255,0.10)' }}>
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
+          <path d="M2 3a1 1 0 011-1h2.5a1 1 0 011 1v1.5a1 1 0 01-.6.92l-.9.36a8 8 0 003.22 3.22l.36-.9A1 1 0 0110.5 7.5H12a1 1 0 011 1V11a1 1 0 01-1 1C6.48 12 2 7.52 2 3z" stroke="rgba(255,255,255,0.7)" strokeWidth="1.4" strokeLinejoin="round"/>
+        </svg>
+      </span>
+      <span className="text-slate-200 font-semibold text-xs leading-none" style={{ fontFamily: "'Courier New',monospace", letterSpacing: '0.05em' }}>{ph}</span>
+    </a>
+  ))
 
   return (
-    <section id="exclusive-section" className="relative text-white flex flex-col h-[calc(100dvh-4rem)] md:h-screen overflow-hidden" style={{ background: bgColor }}>
+    <section
+      id="exclusive-section"
+      className="relative h-[calc(100dvh-4rem)] md:h-screen overflow-hidden bg-slate-950"
+      onMouseEnter={() => { pausedRef.current = true  }}
+      onMouseLeave={() => { pausedRef.current = false }}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <style>{HERO_CSS}</style>
 
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-red-950/20 via-black to-black" />
+      {/* ══════════════════════════════════════════════
+          LAYER 1 — Background crossfade + atmosphere
+      ══════════════════════════════════════════════ */}
+      <div className="absolute inset-0 z-0">
+        {slides.map((s, i) => {
+          const bgSrc = s.bg_image_url || s.image_url
+          return (
+            <div key={s.id} className="absolute inset-0 transition-opacity duration-700 ease-in-out" style={{ opacity: i === current ? 1 : 0 }}>
+              {bgSrc
+                ? <Image src={bgSrc} alt="" fill className="object-cover object-center" unoptimized priority={i === 0} sizes="100vw" />
+                : <div className="absolute inset-0 bg-slate-900" />
+              }
+            </div>
+          )
+        })}
 
-      {/* Fade wrapper — fills all remaining flex space */}
-      <div
-        className="relative z-10 flex flex-col flex-1 min-h-0 md:h-full lg:justify-center"
-        style={{
-          opacity: fading ? 0 : 1,
-          transform: fading ? 'translateY(12px)' : 'translateY(0)',
-          transition: 'opacity 0.35s ease, transform 0.35s ease',
-        }}
-      >
+        {/* Directional gradient */}
+        <div className="absolute inset-0" style={{
+          background: isRtl
+            ? 'linear-gradient(to left,  rgba(2,6,23,0.93) 0%, rgba(2,6,23,0.82) 36%, rgba(2,6,23,0.56) 62%, rgba(2,6,23,0.28) 100%)'
+            : 'linear-gradient(to right, rgba(2,6,23,0.93) 0%, rgba(2,6,23,0.82) 36%, rgba(2,6,23,0.56) 62%, rgba(2,6,23,0.28) 100%)',
+        }} />
+        {/* Mobile scrim overlay — heavier for readability */}
+        <div className="absolute inset-0 md:hidden" style={{ background: 'rgba(2,6,23,0.72)' }} />
 
-      {/* Title */}
-      <div className="text-center pt-3 pb-1 md:pt-4 md:pb-2 px-4 flex-shrink-0">
-        <span className="hidden md:inline-block text-xs font-bold uppercase tracking-[0.3em] text-red-400 bg-red-600/10 border border-red-600/30 px-4 py-1 rounded-full mb-2">
-          ⭐&nbsp;{lang === 'ku' ? 'چالاکییەکانی مۆزەخانە' : lang === 'ar' ? 'أنشطة المتحف' : 'Museum Activities'}
-        </span>
-        <h2
-          className="text-lg md:text-3xl font-bold leading-tight"
-          style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
-          dir={isRtl ? 'rtl' : 'ltr'}
-        >
-          {getText(slide, 'title')}
-        </h2>
-        <div className="w-12 md:w-20 h-1 bg-red-600 mx-auto mt-2" />
+        {/* Ambient glows */}
+        <div className="absolute bottom-[-60px] left-[10%] w-[300px] h-[300px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(185,28,28,0.20) 0%, transparent 68%)', animation: 'ambientDrift 9s ease-in-out infinite' }} />
+        <div className="absolute top-[-40px] right-[8%] w-[260px] h-[260px] rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(245,158,11,0.11) 0%, transparent 68%)', animation: 'ambientDrift 11s ease-in-out infinite reverse' }} />
+
+        {/* Dot-grid texture */}
+        <div className="absolute inset-0 pointer-events-none opacity-[0.65]"
+          style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)', backgroundSize: '28px 28px' }} />
       </div>
 
-      {/* Split layout — flex row on desktop, stacked on mobile */}
-      <div className="flex-1 min-h-0 lg:flex-none max-w-screen-2xl mx-auto w-full flex flex-col lg:flex-row overflow-hidden">
+      {/* ══════════════════════════════════════════════
+          LAYER 2 — Content (animated wrapper)
+      ══════════════════════════════════════════════ */}
+      <div className="relative z-10 h-full" key={animKey} dir={isRtl ? 'rtl' : 'ltr'}>
 
-        {/* IMAGE */}
-        <div className="h-[185px] md:h-[260px] lg:h-auto lg:flex-none lg:w-[60%] flex flex-col justify-center p-2 lg:p-3 xl:p-4">
-          <div
-            className="relative rounded-2xl overflow-hidden w-full h-full lg:aspect-video"
-            style={{
-              border: '1.5px solid rgba(200,169,110,0.5)',
-              boxShadow: '0 0 0 4px rgba(200,169,110,0.06), 0 24px 80px rgba(0,0,0,0.85)',
-            }}
-          >
-            {slide.image_url ? (
-              <Image
-                src={slide.image_url}
-                alt={getText(slide, 'title')}
-                fill
-                className="object-cover object-center"
-                unoptimized
-                sizes="(max-width: 1024px) 100vw, 60vw"
-              />
-            ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-red-900/30 to-black/60 flex items-center justify-center">
-                <span className="text-8xl opacity-20">⭐</span>
+        {/* ╔══════════════════════════════════════════╗
+            ║  MOBILE LAYOUT  (< md / below 768px)    ║
+            ╚══════════════════════════════════════════╝ */}
+        <div className="md:hidden h-full flex flex-col items-center px-4 py-5 max-w-md mx-auto">
+
+          {/* 1 ── Hero image card — 9:16 portrait ratio */}
+          <div className="relative shrink-0 mt-1 h-img w-[52%] sm:w-[48%] mx-auto aspect-[4/5]">
+            <div className="absolute inset-0 rounded-2xl overflow-hidden">
+              <ImageCardInner slide={slide} current={current} total={slides.length} getText={getText} isRtl={isRtl} kuFont={kuFont} />
+            </div>
+            <MuseumPill musName={musName} kuFont={kuFont} />
+          </div>
+
+          {/* Gap that clears the museum pill (-bottom-3 = 12px) + breathing room */}
+          <div className="h-5 shrink-0" />
+
+          {/* 2 ── Centered content stack */}
+          <div className="w-full flex-1 flex flex-col items-center justify-center gap-2 min-h-0" dir="ltr">
+
+            {/* Category badge */}
+            <div
+              className="h-up d1 inline-flex items-center gap-1.5 rounded-full px-3 py-1 mx-auto"
+              style={{ background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.30)', backdropFilter: 'blur(8px)' }}
+            >
+              <span className="text-amber-400 font-black text-[9px]">✦</span>
+              <span className="text-amber-300 font-bold uppercase tracking-[0.18em] text-[9px]" style={kuFont}>
+                {lang === 'ku' ? 'چالاکی تایبەتی مۆزەخانە' : lang === 'ar' ? 'نشاط خاص' : 'Museum Exclusive'}
+              </span>
+            </div>
+
+            {/* Headline */}
+            <h2
+              className="h-up d2 text-xl sm:text-2xl font-black text-white leading-snug text-center max-w-xs sm:max-w-sm mx-auto"
+              style={{ ...kuFont, textShadow: '0 2px 18px rgba(0,0,0,0.6)' }}
+            >
+              {getText(slide, 'title')}
+            </h2>
+
+            {/* Description */}
+            {getText(slide, 'description') && (
+              <p className="h-up d3 text-xs text-slate-300/90 text-center line-clamp-2 max-w-xs mx-auto leading-relaxed" style={kuFont}>
+                {getText(slide, 'description')}
+              </p>
+            )}
+
+            {/* Countdown — full display, above date/phone */}
+            {slide.countdown_to && !countdownDone && (
+              <div className="h-up d3">
+                <CountdownBadge targetTime={slide.countdown_to} lang={lang} kuFont={kuFont} onFinish={() => setCountdownDone(true)} />
               </div>
             )}
 
-            {/* Bottom gradient for logo readability */}
-            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/80 to-transparent" />
-
-            {/* Museum logo watermark — bottom left */}
-            <div className="absolute bottom-2.5 left-3 flex items-center gap-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/android-chrome-192x192.png"
-                alt=""
-                className="w-8 h-8 rounded-lg object-cover bg-white p-0.5 shrink-0"
-                style={{ border: '1px solid rgba(200,169,110,0.4)' }}
-              />
-              <div>
-                <p className="text-[8px] text-[#c8a96e]/70 uppercase tracking-[0.15em] leading-none mb-0.5">
-                  {museumName.en}
-                </p>
-                <p className="text-white text-[10px] font-semibold leading-tight" style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                  {museumNameDisplay}
-                </p>
+            {/* Date + phone row */}
+            {(slide.event_date || slide.phone || slide.phone2) && (
+              <div className="h-up d4 flex items-center justify-center gap-1.5 flex-wrap">
+                {datePill}
+                {phonePills}
               </div>
-            </div>
+            )}
 
-            {/* Top gold shimmer */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/60 to-transparent" />
-            {/* Bottom gold shimmer */}
-            <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/40 to-transparent" />
-          </div>
-        </div>
-
-        {/* CARD SIDE */}
-        <div className="flex-1 min-h-0 lg:flex-none lg:w-[40%] px-3 md:px-6 lg:pl-8 lg:pr-8 pt-2 pb-2 lg:pb-4 flex flex-col overflow-hidden">
-
-          {/* Invitation card — scrolls internally if content overflows */}
-          <div
-            className="flex-1 min-h-0 relative rounded-2xl overflow-hidden flex flex-col"
-            style={{
-              background: 'linear-gradient(160deg, #0d0000 0%, #180000 50%, #0a0a0a 100%)',
-              border: '1px solid rgba(200,169,110,0.2)',
-              boxShadow: '0 24px 64px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04)',
-            }}
-            dir={isRtl ? 'rtl' : 'ltr'}
-          >
-            {/* Top gold highlight — pinned */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/50 to-transparent" />
-
-            {/* Scrollable content */}
-            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col">
-
-              {/* Museum header — hidden on mobile */}
-              <div
-                className="hidden md:block px-4 md:px-5 pt-3 md:pt-4 pb-2 flex-shrink-0"
-                style={{ background: 'linear-gradient(180deg, rgba(100,0,0,0.35) 0%, transparent 100%)' }}
+            {/* Primary CTA */}
+            {slide.link && (
+              <a
+                href={slide.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="h-up d5 mx-auto inline-flex items-center justify-center gap-2 px-8 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all active:scale-95 hover:scale-105 shadow-lg"
+                style={{ ...kuFont, background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#0c0a09', boxShadow: '0 6px 22px rgba(245,158,11,0.40)' }}
               >
-                <div className="flex items-center gap-2 md:gap-3" dir="ltr">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src="/android-chrome-192x192.png"
-                    alt=""
-                    className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl object-cover shrink-0 bg-white p-0.5"
-                    style={{ border: '1px solid rgba(200,169,110,0.3)' }}
-                  />
-                  <div className={isRtl ? 'text-right flex-1' : 'flex-1'}>
-                    <p className="text-[9px] text-[#c8a96e]/60 uppercase tracking-[0.25em] leading-none mb-1">
-                      {museumName.en}
-                    </p>
-                    <p
-                      className="text-sm text-white/90 font-semibold leading-snug"
-                      style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}
-                    >
-                      {museumNameDisplay}
-                    </p>
+                <span>🔗</span>
+                <span>{lang === 'ku' ? 'زیاتر بزانە' : lang === 'ar' ? 'اعرف أكثر' : 'Learn More'}</span>
+              </a>
+            )}
+
+          </div>
+
+          {/* 3 ── Bottom spacer — room for the dot indicators (absolute bottom-3) */}
+          <div className="h-8 shrink-0" />
+
+        </div>
+        {/* ╚══════ end mobile layout ══════╝ */}
+
+
+        {/* ╔══════════════════════════════════════════════════════╗
+            ║  TABLET / DESKTOP LAYOUT  (md+ / 768px and above)  ║
+            ╚══════════════════════════════════════════════════════╝ */}
+        <div className="hidden md:flex h-full flex-col">
+          <div className="w-full max-w-7xl mx-auto px-6 lg:px-14 h-full flex flex-col lg:justify-center pt-10 pb-12 lg:py-0">
+
+            <div className="flex flex-col lg:grid lg:grid-cols-12 lg:gap-10 lg:items-center gap-3 lg:gap-0 flex-1 lg:flex-none min-h-0">
+
+              {/* Image column */}
+              <div className="order-first lg:order-last lg:col-span-5 flex items-center justify-center shrink-0 lg:shrink h-img d3 pb-6 lg:pb-0">
+                <div className="relative w-full max-w-[260px] md:max-w-[300px] lg:max-w-[340px] mx-auto aspect-[4/5]">
+                  <div className="absolute inset-0 rounded-2xl lg:rounded-3xl overflow-hidden">
+                    {/* Ambient glow — desktop only */}
+                    <div className="hidden lg:block absolute -inset-6 pointer-events-none"
+                      style={{ background: 'radial-gradient(ellipse at center, rgba(245,158,11,0.13) 0%, transparent 68%)', filter: 'blur(20px)' }} />
+                    <ImageCardInner slide={slide} current={current} total={slides.length} getText={getText} isRtl={isRtl} kuFont={kuFont} />
+                  </div>
+                  {/* Museum pill */}
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-slate-900/90 text-white px-4 py-1.5 rounded-full border border-white/20 shadow-xl backdrop-blur-md text-xs sm:text-sm font-medium whitespace-nowrap max-w-[90vw]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/android-chrome-192x192.png" alt="" className="w-5 h-5 rounded object-contain shrink-0" />
+                    <span style={kuFont}>مۆزەخانەی نیشتمانیی ئەمنە سوورەکە</span>
                   </div>
                 </div>
-                <div className="mt-2 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/40 to-transparent" />
               </div>
 
-              {/* Title in gold */}
-              <div className="px-4 md:px-5 pt-2 md:pt-3 pb-2">
-                <p
-                  className="text-[#c8a96e] text-base md:text-lg font-bold leading-snug"
-                  style={{
-                    fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit',
-                    textShadow: '0 0 20px rgba(200,169,110,0.35)',
-                  }}
-                >
+              {/* Text column */}
+              <div className={`order-last lg:order-first lg:col-span-7 flex flex-col gap-3 lg:gap-4 min-h-0 items-start ${isRtl ? 'text-right' : ''}`}>
+
+                {/* Badge */}
+                <div className="h-up d1 inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 shrink-0"
+                  style={{ background: 'rgba(245,158,11,0.10)', border: '1px solid rgba(245,158,11,0.28)', backdropFilter: 'blur(8px)' }}>
+                  <span className="text-amber-400 font-black text-[9px]">✦</span>
+                  <span className="text-amber-300 font-bold uppercase tracking-[0.2em] text-[10px]" style={kuFont}>
+                    {lang === 'ku' ? 'چالاکی تایبەتی مۆزەخانە' : lang === 'ar' ? 'نشاط خاص' : 'Museum Exclusive'}
+                  </span>
+                </div>
+
+                {/* Headline */}
+                <h2 className="h-up d2 text-3xl lg:text-5xl xl:text-[3.2rem] font-black leading-tight text-white shrink-0"
+                  style={{ ...kuFont, textShadow: '0 2px 20px rgba(0,0,0,0.55)' }}>
                   {getText(slide, 'title')}
-                </p>
-                <div className="mt-2 h-px bg-gradient-to-r from-transparent via-[#c8a96e]/30 to-transparent" />
-              </div>
+                </h2>
 
-              {/* Description */}
-              {getText(slide, 'description') && (
-                <div className="px-4 md:px-5 pb-2 md:pb-3 flex-1">
-                  <p
-                    className="text-gray-300 text-sm leading-relaxed line-clamp-3 md:line-clamp-none"
-                    style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
-                  >
+                {/* Description */}
+                {getText(slide, 'description') && (
+                  <p className="h-up d3 text-slate-300/90 text-sm lg:text-base leading-relaxed line-clamp-3 shrink-0" style={kuFont}>
                     {getText(slide, 'description')}
                   </p>
-                </div>
-              )}
+                )}
 
-              {/* Phone numbers */}
-              {(slide.phone || slide.phone2) && (
-                <div className="px-4 md:px-5 pb-3 space-y-2">
-                  <div className="h-px bg-gradient-to-r from-transparent via-white/8 to-transparent mb-2" />
-                  {slide.phone && (
-                    <a href={`tel:${slide.phone}`} className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit" dir="rtl">
-                      <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
-                      <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone}</span>
+                {/* Meta pills */}
+                {(slide.event_date || slide.phone || slide.phone2) && (
+                  <div className="h-up d3 flex flex-wrap items-center gap-2 shrink-0">
+                    {datePill}
+                    {phonePills}
+                  </div>
+                )}
+
+                {/* Countdown */}
+                {slide.countdown_to && !countdownDone && (
+                  <div className="h-up d4 shrink-0">
+                    <CountdownBadge targetTime={slide.countdown_to} lang={lang} kuFont={kuFont} onFinish={() => setCountdownDone(true)} />
+                  </div>
+                )}
+
+                {/* CTAs */}
+                <div className={`h-up d5 flex flex-wrap items-center gap-3 shrink-0 ${isRtl ? 'flex-row-reverse' : ''}`}>
+                  {slide.link && (
+                    <a href={slide.link} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full font-black text-sm transition-all hover:scale-105 active:scale-95"
+                      style={{ ...kuFont, background: 'linear-gradient(135deg,#f59e0b,#d97706)', color: '#0c0a09', boxShadow: '0 6px 22px rgba(245,158,11,0.36)' }}>
+                      <span>🔗</span>
+                      <span>{lang === 'ku' ? 'زیاتر بزانە' : lang === 'ar' ? 'اعرف أكثر' : 'Learn More'}</span>
                     </a>
                   )}
-                  {slide.phone2 && (
-                    <a href={`tel:${slide.phone2}`} className="flex items-center gap-3 text-gray-300 hover:text-white transition-colors w-fit" dir="rtl">
-                      <span className="w-7 h-7 rounded-full bg-red-900/60 border border-red-700/40 flex items-center justify-center text-xs shrink-0">📞</span>
-                      <span style={{ fontFamily: "'Courier New', Courier, monospace" }}>{slide.phone2}</span>
-                    </a>
-                  )}
                 </div>
-              )}
 
-              {/* Countdown */}
-              {slide.countdown_to && !countdownDone && (
-                <div className="px-3 md:px-5 pb-3 flex flex-col items-center">
-                  <div className="flex items-center gap-3 mb-2 w-full">
-                    <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[#c8a96e]/30" />
-                    <p
-                      className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#c8a96e]"
-                      style={{
-                        fontFamily: lang === 'ku' || lang === 'ar' ? 'UniSalar, Tahoma, sans-serif' : 'inherit',
-                        textShadow: '0 0 14px rgba(200,169,110,0.5)',
-                      }}
-                    >
-                      {lang === 'ku' ? 'کاتژمێر بۆ دەستپێکردن' : lang === 'ar' ? 'العد التنازلي للبدء' : 'Countdown to Start'}
-                    </p>
-                    <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[#c8a96e]/30" />
-                  </div>
-                  <Countdown targetTime={slide.countdown_to} lang={lang} onFinish={() => setCountdownDone(true)} />
-                </div>
-              )}
-
-              {/* Event date */}
-              {slide.event_date && (
-                <div
-                  className="mx-3 mb-3 rounded-lg overflow-hidden"
-                  style={{
-                    background: 'linear-gradient(135deg, #5a0000 0%, #3a0000 100%)',
-                    border: '1px solid rgba(200,169,110,0.25)',
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.4)',
-                  }}
-                >
-                  <div
-                    className={`px-4 py-1 flex items-center gap-2 ${isRtl ? 'flex-row-reverse' : ''}`}
-                    style={{ background: 'rgba(0,0,0,0.25)' }}
-                  >
-                    <span className="text-[10px] text-[#c8a96e]/70 uppercase tracking-[0.2em]"
-                      style={{ fontFamily: 'UniSalar, Tahoma, sans-serif' }}>
-                      {lang === 'ku' ? 'بەروار' : lang === 'ar' ? 'التاريخ' : 'Date'}
-                    </span>
-                    <div className="flex-1 h-px bg-[#c8a96e]/20" />
-                  </div>
-                  <div className="px-4 pb-3 pt-2 flex justify-center">
-                    <DateDisplay dateStr={slide.event_date} lang={lang} />
-                  </div>
-                </div>
-              )}
-
-              {/* Link button */}
-              {slide.link && (
-                <div className="px-4 md:px-5 pb-4">
-                  <a
-                    href={slide.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 bg-red-700 hover:bg-red-600 text-white font-semibold rounded-full transition-all shadow-lg border border-red-600/30 w-full text-sm"
-                    style={{ fontFamily: lang === 'ku' ? 'UniSalar, Tahoma, sans-serif' : 'inherit' }}
-                  >
-                    🔗&nbsp;{lang === 'ku' ? 'لینک' : lang === 'ar' ? 'زيارة الرابط' : 'Visit Link'}
-                  </a>
-                </div>
-              )}
-
-            </div>{/* end scrollable content */}
-
-            {/* Gold bottom bar — pinned */}
-            <div className="h-1.5 flex-shrink-0 bg-gradient-to-r from-[#c8a96e] via-[#7a0000] to-[#c8a96e]" />
-          </div>{/* end invitation card */}
-
-          {/* Slide dots */}
-          {slides.length > 1 && (
-            <div className="flex justify-center gap-2 mt-3 flex-shrink-0">
-              {slides.map((s, i) => (
-                <button
-                  key={s.id}
-                  onClick={() => setCurrent(i)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    i === current ? 'bg-red-600 w-6' : 'bg-white/30 hover:bg-white/60 w-2'
-                  }`}
-                />
-              ))}
+              </div>{/* /text column */}
             </div>
-          )}
+          </div>
+        </div>
+        {/* ╚══════ end tablet/desktop layout ══════╝ */}
 
-        </div>{/* end card side */}
+      </div>
 
-      </div>{/* end split layout */}
-      </div>{/* end fade wrapper */}
+      {/* ══════════════════════════════════════════════
+          LAYER 3 — Interactive controls  z-20
+          Arrows: hidden on mobile (hidden md:flex in ArrowBtn)
+      ══════════════════════════════════════════════ */}
+      {slides.length > 1 && (
+        <>
+          <ArrowBtn onClick={() => goTo(current - 1)} dir="prev" />
+          <ArrowBtn onClick={() => goTo(current + 1)} dir="next" />
+        </>
+      )}
+
+      {/* Pill indicators — centered bottom */}
+      {slides.length > 1 && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 sm:gap-2">
+          {slides.map((s, i) => (
+            <button key={s.id} onClick={() => goTo(i)}
+              className="rounded-full h-2 transition-all duration-300"
+              style={{
+                width: i === current ? '1.75rem' : '0.5rem',
+                background: i === current ? '#f59e0b' : 'rgba(255,255,255,0.35)',
+                boxShadow: i === current ? '0 0 10px rgba(245,158,11,0.5)' : 'none',
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Progress rail */}
+      {slides.length > 1 && (
+        <div className="absolute bottom-0 inset-x-0 z-20 h-[3px] bg-white/10">
+          <div className="h-full bg-amber-400" style={{ width: `${progress}%`, transition: `width ${TICK_MS}ms linear` }} />
+        </div>
+      )}
+
     </section>
   )
 }

@@ -1,15 +1,14 @@
-﻿'use client'
+'use client'
 
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import QRCode from 'qrcode'
-import { QRCodeSVG } from 'qrcode.react'
+import { QRCodeCanvas, QRCodeSVG } from 'qrcode.react'
 import { useEffect, useRef, useState } from 'react'
 import { getSupabaseClient } from '../lib/supabase-client'
 import { useMuseumName } from '../lib/useMuseumName'
 import Sidebar from './Sidebar'
 
-// Loaded only client-side — face detection pulls TensorFlow.js
 const LiveCameraCapture = dynamic(() => import('./LiveCameraCapture'), { ssr: false })
 
 const t = (ku, ar, en, lang) =>
@@ -22,14 +21,69 @@ const fontStyle = (lang) =>
 
 const EMPTY = { name: '', guest_count: '', phone: '', date: '', time: '', note: '' }
 
-const STATUS_COLOR = {
-  pending:  { bg: 'bg-yellow-500/15', border: 'border-yellow-500/30', text: 'text-yellow-400', dot: 'bg-yellow-400' },
-  approved: { bg: 'bg-blue-500/15',   border: 'border-blue-500/30',   text: 'text-blue-400',   dot: 'bg-blue-400'   },
-  visited:  { bg: 'bg-green-500/15',  border: 'border-green-500/30',  text: 'text-green-400',  dot: 'bg-green-400'  },
-}
-
 const GOLD = '#c8a96e'
 const RED  = '#7a0000'
+
+const FaceScanIcon = ({ size = 24, color = 'currentColor', strokeWidth = 1.5 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 9V5.5A1.5 1.5 0 015.5 4H9" />
+    <path d="M15 4h3.5A1.5 1.5 0 0120 5.5V9" />
+    <path d="M4 15v3.5A1.5 1.5 0 005.5 20H9" />
+    <path d="M20 15v3.5a1.5 1.5 0 01-1.5 1.5H15" />
+    <path d="M9 10.5v.5" strokeWidth="2" />
+    <path d="M15 10.5v.5" strokeWidth="2" />
+    <path d="M12 10.5v2" />
+    <path d="M9.5 14.5c.7.7 1.5 1.1 2.5 1.1s1.8-.4 2.5-1.1" />
+  </svg>
+)
+
+const STATUS_STYLE = {
+  pending:  { bg: 'rgba(245,158,11,0.08)',  border: 'rgba(245,158,11,0.28)',  text: '#b45309', dot: '#f59e0b' },
+  approved: { bg: 'rgba(16,185,129,0.08)',  border: 'rgba(16,185,129,0.28)',  text: '#047857', dot: '#10b981' },
+  visited:  { bg: 'rgba(100,116,139,0.08)', border: 'rgba(100,116,139,0.28)', text: '#475569', dot: '#64748b' },
+}
+
+const RESERVE_CSS = `
+  @keyframes reserveScanLine {
+    0%   { top: 8%;  opacity: 0.5; }
+    50%  { top: 84%; opacity: 1;   }
+    100% { top: 8%;  opacity: 0.5; }
+  }
+  @keyframes reserveCornerGlow {
+    0%, 100% { opacity: 0.55; }
+    50%       { opacity: 1;   }
+  }
+  @keyframes reserveReveal {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0);     }
+  }
+  @keyframes reserveGoldPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200,169,110,0); }
+    60%       { box-shadow: 0 0 0 10px rgba(200,169,110,0.12); }
+  }
+  .r-reveal      { animation: reserveReveal 0.48s cubic-bezier(0.22,1,0.36,1) both; }
+  .r-corner-glow { animation: reserveCornerGlow 2.2s ease-in-out infinite; }
+  .r-scan-line   {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(to right, transparent, #c8a96e 40%, #fff8 55%, #c8a96e 70%, transparent);
+    animation: reserveScanLine 2.6s ease-in-out infinite;
+    z-index: 10; pointer-events: none;
+  }
+  .r-gold-pulse  { animation: reserveGoldPulse 2.4s ease-in-out infinite; }
+  @keyframes stepperBreath {
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px 0 rgba(200,169,110,0.35); }
+    50%       { opacity: 0.82; box-shadow: 0 0 14px 3px rgba(200,169,110,0.55); }
+  }
+  .stepper-fill-breath { animation: stepperBreath 2.8s ease-in-out infinite; }
+  .res-id        { font-family:'Roboto Mono','Courier New',Courier,monospace!important; direction:ltr!important; unicode-bidi:bidi-override!important; letter-spacing:.05em; }
+  .date-input    { -webkit-appearance:none; appearance:none; }
+  .date-input::-webkit-date-and-time-value { text-align:right; min-height:1.5em; }
+  .date-input::-webkit-inner-spin-button,
+  .date-input::-webkit-clear-button { display:none; }
+  .date-input::-webkit-calendar-picker-indicator { filter:brightness(0); opacity:0.4; cursor:pointer; margin-inline-start:8px; }
+  .date-input::-webkit-datetime-edit { padding:0; }
+  .date-input::-webkit-datetime-edit-fields-wrapper { padding:0; }
+`
 
 export default function ReservePageContent({ initialLang = 'ku', inline = false }) {
   const [lang, setLang]               = useState(initialLang)
@@ -39,14 +93,14 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   const [loading, setLoading]         = useState(false)
   const [reservation, setReservation] = useState(null)
 
-  const [faceImageUrl, setFaceImageUrl]   = useState(null)
-  const [faceVerified, setFaceVerified]   = useState(false)
-  const [faceUploading, setFaceUploading] = useState(false)
-  const [faceScanOpen, setFaceScanOpen]     = useState(false)
+  const [faceImageUrl, setFaceImageUrl]           = useState(null)
+  const [faceVerified, setFaceVerified]           = useState(false)
+  const [faceUploading, setFaceUploading]         = useState(false)
+  const [faceScanOpen, setFaceScanOpen]           = useState(false)
   const [hasStartedProcess, setHasStartedProcess] = useState(false)
-  const [availableDays, setAvailableDays]   = useState(['1','2','3','4','5'])
-  const [availableHours, setAvailableHours] = useState({ start: '09:00', end: '17:00' })
-  const qrRef = useRef(null)
+  const [availableDays, setAvailableDays]         = useState(['1','2','3','4','5'])
+  const [availableHours, setAvailableHours]       = useState({ start: '09:00', end: '17:00' })
+  const qrRef      = useRef(null)
   const museumName = useMuseumName()
 
   const [trackPhone, setTrackPhone]     = useState('')
@@ -54,6 +108,11 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
   const [trackResults, setTrackResults] = useState(null)
   const [trackError, setTrackError]     = useState('')
   const [bgColor, setBgColor]           = useState('#ffffff')
+
+  const [editRes, setEditRes]           = useState(null)
+  const [editForm, setEditForm]         = useState({})
+  const [editSaving, setEditSaving]     = useState(false)
+  const [editError, setEditError]       = useState('')
 
   useEffect(() => {
     const supabase = getSupabaseClient()
@@ -77,6 +136,29 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     } catch {
       setTrackError(t('کێشەیەک ڕوویدا، دووبارە هەوڵبدەوە', 'حدث خطأ، حاول مرة أخرى', 'An error occurred, please try again', lang))
     } finally { setTrackLoading(false) }
+  }
+
+  const handleEditReservation = (res) => {
+    setEditRes(res)
+    setEditForm({ date: res.date || '', time: res.time?.slice(0,5) || '', guest_count: res.guest_count || '' })
+    setEditError('')
+  }
+
+  const saveEdit = async () => {
+    if (!editRes) return
+    setEditSaving(true); setEditError('')
+    try {
+      const supabase = getSupabaseClient()
+      const { error } = await supabase
+        .from('reservations')
+        .update({ date: editForm.date, time: editForm.time, guest_count: Number(editForm.guest_count) })
+        .eq('id', editRes.id)
+      if (error) throw error
+      setTrackResults(prev => prev.map(r => r.id === editRes.id ? { ...r, ...editForm, guest_count: Number(editForm.guest_count) } : r))
+      setEditRes(null)
+    } catch (err) {
+      setEditError(t('تێچوونی پاشەکەوتکردن', 'فشل الحفظ', 'Save failed', lang))
+    } finally { setEditSaving(false) }
   }
 
   const compressFace = (dataUrl, maxPx = 480, quality = 0.78) =>
@@ -351,7 +433,6 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
     y += ROW_H
 
-    // ── Details footer (mirrors success screen layout) ──────────
     ctx.fillStyle = '#111111'; ctx.fillRect(0, y, W, FOOTER_H)
 
     const drawFooterDivider = (dy) => {
@@ -362,19 +443,16 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
     let fy = y + 20
 
-    // Visitor name label
     ctx.fillStyle = '#4b5563'; ctx.font = '8px Arial'
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'
     ctx.fillText('VISITOR NAME', W / 2, fy); fy += 15
 
-    // Visitor name value
     ctx.fillStyle = '#ffffff'; ctx.font = `bold 17px ${kuFont}`
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'rtl'
     ctx.fillText(reservation.name, W / 2, fy); fy += 22
 
     drawFooterDivider(fy); fy += 14
 
-    // Date / Time / Guests — 3-column row with vertical separators
     const COL_W = (W - PAD * 2) / 3
     const colX  = [PAD + COL_W * 0.5, PAD + COL_W * 1.5, PAD + COL_W * 2.5]
 
@@ -397,12 +475,10 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
     drawFooterDivider(fy); fy += 14
 
-    // Booking ID label
     ctx.fillStyle = '#4b5563'; ctx.font = '8px Arial'
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'
     ctx.fillText('BOOKING ID', W / 2, fy); fy += 14
 
-    // Booking ID badge
     const badgeW = 200, badgeH = 30, badgeX = (W - badgeW) / 2
     ctx.fillStyle = 'rgba(16,185,129,0.1)'
     ctx.beginPath(); ctx.roundRect(badgeX, fy, badgeW, badgeH, 8); ctx.fill()
@@ -412,7 +488,6 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.direction = 'ltr'
     ctx.fillText(resId, W / 2, fy + badgeH / 2)
 
-    // ── Gold bottom bar ──
     const bg = ctx.createLinearGradient(0, 0, W, 0)
     bg.addColorStop(0, '#7a0000'); bg.addColorStop(0.5, '#c8a96e'); bg.addColorStop(1, '#7a0000')
     ctx.fillStyle = bg; ctx.fillRect(0, y + FOOTER_H, W, 5)
@@ -422,76 +497,193 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     a.href = canvas.toDataURL('image/png'); a.click()
   }
 
+  // ── Shared style objects ─────────────────────────────────────
   const homeHref = lang === 'ar' ? '/arabic' : lang === 'ku' ? '/kurdish' : '/'
+  const fStyle   = { fontFamily: fontStyle(lang) }
 
-  const inputBase = {
+  const pageBg = {
     background: '#ffffff',
-    border: '1px solid rgba(0,0,0,0.12)',
-    borderRadius: 12,
-    color: '#111827',
+  }
+
+  const glassCard = {
+    background: 'rgba(255,255,255,0.90)',
+    backdropFilter: 'blur(24px)',
+    WebkitBackdropFilter: 'blur(24px)',
+    border: '2px solid rgba(200,169,110,0.45)',
+    borderRadius: 24,
+    boxShadow: '0 20px 60px rgba(122,0,0,0.05), 0 1px 0 rgba(255,255,255,0.95) inset',
+  }
+
+  const luxInput = (hasErr) => ({
+    background: 'rgba(255,255,255,0.95)',
+    border: `1.5px solid ${hasErr ? '#ef4444' : 'rgba(203,213,225,0.8)'}`,
+    borderRadius: 14,
+    color: '#1e293b',
     width: '100%',
-    padding: '10px 12px',
+    padding: '13px 16px',
+    paddingInlineStart: 44,
     outline: 'none',
     fontSize: 14,
     fontWeight: 500,
     transition: 'border-color 0.2s, box-shadow 0.2s',
     fontFamily: fontStyle(lang),
     colorScheme: 'light',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+  })
+
+  const FIELD_ICONS = {
+    name: 'ri-user-3-line',
+    guest_count: 'ri-group-2-line',
+    phone: 'ri-phone-line',
+    date: 'ri-calendar-check-line',
+    time: 'ri-time-line',
+    note: 'ri-quill-pen-line',
   }
 
   const fieldsLocked = !faceVerified
 
+  // Live stepper state
+  const currentStep = faceVerified ? 2 : 1
+  const fillWidth   = currentStep === 1 ? '0px' : currentStep === 2 ? 'calc(33.33% - 32px)' : currentStep === 3 ? 'calc(66.66% - 32px)' : 'calc(100% - 64px)'
+
+  const BOOKING_STEPS = [
+    { num: 1, ku: 'سکانی ڕووخسار', ar: 'مسح الوجه',         en: 'Face Scan'      },
+    { num: 2, ku: 'داواکاری',       ar: 'التسجيل',           en: 'Details'        },
+    { num: 3, ku: 'وەرگرتنی کۆد',  ar: 'الحصول على QR',    en: 'Get Pass'       },
+    { num: 4, ku: 'پەسەندکردن',    ar: 'تأكيد الحجز',       en: 'Approve Booking'},
+  ]
+
+  const stepIcon = (num, color) => {
+    if (num === 1) return <FaceScanIcon size={17} color={color} strokeWidth={2} />
+    if (num === 2) return <i className="ri-file-text-line" style={{ fontSize: 16, color }} />
+    if (num === 3) return <i className="ri-qr-code-line" style={{ fontSize: 16, color }} />
+    return <i className="ri-checkbox-circle-line" style={{ fontSize: 16, color }} />
+  }
+
+  const LiveStepper = () => (
+    <div style={{ ...glassCard, padding: '18px 20px 14px', position: 'relative' }}>
+      <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        {/* Background bar */}
+        <div style={{ position: 'absolute', top: 18, left: 32, right: 32, height: 2, background: 'rgba(203,213,225,0.85)', zIndex: 0 }} />
+        {/* Fill bar — RTL: anchored right (step 1 side), grows left; LTR: anchored left */}
+        <div className="stepper-fill-breath" style={{
+          position: 'absolute', top: 18,
+          ...(isRtl ? { right: 32 } : { left: 32 }),
+          height: 3, width: fillWidth, borderRadius: 2,
+          background: `linear-gradient(${isRtl ? 'to left' : 'to right'}, ${GOLD}, rgba(200,169,110,0.6))`,
+          transition: 'width 0.5s ease-in-out',
+          zIndex: 1,
+        }} />
+
+        {BOOKING_STEPS.map(step => {
+          const completed = step.num < currentStep
+          const active    = step.num === currentStep
+
+          const nodeStyle = (completed || active) ? {
+            width: 36, height: 36, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: GOLD, border: `2px solid ${GOLD}`,
+            boxShadow: active ? '0 4px 16px rgba(200,169,110,0.5)' : '0 2px 8px rgba(200,169,110,0.3)',
+            transform: active ? 'scale(1.1)' : 'scale(1.05)',
+            outline: active ? '4px solid rgba(200,169,110,0.22)' : 'none',
+            outlineOffset: 2,
+            transition: 'all 0.3s ease-out',
+            position: 'relative', zIndex: 2,
+          } : {
+            width: 36, height: 36, borderRadius: '50%',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            background: `linear-gradient(135deg, ${RED}, #5a0000)`,
+            border: '2px solid rgba(200,169,110,0.25)',
+            boxShadow: '0 2px 10px rgba(122,0,0,0.25)',
+            color: '#fff',
+            transition: 'all 0.3s ease-out',
+            position: 'relative', zIndex: 2,
+          }
+
+          return (
+            <div key={step.num} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, position: 'relative', zIndex: 1 }}>
+              <div style={nodeStyle}>
+                {completed
+                  ? <i className="ri-check-line" style={{ fontSize: 17, fontWeight: 'bold', color: '#fff' }} />
+                  : stepIcon(step.num, '#fff')
+                }
+              </div>
+              <span style={{
+                fontSize: 10, fontWeight: completed ? 700 : active ? 800 : 700,
+                color: completed ? '#1e293b' : active ? RED : RED,
+                textAlign: 'center', display: 'inline-block',
+                transform: active ? 'scale(1.05)' : 'scale(1)',
+                transition: 'all 0.3s ease-out',
+                ...fStyle,
+              }}>
+                {t(step.ku, step.ar, step.en, lang)}
+              </span>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+
   const field = (key, label, type = 'text', extra = {}) => {
-    const disabledStyle = fieldsLocked ? {
-      pointerEvents: 'none',
-      userSelect: 'none',
-    } : {}
+    const icon        = FIELD_ICONS[key]
+    const disabled    = fieldsLocked
+    const isTextarea  = type === 'textarea'
+    const isDateTime  = type === 'date' || type === 'time'
+    const hasErr      = !!errors[key]
+
+    const iconEl = icon ? (
+      <span style={{
+        position: 'absolute',
+        top: isTextarea ? 15 : '50%',
+        transform: isTextarea ? 'none' : 'translateY(-50%)',
+        [isRtl ? 'right' : 'left']: 14,
+        color: hasErr ? '#ef4444' : disabled ? '#cbd5e1' : GOLD,
+        fontSize: 16,
+        zIndex: 1,
+        pointerEvents: 'none',
+        lineHeight: 1,
+      }}>
+        <i className={icon} />
+      </span>
+    ) : null
 
     return (
-      <div style={disabledStyle}>
-        <label className="block text-xs md:text-sm font-semibold mb-1 md:mb-2"
-          style={{ fontFamily: fontStyle(lang), color: fieldsLocked ? '#9ca3af' : '#374151' }}>
+      <div>
+        <label style={{ display: 'block', fontSize: 11, fontWeight: 700, marginBottom: 7, color: disabled ? '#94a3b8' : '#475569', letterSpacing: '0.08em', textTransform: 'uppercase', ...fStyle }}>
           {label}
-          {key !== 'note' && <span className="ml-1" style={{ color: fieldsLocked ? 'rgba(200,169,110,0.25)' : GOLD }}>*</span>}
+          {key !== 'note' && <span style={{ color: disabled ? 'rgba(200,169,110,0.3)' : GOLD, marginInlineStart: 4 }}>*</span>}
         </label>
-        {type === 'textarea' ? (
-          <textarea
-            disabled={fieldsLocked}
-            value={form[key]}
-            onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-            rows={3}
-            style={{
-              ...inputBase,
-              resize: 'none',
-              borderColor: errors[key] ? '#ef4444' : 'rgba(255,255,255,0.1)',
-              cursor: fieldsLocked ? 'not-allowed' : 'text',
-              opacity: fieldsLocked ? 0.5 : 1,
-            }}
-            onFocus={e  => { if (!errors[key] && !fieldsLocked) { e.target.style.borderColor = 'rgba(245,158,11,0.7)'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.1)' } }}
-            onBlur={e   => { if (!errors[key]) { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none' } }}
-            {...extra}
-          />
-        ) : (
-          <input
-            disabled={fieldsLocked}
-            type={type}
-            value={form[key]}
-            onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
-            className={`date-input${(type === 'date' || type === 'time') ? ' picker-input' : ''}`}
-            style={{
-              ...inputBase,
-              borderColor: errors[key] ? '#ef4444' : 'rgba(255,255,255,0.1)',
-              minHeight: (type === 'date' || type === 'time') ? 52 : 'auto',
-              cursor: fieldsLocked ? 'not-allowed' : 'auto',
-              opacity: fieldsLocked ? 0.5 : 1,
-            }}
-            onFocus={e  => { if (!errors[key] && !fieldsLocked) { e.target.style.borderColor = 'rgba(245,158,11,0.7)'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.1)' } }}
-            onBlur={e   => { if (!errors[key]) { e.target.style.borderColor = 'rgba(0,0,0,0.12)'; e.target.style.boxShadow = 'none' } }}
-            {...extra}
-          />
-        )}
-        {errors[key] && (
-          <p className="text-red-400 text-xs mt-1.5" style={{ fontFamily: fontStyle(lang) }}>
+        <div style={{ position: 'relative' }}>
+          {iconEl}
+          {isTextarea ? (
+            <textarea
+              disabled={disabled}
+              value={form[key]}
+              onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
+              rows={3}
+              style={{ ...luxInput(hasErr), paddingInlineStart: 44, resize: 'none', cursor: disabled ? 'not-allowed' : 'text', opacity: disabled ? 0.5 : 1 }}
+              onFocus={e  => { if (!disabled) { e.target.style.borderColor = 'rgba(200,169,110,0.7)'; e.target.style.boxShadow = '0 0 0 4px rgba(200,169,110,0.1)' } }}
+              onBlur={e   => { e.target.style.borderColor = hasErr ? '#ef4444' : 'rgba(203,213,225,0.8)'; e.target.style.boxShadow = '0 1px 4px rgba(0,0,0,0.04)' }}
+              {...extra}
+            />
+          ) : (
+            <input
+              disabled={disabled}
+              type={type}
+              value={form[key]}
+              onChange={e => setForm(p => ({ ...p, [key]: e.target.value }))}
+              className={`date-input${isDateTime ? ' picker-input' : ''}`}
+              style={{ ...luxInput(hasErr), minHeight: isDateTime ? 50 : 'auto', cursor: disabled ? 'not-allowed' : 'auto', opacity: disabled ? 0.5 : 1 }}
+              onFocus={e  => { if (!disabled) { e.target.style.borderColor = 'rgba(200,169,110,0.7)'; e.target.style.boxShadow = '0 0 0 4px rgba(200,169,110,0.1)' } }}
+              onBlur={e   => { e.target.style.borderColor = hasErr ? '#ef4444' : 'rgba(203,213,225,0.8)'; e.target.style.boxShadow = '0 1px 4px rgba(0,0,0,0.04)' }}
+              {...extra}
+            />
+          )}
+        </div>
+        {hasErr && (
+          <p style={{ color: '#ef4444', fontSize: 12, marginTop: 6, display: 'flex', alignItems: 'center', gap: 4, ...fStyle }}>
+            <i className="ri-error-warning-line" style={{ fontSize: 13 }} />
             {errors[key] === 'unavailable'
               ? t('ئەم رۆژە بەردەست نییە', 'هذا اليوم غير متاح', 'This day is not available', lang)
               : errors[key] === 'outofrange'
@@ -504,7 +696,23 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     )
   }
 
-  // ── Success screen ───────────────────────────────────────────
+  // ── HUD corner bracket elements ──────────────────────────────
+  const hudCorners = (size = 22, color = GOLD) => (
+    <>
+      <span className="r-corner-glow" style={{ position: 'absolute', top: 12, left: 12, width: size, height: size, borderLeft: `2px solid ${color}`, borderTop: `2px solid ${color}`, borderRadius: '3px 0 0 0', zIndex: 2 }} />
+      <span className="r-corner-glow" style={{ position: 'absolute', top: 12, right: 12, width: size, height: size, borderRight: `2px solid ${color}`, borderTop: `2px solid ${color}`, borderRadius: '0 3px 0 0', zIndex: 2 }} />
+      <span className="r-corner-glow" style={{ position: 'absolute', bottom: 12, left: 12, width: size, height: size, borderLeft: `2px solid ${color}`, borderBottom: `2px solid ${color}`, borderRadius: '0 0 0 3px', zIndex: 2 }} />
+      <span className="r-corner-glow" style={{ position: 'absolute', bottom: 12, right: 12, width: size, height: size, borderRight: `2px solid ${color}`, borderBottom: `2px solid ${color}`, borderRadius: '0 0 3px 0', zIndex: 2 }} />
+    </>
+  )
+
+  // ── Reset helper ─────────────────────────────────────────────
+  const resetBooking = () => {
+    setReservation(null); setForm(EMPTY); setFaceImageUrl(null)
+    setFaceVerified(false); setFaceScanOpen(false); setHasStartedProcess(false)
+  }
+
+  // ── SUCCESS SCREEN ───────────────────────────────────────────
   if (reservation) {
     const resId = '#' + reservation.id.slice(0, 8).toUpperCase()
 
@@ -529,7 +737,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
           <div className="flex items-center justify-center gap-4 mb-3 w-full">
             <span className="block flex-1 max-w-[60px] h-px rounded-full" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
-            <h1 className="text-2xl md:text-3xl font-black text-gray-900 text-center" style={{ fontFamily: fontStyle(lang) }}>
+            <h1 className="text-2xl md:text-3xl font-black text-gray-900 text-center" style={fStyle}>
               {t('داواکارییەکەت تۆمارکرا!', 'تم تسجيل طلبك!', 'Reservation Submitted!', lang)}
             </h1>
             <span className="block flex-1 max-w-[60px] h-px rounded-full" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
@@ -541,7 +749,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
             <div className="h-px w-10" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
           </div>
 
-          <p className="text-gray-600 text-sm text-center leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
+          <p className="text-gray-600 text-sm text-center leading-relaxed" style={fStyle}>
             {t('تکایە وێنەیەک لەم زانیارییانەی خوارەوە لای خۆت دابگرە ، بۆ ئاگاداربوون لە ڕەوشی داواکارییەکت', 'يرجى إظهار رمز QR هذا عند مدخل المتحف للتحقق', 'Please show this QR code at the museum entrance for verification', lang)}
           </p>
         </div>
@@ -590,7 +798,7 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
                     {t('ڕووخسار پشکنراوە', 'تم التحقق', 'Verified', lang)}
                   </div>
                 </div>
-                <p className="text-gray-400 text-[10px] mt-3" style={{ fontFamily: fontStyle(lang) }}>
+                <p className="text-gray-400 text-[10px] mt-3" style={fStyle}>
                   {t('ناسنامەی ڕووخسار', 'Face ID', 'Face ID', lang)}
                 </p>
               </div>
@@ -598,50 +806,44 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
           </div>
 
           <div className="px-5 pb-6 pt-5" style={{ background: '#111' }}>
-
-            {/* Visitor name */}
             <div className="text-center mb-5">
-              <p className="text-[9px] uppercase tracking-widest mb-2" style={{ color: '#4b5563', fontFamily: fontStyle(lang) }}>
+              <p className="text-[9px] uppercase tracking-widest mb-2" style={{ color: '#4b5563', ...fStyle }}>
                 {t('ناوی سەردانکار', 'اسم الزائر', 'Visitor Name', lang)}
               </p>
-              <p className="text-xl font-black text-white leading-tight" style={{ fontFamily: fontStyle(lang) }}>
+              <p className="text-xl font-black text-white leading-tight" style={fStyle}>
                 {reservation.name}
               </p>
             </div>
 
-            {/* Divider */}
             <div className="h-px mb-5" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent)' }} />
 
-            {/* Date · Time · Guests */}
             <div className="flex items-center justify-center gap-4 mb-5">
               <div className="text-center">
-                <p className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#4b5563', fontFamily: fontStyle(lang) }}>
+                <p className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#4b5563', ...fStyle }}>
                   {t('بەروار', 'التاريخ', 'Date', lang)}
                 </p>
                 <bdo dir="ltr" className="res-id block text-sm font-extrabold" style={{ color: '#fbbf24' }}>{reservation.date}</bdo>
               </div>
               <div className="w-px h-8 shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }} />
               <div className="text-center">
-                <p className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#4b5563', fontFamily: fontStyle(lang) }}>
+                <p className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#4b5563', ...fStyle }}>
                   {t('کات', 'الوقت', 'Time', lang)}
                 </p>
                 <bdo dir="ltr" className="res-id block text-sm font-extrabold" style={{ color: '#fbbf24' }}>{(reservation.time || '').slice(0, 5)}</bdo>
               </div>
               <div className="w-px h-8 shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }} />
               <div className="text-center">
-                <p className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#4b5563', fontFamily: fontStyle(lang) }}>
+                <p className="text-[9px] uppercase tracking-widest mb-1.5" style={{ color: '#4b5563', ...fStyle }}>
                   {t('میوان', 'الضيوف', 'Guests', lang)}
                 </p>
                 <bdo dir="ltr" className="res-id block text-sm font-extrabold text-white">{reservation.guest_count}</bdo>
               </div>
             </div>
 
-            {/* Divider */}
             <div className="h-px mb-5" style={{ background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.07), transparent)' }} />
 
-            {/* Booking ID badge */}
             <div className="flex flex-col items-center gap-1.5">
-              <p className="text-[9px] uppercase tracking-widest" style={{ color: '#4b5563', fontFamily: fontStyle(lang) }}>
+              <p className="text-[9px] uppercase tracking-widest" style={{ color: '#4b5563', ...fStyle }}>
                 {t('ناسنامەی داواکاری', 'معرف الحجز', 'Booking ID', lang)}
               </p>
               <div className="flex items-center gap-2 px-4 py-2 rounded-xl"
@@ -657,24 +859,24 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
 
         <div className="flex flex-col gap-3">
           <button onClick={downloadQR}
-            className="w-full flex items-center justify-center gap-2 py-4 text-white text-base font-bold rounded-2xl transition-all"
-            style={{ background: RED, border: `1px solid rgba(200,169,110,0.35)`, boxShadow: '0 4px 20px rgba(122,0,0,0.35)', fontFamily: fontStyle(lang) }}>
+            className="w-full flex items-center justify-center gap-2 py-4 text-white text-base font-bold rounded-2xl transition-all hover:brightness-110"
+            style={{ background: RED, border: `1px solid rgba(200,169,110,0.35)`, boxShadow: '0 4px 20px rgba(122,0,0,0.35)', ...fStyle }}>
             <i className="ri-download-2-line text-lg" style={{ color: GOLD }} />
-            {t('داونلۆدی QR','تحميل QR','Download QR',lang)}
+            {t('داونلۆدی QR', 'تحميل QR', 'Download QR', lang)}
           </button>
           <div className="flex gap-3">
-            <button onClick={() => { setReservation(null); setForm(EMPTY); setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(false); setHasStartedProcess(false) }}
-              className="flex-1 flex items-center justify-center gap-2 py-3.5 text-gray-700 text-sm font-bold rounded-2xl transition-all"
-              style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.1)', fontFamily: fontStyle(lang) }}>
+            <button onClick={resetBooking}
+              className="flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-bold rounded-2xl transition-all hover:brightness-110"
+              style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.1)', color: '#374151', ...fStyle }}>
               <i className="ri-add-line" />
-              {t('داواکارییەکی تر','حجز آخر','New Booking',lang)}
+              {t('داواکارییەکی تر', 'حجز آخر', 'New Booking', lang)}
             </button>
             {!inline && (
               <Link href={homeHref}
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 text-gray-700 text-sm font-bold rounded-2xl transition-all"
-                style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.1)', fontFamily: fontStyle(lang) }}>
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 text-sm font-bold rounded-2xl transition-all hover:brightness-110"
+                style={{ background: 'rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.1)', color: '#374151', ...fStyle }}>
                 <i className="ri-home-5-line" />
-                {t('سەرەتا','الرئيسية','Home',lang)}
+                {t('سەرەتا', 'الرئيسية', 'Home', lang)}
               </Link>
             )}
           </div>
@@ -685,473 +887,647 @@ export default function ReservePageContent({ initialLang = 'ku', inline = false 
     )
 
     if (inline) return (
-      <section id="reserve" className="text-white px-4 py-6 h-[calc(100dvh-4rem)] md:h-screen overflow-y-auto flex items-center justify-center" style={{ background: bgColor }} dir={isRtl ? 'rtl' : 'ltr'}>
+      <section id="reserve" className="text-slate-900 px-4 py-6 h-[calc(100dvh-4rem)] md:h-screen overflow-y-auto flex items-center justify-center" style={pageBg} dir={isRtl ? 'rtl' : 'ltr'}>
         {successContent}
       </section>
     )
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-4 pt-20 pb-8 md:pt-16 md:pb-16 md:pl-[88px]" style={{ background: '#ffffff', color: '#111827' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-4 pt-20 pb-8 md:pt-16 md:pb-16 md:pl-[88px]" style={pageBg}>
         <Sidebar activeSection="reserve" currentLang={lang} onLangChange={setLang} />
         {successContent}
       </div>
     )
   }
 
-  // ── Main form ────────────────────────────────────────────────
+  // ── MAIN RENDER ──────────────────────────────────────────────
   const Wrapper = inline ? 'section' : 'div'
 
-  // Dynamic terminal glow based on scan state
-  const terminalStyle = faceVerified
-    ? { background: '#f9fafb', border: '1px solid rgba(16,185,129,0.4)', boxShadow: '0 0 30px rgba(16,185,129,0.12), 0 4px 24px rgba(0,0,0,0.06)' }
-    : faceScanOpen
-    ? { background: '#f9fafb', border: '1px solid rgba(245,158,11,0.4)', boxShadow: '0 0 24px rgba(245,158,11,0.1), 0 4px 24px rgba(0,0,0,0.06)' }
-    : { background: '#f9fafb', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }
+  const TABS = [
+    { id: 'book',  ku: 'تۆمارکردن',            ar: 'حجز جديد',    en: 'New Booking'       },
+    { id: 'track', ku: 'بەدواداچوونی داواکاری', ar: 'تتبع الحجز', en: 'Track Reservation' },
+  ]
 
   return (
     <Wrapper
       id={inline ? 'reserve' : undefined}
-      className={inline ? 'px-4 md:px-8 py-5 md:py-10 h-[calc(100dvh-4rem)] md:h-screen overflow-hidden flex flex-col' : 'min-h-dvh flex flex-col px-4 pt-16 pb-10 md:pt-10 md:pb-12 md:pl-[88px]'}
-      style={{ background: '#ffffff', color: '#111827' }}
+      className={
+        inline
+          ? 'px-4 md:px-8 py-5 h-[calc(100dvh-4rem)] md:h-screen overflow-y-auto'
+          : 'min-h-dvh flex flex-col px-4 pt-16 pb-10 md:pt-10 md:pb-12 md:pl-[88px]'
+      }
+      style={pageBg}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
-      <style>{`
-        .date-input { -webkit-appearance: none; appearance: none; }
-        .date-input::-webkit-date-and-time-value { text-align: right; min-height: 1.5em; }
-        .date-input::-webkit-inner-spin-button,
-        .date-input::-webkit-clear-button { display: none; }
-        .date-input::-webkit-calendar-picker-indicator {
-          filter: brightness(0);
-          opacity: 0.5;
-          cursor: pointer;
-          margin-inline-start: 8px;
-        }
-        .date-input::-webkit-datetime-edit { padding: 0; }
-        .date-input::-webkit-datetime-edit-fields-wrapper { padding: 0; }
-        .date-input::placeholder { color: rgba(0,0,0,0.3); }
-      `}</style>
+      <style>{RESERVE_CSS}</style>
+
+      {/* Ambient gold glow */}
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '55vh', background: 'radial-gradient(ellipse 80% 50% at 50% -5%, rgba(200,169,110,0.09) 0%, transparent 70%)', pointerEvents: 'none', zIndex: 0 }} />
 
       {!inline && <Sidebar activeSection="reserve" currentLang={lang} onLangChange={setLang} />}
 
-      <div className="w-full max-w-7xl mx-auto flex flex-col flex-1">
+      <div className="relative z-10 w-full max-w-4xl mx-auto flex flex-col">
 
-        {/* ── Header ─────────────────────────────────────────── */}
-        <div className="text-center mb-4 md:mb-6 max-w-2xl mx-auto flex-shrink-0">
+        {/* ── Header ───────────────────────────────────────────── */}
+        <div className="text-center mb-5 md:mb-8 max-w-2xl mx-auto flex-shrink-0">
           {!inline && (
-            <Link href={homeHref} className="inline-flex items-center gap-2 text-gray-500 hover:text-gray-900 text-sm mb-3 md:mb-8 transition-colors" style={{ fontFamily: fontStyle(lang) }}>
-              <i className={`ri-arrow-${isRtl ? 'right' : 'left'}-line`} />
-              {t('گەڕانەوە', 'رجوع', 'Back', lang)}
+            <Link
+              href={homeHref}
+              className="inline-flex items-center gap-2 mb-4 transition-all"
+              style={{ background: RED, border: 'none', borderRadius: 12, padding: '7px 14px', color: '#fff', fontSize: 13, fontWeight: 700, textDecoration: 'none', ...fStyle }}
+            >
+              <i className="ri-home-5-line" style={{ fontSize: 15 }} />
+              {t('سەرەتا', 'الرئيسية', 'Home', lang)}
             </Link>
           )}
 
-          <div className="flex items-center justify-center gap-3 md:gap-4 mb-2 md:mb-4">
-            <span className="block w-10 md:w-16 h-1 rounded-full" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
-            <h1 className="text-xl md:text-4xl font-black text-gray-900" style={{ fontFamily: fontStyle(lang) }}>
+          <div className="flex items-center justify-center gap-4 mb-2">
+            <span className="block w-10 md:w-16 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
+            <h1 className="text-xl md:text-4xl font-black text-slate-900" style={fStyle}>
               {t('داواکاری سەردانکردن', 'حجز زيارة', 'Reserve a Visit', lang)}
             </h1>
-            <span className="block w-10 md:w-16 h-1 rounded-full" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
+            <span className="block w-10 md:w-16 h-px" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
           </div>
 
-          <div className="flex items-center justify-center gap-2 mb-2 md:mb-4">
-            <div className="h-px w-12" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="h-px w-10" style={{ background: `linear-gradient(to right, transparent, ${GOLD})` }} />
             <div className="w-1.5 h-1.5 rotate-45" style={{ background: GOLD }} />
-            <div className="h-px w-12" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
+            <div className="h-px w-10" style={{ background: `linear-gradient(to left, transparent, ${GOLD})` }} />
           </div>
 
-          <p className="text-gray-600 text-sm leading-relaxed" style={{ fontFamily: fontStyle(lang) }}>
-            {t(
-              'داواکاری پێشکەش بکە بۆ سەردانیکردنی مۆزەخانە',
-              'أكمل النموذج وستحصل على رمز QR لمدخل المتحف',
-              'Fill the form and receive a QR code for museum entry',
-              lang
-            )}
+          <p className="text-slate-500 text-sm leading-relaxed" style={fStyle}>
+            {t('داواکاری پێشکەش بکە بۆ سەردانیکردنی مۆزەخانە', 'أكمل النموذج وستحصل على رمز QR لمدخل المتحف', 'Fill the form and receive a QR code for museum entry', lang)}
           </p>
         </div>
 
-        {/* ── Tab switcher ───────────────────────────────────── */}
-        <div className="max-w-2xl mx-auto mb-3 md:mb-6 flex-shrink-0">
-          <div className="flex gap-1 p-1 rounded-2xl"
-            style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)' }}>
-            {[
-              { id: 'book',  ku: 'تۆمارکردن',            ar: 'حجز جديد',    en: 'New Booking'       },
-              { id: 'track', ku: 'بەدواداچوونی داواکاری', ar: 'تتبع الحجز', en: 'Track Reservation' },
-            ].map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => {
-                  setPageTab(tab.id); setTrackResults(null); setTrackError('')
-                  if (!inline) window.history.replaceState({}, '', `?tab=${tab.id}`)
-                }}
-                className="flex-1 py-3 rounded-xl text-sm font-bold transition-all"
-                style={{
-                  fontFamily: fontStyle(lang),
-                  color: pageTab === tab.id ? '#fff' : '#374151',
-                  background: pageTab === tab.id ? RED : 'transparent',
-                  border: pageTab === tab.id ? `1px solid rgba(200,169,110,0.35)` : '1px solid transparent',
-                  boxShadow: pageTab === tab.id ? '0 4px 16px rgba(122,0,0,0.4)' : 'none',
-                }}
-              >
-                {t(tab.ku, tab.ar, tab.en, lang)}
-              </button>
-            ))}
+        {/* ── Tab switcher ─────────────────────────────────────── */}
+        <div className="max-w-md mx-auto w-full mb-5 md:mb-8 flex-shrink-0">
+          <div style={{ background: 'rgba(241,245,249,0.9)', border: '1px solid rgba(226,232,240,0.8)', borderRadius: 999, padding: 5, boxShadow: '0 2px 10px rgba(0,0,0,0.04) inset' }}>
+            <div className="flex gap-1">
+              {TABS.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => {
+                    setPageTab(tab.id); setTrackResults(null); setTrackError('')
+                    if (!inline) window.history.replaceState({}, '', `?tab=${tab.id}`)
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '10px 16px',
+                    borderRadius: 999,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    transition: 'all 0.3s cubic-bezier(0.22,1,0.36,1)',
+                    background: pageTab === tab.id ? RED : 'transparent',
+                    color: pageTab === tab.id ? '#fff' : '#64748b',
+                    boxShadow: pageTab === tab.id ? `0 4px 18px rgba(122,0,0,0.32)` : 'none',
+                    border: pageTab === tab.id ? `1px solid rgba(200,169,110,0.28)` : '1px solid transparent',
+                    cursor: 'pointer',
+                    ...fStyle,
+                  }}
+                >
+                  {t(tab.ku, tab.ar, tab.en, lang)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Tab content */}
-        <div className={`flex-1${inline ? ' overflow-y-auto' : ''}`}>
+        {/* ── Tab content ──────────────────────────────────────── */}
+        <div className={inline ? 'overflow-y-auto' : ''}>
 
-        {/* ── TRACK TAB ─────────────────────────────────────── */}
-        {pageTab === 'track' && (
-          <div className="max-w-2xl mx-auto space-y-5">
-            <div className="rounded-2xl p-6 space-y-4 relative overflow-hidden"
-              style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.06)' }}>
-              <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
-              <p className="text-gray-600 text-sm" style={{ fontFamily: fontStyle(lang) }}>
-                {t('ژمارەی تەلەفۆنەکەت بنووسە بۆ بینینی بارودۆخی داواکارییەکەت', 'أدخل رقم هاتفك لمعرفة حالة حجزك', 'Enter your phone number to check your reservation status', lang)}
-              </p>
-              <div className="flex gap-3">
-                <input
-                  type="tel"
-                  value={trackPhone}
-                  onChange={e => setTrackPhone(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && searchByPhone()}
-                  placeholder="07XX XXX XXXX"
-                  dir="ltr"
-                  style={{ ...inputBase, flex: 1 }}
-                  onFocus={e => { e.target.style.borderColor = 'rgba(245,158,11,0.7)'; e.target.style.boxShadow = '0 0 0 3px rgba(245,158,11,0.1)' }}
-                  onBlur={e  => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.boxShadow = 'none' }}
-                />
-                <button
-                  onClick={searchByPhone}
-                  disabled={trackLoading || !trackPhone.trim()}
-                  className="flex items-center gap-2 whitespace-nowrap px-5 py-3 text-white font-bold rounded-xl disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                  style={{ background: RED, border: `1px solid rgba(200,169,110,0.3)`, fontFamily: fontStyle(lang) }}
-                >
-                  {trackLoading
-                    ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    : <i className="ri-search-line" />}
-                  {t('گەڕان', 'بحث', 'Search', lang)}
-                </button>
-              </div>
-            </div>
+          {/* ────────── TRACK TAB ────────── */}
+          {pageTab === 'track' && (
+            <div className="max-w-2xl mx-auto space-y-4">
 
-            {trackError && <p className="text-red-400 text-sm text-center" style={{ fontFamily: fontStyle(lang) }}>{trackError}</p>}
+              {/* Search card */}
+              <div style={{ ...glassCard, position: 'relative', overflow: 'hidden', padding: '24px' }}>
+                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
 
-            {trackResults !== null && trackResults.length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <i className="ri-inbox-line text-4xl mb-3 block" />
-                <p style={{ fontFamily: fontStyle(lang) }}>{t('هیچ داواکارییەک نەدۆزرایەوە', 'لا توجد حجوزات بهذا الرقم', 'No reservations found for this number', lang)}</p>
-              </div>
-            )}
-
-            {trackResults && trackResults.length > 0 && (
-              <div className="space-y-3">
-                <p className="text-xs text-gray-500 font-semibold uppercase tracking-wider" style={{ fontFamily: fontStyle(lang) }}>
-                  {trackResults.length} {t('داواکاری', 'حجز', 'reservation(s) found', lang)}
+                <p className="text-slate-500 text-sm mb-4" style={fStyle}>
+                  {t('ژمارەی تەلەفۆنەکەت بنووسە بۆ بینینی بارودۆخی داواکارییەکەت', 'أدخل رقم هاتفك لمعرفة حالة حجزك', 'Enter your phone number to check your reservation status', lang)}
                 </p>
-                {trackResults.map(res => {
-                  const sc = STATUS_COLOR[res.status] || STATUS_COLOR.pending
-                  const statusLabel = { pending: t('چاوەڕوان بە','قيد الانتظار','Pending',lang), approved: t('پەسەندکراوە','مقبول','Approved',lang), visited: t('سەردانکرا','تمت الزيارة','Visited',lang) }[res.status] || res.status
-                  return (
-                    <div key={res.id} className={`rounded-2xl border p-5 ${sc.bg} ${sc.border}`}>
-                      <div className="flex items-start justify-between gap-3 mb-4">
-                        <div className="flex items-center gap-3">
-                          {res.face_image_url && (
-                            <div className="relative shrink-0">
-                              <img
-                                src={res.face_image_url}
-                                alt="Face ID"
-                                className="w-12 h-12 rounded-xl object-cover"
-                                style={{ border: '1.5px solid rgba(16,185,129,0.5)' }}
-                              />
-                              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center"
-                                style={{ border: '1.5px solid #000' }}>
-                                <i className="ri-check-line text-white text-[8px]" />
-                              </span>
-                            </div>
-                          )}
-                          <div>
-                            <p className="font-bold text-gray-900 text-base" style={{ fontFamily: fontStyle(lang) }}>{res.name}</p>
-                            <p className="text-xs text-gray-500 font-mono mt-0.5">#{res.id.slice(0,8).toUpperCase()}</p>
-                          </div>
-                        </div>
-                        <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${sc.bg} ${sc.border} ${sc.text} whitespace-nowrap`} style={{ fontFamily: fontStyle(lang) }}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />{statusLabel}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        {[
-                          [t('بەروار','التاريخ','Date',lang), res.date],
-                          [t('کات','الوقت','Time',lang), res.time?.slice(0,5)],
-                          [t('ژمارەی میوان','عدد الضيوف','Guests',lang), res.guest_count],
-                          [t('تۆمارکراوە','تاريخ التسجيل','Booked on',lang), new Date(res.created_at).toLocaleDateString()],
-                        ].map(([label, val]) => (
-                          <div key={label} className="bg-black/5 rounded-xl px-3 py-2">
-                            <p className="text-gray-500 text-xs mb-0.5" style={{ fontFamily: fontStyle(lang) }}>{label}</p>
-                            <p className="text-gray-900 font-semibold">{val}</p>
-                          </div>
-                        ))}
-                      </div>
-                      {res.note && <p className="mt-3 text-xs text-gray-500 italic border-t border-white/5 pt-3" style={{ fontFamily: fontStyle(lang) }}>{res.note}</p>}
-                      <Link
-                        href={`/reservation/${res.id}`}
-                        className="mt-3 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold text-white transition-all border-t border-white/5 pt-3"
-                        style={{ fontFamily: fontStyle(lang), color: GOLD }}
-                      >
-                        <i className="ri-qr-code-line text-sm" />
-                        {t('بینینی پاسی داواکاری', 'عرض تصريح الحجز', 'View Reservation Pass', lang)}
-                      </Link>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* ── BOOK TAB ──────────────────────────────────────── */}
-        {pageTab === 'book' && !hasStartedProcess && (
-          <div className="max-w-xl mx-auto py-4 md:py-6">
-            <div className="rounded-2xl p-4 md:p-8 relative overflow-hidden"
-              style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
-              <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
-
-              {/* Icon */}
-              <div className="flex justify-center mb-3 md:mb-6">
-                <div className="w-14 h-14 md:w-20 md:h-20 rounded-full flex items-center justify-center"
-                  style={{ background: 'rgba(200,169,110,0.06)', border: '1.5px solid rgba(200,169,110,0.3)' }}>
-                  <i className="ri-scan-2-line text-4xl md:text-5xl" style={{ color: GOLD }} />
-                </div>
-              </div>
-
-              {/* Title */}
-              <h2 className="text-lg md:text-xl font-black text-gray-900 text-center mb-2 md:mb-3" style={{ fontFamily: fontStyle(lang) }}>
-                {t('تۆمارکردنی سەردانکردن', 'تسجيل الزيارة', 'Visit Registration', lang)}
-              </h2>
-
-              {/* Description */}
-              <p className="text-center text-xs md:text-sm leading-relaxed md:leading-loose mb-4 md:mb-8" style={{ color: '#6b7280', fontFamily: fontStyle(lang) }}>
-                {t(
-                  'بۆ تۆمارکردنی داواکارییەکەت، پێویستە سەرەتا وێنەی ڕوخسارت تۆمار بکەیت',
-                  'لتسجيل طلبك، يجب أولاً التحقق من هويتك عبر الكاميرا.',
-                  'To complete your reservation, we first need to verify your identity through a quick face scan using your device camera.',
-                  lang
-                )}
-              </p>
-
-              {/* Steps */}
-              <div className="flex items-start justify-center gap-0 mb-4 md:mb-8">
-                {[
-                  { n: '1', label: t('سکانی ڕووخسار', 'مسح الوجه', 'Face Scan', lang), active: true },
-                  { n: '2', label: t('داواکاری',       'التسجيل',   'Booking',   lang), active: false },
-                  { n: '3', label: t('وەرگرتنی کۆد',    'الحصول على QR', 'Get QR', lang), active: false },
-                ].map((step, i) => (
-                  <div key={i} className="flex items-center">
-                    <div className="flex flex-col items-center gap-1.5 px-4">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black"
-                        style={{
-                          background: step.active ? GOLD : 'rgba(255,255,255,0.05)',
-                          color: step.active ? '#000' : '#4b5563',
-                          border: step.active ? 'none' : '1px solid rgba(255,255,255,0.08)',
-                        }}>
-                        {step.n}
-                      </div>
-                      <span className="text-[10px] font-medium whitespace-nowrap" style={{ color: step.active ? '#374151' : '#9ca3af', fontFamily: fontStyle(lang) }}>
-                        {step.label}
-                      </span>
-                    </div>
-                    {i < 2 && <div className="w-6 h-px mb-4" style={{ background: 'rgba(0,0,0,0.12)' }} />}
+                <div className="flex gap-2">
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    <span style={{ position: 'absolute', top: '50%', transform: 'translateY(-50%)', [isRtl ? 'right' : 'left']: 14, color: GOLD, fontSize: 16, pointerEvents: 'none' }}>
+                      <i className="ri-phone-line" />
+                    </span>
+                    <input
+                      type="tel"
+                      value={trackPhone}
+                      onChange={e => setTrackPhone(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && searchByPhone()}
+                      placeholder="07XX XXX XXXX"
+                      dir="ltr"
+                      style={{ ...luxInput(false), paddingInlineStart: 44 }}
+                      onFocus={e => { e.target.style.borderColor = 'rgba(200,169,110,0.7)'; e.target.style.boxShadow = '0 0 0 4px rgba(200,169,110,0.1)' }}
+                      onBlur={e  => { e.target.style.borderColor = 'rgba(203,213,225,0.8)'; e.target.style.boxShadow = '0 1px 4px rgba(0,0,0,0.04)' }}
+                    />
                   </div>
-                ))}
-              </div>
-
-              {/* Start button */}
-              <button
-                type="button"
-                onClick={() => { setHasStartedProcess(true); setFaceScanOpen(true) }}
-                className="w-full py-4 rounded-2xl font-black text-base transition-all hover:brightness-110 active:scale-[0.99]"
-                style={{
-                  background: `linear-gradient(135deg, ${RED}, rgba(122,0,0,0.85))`,
-                  border: `1px solid rgba(200,169,110,0.4)`,
-                  boxShadow: `0 8px 32px rgba(122,0,0,0.45)`,
-                  color: '#fff',
-                  fontFamily: fontStyle(lang),
-                }}
-              >
-                <span className="flex items-center justify-center gap-3">
-                  <i className="ri-scan-2-line text-xl" style={{ color: GOLD }} />
-                  {t('دەستپێکردن', 'بدء التسجيل ومسح الوجه', 'Start Registration & Face Scan', lang)}
-                </span>
-              </button>
-
-              <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: `linear-gradient(to right, transparent, rgba(200,169,110,0.2), transparent)` }} />
-            </div>
-          </div>
-        )}
-
-        {pageTab === 'book' && hasStartedProcess && (
-          <form onSubmit={handleSubmit}>
-            <div className="max-w-2xl mx-auto w-full space-y-4">
-
-              {/* ── Face scan panel — hidden once verified ── */}
-              {!faceVerified && (
-                <div className="rounded-2xl overflow-hidden transition-all duration-500" style={terminalStyle}>
-
-                  {/* Header bar */}
-                  <div className="px-5 py-4 flex items-center gap-3"
-                    style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', background: 'rgba(0,0,0,0.02)' }}>
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)' }}>
-                      <i className="ri-scan-2-line text-base text-amber-400" />
-                    </div>
-                    <div className="flex-1 min-w-0" style={{ direction: isRtl ? 'rtl' : 'ltr' }}>
-                      <p className="text-gray-900 text-sm font-bold" style={{ fontFamily: fontStyle(lang) }}>
-                        {t('فۆڕمی سەردانیکردن', 'محطة القياس الحيوي', 'Biometric Terminal', lang)}
-                      </p>
-                      <p className="text-xs mt-0.5" style={{ color: faceScanOpen ? '#f59e0b' : '#6b7280', fontFamily: fontStyle(lang) }}>
-                        {t('سەرەتا ڕووخسارت سکان بکە', 'في انتظار مسح الوجه', 'Awaiting face scan', lang)}
-                      </p>
-                    </div>
-                    <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${faceScanOpen ? 'bg-amber-400 animate-pulse' : 'bg-neutral-400'}`} />
-                  </div>
-
-                  {/* Camera area */}
-                  <div className="p-5">
-
-                    {/* IDLE */}
-                    {!faceScanOpen && !faceUploading && (
-                      <button type="button" onClick={() => setFaceScanOpen(true)}
-                        className="w-full group transition-all duration-300 transform hover:scale-[1.01] active:scale-[0.99]">
-                        <div className="relative rounded-2xl overflow-hidden mb-4"
-                          style={{ background: 'rgba(245,158,11,0.025)', border: '1.5px dashed rgba(245,158,11,0.35)', paddingBottom: '65%' }}>
-                          <span className="absolute top-3 left-3 w-6 h-6 border-l-2 border-t-2" style={{ borderColor: 'rgba(245,158,11,0.55)' }} />
-                          <span className="absolute top-3 right-3 w-6 h-6 border-r-2 border-t-2" style={{ borderColor: 'rgba(245,158,11,0.55)' }} />
-                          <span className="absolute bottom-3 left-3 w-6 h-6 border-l-2 border-b-2" style={{ borderColor: 'rgba(245,158,11,0.55)' }} />
-                          <span className="absolute bottom-3 right-3 w-6 h-6 border-r-2 border-b-2" style={{ borderColor: 'rgba(245,158,11,0.55)' }} />
-                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6">
-                            <div className="w-16 h-16 rounded-full flex items-center justify-center"
-                              style={{ background: 'rgba(245,158,11,0.08)', border: '1.5px solid rgba(245,158,11,0.3)' }}>
-                              <i className="ri-scan-2-line text-3xl text-amber-400" />
-                            </div>
-                            <p className="text-gray-800 font-bold text-sm text-center" style={{ fontFamily: fontStyle(lang) }}>
-                              {t('ڕووخسارت سکان بکە', 'امسح وجهك', 'Scan Your Face', lang)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-center gap-2.5 py-3.5 rounded-xl transition-all duration-300 group-hover:brightness-110"
-                          style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.4)' }}>
-                          <i className="ri-camera-line text-amber-400 text-base" />
-                          <span className="text-sm font-bold" style={{ color: '#fbbf24', fontFamily: fontStyle(lang) }}>
-                            {t('کردنەوەی کامێرا', 'فتح الكاميرا', 'Open Camera', lang)}
-                          </span>
-                        </div>
-                      </button>
-                    )}
-
-                    {/* UPLOADING */}
-                    {faceUploading && (
-                      <div className="flex flex-col items-center justify-center gap-4 py-12">
-                        <div className="w-16 h-16 rounded-full flex items-center justify-center"
-                          style={{ background: 'rgba(245,158,11,0.08)', border: '1.5px solid rgba(245,158,11,0.3)' }}>
-                          <span className="w-7 h-7 border-2 border-amber-500/20 border-t-amber-400 rounded-full animate-spin" />
-                        </div>
-                        <p className="text-amber-500 text-sm font-semibold" style={{ fontFamily: fontStyle(lang) }}>
-                          {t('ڕووخسار بارکراوە...', 'جاري رفع الوجه...', 'Uploading face…', lang)}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* SCANNER OPEN */}
-                    {faceScanOpen && !faceUploading && (
-                      <div>
-                        <div className="flex justify-end mb-2">
-                          <button type="button" onClick={() => setFaceScanOpen(false)}
-                            className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-700 hover:bg-black/5 transition-all">
-                            <i className="ri-close-line text-base" />
-                          </button>
-                        </div>
-                        <LiveCameraCapture compact lang={lang === 'ku' ? 'ku' : lang === 'ar' ? 'ar' : 'en'} onCapture={handleFaceCapture} />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Verified banner — appears after face scan ── */}
-              {faceVerified && faceImageUrl && (
-                <div className="flex items-center gap-4 p-4 rounded-2xl"
-                  style={{ background: 'rgba(16,185,129,0.06)', border: '1.5px solid rgba(16,185,129,0.3)' }}>
-                  <div className="relative shrink-0">
-                    <img src={faceImageUrl} alt="Face ID" className="w-14 h-14 rounded-xl object-cover"
-                      style={{ border: '1.5px solid rgba(16,185,129,0.5)' }} />
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center"
-                      style={{ border: '2px solid #fff' }}>
-                      <i className="ri-check-line text-white text-[9px]" />
-                    </div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm" style={{ color: '#059669', fontFamily: fontStyle(lang) }}>
-                      {t('ناسنامە پشکنراوە ✓', 'تم التحقق ✓', 'Identity Verified ✓', lang)}
-                    </p>
-                    <p className="text-xs mt-0.5" style={{ color: '#6b7280', fontFamily: fontStyle(lang) }}>
-                      {t('ئێستا زانیارییەکانت پڕبکەوە', 'الآن أكمل بياناتك', 'Now fill in your details below', lang)}
-                    </p>
-                  </div>
-                  <button type="button"
-                    onClick={() => { setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(true) }}
-                    className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-all hover:bg-black/5"
-                    style={{ color: '#9ca3af', fontFamily: fontStyle(lang) }}>
-                    <i className="ri-camera-line text-sm" />
+                  <button
+                    onClick={searchByPhone}
+                    disabled={trackLoading || !trackPhone.trim()}
+                    style={{ background: `linear-gradient(135deg, ${RED}, #990000)`, border: '1px solid rgba(200,169,110,0.3)', borderRadius: 14, padding: '0 20px', color: '#fff', fontWeight: 700, fontSize: 13, display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', boxShadow: '0 4px 16px rgba(122,0,0,0.25)', opacity: (trackLoading || !trackPhone.trim()) ? 0.5 : 1, transition: 'opacity 0.2s', ...fStyle }}
+                  >
+                    {trackLoading
+                      ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      : <i className="ri-search-line" />}
+                    {t('گەڕان', 'بحث', 'Search', lang)}
                   </button>
                 </div>
-              )}
+              </div>
 
-              {/* ── Form fields — revealed after face verified ── */}
-              {faceVerified && (
-                <div className="rounded-2xl overflow-hidden"
-                  style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 24px rgba(0,0,0,0.07)' }}>
-                  <div className="h-px" style={{ background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
-                  <div className="p-4 md:p-6 space-y-4">
-                    {field('name', t('ناوی تەواو', 'الاسم الكامل', 'Full Name', lang), 'text',
-                      { placeholder: t('ناوت بنووسە', 'أدخل اسمك', 'Enter your name', lang) })}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {field('guest_count', t('ژمارەی میوان', 'عدد الضيوف', 'Number of Guests', lang), 'number', { min: 1, max: 100, placeholder: '1' })}
-                      {field('phone', t('ژمارەی تەلەفۆن', 'رقم الهاتف', 'Phone Number', lang), 'tel', { placeholder: '07XX XXX XXXX', dir: 'ltr' })}
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      {field('date', t('بەروار', 'التاريخ', 'Date', lang), 'date', { min: new Date().toISOString().split('T')[0] })}
-                      {field('time', t('کات', 'الوقت', 'Time', lang), 'time')}
-                    </div>
-                    {field('note', t('تێبینی (ئارەزوو مەندانە)', 'ملاحظة (اختياري)', 'Note (optional)', lang), 'textarea',
-                      { placeholder: t('هەر تێبینییەک...', 'أي ملاحظات...', 'Any notes...', lang) })}
-                  </div>
+              {trackError && (
+                <div style={{ background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 14, padding: '12px 16px' }}>
+                  <p className="text-red-500 text-sm flex items-center gap-2" style={fStyle}>
+                    <i className="ri-error-warning-line" />{trackError}
+                  </p>
                 </div>
               )}
 
-              {/* ── Submit — only when form is visible ── */}
-              {faceVerified && (
-                <button type="submit" disabled={loading || faceUploading}
-                  className="w-full py-3 md:py-4 text-white font-black text-base md:text-lg rounded-xl md:rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                  style={{
-                    background: RED,
-                    border: `1px solid rgba(200,169,110,0.35)`,
-                    boxShadow: '0 8px 32px rgba(122,0,0,0.4)',
-                    fontFamily: fontStyle(lang),
-                  }}>
-                  {loading
-                    ? t('ناردن...', 'جاري الإرسال...', 'Submitting...', lang)
-                    : faceUploading
-                    ? <span className="flex items-center justify-center gap-2">
-                        <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin shrink-0" />
-                        {t('چاوەڕوانی بارکردنی ڕووخسار...', 'جاري رفع صورة الوجه...', 'Uploading face…', lang)}
-                      </span>
-                    : t('تۆمارکردن و وەرگرتنی QR', 'تسجيل والحصول على QR', 'Submit & Get QR Code', lang)
-                  }
-                </button>
+              {trackResults !== null && trackResults.length === 0 && (
+                <div style={{ ...glassCard, padding: '48px 24px', textAlign: 'center' }}>
+                  <i className="ri-inbox-line text-4xl mb-3 block" style={{ color: '#94a3b8' }} />
+                  <p className="text-slate-400 text-sm" style={fStyle}>{t('هیچ داواکارییەک نەدۆزرایەوە', 'لا توجد حجوزات بهذا الرقم', 'No reservations found for this number', lang)}</p>
+                </div>
+              )}
+
+              {trackResults && trackResults.length > 0 && (
+                <div className="space-y-4">
+                  <p style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', ...fStyle }}>
+                    {trackResults.length} {t('داواکاری', 'حجز', 'reservation(s) found', lang)}
+                  </p>
+                  {trackResults.map(res => {
+                    const sc = STATUS_STYLE[res.status] || STATUS_STYLE.pending
+                    const statusLabel = {
+                      pending:  t('چاوەڕوان بە', 'قيد الانتظار', 'Pending',  lang),
+                      approved: t('پەسەندکراوە', 'مقبول',        'Approved', lang),
+                      visited:  t('سەردانکرا',   'تمت الزيارة',  'Visited',  lang),
+                    }[res.status] || res.status
+
+                    // stepper progress
+                    const isApproved = res.status === 'approved' || res.status === 'visited'
+                    const trackStep  = isApproved ? 4 : 3
+                    const trackFill  = isApproved ? 'calc(100% - 64px)' : 'calc(66.66% - 43px)'
+
+                    const TRACK_STEPS = [
+                      { num: 1, icon: <FaceScanIcon size={15} color="inherit" strokeWidth={2} /> },
+                      { num: 2, icon: <i className="ri-file-text-line" style={{ fontSize: 14 }} /> },
+                      { num: 3, icon: <i className="ri-qr-code-line"   style={{ fontSize: 14 }} /> },
+                      { num: 4, icon: <i className="ri-checkbox-circle-line" style={{ fontSize: 14 }} /> },
+                    ]
+                    const TRACK_LABELS = [
+                      { ku: 'سکانی ڕووخسار', ar: 'مسح الوجه',      en: 'Face Scan' },
+                      { ku: 'داواکاری',       ar: 'التسجيل',        en: 'Details'   },
+                      { ku: 'وەرگرتنی کۆد',  ar: 'الحصول على QR', en: 'Get Code'  },
+                      { ku: 'پەسەندکردن',    ar: 'تأكيد الحجز',    en: 'Approve'   },
+                    ]
+
+                    const isEditing = editRes?.id === res.id
+                    const qrValue   = `${typeof window !== 'undefined' ? window.location.origin : ''}/reservation/${res.id}`
+
+                    return (
+                      <div key={res.id} className="r-reveal" style={{ ...glassCard, border: `2px solid ${sc.border}`, padding: '24px 20px 20px', overflow: 'hidden' }}>
+
+                        {/* top gold accent line */}
+                        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: `linear-gradient(to right, transparent, ${GOLD} 40%, ${sc.dot} 70%, transparent)`, borderRadius: '24px 24px 0 0' }} />
+
+                        {/* ── QR + Face showcase ── */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, marginBottom: 20, paddingTop: 4 }}>
+                          {/* QR */}
+                          <div style={{ background: '#fff', padding: 8, borderRadius: 16, border: `1.5px solid rgba(200,169,110,0.35)`, boxShadow: '0 4px 16px rgba(200,169,110,0.12)', flexShrink: 0 }}>
+                            <QRCodeCanvas
+                              value={qrValue}
+                              size={typeof window !== 'undefined' && window.innerWidth < 640 ? 90 : 110}
+                              bgColor="#ffffff"
+                              fgColor="#0a0a0a"
+                              level="H"
+                            />
+                          </div>
+
+                          {/* Face photo or placeholder */}
+                          <div style={{ position: 'relative', flexShrink: 0 }}>
+                            {res.face_image_url ? (
+                              <>
+                                <img
+                                  src={res.face_image_url}
+                                  alt="face"
+                                  style={{
+                                    width: typeof window !== 'undefined' && window.innerWidth < 640 ? 90 : 110,
+                                    height: typeof window !== 'undefined' && window.innerWidth < 640 ? 90 : 110,
+                                    borderRadius: 16,
+                                    objectFit: 'cover',
+                                    border: `2px solid rgba(16,185,129,0.45)`,
+                                    boxShadow: '0 4px 16px rgba(16,185,129,0.15)',
+                                    display: 'block',
+                                  }}
+                                />
+                                <span style={{ position: 'absolute', bottom: -6, right: -6, width: 22, height: 22, borderRadius: '50%', background: '#10b981', border: '2px solid #fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                  <i className="ri-check-line" style={{ fontSize: 11, color: '#fff', fontWeight: 'bold' }} />
+                                </span>
+                              </>
+                            ) : (
+                              <div style={{ width: 110, height: 110, borderRadius: 16, border: `2px dashed rgba(200,169,110,0.35)`, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(200,169,110,0.04)' }}>
+                                <FaceScanIcon size={36} color={GOLD} strokeWidth={1.2} />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* ── Name + Edit ── */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 4 }}>
+                          <p style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', ...fStyle }}>{res.name}</p>
+                          {res.status === 'pending' && (
+                            <button
+                              onClick={() => isEditing ? setEditRes(null) : handleEditReservation(res)}
+                              title={t('دەستکاریکردن', 'تعديل', 'Edit', lang)}
+                              style={{ padding: '5px 7px', borderRadius: '50%', border: 'none', cursor: 'pointer', background: isEditing ? 'rgba(122,0,0,0.10)' : 'transparent', color: RED, transition: 'all 0.2s' }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(122,0,0,0.10)'}
+                              onMouseLeave={e => { if (!isEditing) e.currentTarget.style.background = 'transparent' }}
+                            >
+                              <i className={isEditing ? 'ri-close-line' : 'ri-edit-line'} style={{ fontSize: 17 }} />
+                            </button>
+                          )}
+                        </div>
+                        <p style={{ textAlign: 'center', fontSize: 11, color: '#94a3b8', fontFamily: 'monospace', letterSpacing: '0.06em', marginBottom: 18 }}>#{res.id.slice(0,8).toUpperCase()}</p>
+
+                        {/* ── Inline Edit Form ── */}
+                        {isEditing && (
+                          <div className="r-reveal" style={{ background: 'rgba(122,0,0,0.03)', border: '1.5px solid rgba(122,0,0,0.12)', borderRadius: 16, padding: '16px', marginBottom: 16 }}>
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                              <div>
+                                <label style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4, ...fStyle }}>{t('بەروار','التاريخ','Date',lang)}</label>
+                                <input type="date" value={editForm.date} onChange={e => setEditForm(f => ({ ...f, date: e.target.value }))}
+                                  style={{ width: '100%', padding: '8px 10px', borderRadius: 10, border: '1.5px solid rgba(203,213,225,0.8)', fontSize: 13, background: '#fff', color: '#1e293b', outline: 'none' }} />
+                              </div>
+                              <div>
+                                <label style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4, ...fStyle }}>{t('کات','الوقت','Time',lang)}</label>
+                                <input type="time" value={editForm.time} onChange={e => setEditForm(f => ({ ...f, time: e.target.value }))}
+                                  style={{ width: '100%', padding: '8px 10px', borderRadius: 10, border: '1.5px solid rgba(203,213,225,0.8)', fontSize: 13, background: '#fff', color: '#1e293b', outline: 'none' }} />
+                              </div>
+                            </div>
+                            <div className="mb-3">
+                              <label style={{ fontSize: 10, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 4, ...fStyle }}>{t('ژمارەی میوان','عدد الضيوف','Guests',lang)}</label>
+                              <input type="number" min="1" max="20" value={editForm.guest_count} onChange={e => setEditForm(f => ({ ...f, guest_count: e.target.value }))}
+                                style={{ width: '100%', padding: '8px 10px', borderRadius: 10, border: '1.5px solid rgba(203,213,225,0.8)', fontSize: 13, background: '#fff', color: '#1e293b', outline: 'none' }} />
+                            </div>
+                            {editError && <p style={{ color: '#ef4444', fontSize: 12, marginBottom: 8, ...fStyle }}>{editError}</p>}
+                            <button onClick={saveEdit} disabled={editSaving}
+                              style={{ width: '100%', padding: '9px', borderRadius: 12, background: `linear-gradient(135deg, ${RED}, #990000)`, color: '#fff', fontWeight: 700, fontSize: 13, border: 'none', cursor: editSaving ? 'not-allowed' : 'pointer', opacity: editSaving ? 0.6 : 1, ...fStyle }}>
+                              {editSaving ? t('پاشەکەوتکردن...','جارٍ الحفظ...','Saving...', lang) : t('پاشەکەوتکردن','حفظ التغييرات','Save Changes', lang)}
+                            </button>
+                          </div>
+                        )}
+
+                        {/* ── 4-Step Progress Stepper ── */}
+                        <div style={{ ...glassCard, padding: '18px 20px 14px', marginBottom: 18, position: 'relative' }}>
+                          <div style={{ position: 'relative', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ position: 'absolute', top: 18, left: 32, right: 32, height: 2, background: 'rgba(203,213,225,0.85)', zIndex: 0 }} />
+                            <div className="stepper-fill-breath" style={{
+                              position: 'absolute', top: 18,
+                              ...(isRtl ? { right: 32 } : { left: 32 }),
+                              height: 3, borderRadius: 2, width: trackFill,
+                              background: `linear-gradient(${isRtl ? 'to left' : 'to right'}, ${GOLD}, rgba(200,169,110,0.6))`,
+                              transition: 'width 0.5s ease-in-out', zIndex: 1,
+                            }} />
+                            {TRACK_STEPS.map((step, idx) => {
+                              const completed = step.num < trackStep
+                              const active    = step.num === trackStep
+                              const tNodeStyle = (completed || active) ? {
+                                width: 36, height: 36, borderRadius: '50%',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                background: GOLD, border: `2px solid ${GOLD}`,
+                                boxShadow: active ? '0 4px 16px rgba(200,169,110,0.5)' : '0 2px 8px rgba(200,169,110,0.3)',
+                                transform: active ? 'scale(1.1)' : 'scale(1.05)',
+                                outline: active ? '4px solid rgba(200,169,110,0.22)' : 'none',
+                                outlineOffset: 2,
+                                transition: 'all 0.3s ease-out',
+                                position: 'relative', zIndex: 2,
+                              } : {
+                                width: 36, height: 36, borderRadius: '50%',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                background: `linear-gradient(135deg, ${RED}, #5a0000)`,
+                                border: '2px solid rgba(200,169,110,0.25)',
+                                boxShadow: '0 2px 10px rgba(122,0,0,0.25)',
+                                color: '#fff',
+                                transition: 'all 0.3s ease-out',
+                                position: 'relative', zIndex: 2,
+                              }
+                              return (
+                                <div key={step.num} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 7, position: 'relative', zIndex: 1 }}>
+                                  <div style={tNodeStyle}>
+                                    {completed
+                                      ? <i className="ri-check-line" style={{ fontSize: 17, fontWeight: 'bold', color: '#fff' }} />
+                                      : stepIcon(step.num, '#fff')}
+                                  </div>
+                                  <span style={{
+                                    fontSize: 10,
+                                    fontWeight: completed ? 700 : active ? 800 : 700,
+                                    color: completed ? '#1e293b' : active ? RED : RED,
+                                    textAlign: 'center', display: 'inline-block',
+                                    transform: active ? 'scale(1.05)' : 'scale(1)',
+                                    transition: 'all 0.3s ease-out',
+                                    ...fStyle,
+                                  }}>
+                                    {t(TRACK_LABELS[idx].ku, TRACK_LABELS[idx].ar, TRACK_LABELS[idx].en, lang)}
+                                  </span>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+
+                        {/* ── Status Badge ── */}
+                        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '5px 14px', borderRadius: 999, background: sc.bg, border: `1.5px solid ${sc.border}`, color: sc.text, fontSize: 12, fontWeight: 700, ...fStyle }}>
+                            <span style={{ width: 7, height: 7, borderRadius: '50%', background: sc.dot, flexShrink: 0 }} />
+                            {statusLabel}
+                          </span>
+                        </div>
+
+                        {/* ── Detail Tiles ── */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-5 mb-4">
+                          {[
+                            { label: t('کات','الوقت','Time',lang),                      icon: 'ri-time-line',            val: res.time?.slice(0,5)                          },
+                            { label: t('بەروار','التاريخ','Date',lang),                  icon: 'ri-calendar-event-line',  val: res.date                                      },
+                            { label: t('تۆمارکراوە','تاريخ التسجيل','Registered',lang), icon: 'ri-bookmark-3-line',      val: new Date(res.created_at).toLocaleDateString() },
+                            { label: t('ژمارەی میوان','عدد الضيوف','Guests',lang),      icon: 'ri-group-line',           val: res.guest_count                               },
+                          ].map(({ label, icon, val }) => (
+                            <div key={label} style={{
+                              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                              padding: '14px 16px', borderRadius: 16,
+                              background: 'rgba(255,255,255,0.95)',
+                              border: '1px solid rgba(200,169,110,0.18)',
+                              boxShadow: '0 2px 10px rgba(122,0,0,0.06)',
+                              transition: 'box-shadow 0.2s',
+                            }}>
+                              {/* badge + label */}
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                                <div style={{
+                                  width: 44, height: 44, borderRadius: 13, flexShrink: 0,
+                                  background: `linear-gradient(145deg, ${RED}, #5a0000)`,
+                                  boxShadow: `0 4px 14px rgba(122,0,0,0.35), 0 0 0 3px rgba(200,169,110,0.18)`,
+                                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}>
+                                  <i className={icon} style={{ fontSize: 20, color: GOLD }} />
+                                </div>
+                                <span style={{ fontSize: 11, fontWeight: 700, color: '#64748b', ...fStyle }}>{label}</span>
+                              </div>
+                              {/* value */}
+                              <span style={{ fontSize: 14, fontWeight: 600, color: '#1e293b', letterSpacing: '0', textAlign: 'left' }}>{val}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {res.note && (
+                          <p style={{ fontSize: 12, color: '#64748b', fontStyle: 'italic', paddingTop: 10, borderTop: '1px solid rgba(226,232,240,0.7)', marginBottom: 12, ...fStyle }}>{res.note}</p>
+                        )}
+
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ────────── BOOK TAB ────────── */}
+          {pageTab === 'book' && (
+            <div className="max-w-2xl mx-auto space-y-4">
+
+              {/* Live Progress Stepper — persistent across all steps */}
+              <LiveStepper />
+
+              {/* Landing */}
+              {!hasStartedProcess && (
+                <div style={{ ...glassCard, position: 'relative', overflow: 'hidden', padding: '28px 24px 32px' }}>
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
+
+                  <div className="flex justify-center mb-5">
+                    <div className="r-gold-pulse" style={{ width: 76, height: 76, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(200,169,110,0.06)', border: `1.5px solid rgba(200,169,110,0.32)` }}>
+                      <FaceScanIcon size={44} color={GOLD} />
+                    </div>
+                  </div>
+
+                  <h2 className="text-lg md:text-xl font-black text-slate-900 text-center mb-2" style={fStyle}>
+                    {t('تۆمارکردنی سەردانکردن', 'تسجيل الزيارة', 'Visit Registration', lang)}
+                  </h2>
+
+                  <p className="text-center text-xs md:text-sm leading-relaxed mb-7 text-slate-500" style={fStyle}>
+                    {t(
+                      'بۆ تۆمارکردنی داواکارییەکەت، پێویستە سەرەتا وێنەی ڕوخسارت تۆمار بکەیت',
+                      'لتسجيل طلبك، يجب أولاً التحقق من هويتك عبر الكاميرا.',
+                      'To complete your reservation, we first need to verify your identity through a quick face scan.',
+                      lang
+                    )}
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => { setHasStartedProcess(true); setFaceScanOpen(true) }}
+                    style={{
+                      width: '100%', padding: '15px 24px', borderRadius: 18,
+                      background: `linear-gradient(135deg, ${RED} 0%, #990000 100%)`,
+                      border: '1px solid rgba(200,169,110,0.38)',
+                      boxShadow: '0 8px 32px rgba(122,0,0,0.38), 0 1px 0 rgba(255,255,255,0.1) inset',
+                      color: '#fff', fontWeight: 800, fontSize: 15, cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+                      transition: 'all 0.2s', ...fStyle,
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.015)'; e.currentTarget.style.boxShadow = '0 12px 40px rgba(122,0,0,0.48)' }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.boxShadow = '0 8px 32px rgba(122,0,0,0.38)' }}
+                  >
+                    <FaceScanIcon size={22} color={GOLD} />
+                    {t('دەستپێکردن', 'بدء التسجيل ومسح الوجه', 'Start Registration & Face Scan', lang)}
+                  </button>
+
+                  <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, background: `linear-gradient(to right, transparent, rgba(200,169,110,0.18), transparent)` }} />
+                </div>
+              )}
+
+              {/* Process */}
+              {hasStartedProcess && (
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-4">
+
+                {/* Face scan panel */}
+                {!faceVerified && (
+                  <div style={{ ...glassCard, overflow: 'hidden' }} className="r-reveal">
+                    {/* Header bar */}
+                    <div style={{
+                      background: faceScanOpen ? 'rgba(245,158,11,0.05)' : 'rgba(200,169,110,0.03)',
+                      borderBottom: '1px solid rgba(200,169,110,0.14)',
+                      padding: '14px 20px',
+                      display: 'flex', alignItems: 'center', gap: 12,
+                      borderRadius: '24px 24px 0 0',
+                      transition: 'background 0.3s',
+                    }}>
+                      <div style={{ width: 36, height: 36, borderRadius: 10, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <FaceScanIcon size={18} color="#fbbf24" />
+                      </div>
+                      <div style={{ flex: 1 }} dir={isRtl ? 'rtl' : 'ltr'}>
+                        <p className="text-slate-900 text-sm font-bold" style={fStyle}>
+                          {t('فۆڕمی سەردانیکردن', 'محطة القياس الحيوي', 'Biometric Terminal', lang)}
+                        </p>
+                        <p style={{ fontSize: 12, color: faceScanOpen ? '#f59e0b' : '#94a3b8', marginTop: 1, transition: 'color 0.3s', ...fStyle }}>
+                          {t('سەرەتا ڕووخسارت سکان بکە', 'في انتظار مسح الوجه', 'Awaiting face scan', lang)}
+                        </p>
+                      </div>
+                      <span style={{ width: 10, height: 10, borderRadius: '50%', background: faceScanOpen ? '#f59e0b' : '#e2e8f0', flexShrink: 0, boxShadow: faceScanOpen ? '0 0 0 4px rgba(245,158,11,0.18)' : 'none', transition: 'all 0.3s' }} className={faceScanOpen ? 'animate-pulse' : ''} />
+                    </div>
+
+                    <div style={{ padding: '20px' }}>
+
+                      {/* IDLE */}
+                      {!faceScanOpen && !faceUploading && (
+                        <button type="button" onClick={() => setFaceScanOpen(true)} style={{ width: '100%' }}>
+                          <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', paddingBottom: '62%', background: 'rgba(200,169,110,0.03)', border: '1.5px dashed rgba(200,169,110,0.35)', marginBottom: 12 }}>
+                            {hudCorners()}
+                            <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                              <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(245,158,11,0.08)', border: '1.5px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <FaceScanIcon size={36} color="#fbbf24" />
+                              </div>
+                              <p style={{ color: '#475569', fontSize: 13, fontWeight: 600, ...fStyle }}>
+                                {t('ڕووخسارت سکان بکە', 'امسح وجهك', 'Scan Your Face', lang)}
+                              </p>
+                            </div>
+                          </div>
+                          <div
+                            style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.38)', borderRadius: 14, padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, transition: 'background 0.2s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.14)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(245,158,11,0.08)'}
+                          >
+                            <i className="ri-camera-line text-amber-400" />
+                            <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: 13, ...fStyle }}>
+                              {t('کردنەوەی کامێرا', 'فتح الكاميرا', 'Open Camera', lang)}
+                            </span>
+                          </div>
+                        </button>
+                      )}
+
+                      {/* UPLOADING */}
+                      {faceUploading && (
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: '48px 0' }}>
+                          <div style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(245,158,11,0.08)', border: '1.5px solid rgba(245,158,11,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="w-7 h-7 border-2 border-amber-200 border-t-amber-400 rounded-full animate-spin" />
+                          </div>
+                          <p style={{ color: '#f59e0b', fontSize: 13, fontWeight: 600, ...fStyle }}>
+                            {t('ڕووخسار بارکراوە...', 'جاري رفع الوجه...', 'Uploading face…', lang)}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* SCANNING */}
+                      {faceScanOpen && !faceUploading && (
+                        <div className="r-reveal">
+                          <div className="flex justify-end mb-2">
+                            <button type="button" onClick={() => setFaceScanOpen(false)}
+                              style={{ width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8', background: 'transparent', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}
+                              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(0,0,0,0.06)'; e.currentTarget.style.color = '#475569' }}
+                              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8' }}
+                            >
+                              <i className="ri-close-line text-base" />
+                            </button>
+                          </div>
+
+                          {/* HUD scanner frame */}
+                          <div style={{ position: 'relative', borderRadius: 18, overflow: 'hidden', border: `1.5px solid rgba(200,169,110,0.5)`, boxShadow: `0 0 0 4px rgba(200,169,110,0.1)` }}>
+                            <div className="r-scan-line" />
+                            {/* HUD corners for live camera */}
+                            <span style={{ position: 'absolute', top: 10, left: 10, width: 20, height: 20, borderLeft: `2px solid ${GOLD}`, borderTop: `2px solid ${GOLD}`, borderRadius: '3px 0 0 0', zIndex: 10 }} />
+                            <span style={{ position: 'absolute', top: 10, right: 10, width: 20, height: 20, borderRight: `2px solid ${GOLD}`, borderTop: `2px solid ${GOLD}`, borderRadius: '0 3px 0 0', zIndex: 10 }} />
+                            <span style={{ position: 'absolute', bottom: 10, left: 10, width: 20, height: 20, borderLeft: `2px solid ${GOLD}`, borderBottom: `2px solid ${GOLD}`, borderRadius: '0 0 0 3px', zIndex: 10 }} />
+                            <span style={{ position: 'absolute', bottom: 10, right: 10, width: 20, height: 20, borderRight: `2px solid ${GOLD}`, borderBottom: `2px solid ${GOLD}`, borderRadius: '0 0 3px 0', zIndex: 10 }} />
+                            <LiveCameraCapture compact lang={lang === 'ku' ? 'ku' : lang === 'ar' ? 'ar' : 'en'} onCapture={handleFaceCapture} />
+                          </div>
+                        </div>
+                      )}
+
+                    </div>
+                  </div>
+                )}
+
+                {/* Verified banner */}
+                {faceVerified && faceImageUrl && (
+                  <div style={{ background: 'rgba(16,185,129,0.06)', border: '1.5px solid rgba(16,185,129,0.28)', borderRadius: 20, padding: 16, display: 'flex', alignItems: 'center', gap: 14 }} className="r-reveal">
+                    <div style={{ position: 'relative', flexShrink: 0 }}>
+                      <img src={faceImageUrl} alt="Face" style={{ width: 56, height: 56, borderRadius: 14, objectFit: 'cover', border: '1.5px solid rgba(16,185,129,0.5)' }} />
+                      <div style={{ position: 'absolute', bottom: -4, right: -4, width: 20, height: 20, borderRadius: '50%', background: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid #fff' }}>
+                        <i className="ri-check-line text-white text-[9px]" />
+                      </div>
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontWeight: 700, fontSize: 13, color: '#059669', ...fStyle }}>
+                        {t('ناسنامە پشکنراوە ✓', 'تم التحقق ✓', 'Identity Verified ✓', lang)}
+                      </p>
+                      <p style={{ fontSize: 12, color: '#94a3b8', marginTop: 2, ...fStyle }}>
+                        {t('ئێستا زانیارییەکانت پڕبکەوە', 'الآن أكمل بياناتك', 'Now fill in your details below', lang)}
+                      </p>
+                    </div>
+                    <button type="button"
+                      onClick={() => { setFaceImageUrl(null); setFaceVerified(false); setFaceScanOpen(true) }}
+                      style={{ color: '#94a3b8', background: 'transparent', border: 'none', cursor: 'pointer', padding: 4 }}>
+                      <i className="ri-camera-line text-base" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Form fields */}
+                {faceVerified && (
+                  <div style={{ ...glassCard, overflow: 'hidden' }} className="r-reveal">
+                    <div style={{ height: 2, background: `linear-gradient(to right, transparent, ${GOLD}, transparent)` }} />
+                    <div style={{ padding: '22px 22px 26px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+                      {field('name', t('ناوی تەواو', 'الاسم الكامل', 'Full Name', lang), 'text',
+                        { placeholder: t('ناوت بنووسە', 'أدخل اسمك', 'Enter your name', lang) })}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {field('guest_count', t('ژمارەی میوان', 'عدد الضيوف', 'Number of Guests', lang), 'number', { min: 1, max: 100, placeholder: '1' })}
+                        {field('phone', t('ژمارەی تەلەفۆن', 'رقم الهاتف', 'Phone Number', lang), 'tel', { placeholder: '07XX XXX XXXX', dir: 'ltr' })}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {field('date', t('بەروار', 'التاريخ', 'Date', lang), 'date', { min: new Date().toISOString().split('T')[0] })}
+                        {field('time', t('کات', 'الوقت', 'Time', lang), 'time')}
+                      </div>
+                      {field('note', t('تێبینی (ئارەزوو مەندانە)', 'ملاحظة (اختياري)', 'Note (optional)', lang), 'textarea',
+                        { placeholder: t('هەر تێبینییەک...', 'أي ملاحظات...', 'Any notes...', lang) })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Submit button */}
+                {faceVerified && (
+                  <button type="submit" disabled={loading || faceUploading} className="r-reveal"
+                    style={{
+                      width: '100%', padding: '15px 24px', borderRadius: 18,
+                      background: `linear-gradient(135deg, ${RED} 0%, #990000 100%)`,
+                      border: '1px solid rgba(200,169,110,0.35)',
+                      boxShadow: '0 8px 32px rgba(122,0,0,0.4)',
+                      color: '#fff', fontWeight: 800, fontSize: 15,
+                      cursor: loading || faceUploading ? 'not-allowed' : 'pointer',
+                      opacity: loading || faceUploading ? 0.6 : 1,
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12,
+                      transition: 'all 0.2s',
+                      ...fStyle,
+                    }}
+                  >
+                    {loading ? (
+                      <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      {t('ناردن...', 'جاري الإرسال...', 'Submitting...', lang)}</>
+                    ) : faceUploading ? (
+                      <><span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      {t('چاوەڕوانی بارکردنی ڕووخسار...', 'جاري رفع صورة الوجه...', 'Uploading face…', lang)}</>
+                    ) : (
+                      <>{t('تۆمارکردن و وەرگرتنی QR', 'تسجيل والحصول على QR', 'Submit & Get QR Code', lang)}
+                      <i className="ri-qr-code-line text-lg" style={{ color: GOLD }} /></>
+                    )}
+                  </button>
+                )}
+
+              </div>
+            </form>
               )}
 
             </div>
-          </form>
-        )}
+          )}
 
         </div>
       </div>
