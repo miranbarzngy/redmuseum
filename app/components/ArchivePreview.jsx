@@ -276,7 +276,7 @@ export default function ArchivePreview({ currentLang = 'en' }) {
                         src={normalizePath(card?.image_url)}
                         alt={getTitle(card)}
                         className="w-full block transition-transform duration-700 group-hover:scale-[1.03]"
-                        style={{ aspectRatio: '210/297', objectFit: 'contain', background: '#fff', display: 'block' }}
+                        style={{ aspectRatio: '210/297', objectFit: 'contain', background: 'transparent', display: 'block' }}
                         onError={e => { e.target.src = '/assets/images/bg-1.jpg' }}
                       />
                     </Link>
