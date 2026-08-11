@@ -1,0 +1,124 @@
+{
+  "meta": {
+    "title": "National Museum Amnasuraka",
+    "description": "The official site of the National Museum Amnasuraka — preserving history and sharing the region's collections, exhibitions, and stories with the public."
+  },
+  "nav": {
+    "brand": "National Museum Amnasuraka",
+    "biography": "Departments",
+    "media": "Press",
+    "booking": "Visit",
+    "contact": "Contact"
+  },
+  "languageSwitcher": {
+    "label": "Language",
+    "ku": "کوردی",
+    "ar": "العربية",
+    "en": "English"
+  },
+  "hero": {
+    "eyebrow": "History, Memory & Culture",
+    "name": "National Museum Amnasuraka",
+    "statement": "A place where history and memory are preserved and shared — so the stories of this land and its people are never forgotten.",
+    "cta": "Book a Visit",
+    "scrollHint": "Scroll to begin the journey"
+  },
+  "biography": {
+    "eyebrow": "About the Museum",
+    "heading": "Preserving History, Sharing Memory",
+    "intro": "The National Museum Amnasuraka is dedicated to preserving history and sharing the collections, stories, and memory of this land with the public.",
+    "paragraphs": [
+      "Housed in a building that itself carries history, the museum brings together artifacts, artworks, and archives that trace the story of this land and its people.",
+      "Its collections and exhibitions are shaped with care — each piece presented not just to be seen, but to be understood, so that memory is preserved rather than merely displayed.",
+      "Beyond its permanent collection, the museum hosts temporary exhibitions, cultural programs, and educational visits that connect new generations with their history.",
+      "Every visitor, researcher, and student who passes through its halls adds to an ongoing act of remembrance — history kept alive through the people who come to see it."
+    ],
+    "quote": "What is preserved is never truly lost.",
+    "timelineHeading": "Exhibitions & Milestones",
+    "timelineEmpty": "No exhibitions to show yet — please check back soon."
+  },
+  "media": {
+    "eyebrow": "In the Press",
+    "heading": "Media & Press",
+    "subheading": "Interviews, features, and publications about the museum.",
+    "filters": {
+      "all": "All"
+    },
+    "readMore": "Read more",
+    "seeAll": "See all",
+    "backToMedia": "Back to media",
+    "viewSource": "View original source",
+    "empty": "No press coverage to show yet — please check back soon."
+  },
+  "booking": {
+    "eyebrow": "Plan Your Visit",
+    "heading": "Book a Visit",
+    "subheading": "Reserve a date to visit the museum — we'll confirm your booking shortly after you submit it.",
+    "form": {
+      "name": "Full name",
+      "namePlaceholder": "Your name",
+      "phone": "Phone number",
+      "phonePlaceholder": "+964 750 123 4567",
+      "visitDate": "Visit date",
+      "note": "Note",
+      "notePlaceholder": "Group size, special requests, etc. (optional)",
+      "submit": "Book visit",
+      "sending": "Booking...",
+      "success": "Thank you — your visit has been booked. We'll confirm with you soon.",
+      "error": "Something went wrong. Please try again or contact us directly.",
+      "errors": {
+        "name": "Please enter your name.",
+        "phone": "Please enter a valid phone number.",
+        "visitDate": "Please choose a visit date."
+      }
+    },
+    "faceScan": {
+      "label": "Face verification (optional)",
+      "loading": "Starting camera...",
+      "capture": "Capture face",
+      "captured": "Captured ✓",
+      "skip": "Skip",
+      "error": "Camera unavailable — you can continue without face verification."
+    }
+  },
+  "contact": {
+    "eyebrow": "Get in Touch",
+    "heading": "Visits, Press & Collaboration",
+    "subheading": "For visits, research requests, press inquiries, or collaboration, reach out directly — every message is read personally.",
+    "form": {
+      "name": "Full name",
+      "namePlaceholder": "Your name",
+      "phone": "Phone number",
+      "phonePlaceholder": "+964 750 123 4567",
+      "type": "Inquiry type",
+      "typeOptions": {
+        "commission": "Visit / Group booking",
+        "media": "Press / Media",
+        "other": "Other"
+      },
+      "message": "Message",
+      "messagePlaceholder": "Tell us about your inquiry...",
+      "submit": "Send message",
+      "sending": "Sending...",
+      "success": "Thank you — your message has been received. We'll be in touch soon.",
+      "error": "Something went wrong. Please try again or email us directly.",
+      "errors": {
+        "name": "Please enter your name.",
+        "phone": "Please enter a valid phone number.",
+        "message": "Please write a short message."
+      }
+    },
+    "info": {
+      "heading": "Visit & Contact",
+      "emailLabel": "Email",
+      "studioLabel": "Location",
+      "studioValue": "Sulaymaniyah, Kurdistan Region, Iraq",
+      "socialsHeading": "Follow the museum"
+    }
+  },
+  "footer": {
+    "tagline": "Preserving memory, sharing history.",
+    "developedBy": "Development - Miran Berzinji",
+    "rights": "All rights reserved."
+  }
+}

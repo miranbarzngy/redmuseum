@@ -1,0 +1,175 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  @font-face {
+    font-family: "Kurdish Sarchia";
+    /* Points at kurdish.otf, not kurdish.ttf — the .ttf was deleted from
+       the project. kurdish.otf (internally "UniSalar_F_007") is actually
+       TrueType-flavored internally despite its .otf extension, hence
+       format("truetype") here rather than format("opentype"). */
+    src: url("/font/kurdish.otf") format("truetype");
+    /* Single static weight (OS/2 usWeightClass 400, "Regular") — not a
+       variable font. Declaring the true weight here (instead of a false
+       range) lets the browser synthesize bold for headings from this face
+       rather than silently treating every requested weight as already
+       covered by the same Regular outlines. */
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: "Khebrat Musamim";
+    /* public/font/Arabic.ttf — internally named "18 Khebrat Musamim".
+       Despite the .ttf extension its sfnt version is "OTTO" (CFF/PostScript
+       outlines, not glyf), so format("opentype") is correct here, not
+       format("truetype") — the mirror image of the kurdish.otf situation
+       above. */
+    src: url("/font/Arabic.ttf") format("opentype");
+    /* Single static weight (OS/2 usWeightClass 500, "Medium") — not a
+       variable font (no fvar table). Declaring the true weight lets the
+       browser synthesize bold from it for headings rather than treating
+       every requested weight as already covered. */
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+}
+
+:root {
+  --canvas: #fafaf7;
+  --ink: #1c1b19;
+}
+
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+* {
+  scrollbar-color: rgba(28, 27, 25, 0.25) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(28, 27, 25, 0.2);
+  border-radius: 999px;
+}
+
+body {
+  background-color: var(--canvas);
+  color: var(--ink);
+  /* Explicit fallback on the var() — see the comment on fontFamily in
+     tailwind.config.ts for why a bare var() here breaks the whole rule on
+     any page (like /admin) where --font-vazirmatn is never defined. */
+  font-family: var(--font-vazirmatn, Vazirmatn), "Vazirmatn", sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Kurdish locale: use the custom Kurdish typeface everywhere, headings included */
+html[lang="ku"] body,
+html[lang="ku"] .font-display,
+html[lang="ku"] .font-body {
+  font-family: "Kurdish Sarchia", var(--font-vazirmatn, Vazirmatn), "Vazirmatn", sans-serif;
+  /* Kurdish Sarchia only has one real weight (400/Regular). Requesting
+     font-semibold/bold makes the browser synthesize it by artificially
+     thickening the outlines — on Arabic-script connecting strokes (e.g.
+     the loop on ب) that fake-bold merges into a distorted blob, especially
+     at large sizes like the hero heading. Disabling synthesis falls back
+     to the real Regular outlines instead of a faked, broken shape. */
+  font-synthesis: none;
+}
+
+/* Arabic locale: use the dedicated Arabic typeface everywhere, headings included */
+html[lang="ar"] body,
+html[lang="ar"] .font-display,
+html[lang="ar"] .font-body {
+  font-family: "Khebrat Musamim", var(--font-vazirmatn, Vazirmatn), "Vazirmatn", sans-serif;
+  /* Same reasoning as the Kurdish rule above: this face only has one real
+     weight, so browser-synthesized bold would distort its Arabic-script
+     connecting strokes rather than just looking heavier. */
+  font-synthesis: none;
+}
+
+/* Arabic-script letters (e.g. the connecting loop on ب) visibly deform
+   under manual letter-spacing — most noticeable on the hero heading's
+   more aggressive tracking-tightest2 at its very large size. The milder
+   tracking-tight used on smaller headings doesn't show this, so only
+   this one needs resetting for the Kurdish and Arabic typefaces. */
+html[lang="ku"] .tracking-tightest2,
+html[lang="ar"] .tracking-tightest2 {
+  letter-spacing: normal;
+}
+
+::selection {
+  background: #c9a227;
+  color: #1c1b19;
+}
+
+[dir="rtl"] .icon-flip {
+  transform: scaleX(-1);
+}
+
+/* Gallery marquee — continuous left-scroll for the paintings carousel.
+   Percentage translateX is resolved against the track's own live width, so
+   it stays exact as `width: max-content` settles once images finish
+   loading — no JS remeasurement needed. */
+@keyframes scroll-left {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .section-px {
+    @apply px-6 sm:px-10 lg:px-16 xl:px-24;
+  }
+
+  .container-art {
+    @apply mx-auto w-full max-w-8xl;
+  }
+
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
