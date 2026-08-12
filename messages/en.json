@@ -79,7 +79,10 @@
       "capture": "Capture face",
       "captured": "Captured ✓",
       "skip": "Skip",
-      "error": "Camera unavailable — you can continue without face verification."
+      "error": "Camera unavailable — you can continue without face verification.",
+      "checkingLiveness": "Checking... please blink or turn your head slightly.",
+      "livenessFailed": "We couldn't confirm a live face. Please try again with your real face — not a photo or screen.",
+      "retry": "Try again"
     }
   },
   "contact": {
