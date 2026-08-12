@@ -34,5 +34,10 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
+  // `models/*` holds the face-api.js weight shards, which are extensionless
+  // binary files — the `.*\..*` exclusion below only catches paths with a
+  // dot (e.g. the `.json` manifests), so shard files were still being
+  // routed through the intl middleware and 404ing on the locale-prefixed
+  // redirect. Excluded here explicitly.
+  matcher: ["/((?!api|_next|_vercel|models|.*\\..*).*)"],
 };
