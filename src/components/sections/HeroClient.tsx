@@ -96,7 +96,7 @@ export function HeroClient({ profile }: { profile: SiteProfileRow | null }) {
       <div className="container-art section-px relative w-full">
         <motion.div style={{ opacity: contentOpacity }} className="flex flex-col gap-6">
           <Reveal from="fade">
-            <span className="inline-block rounded-full bg-pigment-red px-6 py-2.5 text-fluid-sm font-medium uppercase tracking-[0.3em] text-canvas">
+            <span className="inline-block rounded-full bg-pigment-red px-2 py-0.5 text-[7px] font-medium uppercase tracking-[0.08em] text-canvas sm:px-3 sm:py-1 sm:text-[10px] sm:tracking-[0.15em] lg:px-4 lg:py-1.5 lg:text-xs lg:tracking-[0.2em]">
               {eyebrow}
             </span>
           </Reveal>
@@ -107,7 +107,7 @@ export function HeroClient({ profile }: { profile: SiteProfileRow | null }) {
               only kicks in from sm: up so it can still wrap on narrow phones
               instead of overflowing. */}
           <motion.h1
-            className="font-display text-fluid-name font-semibold leading-[1.05] tracking-tightest2 text-canvas sm:whitespace-nowrap"
+            className="font-display text-lg font-semibold leading-[1.05] tracking-tightest2 text-canvas sm:text-xl sm:whitespace-nowrap lg:text-2xl"
             initial={reduceMotion ? undefined : "hidden"}
             whileInView={reduceMotion ? undefined : "visible"}
             viewport={{ once: true, amount: 0.6 }}
@@ -133,13 +133,17 @@ export function HeroClient({ profile }: { profile: SiteProfileRow | null }) {
 
           <div className="flex max-w-xl flex-col gap-6">
             <Reveal delay={0.2}>
-              <p className="max-w-md whitespace-pre-line text-fluid-base leading-relaxed text-canvas/85">
+              <p className="max-w-md whitespace-pre-line text-[9px] leading-relaxed text-canvas/85 sm:text-[11px] lg:text-sm">
                 {statement}
               </p>
             </Reveal>
             <Reveal delay={0.3}>
               <div className="flex items-center gap-4 pt-2">
-                <Button variant="inverse" onClick={() => router.push("/booking")}>
+                <Button
+                  variant="inverse"
+                  onClick={() => router.push("/booking")}
+                  className="!px-2.5 !py-1.5 !text-[9px] sm:!px-4 sm:!py-2 sm:!text-[11px] lg:!px-5 lg:!py-2.5 lg:!text-xs"
+                >
                   {t("cta")}
                 </Button>
               </div>

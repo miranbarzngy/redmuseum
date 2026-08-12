@@ -55,7 +55,7 @@ export default async function MediaDetailPage({
   return (
     <>
       <HeaderServer />
-      <ScrollExperience showBrush={false}>
+      <ScrollExperience>
         <main>
           <article className="pb-24 pt-36 sm:pb-32 sm:pt-40">
             <div className="container-art section-px flex flex-col gap-10">

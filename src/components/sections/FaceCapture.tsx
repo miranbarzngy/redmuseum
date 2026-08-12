@@ -92,7 +92,7 @@ export function FaceCapture({ onCapture }: { onCapture: (descriptor: number[] | 
           type="button"
           onClick={handleCapture}
           disabled={!ready || status === "captured"}
-          className="rounded-full bg-pigment-terracotta px-4 py-2 text-fluid-xs font-medium text-canvas transition-opacity disabled:opacity-50"
+          className="rounded-full bg-[#850B10] px-4 py-2 text-fluid-xs font-medium text-canvas transition-opacity disabled:opacity-50"
         >
           {status === "captured" ? t("captured") : t("capture")}
         </button>

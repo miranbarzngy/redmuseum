@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { Quote } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { ArtworkPlaceholder } from "@/components/ui/ArtworkPlaceholder";
@@ -36,7 +35,7 @@ export function BiographyClient({
   return (
     <section id="biography" className="relative py-24 sm:py-32">
       <div className="container-art section-px flex flex-col gap-20">
-        <SectionHeading eyebrow={eyebrow} heading={heading} subheading={introText} />
+        <SectionHeading eyebrow={eyebrow} heading={heading} subheading={introText} size="compact" />
 
         <div className="flex flex-col gap-16">
           {blocks.length > 0
@@ -67,7 +66,7 @@ export function BiographyClient({
                     )}
                   </Reveal>
                   <Reveal delay={0.1} className="w-full lg:w-3/5">
-                    <p className="text-fluid-base leading-relaxed text-ink-soft">{pickBody(block, locale)}</p>
+                    <p className="text-xs sm:text-sm lg:text-fluid-base leading-relaxed text-ink-soft">{pickBody(block, locale)}</p>
                   </Reveal>
                 </div>
               ))
@@ -86,20 +85,11 @@ export function BiographyClient({
                     </div>
                   </Reveal>
                   <Reveal delay={0.1} className="w-full lg:w-3/5">
-                    <p className="text-fluid-base leading-relaxed text-ink-soft">{p}</p>
+                    <p className="text-xs sm:text-sm lg:text-fluid-base leading-relaxed text-ink-soft">{p}</p>
                   </Reveal>
                 </div>
               ))}
         </div>
-
-        <Reveal from="fade">
-          <blockquote className="relative mx-auto max-w-3xl text-center">
-            <Quote className="mx-auto mb-4 h-8 w-8 text-pigment-gold" />
-            <p className="font-display text-fluid-xl font-medium italic leading-snug text-ink">
-              “{t("quote")}”
-            </p>
-          </blockquote>
-        </Reveal>
       </div>
     </section>
   );

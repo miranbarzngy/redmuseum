@@ -33,7 +33,7 @@ export default async function BookingPage({ params }: { params: Promise<{ locale
   return (
     <>
       <HeaderServer />
-      <ScrollExperience showBrush={false}>
+      <ScrollExperience>
         <main>
           <Booking />
         </main>

@@ -1,16 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { motion, MotionValue, useReducedMotion, useTransform } from "framer-motion";
 import { useDirection } from "@/lib/useDirection";
 
 interface PaintCanvasProps {
   progress: MotionValue<number>;
-  /** The floating palette+brush glyph tracks scroll position across the
-   * whole page — on standalone pages that don't share the homepage's
-   * scroll narrative (e.g. the media detail pages), it reads as a stray,
-   * out-of-place element rather than part of a story. Default on. */
-  showBrush?: boolean;
 }
 
 /**
@@ -23,13 +17,17 @@ interface PaintCanvasProps {
  * anymore), each a visibly different curve family so the strokes read as
  * distinct brushmarks rather than four copies of the same S-curve.
  */
-export function PaintCanvas({ progress, showBrush = true }: PaintCanvasProps) {
+export function PaintCanvas({ progress }: PaintCanvasProps) {
   const reduceMotion = useReducedMotion();
   const dir = useDirection();
 
+  // Solid grey, matching the header nav's text color (#2E2F33) — replaces
+  // the brand-red strokes these used to draw in.
+  const STROKE_COLOR = "#2E2F33";
+
   // Hero — a single, gentle arc.
   const heroPath = useTransform(progress, [0, 0.06, 0.16, 0.22], [0, 1, 1, 0]);
-  const heroOpacity = useTransform(progress, [0, 0.04, 0.18, 0.24], [0, 0.85, 0.85, 0]);
+  const heroOpacity = useTransform(progress, [0, 0.04, 0.18, 0.24], [0, 0.05, 0.05, 0]);
   const heroD = useTransform(
     progress,
     [0, 0.06, 0.16, 0.22],
@@ -44,7 +42,7 @@ export function PaintCanvas({ progress, showBrush = true }: PaintCanvasProps) {
   // Departments (formerly Biography) — a double wave, structurally distinct
   // from the single-arc strokes elsewhere on the page.
   const deptPath = useTransform(progress, [0.2, 0.28, 0.42, 0.5], [0, 1, 1, 0]);
-  const deptOpacity = useTransform(progress, [0.2, 0.26, 0.44, 0.52], [0, 0.85, 0.85, 0]);
+  const deptOpacity = useTransform(progress, [0.2, 0.26, 0.44, 0.52], [0, 0.05, 0.05, 0]);
   const deptD = useTransform(
     progress,
     [0.2, 0.28, 0.42, 0.5],
@@ -58,7 +56,7 @@ export function PaintCanvas({ progress, showBrush = true }: PaintCanvasProps) {
 
   // Media — a steep diagonal sweep.
   const mediaPath = useTransform(progress, [0.46, 0.54, 0.7, 0.78], [0, 1, 1, 0]);
-  const mediaOpacity = useTransform(progress, [0.46, 0.52, 0.72, 0.8], [0, 0.85, 0.85, 0]);
+  const mediaOpacity = useTransform(progress, [0.46, 0.52, 0.72, 0.8], [0, 0.05, 0.05, 0]);
   const mediaD = useTransform(
     progress,
     [0.46, 0.54, 0.7, 0.78],
@@ -74,7 +72,7 @@ export function PaintCanvas({ progress, showBrush = true }: PaintCanvasProps) {
   // brushstroke in the sequence). Stays drawn once complete rather than
   // fading, since there's no section after it.
   const contactPath = useTransform(progress, [0.74, 0.82, 1], [0, 1, 1]);
-  const contactOpacity = useTransform(progress, [0.74, 0.8, 1], [0, 0.85, 0.85]);
+  const contactOpacity = useTransform(progress, [0.74, 0.8, 1], [0, 0.05, 0.05]);
   const contactD = useTransform(
     progress,
     [0.74, 0.82, 1],
@@ -84,15 +82,6 @@ export function PaintCanvas({ progress, showBrush = true }: PaintCanvasProps) {
       "M -50 800 C 320 760, 680 820, 1050 720",
     ]
   );
-
-  const splatterScale = useTransform(progress, [0.18, 0.24, 0.42, 0.5], [0, 1, 1, 0.7]);
-  const splatterScale2 = useTransform(progress, [0.44, 0.5, 0.7, 0.78], [0, 1, 1, 0.7]);
-
-  // Fixed in place rather than tracking scroll — a static resting pose
-  // instead of the drift-around-the-page path this used to follow.
-  const brushX = "10%";
-  const brushY = "14%";
-  const brushRotate = -10;
 
   if (reduceMotion) {
     return (
@@ -125,79 +114,30 @@ export function PaintCanvas({ progress, showBrush = true }: PaintCanvasProps) {
           fill="none"
         >
           <motion.path
-            stroke="#850B10"
+            stroke={STROKE_COLOR}
             strokeWidth="4"
             strokeLinecap="round"
             style={{ d: heroD, pathLength: heroPath, opacity: heroOpacity }}
           />
           <motion.path
-            stroke="#850B10"
+            stroke={STROKE_COLOR}
             strokeWidth="4"
             strokeLinecap="round"
             style={{ d: deptD, pathLength: deptPath, opacity: deptOpacity }}
           />
           <motion.path
-            stroke="#850B10"
+            stroke={STROKE_COLOR}
             strokeWidth="4"
             strokeLinecap="round"
             style={{ d: mediaD, pathLength: mediaPath, opacity: mediaOpacity }}
           />
           <motion.path
-            stroke="#850B10"
+            stroke={STROKE_COLOR}
             strokeWidth="3"
             strokeLinecap="round"
             style={{ d: contactD, pathLength: contactPath, opacity: contactOpacity }}
           />
         </svg>
-
-        {/* paint splash, top-left */}
-        <motion.div
-          style={{ scale: splatterScale }}
-          className="absolute left-[10%] top-[20%] h-24 w-24 origin-center sm:h-32 sm:w-32"
-        >
-          <Image
-            src="/images/backgroundanimationicon/3.png"
-            alt=""
-            fill
-            sizes="128px"
-            className="object-contain opacity-25"
-          />
-        </motion.div>
-
-        {/* paint splash, bottom-right (mirrored for variety) */}
-        <motion.div
-          style={{ scale: splatterScale2, scaleX: -1 }}
-          className="absolute right-[8%] top-[64%] h-24 w-24 origin-center sm:h-32 sm:w-32"
-        >
-          <Image
-            src="/images/backgroundanimationicon/3.png"
-            alt=""
-            fill
-            sizes="128px"
-            className="object-contain opacity-25"
-          />
-        </motion.div>
-
-        {showBrush && (
-          <motion.div
-            style={{ left: brushX, top: brushY, rotate: brushRotate, x: "-50%", y: "-50%", z: 0 }}
-            className="absolute h-10 w-10 will-change-transform sm:h-20 sm:w-20"
-          >
-            <motion.div
-              className="relative h-full w-full opacity-80"
-              animate={{ scale: [1, 1.05, 0.98, 1] }}
-              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Image
-                src="/images/backgroundanimationicon/1.png"
-                alt=""
-                fill
-                sizes="80px"
-                className="object-contain drop-shadow-sm"
-              />
-            </motion.div>
-          </motion.div>
-        )}
       </div>
     </div>
   );

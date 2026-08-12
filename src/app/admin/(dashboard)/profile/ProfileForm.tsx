@@ -96,7 +96,7 @@ export function ProfileForm({
 
       <fieldset className="flex flex-col gap-3">
         <legend className="text-fluid-xs font-medium uppercase tracking-[0.15em] text-ink-soft">
-          وێنەی کارتی پەیوەندی (بەشی «پەیوەندی بکە»)
+          وێنەی کارتی پەیوەندی (بەشی «بەشی»)
         </legend>
 
         {contactCardPreview && (

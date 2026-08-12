@@ -69,7 +69,7 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
             <form
               onSubmit={handleSubmit(onSubmit)}
               noValidate
-              className="flex flex-col gap-5 rounded-2xl border border-ink/10 bg-white p-6 shadow-card sm:p-8"
+              className="flex flex-col gap-5 rounded-2xl border-4 border-[#850B10] bg-white p-6 shadow-[0_20px_45px_-28px_rgba(133,11,16,0.55)] sm:p-8"
             >
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">

@@ -6,7 +6,7 @@ import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-
 import { useTranslations } from "next-intl";
 import { Menu, X } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { scrollToId } from "@/lib/scrollTo";
 
 // Homepage sections, scrolled to in place.
@@ -30,6 +30,8 @@ const FALLBACK_NAME_EN = "Amnasuraka National Museum";
 
 export function Header({ solid = false, nameKu = null, nameEn = null }: HeaderProps = {}) {
   const t = useTranslations("nav");
+  const pathname = usePathname();
+  const router = useRouter();
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -41,6 +43,18 @@ export function Header({ solid = false, nameKu = null, nameEn = null }: HeaderPr
   function handleNavClick(id: string) {
     setMenuOpen(false);
     scrollToId(id);
+  }
+
+  // Clicking the logo/wordmark should always land on the homepage — a
+  // smooth scroll-to-top when already there, an actual navigation from any
+  // other route (e.g. /booking), where "hero" doesn't exist to scroll to.
+  function handleLogoClick() {
+    setMenuOpen(false);
+    if (pathname === "/") {
+      scrollToId("hero");
+    } else {
+      router.push("/");
+    }
   }
 
   // `solid` is for pages whose hero is a full-bleed dark photo (the nav's
@@ -62,7 +76,7 @@ export function Header({ solid = false, nameKu = null, nameEn = null }: HeaderPr
       >
         <div className="container-art section-px flex h-20 items-center justify-between">
           <button
-            onClick={() => scrollToId("hero")}
+            onClick={handleLogoClick}
             aria-label={t("brand")}
             className="flex shrink-0 items-center gap-2.5"
           >
@@ -76,9 +90,8 @@ export function Header({ solid = false, nameKu = null, nameEn = null }: HeaderPr
             />
             {/* Fixed bilingual wordmark lockup — a logo doesn't switch
                 language with the rest of the site, so this stays Kurdish +
-                English regardless of the active locale. Hidden below sm:
-                to keep the mobile header from getting crowded. */}
-            <span className="hidden flex-col items-start sm:flex">
+                English regardless of the active locale. */}
+            <span className="flex flex-col items-start">
               <span className="font-kurdish text-fluid-xs font-semibold leading-tight text-[#2E2F33]">
                 {nameKu ?? FALLBACK_NAME_KU}
               </span>
@@ -89,18 +102,24 @@ export function Header({ solid = false, nameKu = null, nameEn = null }: HeaderPr
           </button>
 
           <nav className="hidden items-center gap-9 lg:flex">
+            <Link
+              href="/"
+              className="text-fluid-sm font-medium text-[#2E2F33] transition-colors hover:text-[#850B10]"
+            >
+              {t("home")}
+            </Link>
             {SECTION_IDS.map((id) => (
               <button
                 key={id}
                 onClick={() => handleNavClick(id)}
-                className="text-fluid-sm font-medium text-[#2E2F33] transition-colors hover:text-pigment-terracotta"
+                className="text-fluid-sm font-medium text-[#2E2F33] transition-colors hover:text-[#850B10]"
               >
                 {t(id === "media" ? "media" : id)}
               </button>
             ))}
             <Link
               href="/booking"
-              className="text-fluid-sm font-medium text-[#2E2F33] transition-colors hover:text-pigment-terracotta"
+              className="text-fluid-sm font-medium text-[#2E2F33] transition-colors hover:text-[#850B10]"
             >
               {t("booking")}
             </Link>
@@ -130,6 +149,13 @@ export function Header({ solid = false, nameKu = null, nameEn = null }: HeaderPr
             className="border-b border-ink/10 bg-canvas/95 backdrop-blur-lg lg:hidden"
           >
             <nav className="section-px flex flex-col gap-1 py-4">
+              <Link
+                href="/"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-lg px-2 py-3 text-start text-fluid-base font-medium text-ink-soft hover:bg-ink/5 hover:text-ink"
+              >
+                {t("home")}
+              </Link>
               {SECTION_IDS.map((id) => (
                 <button
                   key={id}

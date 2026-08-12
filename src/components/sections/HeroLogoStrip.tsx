@@ -34,10 +34,13 @@ export async function HeroLogoStrip() {
     <div className="mx-auto flex w-full flex-col items-center gap-10 px-4 py-14 sm:px-8 sm:py-20">
       <Reveal from="fade">
         <div className="flex flex-col items-center gap-3 text-center">
-          <span className="text-fluid-xs font-semibold uppercase tracking-[0.3em]" style={{ color: ACCENT }}>
-            هێڵی کات
+          <span
+            className="font-kurdish text-fluid-xs font-semibold uppercase tracking-[0.3em]"
+            style={{ color: ACCENT }}
+          >
+            دەربارەی
           </span>
-          <h2 className="font-display text-fluid-xl font-semibold text-ink">مێژووی مۆزەخانە</h2>
+          <h2 className="font-kurdish text-fluid-xl font-semibold text-ink">مێژووی مۆزەخانە</h2>
           <span className="h-[3px] w-14 rounded-full" style={{ backgroundColor: ACCENT }} />
         </div>
       </Reveal>

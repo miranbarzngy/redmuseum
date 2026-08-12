@@ -18,7 +18,7 @@ export default async function AdminMessagesPage() {
       <div>
         <h1 className="font-kurdish text-fluid-xl font-semibold text-ink">پەیامەکان</h1>
         <p className="mt-1 text-fluid-sm text-ink-soft">
-          پەیامەکانی پەیوەندی لە فۆرمی «پەیوەندی بکە»ی ماڵپەڕی گشتییەوە.
+          پەیامەکانی پەیوەندی لە فۆرمی «بەشی»ی ماڵپەڕی گشتییەوە.
           {unreadCount > 0 && ` — ${unreadCount} پەیامی نەخوێندراوە.`}
         </p>
       </div>

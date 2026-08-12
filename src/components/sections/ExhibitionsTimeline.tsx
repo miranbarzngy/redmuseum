@@ -45,7 +45,7 @@ export function ExhibitionsTimeline({
   return (
     <div ref={containerRef} className="relative ms-3 w-full max-w-3xl ps-10">
       <div className="absolute inset-y-0 start-0 flex w-10 justify-center">
-        <div className="h-full w-1 overflow-hidden rounded-full bg-ink/10">
+        <div className="h-full w-1 overflow-hidden rounded-full bg-canvas-paper">
           <motion.div
             className="h-full w-full origin-top rounded-full"
             style={{ backgroundColor: ACCENT, scaleY: reduceMotion ? 1 : scrollYProgress }}

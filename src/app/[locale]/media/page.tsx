@@ -35,7 +35,7 @@ export default async function MediaPage({ params }: { params: Promise<{ locale: 
   return (
     <>
       <HeaderServer />
-      <ScrollExperience showBrush={false}>
+      <ScrollExperience>
         <main>
           <MediaPressClient items={items} categories={categories} />
         </main>
