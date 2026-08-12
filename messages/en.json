@@ -76,6 +76,7 @@
     "faceScan": {
       "label": "Face verification (optional)",
       "loading": "Starting camera...",
+      "enableCamera": "Enable camera",
       "capture": "Capture face",
       "captured": "Captured ✓",
       "skip": "Skip",

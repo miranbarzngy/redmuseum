@@ -19,7 +19,7 @@ const LIVENESS_SAMPLE_INTERVAL_MS = 120;
 const BLINK_CLOSE_RATIO = 0.8; // EAR must dip below this fraction of the open-eye baseline
 const BLINK_REOPEN_RATIO = 0.9; // ...then recover above this fraction to count as a full blink
 
-type Status = "loading" | "idle" | "checking-liveness" | "liveness-failed" | "captured" | "error";
+type Status = "loading" | "models-ready" | "idle" | "checking-liveness" | "liveness-failed" | "captured" | "error";
 
 function eyeAspectRatio(eye: faceapi.Point[]): number {
   const dist = (a: faceapi.Point, b: faceapi.Point) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -46,19 +46,9 @@ export function FaceCapture({ onCapture }: { onCapture: (descriptor: number[] | 
           faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
         ]);
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-        if (cancelled) {
-          stream.getTracks().forEach((track) => track.stop());
-          return;
-        }
-        streamRef.current = stream;
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
-        setReady(true);
-        setStatus("idle");
+        if (!cancelled) setStatus("models-ready");
       } catch (err) {
-        console.error("Face scan init failed:", err);
+        console.error("Face scan model load failed:", err);
         if (!cancelled) setStatus("error");
       }
     }
@@ -70,6 +60,25 @@ export function FaceCapture({ onCapture }: { onCapture: (descriptor: number[] | 
       streamRef.current?.getTracks().forEach((track) => track.stop());
     };
   }, []);
+
+  // iOS Safari (and some other mobile browsers) only grant getUserMedia
+  // when it's called directly from a user gesture — requesting it
+  // automatically on mount gets silently denied there. So models load
+  // eagerly, but the camera itself is only requested on tap.
+  async function handleEnableCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      setReady(true);
+      setStatus("idle");
+    } catch (err) {
+      console.error("Face scan camera request failed:", err);
+      setStatus("error");
+    }
+  }
 
   async function runLivenessCheck(): Promise<boolean> {
     const video = videoRef.current;
@@ -149,18 +158,28 @@ export function FaceCapture({ onCapture }: { onCapture: (descriptor: number[] | 
       <video ref={videoRef} autoPlay muted playsInline className="mb-3 aspect-video w-full rounded-lg bg-ink" />
 
       <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={handleCapture}
-          disabled={!ready || status === "captured" || status === "checking-liveness"}
-          className="rounded-full bg-[#850B10] px-4 py-2 text-fluid-xs font-medium text-canvas transition-opacity disabled:opacity-50"
-        >
-          {status === "captured"
-            ? t("captured")
-            : status === "liveness-failed"
-              ? t("retry")
-              : t("capture")}
-        </button>
+        {status === "models-ready" ? (
+          <button
+            type="button"
+            onClick={handleEnableCamera}
+            className="rounded-full bg-[#850B10] px-4 py-2 text-fluid-xs font-medium text-canvas transition-opacity"
+          >
+            {t("enableCamera")}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleCapture}
+            disabled={!ready || status === "captured" || status === "checking-liveness"}
+            className="rounded-full bg-[#850B10] px-4 py-2 text-fluid-xs font-medium text-canvas transition-opacity disabled:opacity-50"
+          >
+            {status === "captured"
+              ? t("captured")
+              : status === "liveness-failed"
+                ? t("retry")
+                : t("capture")}
+          </button>
+        )}
         <button
           type="button"
           onClick={handleSkip}
