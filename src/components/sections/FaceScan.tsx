@@ -271,7 +271,59 @@ export function FaceScan({
       {status === "upload-failed" && <p className="mb-2 text-fluid-xs text-pigment-crimson">{t("uploadFailed")}</p>}
 
       {open && (
-        <video ref={videoRef} autoPlay muted playsInline className="mb-3 aspect-video w-full rounded-lg bg-ink" />
+        <div className="relative mb-3 overflow-hidden rounded-lg">
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className="aspect-video w-full -scale-x-100 rounded-lg bg-ink"
+          />
+
+          {(status === "idle" || status === "checking-liveness") && (
+            <div className="pointer-events-none absolute inset-0">
+              {/* corner brackets */}
+              {(["tl", "tr", "bl", "br"] as const).map((pos) => (
+                <div
+                  key={pos}
+                  className="absolute h-6 w-6"
+                  style={{
+                    top: pos.startsWith("t") ? 8 : undefined,
+                    bottom: pos.startsWith("b") ? 8 : undefined,
+                    left: pos.endsWith("l") ? 8 : undefined,
+                    right: pos.endsWith("r") ? 8 : undefined,
+                    borderTop: pos.startsWith("t") ? "3px solid #c8a96e" : undefined,
+                    borderBottom: pos.startsWith("b") ? "3px solid #c8a96e" : undefined,
+                    borderLeft: pos.endsWith("l") ? "3px solid #c8a96e" : undefined,
+                    borderRight: pos.endsWith("r") ? "3px solid #c8a96e" : undefined,
+                    borderRadius:
+                      pos === "tl" ? "6px 0 0 0" : pos === "tr" ? "0 6px 0 0" : pos === "bl" ? "0 0 0 6px" : "0 0 6px 0",
+                  }}
+                />
+              ))}
+
+              {/* moving scan line */}
+              <div
+                className="absolute left-0 right-0 h-0.5"
+                style={{
+                  background: "linear-gradient(to right, transparent, rgba(200,169,110,0.9), transparent)",
+                  animation:
+                    status === "checking-liveness"
+                      ? "faceScanLine 1.1s ease-in-out infinite"
+                      : "faceScanLine 2.2s ease-in-out infinite",
+                }}
+              />
+            </div>
+          )}
+
+          <style>{`
+            @keyframes faceScanLine {
+              0% { top: 6%; }
+              50% { top: 92%; }
+              100% { top: 6%; }
+            }
+          `}</style>
+        </div>
       )}
 
       <div className="flex items-center gap-2">
