@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslations } from "next-intl";
 import { Camera, RotateCcw, Check, Loader2, AlertCircle } from "lucide-react";
+import clsx from "clsx";
 import { easeArt } from "@/lib/motionVariants";
 
 // Camera-only capture step for the booking wizard. This intentionally does
@@ -69,7 +70,12 @@ export function PhotoCapture({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
       streamRef.current = stream;
-      if (videoRef.current) videoRef.current.srcObject = stream;
+      const video = videoRef.current;
+      if (video) {
+        video.srcObject = stream;
+        // iOS Safari ignores srcObject unless play() is explicitly awaited.
+        await video.play().catch(() => {});
+      }
       setState("live");
     } catch (err) {
       console.error("Photo capture camera request failed:", err);
@@ -174,15 +180,21 @@ export function PhotoCapture({
         />
 
         <div className="absolute inset-[6px] overflow-hidden rounded-full bg-ink">
-          {(state === "live" || state === "preview" || state === "uploading") && (
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              playsInline
-              className="h-full w-full -scale-x-100 object-cover"
-            />
-          )}
+          {/* Always mounted (never conditionally rendered) so `videoRef` is
+              already attached by the time handleStart's getUserMedia
+              promise resolves — mounting it only once state flips to
+              "live" left the ref null at the moment srcObject was set,
+              which produced a black frame with no stream attached. */}
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className={clsx(
+              "h-full w-full -scale-x-100 object-cover",
+              (state === "live" || state === "preview" || state === "uploading") ? "block" : "hidden"
+            )}
+          />
 
           <AnimatePresence>
             {shot && (state === "preview" || state === "uploading") && (
