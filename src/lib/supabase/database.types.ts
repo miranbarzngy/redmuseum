@@ -363,7 +363,7 @@ export interface Database {
           phone: string;
           visit_date: string;
           note: string | null;
-          face_vector_data: number[] | null;
+          face_image_path: string | null;
           face_scan_consent: boolean;
           status: BookingStatus;
           created_at: string;
@@ -375,7 +375,7 @@ export interface Database {
           phone: string;
           visit_date: string;
           note?: string | null;
-          face_vector_data?: number[] | null;
+          face_image_path?: string | null;
           face_scan_consent?: boolean;
           status?: BookingStatus;
           created_at?: string;

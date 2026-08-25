@@ -74,13 +74,15 @@
       }
     },
     "faceScan": {
-      "label": "Face verification (optional)",
-      "loading": "Starting camera...",
-      "enableCamera": "Enable camera",
+      "label": "Face verification",
+      "loading": "Getting ready...",
+      "startScan": "Start scan",
       "capture": "Capture face",
-      "captured": "Captured ✓",
-      "skip": "Skip",
-      "error": "Camera unavailable — you can continue without face verification.",
+      "captured": "Verified ✓",
+      "uploading": "Uploading...",
+      "rescan": "Re-scan",
+      "error": "Camera unavailable. Please allow camera access and try again.",
+      "uploadFailed": "Upload failed. Please try again.",
       "checkingLiveness": "Checking... please blink or turn your head slightly.",
       "livenessFailed": "We couldn't confirm a live face. Please try again with your real face — not a photo or screen.",
       "retry": "Try again"

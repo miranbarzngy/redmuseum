@@ -43,6 +43,22 @@ export async function getBooking(id: string): Promise<BookingRow | null> {
   return data;
 }
 
+// The face-scans bucket is fully private (see 0024_face_scan_photos.sql) —
+// this is the only way to view a captured photo, and only from inside a
+// requireAdminSession()-gated call site. Short TTL since it's regenerated
+// fresh on every page render rather than persisted anywhere.
+export async function getFacePhotoUrl(path: string): Promise<string | null> {
+  await requireAdminSession();
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.storage.from("face-scans").createSignedUrl(path, 300);
+
+  if (error) {
+    console.error("[bookings] failed to sign face photo url", error.message);
+    return null;
+  }
+  return data.signedUrl;
+}
+
 export async function updateBookingStatus(id: string, status: BookingStatus) {
   await requireAdminSession();
   const supabase = createAdminClient();

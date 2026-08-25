@@ -15,7 +15,7 @@ import { Button } from "@/components/ui/Button";
 // face-api.js needs `window`/camera access, so the capture step can only
 // ever render on the client — dynamic + ssr:false keeps it out of the
 // server-rendered bundle entirely.
-const FaceCapture = dynamic(() => import("./FaceCapture").then((m) => m.FaceCapture), { ssr: false });
+const FaceScan = dynamic(() => import("./FaceScan").then((m) => m.FaceScan), { ssr: false });
 
 function todayIso(): string {
   return new Date().toISOString().split("T")[0];
@@ -24,7 +24,19 @@ function todayIso(): string {
 export function BookingClient({ faceScanEnabled }: { faceScanEnabled: boolean }) {
   const t = useTranslations("booking");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-  const [faceDescriptor, setFaceDescriptor] = useState<number[] | null>(null);
+
+  // When faceScanEnabled is off (admin toggle), the scan step is hidden
+  // entirely and fieldsLocked stays false — visitors submit the form
+  // directly, same as before this feature existed. When it's on, the scan
+  // is mandatory: fieldsLocked tracks !faceVerified so the rest of the form
+  // can't be submitted until a photo has been captured and uploaded.
+  const [faceImageUrl, setFaceImageUrl] = useState<string | null>(null);
+  const [faceImagePath, setFaceImagePath] = useState<string | null>(null);
+  const [faceVerified, setFaceVerified] = useState<boolean>(false);
+  const [faceUploading, setFaceUploading] = useState<boolean>(false);
+  const [faceScanOpen, setFaceScanOpen] = useState<boolean>(false);
+
+  const fieldsLocked = faceScanEnabled ? !faceVerified : false;
 
   const schema = z.object({
     name: z.string().min(1, t("form.errors.name")),
@@ -48,6 +60,8 @@ export function BookingClient({ faceScanEnabled }: { faceScanEnabled: boolean })
   });
 
   async function onSubmit(values: FormValues) {
+    if (fieldsLocked) return;
+
     setStatus("idle");
     try {
       const res = await fetch("/api/booking", {
@@ -55,17 +69,25 @@ export function BookingClient({ faceScanEnabled }: { faceScanEnabled: boolean })
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...values,
-          faceVectorData: faceScanEnabled ? faceDescriptor : null,
-          faceScanConsent: faceScanEnabled && faceDescriptor !== null,
+          faceImagePath: faceScanEnabled ? faceImagePath : null,
+          faceScanConsent: faceScanEnabled && faceVerified,
         }),
       });
       if (!res.ok) throw new Error("Request failed");
       setStatus("success");
-      setFaceDescriptor(null);
+      resetFaceScan();
       reset({ name: "", phone: "", visitDate: "", note: "" });
     } catch {
       setStatus("error");
     }
+  }
+
+  function resetFaceScan() {
+    setFaceImageUrl(null);
+    setFaceImagePath(null);
+    setFaceVerified(false);
+    setFaceUploading(false);
+    setFaceScanOpen(false);
   }
 
   return (
@@ -79,6 +101,27 @@ export function BookingClient({ faceScanEnabled }: { faceScanEnabled: boolean })
             noValidate
             className="mx-auto mt-12 flex max-w-xl flex-col gap-5 rounded-2xl border border-ink/10 bg-white p-6 shadow-card sm:p-8"
           >
+            {faceScanEnabled && (
+              <FaceScan
+                open={faceScanOpen}
+                onOpenChange={setFaceScanOpen}
+                verified={faceVerified}
+                uploading={faceUploading}
+                imageUrl={faceImageUrl}
+                onUploadingChange={setFaceUploading}
+                onCaptured={({ url, path }) => {
+                  setFaceImageUrl(url);
+                  setFaceImagePath(path);
+                  setFaceVerified(true);
+                }}
+                onReset={resetFaceScan}
+              />
+            )}
+
+            <fieldset
+              disabled={fieldsLocked}
+              className="flex flex-col gap-5 transition-opacity disabled:pointer-events-none disabled:opacity-50"
+            >
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="name" className="text-fluid-xs font-medium text-ink-soft">
@@ -138,11 +181,10 @@ export function BookingClient({ faceScanEnabled }: { faceScanEnabled: boolean })
                 className="resize-none rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
               />
             </div>
-
-            {faceScanEnabled && <FaceCapture onCapture={setFaceDescriptor} />}
+            </fieldset>
 
             <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || fieldsLocked}>
                 {isSubmitting ? (
                   <>
                     <Loader2 size={16} className="animate-spin" /> {t("form.sending")}

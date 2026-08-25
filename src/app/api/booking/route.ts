@@ -10,7 +10,7 @@ const schema = z.object({
     .regex(/^[0-9+\-\s()]+$/),
   visitDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   note: z.string().optional(),
-  faceVectorData: z.array(z.number()).nullable().optional(),
+  faceImagePath: z.string().min(1).nullable().optional(),
   faceScanConsent: z.boolean().optional(),
 });
 
@@ -51,12 +51,19 @@ export async function POST(request: Request) {
 
   const faceScanEnabled = settings?.enable_face_scan ?? false;
 
+  // Mirrors the UI's fieldsLocked gate: when the admin has face scan on, a
+  // booking can't exist without a verified scan — a hand-built request that
+  // skips the client-side lock still gets rejected here.
+  if (faceScanEnabled && !parsed.data.faceImagePath) {
+    return NextResponse.json({ ok: false, error: "face_scan_required" }, { status: 400 });
+  }
+
   const { error } = await supabase.from("bookings").insert({
     name: parsed.data.name,
     phone: parsed.data.phone,
     visit_date: parsed.data.visitDate,
     note: parsed.data.note || null,
-    face_vector_data: faceScanEnabled ? (parsed.data.faceVectorData ?? null) : null,
+    face_image_path: faceScanEnabled ? (parsed.data.faceImagePath ?? null) : null,
     face_scan_consent: faceScanEnabled ? (parsed.data.faceScanConsent ?? false) : false,
   });
 

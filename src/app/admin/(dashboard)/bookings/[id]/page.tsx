@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Phone, ScanFace } from "lucide-react";
 import { DeleteButton } from "../../../_components/DeleteButton";
-import { getBooking, deleteBooking } from "../actions";
+import { getBooking, deleteBooking, getFacePhotoUrl } from "../actions";
 import { formatVisitDate, formatSubmittedAt } from "../formatBookingDate";
 import { StatusSelect } from "../StatusSelect";
 
@@ -11,6 +11,8 @@ export default async function AdminBookingDetailPage(props: { params: Promise<{ 
   const booking = await getBooking(params.id);
 
   if (!booking) notFound();
+
+  const facePhotoUrl = booking.face_image_path ? await getFacePhotoUrl(booking.face_image_path) : null;
 
   return (
     <div className="flex flex-col gap-6">
@@ -49,10 +51,20 @@ export default async function AdminBookingDetailPage(props: { params: Promise<{ 
           </p>
         )}
 
-        {booking.face_vector_data && (
-          <div className="flex items-center gap-2 border-t border-ink/10 py-6 text-fluid-sm text-pigment-teal">
-            <ScanFace size={16} />
-            ڕوخساری میوانەکە لە کاتی داواکاریدا پشتڕاستکراوەتەوە.
+        {booking.face_image_path && (
+          <div className="flex items-center gap-4 border-t border-ink/10 py-6">
+            {facePhotoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={facePhotoUrl}
+                alt=""
+                className="h-20 w-20 shrink-0 rounded-xl border border-ink/10 object-cover"
+              />
+            ) : null}
+            <div className="flex items-center gap-2 text-fluid-sm text-pigment-teal">
+              <ScanFace size={16} />
+              ڕوخساری میوانەکە لە کاتی داواکاریدا پشتڕاستکراوەتەوە.
+            </div>
           </div>
         )}
 

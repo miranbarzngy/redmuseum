@@ -30,7 +30,7 @@ export default async function AdminBookingsPage() {
               <div className="truncate text-fluid-sm font-medium text-ink">
                 {b.name} <span className="font-normal text-ink-faint">· {b.phone}</span>
               </div>
-              {b.face_vector_data && (
+              {b.face_image_path && (
                 <div className="text-fluid-xs text-pigment-teal">ڕوخسار پشتڕاستکراوەتەوە</div>
               )}
             </div>
