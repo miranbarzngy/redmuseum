@@ -10,8 +10,9 @@ const schema = z.object({
     .regex(/^[0-9+\-\s()]+$/),
   visitDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   note: z.string().optional(),
+  // The wizard's photo step is optional (camera access can be denied, or
+  // the visitor can skip it) — so this is never required server-side.
   faceImagePath: z.string().min(1).nullable().optional(),
-  faceScanConsent: z.boolean().optional(),
 });
 
 function isPastDate(visitDate: string): boolean {
@@ -34,37 +35,13 @@ export async function POST(request: Request) {
 
   const supabase = createClient();
 
-  // Never trust the client's face-scan payload — re-check the live flag
-  // here so a request built by hand (bypassing the UI, which only shows
-  // the camera step when the flag was on at page-load) can't smuggle
-  // biometric data in while the feature is administratively off.
-  const { data: settings, error: settingsError } = await supabase
-    .from("system_settings")
-    .select("enable_face_scan")
-    .eq("id", 1)
-    .maybeSingle();
-
-  if (settingsError) {
-    console.error("[booking] failed to load system settings", settingsError.message);
-    return NextResponse.json({ ok: false, error: "settings_load_failed" }, { status: 500 });
-  }
-
-  const faceScanEnabled = settings?.enable_face_scan ?? false;
-
-  // Mirrors the UI's fieldsLocked gate: when the admin has face scan on, a
-  // booking can't exist without a verified scan — a hand-built request that
-  // skips the client-side lock still gets rejected here.
-  if (faceScanEnabled && !parsed.data.faceImagePath) {
-    return NextResponse.json({ ok: false, error: "face_scan_required" }, { status: 400 });
-  }
-
   const { error } = await supabase.from("bookings").insert({
     name: parsed.data.name,
     phone: parsed.data.phone,
     visit_date: parsed.data.visitDate,
     note: parsed.data.note || null,
-    face_image_path: faceScanEnabled ? (parsed.data.faceImagePath ?? null) : null,
-    face_scan_consent: faceScanEnabled ? (parsed.data.faceScanConsent ?? false) : false,
+    face_image_path: parsed.data.faceImagePath ?? null,
+    face_scan_consent: Boolean(parsed.data.faceImagePath),
   });
 
   if (error) {

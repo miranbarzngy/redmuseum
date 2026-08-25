@@ -1,14 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Public endpoint hit by FaceScan.tsx during the booking flow, before a
+// Public endpoint hit by PhotoCapture.tsx during the booking flow, before a
 // booking row exists — so it can't be gated by requireAdminSession() the
 // way the rest of the admin/service-role call sites are. Instead it's
-// gated by: (1) re-checking enable_face_scan server-side, same defense as
-// /api/booking, (2) strict file-type/size validation, (3) a random,
-// unguessable storage path (never the client's filename), and (4) the
+// gated by: (1) strict file-type/size validation, (2) a random,
+// unguessable storage path (never the client's filename), and (3) the
 // destination bucket being fully private (see 0024_face_scan_photos.sql) —
 // so even though this route *writes* without a session, nothing can *read*
 // the result back except the service-role client via a short-lived signed
@@ -18,20 +16,6 @@ const ALLOWED_TYPES = new Set(["image/jpeg"]);
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 
 export async function POST(request: Request) {
-  const { data: settings, error: settingsError } = await createClient()
-    .from("system_settings")
-    .select("enable_face_scan")
-    .eq("id", 1)
-    .maybeSingle();
-
-  if (settingsError) {
-    console.error("[upload-face] failed to load system settings", settingsError.message);
-    return NextResponse.json({ ok: false, error: "settings_load_failed" }, { status: 500 });
-  }
-  if (!settings?.enable_face_scan) {
-    return NextResponse.json({ ok: false, error: "face_scan_disabled" }, { status: 403 });
-  }
-
   const formData = await request.formData().catch(() => null);
   const file = formData?.get("face");
 

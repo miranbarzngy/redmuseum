@@ -61,6 +61,7 @@
       "phone": "Phone number",
       "phonePlaceholder": "+964 750 123 4567",
       "visitDate": "Visit date",
+      "visitTime": "Visit time",
       "note": "Note",
       "notePlaceholder": "Group size, special requests, etc. (optional)",
       "submit": "Book visit",
@@ -73,20 +74,31 @@
         "visitDate": "Please choose a visit date."
       }
     },
-    "faceScan": {
-      "label": "Face verification",
-      "loading": "Getting ready...",
-      "startScan": "Start scan",
-      "capture": "Capture face",
-      "captured": "Verified ✓",
-      "uploading": "Uploading...",
-      "rescan": "Re-scan",
+    "steps": {
+      "photo": "Photo",
+      "info": "Info",
+      "day": "Day",
+      "time": "Time"
+    },
+    "photoStep": {
+      "title": "Take a photo",
+      "subtitle": "Helps us recognize you when you arrive. Optional.",
+      "start": "Open camera",
+      "opening": "Opening camera...",
+      "shoot": "Take photo",
+      "retake": "Retake",
+      "confirmNext": "Confirm & continue",
+      "skip": "Continue without a photo",
       "error": "Camera unavailable. Please allow camera access and try again.",
       "uploadFailed": "Upload failed. Please try again.",
-      "checkingLiveness": "Checking... please blink or turn your head slightly.",
-      "livenessFailed": "We couldn't confirm a live face. Please try again with your real face — not a photo or screen.",
-      "retry": "Try again"
-    }
+      "captured": "Photo captured ✓",
+      "uploading": "Uploading..."
+    },
+    "nav": {
+      "back": "Back",
+      "next": "Next"
+    },
+    "timePrefix": "Visit time: {time}"
   },
   "contact": {
     "eyebrow": "Get in Touch",
