@@ -34,7 +34,7 @@ export function MediaPressClient({
     <section id="media" className="relative py-24 sm:py-32">
       <div className="container-art section-px flex flex-col gap-12">
         <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
-          <SectionHeading eyebrow={t("eyebrow")} heading={t("heading")} subheading={t("subheading")} />
+          <SectionHeading eyebrow={t("eyebrow")} />
           <Reveal delay={0.1} from="end">
             <MediaFilterTabs categories={categories} active={filter} onChange={setFilter} />
           </Reveal>

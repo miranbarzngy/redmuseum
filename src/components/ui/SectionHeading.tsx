@@ -2,7 +2,7 @@ import { Reveal } from "./Reveal";
 
 interface SectionHeadingProps {
   eyebrow?: string;
-  heading: string;
+  heading?: string;
   subheading?: string;
   align?: "start" | "center";
   tone?: "dark" | "light";
@@ -40,11 +40,13 @@ export function SectionHeading({
           </span>
         </Reveal>
       )}
-      <Reveal delay={0.08}>
-        <h2 className={`font-display ${headingSizeClass} font-semibold leading-[1.05] tracking-tight ${inkClass}`}>
-          {heading}
-        </h2>
-      </Reveal>
+      {heading && (
+        <Reveal delay={0.08}>
+          <h2 className={`font-display ${headingSizeClass} font-semibold leading-[1.05] tracking-tight ${inkClass}`}>
+            {heading}
+          </h2>
+        </Reveal>
+      )}
       {subheading && (
         <Reveal delay={0.16}>
           <p className={`${subheadingSizeClass} leading-relaxed ${softClass}`}>{subheading}</p>
