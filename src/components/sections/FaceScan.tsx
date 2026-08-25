@@ -18,10 +18,12 @@ const JPEG_QUALITY = 0.78;
 // won't blink, a real person will. Kept from the previous descriptor-based
 // flow: capturing an actual photo makes a real anti-spoofing gate more
 // important, not less.
-const LIVENESS_WINDOW_MS = 4000;
-const LIVENESS_SAMPLE_INTERVAL_MS = 120;
-const BLINK_CLOSE_RATIO = 0.8;
-const BLINK_REOPEN_RATIO = 0.9;
+const LIVENESS_WINDOW_MS = 7000;
+const LIVENESS_CALIBRATION_MS = 600;
+const LIVENESS_SAMPLE_INTERVAL_MS = 30;
+const LIVENESS_INPUT_SIZE = 224;
+const BLINK_CLOSE_RATIO = 0.83;
+const BLINK_REOPEN_RATIO = 0.85;
 
 type Status =
   | "loading"
@@ -157,23 +159,30 @@ export function FaceScan({
     let baselineEar: number | null = null;
     let sawClosedEye = false;
     let blinkDetected = false;
-    const deadline = Date.now() + LIVENESS_WINDOW_MS;
+    const start = Date.now();
+    const calibrationDeadline = start + LIVENESS_CALIBRATION_MS;
+    const deadline = start + LIVENESS_WINDOW_MS;
 
     while (Date.now() < deadline && !blinkDetected) {
       const detection = await faceapi
-        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: LIVENESS_INPUT_SIZE }))
         .withFaceLandmarks();
 
       if (detection) {
         const ear = (eyeAspectRatio(detection.landmarks.getLeftEye()) + eyeAspectRatio(detection.landmarks.getRightEye())) / 2;
 
-        if (baselineEar === null) {
+        if (Date.now() < calibrationDeadline) {
+          // Calibration window: just track the highest (most open) EAR seen
+          // so a stray partial-blink frame at the very start can't lock in
+          // an artificially low baseline that later blinks can't clear.
+          baselineEar = baselineEar === null ? ear : Math.max(baselineEar, ear);
+        } else if (baselineEar === null) {
           baselineEar = ear;
         } else if (!sawClosedEye && ear < baselineEar * BLINK_CLOSE_RATIO) {
           sawClosedEye = true;
         } else if (sawClosedEye && ear > baselineEar * BLINK_REOPEN_RATIO) {
           blinkDetected = true;
-        } else if (ear > baselineEar) {
+        } else if (!sawClosedEye && ear > baselineEar) {
           baselineEar = ear;
         }
       }
