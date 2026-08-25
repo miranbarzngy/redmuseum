@@ -99,6 +99,7 @@ export function FaceScan({
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [status, setStatus] = useState<Status>("loading");
+  const [shotPreview, setShotPreview] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -121,6 +122,10 @@ export function FaceScan({
     return () => {
       cancelled = true;
       streamRef.current?.getTracks().forEach((track) => track.stop());
+      setShotPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
     };
   }, []);
 
@@ -183,16 +188,25 @@ export function FaceScan({
     const video = videoRef.current;
     if (!video) return;
 
-    setStatus("checking-liveness");
-    const isLive = await runLivenessCheck();
-    if (!isLive) {
-      setStatus("liveness-failed");
-      return;
-    }
-
+    // Shoot the still immediately so the visitor gets instant feedback that
+    // the shutter fired, then verify liveness against the still-live stream
+    // before committing to it — a spoofed photo/screen held up to the camera
+    // can still be "shot", but it won't pass the blink check that follows.
     const blob = await compressFrame(video);
     if (!blob) {
       setStatus("error");
+      return;
+    }
+    setShotPreview(URL.createObjectURL(blob));
+
+    setStatus("checking-liveness");
+    const isLive = await runLivenessCheck();
+    if (!isLive) {
+      setShotPreview((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      setStatus("liveness-failed");
       return;
     }
 
@@ -224,6 +238,10 @@ export function FaceScan({
   }
 
   function handleRescan() {
+    setShotPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
     onReset();
     setStatus("models-ready");
     onOpenChange(false);
@@ -279,6 +297,18 @@ export function FaceScan({
             playsInline
             className="aspect-video w-full -scale-x-100 rounded-lg bg-ink"
           />
+
+          {shotPreview && (status === "checking-liveness" || status === "uploading") && (
+            <div className="absolute inset-0">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={shotPreview} alt="" className="h-full w-full -scale-x-100 object-cover" />
+              <div className="absolute inset-0 flex items-center justify-center bg-ink/30">
+                <span className="rounded-full bg-black/60 px-3 py-1.5 text-fluid-xs font-medium text-white">
+                  {status === "checking-liveness" ? t("checkingLiveness") : t("uploading")}
+                </span>
+              </div>
+            </div>
+          )}
 
           {(status === "idle" || status === "checking-liveness") && (
             <div className="pointer-events-none absolute inset-0">
