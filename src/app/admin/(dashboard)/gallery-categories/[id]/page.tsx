@@ -3,11 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import { CategoryForm } from "../CategoryForm";
 import { updateCategory } from "../actions";
 
-export default async function EditPressCategoryPage(props: { params: Promise<{ id: string }> }) {
+export default async function EditGalleryCategoryPage(props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   const supabase = createClient();
   const { data: category } = await supabase
-    .from("press_categories")
+    .from("gallery_categories")
     .select("*")
     .eq("id", params.id)
     .single();

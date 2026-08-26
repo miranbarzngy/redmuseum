@@ -2,33 +2,32 @@
 
 import { LocalizedField } from "../../_components/LocalizedField";
 import { SubmitButton } from "../../_components/SubmitButton";
-import type { PressCategoryRow } from "@/lib/supabase/database.types";
+import type { GalleryCategoryRow } from "@/lib/supabase/database.types";
 
 export function CategoryForm({
   action,
   category,
 }: {
   action: (formData: FormData) => Promise<void>;
-  category?: PressCategoryRow;
+  category?: GalleryCategoryRow;
 }) {
   return (
     <form action={action} className="flex flex-col gap-8">
       <div className="grid gap-6 sm:grid-cols-2">
         <label className="flex flex-col gap-1.5">
-          <span className="text-fluid-xs font-medium text-ink-soft">ناسنامە (slug)</span>
+          <span className="text-fluid-xs font-medium text-ink-soft">سلاگ (بۆ بەکارهێنانی داخلی)</span>
           <input
             type="text"
             name="slug"
-            dir="ltr"
             required
-            placeholder="بۆ نموونە: video"
+            placeholder="بۆ نموونە: activity"
             defaultValue={category?.slug ?? ""}
             className="rounded-xl border border-ink/15 bg-canvas px-3.5 py-2.5 text-fluid-sm text-ink outline-none focus:border-pigment-terracotta focus:ring-2 focus:ring-pigment-terracotta/15"
           />
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-fluid-xs font-medium text-ink-soft">ڕیزبەندی</span>
+          <span className="text-fluid-xs font-medium text-ink-soft">ڕیزبەندی پیشاندان</span>
           <input
             type="number"
             name="sort_order"
@@ -40,7 +39,7 @@ export function CategoryForm({
 
       <LocalizedField
         name="label"
-        label="ناونیشانی پۆل"
+        label="ناونیشان"
         required
         defaults={{ ku: category?.label_ku, en: category?.label_en, ar: category?.label_ar }}
       />

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
   CalendarClock,
-  Newspaper,
+  Images,
   LogOut,
   ExternalLink,
   UserRound,
@@ -23,7 +23,7 @@ const NAV = [
   { href: "/admin/profile", label: "پرۆفایل", icon: UserRound },
   { href: "/admin/museums", label: "بەشەکانی مۆزەخانە", icon: BookOpen },
   { href: "/admin/exhibitions", label: "پێشانگاکان", icon: CalendarClock },
-  { href: "/admin/press", label: "میدیا و چاپەمەنی", icon: Newspaper },
+  { href: "/admin/gallery", label: "گەلەری", icon: Images },
   { href: "/admin/bookings", label: "سەردانەکان", icon: Ticket },
   { href: "/admin/messages", label: "پەیامەکان", icon: Inbox },
   { href: "/admin/settings", label: "ڕێکخستنەکان", icon: Settings },

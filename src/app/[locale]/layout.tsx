@@ -50,6 +50,10 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={dir} className={vazirmatn.variable}>
+      <head>
+        {/* Remix Icons — used by the gallery section's category badges and lightbox controls */}
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" />
+      </head>
       <body className="bg-canvas font-body text-ink antialiased">
         <NextIntlClientProvider>
           <VisitTracker />

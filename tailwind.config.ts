@@ -55,17 +55,17 @@ const config: Config = {
         ],
       },
       fontSize: {
-        "fluid-xs": "clamp(0.8rem, 0.76rem + 0.2vw, 0.9rem)",
-        "fluid-sm": "clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem)",
-        "fluid-base": "clamp(1rem, 0.95rem + 0.3vw, 1.15rem)",
-        "fluid-lg": "clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem)",
-        "fluid-xl": "clamp(1.5rem, 1.3rem + 1vw, 2.1rem)",
-        "fluid-2xl": "clamp(2rem, 1.7rem + 1.5vw, 3rem)",
-        "fluid-3xl": "clamp(2.6rem, 2.1rem + 2.5vw, 4.5rem)",
-        "fluid-hero": "clamp(3rem, 2.2rem + 4.5vw, 7rem)",
+        "fluid-xs": "clamp(0.7rem, 0.66rem + 0.2vw, 0.8rem)",
+        "fluid-sm": "clamp(0.8rem, 0.76rem + 0.2vw, 0.9rem)",
+        "fluid-base": "clamp(0.95rem, 0.9rem + 0.25vw, 1.05rem)",
+        "fluid-lg": "clamp(1rem, 0.95rem + 0.3vw, 1.15rem)",
+        "fluid-xl": "clamp(1.2rem, 1.1rem + 0.5vw, 1.5rem)",
+        "fluid-2xl": "clamp(1.5rem, 1.3rem + 1vw, 2.1rem)",
+        "fluid-3xl": "clamp(2rem, 1.7rem + 1.5vw, 3rem)",
+        "fluid-hero": "clamp(2.5rem, 1.85rem + 3.75vw, 5.9rem)",
         // Smaller than fluid-hero specifically so the (often long, localized)
         // museum name can fit on one line instead of wrapping to 3-4 lines.
-        "fluid-name": "clamp(1.75rem, 1.3rem + 2.75vw, 4.25rem)",
+        "fluid-name": "clamp(1.45rem, 1.1rem + 2.3vw, 3.6rem)",
       },
       letterSpacing: {
         tightest2: "-0.04em",

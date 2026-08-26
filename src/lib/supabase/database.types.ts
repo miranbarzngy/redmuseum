@@ -68,43 +68,29 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["painting_categories"]["Insert"]>;
         Relationships: [];
       };
-      press_media: {
+      gallery: {
         Row: {
           id: string;
-          title_ku: string;
-          title_en: string;
-          title_ar: string;
-          excerpt_ku: string;
-          excerpt_en: string;
-          excerpt_ar: string;
-          source: string;
-          url: string;
-          date: string;
+          image_url: string;
+          title: string | null;
           category_id: string;
-          image_url: string | null;
+          display_order: number;
+          is_active: boolean;
           created_at: string;
-          updated_at: string;
         };
         Insert: {
           id?: string;
-          title_ku: string;
-          title_en: string;
-          title_ar: string;
-          excerpt_ku?: string;
-          excerpt_en?: string;
-          excerpt_ar?: string;
-          source: string;
-          url: string;
-          date: string;
+          image_url: string;
+          title?: string | null;
           category_id: string;
-          image_url?: string | null;
+          display_order?: number;
+          is_active?: boolean;
           created_at?: string;
-          updated_at?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["press_media"]["Insert"]>;
+        Update: Partial<Database["public"]["Tables"]["gallery"]["Insert"]>;
         Relationships: [];
       };
-      press_categories: {
+      gallery_categories: {
         Row: {
           id: string;
           slug: string;
@@ -125,7 +111,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
-        Update: Partial<Database["public"]["Tables"]["press_categories"]["Insert"]>;
+        Update: Partial<Database["public"]["Tables"]["gallery_categories"]["Insert"]>;
         Relationships: [];
       };
       exhibitions: {
@@ -425,10 +411,10 @@ export type PaintingRow = Database["public"]["Tables"]["paintings"]["Row"];
 export type PaintingInsert = Database["public"]["Tables"]["paintings"]["Insert"];
 export type PaintingCategoryRow = Database["public"]["Tables"]["painting_categories"]["Row"];
 export type PaintingCategoryInsert = Database["public"]["Tables"]["painting_categories"]["Insert"];
-export type PressMediaRow = Database["public"]["Tables"]["press_media"]["Row"];
-export type PressMediaInsert = Database["public"]["Tables"]["press_media"]["Insert"];
-export type PressCategoryRow = Database["public"]["Tables"]["press_categories"]["Row"];
-export type PressCategoryInsert = Database["public"]["Tables"]["press_categories"]["Insert"];
+export type GalleryRow = Database["public"]["Tables"]["gallery"]["Row"];
+export type GalleryInsert = Database["public"]["Tables"]["gallery"]["Insert"];
+export type GalleryCategoryRow = Database["public"]["Tables"]["gallery_categories"]["Row"];
+export type GalleryCategoryInsert = Database["public"]["Tables"]["gallery_categories"]["Insert"];
 export type ExhibitionRow = Database["public"]["Tables"]["exhibitions"]["Row"];
 export type ExhibitionInsert = Database["public"]["Tables"]["exhibitions"]["Insert"];
 export type SiteProfileRow = Database["public"]["Tables"]["site_profile"]["Row"];

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarClock, Newspaper, UserRound, BookOpen, Tags, Inbox } from "lucide-react";
+import { CalendarClock, Images, UserRound, BookOpen, Inbox } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getUnreadMessageCount } from "./messages/actions";
 import { getVisitStats } from "./getVisitStats";
@@ -7,10 +7,9 @@ import { AnalyticsSection } from "./AnalyticsSection";
 
 async function getCounts() {
   const supabase = createClient();
-  const [exhibitions, press, pressCategories, profile, biographyBlocks, unreadMessages] = await Promise.all([
+  const [exhibitions, gallery, profile, biographyBlocks, unreadMessages] = await Promise.all([
     supabase.from("exhibitions").select("*", { count: "exact", head: true }),
-    supabase.from("press_media").select("*", { count: "exact", head: true }),
-    supabase.from("press_categories").select("*", { count: "exact", head: true }),
+    supabase.from("gallery").select("*", { count: "exact", head: true }),
     supabase.from("site_profile").select("id").eq("id", 1).maybeSingle(),
     supabase.from("biography_blocks").select("*", { count: "exact", head: true }),
     getUnreadMessageCount(),
@@ -18,8 +17,7 @@ async function getCounts() {
 
   return {
     exhibitions: exhibitions.count ?? 0,
-    press: press.count ?? 0,
-    pressCategories: pressCategories.count ?? 0,
+    gallery: gallery.count ?? 0,
     profileConfigured: Boolean(profile.data),
     biographyBlocks: biographyBlocks.count ?? 0,
     unreadMessages,
@@ -38,8 +36,7 @@ export default async function AdminOverviewPage() {
     },
     { href: "/admin/museums", label: "بەشەکانی مۆزەخانە", value: counts.biographyBlocks, icon: BookOpen },
     { href: "/admin/exhibitions", label: "پێشانگاکان", value: counts.exhibitions, icon: CalendarClock },
-    { href: "/admin/press", label: "میدیا و چاپەمەنی", value: counts.press, icon: Newspaper },
-    { href: "/admin/press-categories", label: "پۆلەکانی میدیا", value: counts.pressCategories, icon: Tags },
+    { href: "/admin/gallery", label: "گەلەری", value: counts.gallery, icon: Images },
     { href: "/admin/messages", label: "پەیامی نەخوێندراوە", value: counts.unreadMessages, icon: Inbox },
   ];
 

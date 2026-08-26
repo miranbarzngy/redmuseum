@@ -1,7 +1,7 @@
 import { CategoryForm } from "../CategoryForm";
 import { createCategory } from "../actions";
 
-export default function NewPressCategoryPage() {
+export default function NewGalleryCategoryPage() {
   return (
     <div className="flex flex-col gap-6">
       <h1 className="font-kurdish text-fluid-xl font-semibold text-ink">زیادکردنی پۆل</h1>

@@ -7,7 +7,7 @@
     "brand": "National Museum Amnasuraka",
     "home": "Home",
     "biography": "Departments",
-    "media": "Press",
+    "media": "Gallery",
     "booking": "Visit",
     "contact": "Contact"
   },
@@ -38,18 +38,9 @@
     "timelineHeading": "Exhibitions & Milestones",
     "timelineEmpty": "No exhibitions to show yet — please check back soon."
   },
-  "media": {
-    "eyebrow": "In the Press",
-    "heading": "Media & Press",
-    "subheading": "Interviews, features, and publications about the museum.",
-    "filters": {
-      "all": "All"
-    },
-    "readMore": "Read more",
-    "seeAll": "See all",
-    "backToMedia": "Back to media",
-    "viewSource": "View original source",
-    "empty": "No press coverage to show yet — please check back soon."
+  "gallery": {
+    "heading": "Activities & Events",
+    "empty": "No images to show yet — please check back soon."
   },
   "booking": {
     "eyebrow": "Plan Your Visit",
