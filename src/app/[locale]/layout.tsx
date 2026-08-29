@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 import { routing, getDirection, type Locale } from "@/i18n/routing";
 import { SmoothScrollProvider } from "@/lib/SmoothScrollProvider";
 import { VisitTracker } from "@/components/VisitTracker";
+import { StaleServiceWorkerCleanup } from "@/components/StaleServiceWorkerCleanup";
 import "../globals.css";
 
 const vazirmatn = Vazirmatn({
@@ -56,6 +57,7 @@ export default async function LocaleLayout({
       </head>
       <body className="bg-canvas font-body text-ink antialiased">
         <NextIntlClientProvider>
+          <StaleServiceWorkerCleanup />
           <VisitTracker />
           <SmoothScrollProvider>{children}</SmoothScrollProvider>
         </NextIntlClientProvider>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
+import { StaleServiceWorkerCleanup } from "@/components/StaleServiceWorkerCleanup";
 import "../globals.css";
 
 // /admin lives outside the [locale] segment, so it's a separate root route
@@ -34,7 +35,10 @@ export const metadata: Metadata = {
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ku" dir="rtl" className={kurdishFont.variable}>
-      <body className="bg-canvas font-kurdish text-ink antialiased">{children}</body>
+      <body className="bg-canvas font-kurdish text-ink antialiased">
+        <StaleServiceWorkerCleanup />
+        {children}
+      </body>
     </html>
   );
 }
