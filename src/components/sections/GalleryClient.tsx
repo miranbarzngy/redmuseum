@@ -6,6 +6,7 @@ import type { GalleryGroup } from "@/lib/data/gallery";
 import type { Locale } from "@/i18n/routing";
 import { proxiedImage } from "@/lib/proxiedImage";
 import { GalleryLightbox } from "./GalleryLightbox";
+import { GalleryDebugOverlay } from "./GalleryDebugOverlay";
 
 function GalleryStrip({
   group,
@@ -121,6 +122,8 @@ export function GalleryClient({ groups }: { groups: GalleryGroup[] }) {
           onClose={() => setLightbox(null)}
         />
       )}
+
+      <GalleryDebugOverlay />
     </section>
   );
 }
