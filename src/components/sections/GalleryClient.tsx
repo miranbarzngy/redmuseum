@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { GalleryGroup } from "@/lib/data/gallery";
 import type { Locale } from "@/i18n/routing";
+import { proxiedImage } from "@/lib/proxiedImage";
 import { GalleryLightbox } from "./GalleryLightbox";
 
 function GalleryStrip({
@@ -56,23 +57,21 @@ function GalleryStrip({
               key={`${img.id}-${i}`}
               type="button"
               onClick={() => onOpen(category.id, i % images.length)}
-              className="group relative shrink-0 self-center overflow-hidden rounded-lg"
-              style={
-                {
-                  // Both dimensions are computed explicitly (rather than
-                  // setting height + aspect-ratio and letting the browser
-                  // derive width) because Safari's flexbox implementation
-                  // can fail to size a flex-shrink:0 item from aspect-ratio
-                  // alone, collapsing it to zero width — invisible cards,
-                  // no broken-image icon, exactly what showed up on iOS.
-                  "--card-h": "clamp(80px, 14vh, 140px)",
-                  height: "var(--card-h)",
-                  width: "calc(var(--card-h) * 16 / 9)",
-                } as React.CSSProperties
-              }
+              // Fixed pixel width/height per breakpoint (16:9), no calc(),
+              // no CSS custom properties, no aspect-ratio property — every
+              // "compute one dimension from the other" approach tried here
+              // (height:100%+aspect-ratio, then height+calc(var(...)*16/9))
+              // rendered fine in a modern WebKit test build but still came
+              // out invisible on at least one real iOS device, so this
+              // drops down to the most basic, unambiguous CSS there is.
+              className="group relative h-20 w-[142px] shrink-0 self-center overflow-hidden rounded-lg sm:h-24 sm:w-[171px] lg:h-32 lg:w-[227px]"
             >
-              {/* eslint-disable-next-line @next/next/no-img-element -- fixed-height scrolling strip, next/image's aspect-ratio boxes don't fit a height:100% card */}
-              <img src={img.imageUrl} alt={img.title ?? ""} className="h-full w-full object-cover" />
+              {/* eslint-disable-next-line @next/next/no-img-element -- fixed-height scrolling strip, next/image's own layout modes don't fit a card this shape; proxiedImage() still routes the request through Next's image endpoint */}
+              <img
+                src={proxiedImage(img.imageUrl, 384)}
+                alt={img.title ?? ""}
+                className="h-full w-full object-cover"
+              />
               <span className="pointer-events-none absolute inset-0 rounded-lg opacity-0 ring-2 ring-[#c8a96e] ring-inset transition-opacity duration-300 group-hover:opacity-60" />
               <span className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
                 <i className="ri-zoom-in-line text-2xl text-white" />

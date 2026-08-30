@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { GalleryImage } from "@/lib/data/gallery";
+import { proxiedImage } from "@/lib/proxiedImage";
 
 export function GalleryLightbox({
   images,
@@ -74,7 +75,7 @@ export function GalleryLightbox({
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- lightbox needs the raw image sized by content, next/image's fixed layout modes don't fit here */}
         <img
-          src={current.imageUrl}
+          src={proxiedImage(current.imageUrl, 1920)}
           alt={current.title ?? ""}
           className="max-h-[75vh] max-w-full rounded-lg object-contain shadow-[0_0_0_1px_#c8a96e,0_20px_60px_-15px_rgba(200,169,110,0.5)]"
         />
