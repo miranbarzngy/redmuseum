@@ -74,7 +74,15 @@ function GalleryStrip({
   }, [scrollDir]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
+    // Fixed height, not flex-1 — a percentage/flex-basis height has to
+    // correctly resolve through every nested container down to the actual
+    // scroller, and on at least one real device it silently collapsed
+    // somewhere in that chain: every image still reported a fully-loaded,
+    // correctly-sized, plausibly-positioned bounding rect (getBoundingClientRect
+    // doesn't know about an ancestor's collapsed height clipping it out),
+    // yet nothing painted on screen. A hard pixel height here needs no
+    // percentage resolution at all.
+    <div className="flex h-28 shrink-0 flex-col gap-2 sm:h-32 lg:h-40">
       <div className="flex shrink-0 items-center gap-3 px-4 sm:px-8">
         <span className="text-xs font-medium uppercase tracking-[0.2em] text-ink">
           {category.label[locale]}
@@ -85,7 +93,7 @@ function GalleryStrip({
       <div
         ref={scrollerRef}
         style={{ direction: "ltr" }}
-        className="min-h-0 flex-1 overflow-x-hidden overflow-y-hidden"
+        className="h-20 overflow-x-hidden overflow-y-hidden sm:h-24 lg:h-32"
         onMouseEnter={() => {
           pausedRef.current = true;
         }}
@@ -137,7 +145,10 @@ export function GalleryClient({ groups }: { groups: GalleryGroup[] }) {
       {groups.length === 0 ? (
         <p className="m-auto text-fluid-base text-ink-soft">{t("empty")}</p>
       ) : (
-        <div className="flex min-h-0 flex-1 flex-col gap-4" style={{ height: "calc(100dvh - 12rem)" }}>
+        // No explicit height here either — each strip below carries its own
+        // fixed height, so this just stacks them, same as every other plain
+        // block section on the homepage.
+        <div className="flex flex-col gap-4">
           {groups.map((group, i) => (
             <GalleryStrip
               key={group.category.id}

@@ -38,7 +38,6 @@ export function GalleryDebugOverlay() {
       const section = document.getElementById("media");
       const imgs = section ? Array.from(section.querySelectorAll("img")) : [];
       const failed = imgs.filter((img) => img.complete && img.naturalWidth === 0);
-      const hasFailure = imgs.length === 0 || failed.length > 0;
 
       const lines: string[] = [];
       lines.push(`UA: ${navigator.userAgent}`);
@@ -46,6 +45,28 @@ export function GalleryDebugOverlay() {
       lines.push(`viewport: ${window.innerWidth}x${window.innerHeight}`);
       lines.push(`#media found: ${Boolean(section)}`);
       lines.push(`img count in #media: ${imgs.length}, failed: ${failed.length}`);
+
+      // getBoundingClientRect on an <img> reports its own box regardless of
+      // whether an ancestor has collapsed to zero height and is clipping it
+      // out via overflow — walk up from the first card to the section and
+      // report every level's own rect, to catch that blind spot directly.
+      let tinyAncestor = false;
+      const firstButton = section?.querySelector("button");
+      if (firstButton) {
+        let el: HTMLElement | null = firstButton;
+        let depth = 0;
+        while (el && el !== section?.parentElement && depth < 6) {
+          const r = el.getBoundingClientRect();
+          if (r.height < 4 || r.width < 4) tinyAncestor = true;
+          lines.push(
+            `ancestor[${depth}] <${el.tagName.toLowerCase()} class="${el.className.toString().slice(0, 60)}"> rect=${Math.round(r.width)}x${Math.round(r.height)}@${Math.round(r.x)},${Math.round(r.y)}`
+          );
+          el = el.parentElement;
+          depth++;
+        }
+      }
+
+      const hasFailure = imgs.length === 0 || failed.length > 0 || tinyAncestor;
 
       imgs.slice(0, 4).forEach((img, i) => {
         const r = img.getBoundingClientRect();
