@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Images } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { ArtworkPlaceholder } from "@/components/ui/ArtworkPlaceholder";
@@ -71,15 +71,23 @@ export function BiographyClient({
                   </Reveal>
                   <Reveal delay={0.1} className="w-full lg:w-3/5">
                     <p className="text-xs sm:text-sm lg:text-fluid-base leading-relaxed text-ink-soft">{pickBody(block, locale)}</p>
-                    <span
-                      className="mt-4 inline-flex items-center gap-1.5 text-fluid-xs font-semibold uppercase tracking-[0.2em]"
-                      style={{ color: "#850B10" }}
-                    >
-                      {t("viewDetails")}
-                      <ArrowRight
-                        size={14}
-                        className="icon-flip transition-transform duration-300 group-hover:translate-x-1"
-                      />
+                    <span className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+                      <span
+                        className="inline-flex items-center gap-1.5 text-fluid-xs font-semibold uppercase tracking-[0.2em]"
+                        style={{ color: "#850B10" }}
+                      >
+                        {t("viewDetails")}
+                        <ArrowRight
+                          size={14}
+                          className="icon-flip transition-transform duration-300 group-hover:translate-x-1"
+                        />
+                      </span>
+                      {(block.image_urls?.length ?? 0) > 1 && (
+                        <span className="inline-flex items-center gap-1 text-fluid-xs text-ink-faint">
+                          <Images size={13} />
+                          {block.image_urls.length}
+                        </span>
+                      )}
                     </span>
                   </Reveal>
                 </Link>

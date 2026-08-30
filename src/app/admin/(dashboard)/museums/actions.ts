@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveUploadedImageUrl } from "@/lib/supabase/uploadImage";
+import { resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
 
 function revalidatePublicSite() {
   revalidatePath("/admin/museums");
@@ -44,13 +44,30 @@ function parseBlockFields(formData: FormData) {
   };
 }
 
+/**
+ * Kept-thumbnail URLs (hidden inputs) plus any newly uploaded files, in
+ * order. `image_url` is kept in sync as the first entry — the cover shown
+ * in the homepage sections list — mirroring how updateProfile keeps
+ * hero_image_url tied to hero_image_urls[0].
+ */
+async function resolveBlockImages(
+  supabase: ReturnType<typeof createAdminClient>,
+  formData: FormData
+) {
+  const kept = formData.getAll("image_urls_kept").map(String);
+  const added = await resolveUploadedImageUrls(supabase, formData, "image_gallery_files");
+  const imageUrls = [...kept, ...added];
+
+  return { image_urls: imageUrls, image_url: imageUrls[0] ?? null };
+}
+
 export async function createBiographyBlock(formData: FormData) {
   await requireAdminSession();
   const supabase = createAdminClient();
   const fields = parseBlockFields(formData);
-  const imageUrl = await resolveUploadedImageUrl(supabase, formData, "image_file", "image_url");
+  const images = await resolveBlockImages(supabase, formData);
 
-  const { error } = await supabase.from("biography_blocks").insert({ ...fields, image_url: imageUrl ?? null });
+  const { error } = await supabase.from("biography_blocks").insert({ ...fields, ...images });
   if (error) throw new Error(error.message);
 
   revalidatePublicSite();
@@ -61,11 +78,11 @@ export async function updateBiographyBlock(id: string, formData: FormData) {
   await requireAdminSession();
   const supabase = createAdminClient();
   const fields = parseBlockFields(formData);
-  const imageUrl = await resolveUploadedImageUrl(supabase, formData, "image_file", "image_url");
+  const images = await resolveBlockImages(supabase, formData);
 
   const { error } = await supabase
     .from("biography_blocks")
-    .update({ ...fields, ...(imageUrl !== undefined ? { image_url: imageUrl } : {}) })
+    .update({ ...fields, ...images })
     .eq("id", id);
   if (error) throw new Error(error.message);
 

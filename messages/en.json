@@ -50,6 +50,7 @@
     "metaTitle": "Section {number} — National Museum Amnasuraka",
     "prev": "Previous section",
     "next": "Next section",
+    "photos": "Photos ({count})",
     "noContent": "No information has been added for this section yet."
   },
   "booking": {

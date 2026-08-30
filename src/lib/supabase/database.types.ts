@@ -245,6 +245,7 @@ export interface Database {
           body_en: string;
           body_ar: string;
           image_url: string | null;
+          image_urls: string[];
           sort_order: number;
           created_at: string;
           updated_at: string;
@@ -255,6 +256,7 @@ export interface Database {
           body_en?: string;
           body_ar?: string;
           image_url?: string | null;
+          image_urls?: string[];
           sort_order?: number;
           created_at?: string;
           updated_at?: string;

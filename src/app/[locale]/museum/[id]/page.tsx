@@ -84,6 +84,18 @@ export default async function MuseumSectionPage({
   const number = String(index + 1);
   const body = pickBody(block, locale as Locale);
 
+  // Ordered photo gallery, falling back to the legacy single portrait for
+  // rows saved before the gallery column existed. The first entry is the
+  // cover shown large; any others render in the grid below.
+  const photos =
+    block.image_urls && block.image_urls.length > 0
+      ? block.image_urls
+      : block.image_url
+        ? [block.image_url]
+        : [];
+  const cover = photos[0] ?? null;
+  const morePhotos = photos.slice(1);
+
   return (
     <>
       <HeaderServer solid />
@@ -101,9 +113,9 @@ export default async function MuseumSectionPage({
             <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
               <div className="w-full lg:w-1/2">
                 <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl bg-white shadow-soft ring-1 ring-ink/5">
-                  {block.image_url ? (
+                  {cover ? (
                     <Image
-                      src={block.image_url}
+                      src={cover}
                       alt=""
                       fill
                       sizes="(min-width: 1024px) 50vw, 100vw"
@@ -131,6 +143,31 @@ export default async function MuseumSectionPage({
                 </p>
               </div>
             </div>
+
+            {morePhotos.length > 0 && (
+              <section className="flex flex-col gap-5">
+                <h2 className="font-display text-fluid-lg font-semibold text-ink">
+                  {t("photos", { count: String(photos.length) })}
+                </h2>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+                  {morePhotos.map((url, i) => (
+                    <div
+                      key={url}
+                      className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-white ring-1 ring-ink/5"
+                    >
+                      <Image
+                        src={url}
+                        alt=""
+                        fill
+                        sizes="(min-width: 640px) 33vw, 50vw"
+                        className="object-cover"
+                        loading={i < 3 ? "eager" : "lazy"}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {(prev || next) && (
               <nav className="mt-4 flex flex-col gap-4 border-t border-ink/10 pt-8 sm:flex-row sm:justify-between">
