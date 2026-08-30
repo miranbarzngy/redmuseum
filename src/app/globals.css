@@ -38,28 +38,6 @@
   }
 }
 
-@keyframes scroll-left {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-@keyframes scroll-right {
-  from {
-    transform: translateX(-50%);
-  }
-  to {
-    transform: translateX(0);
-  }
-}
-.scroll-track {
-  display: flex;
-  width: max-content;
-  height: 100%;
-}
-
 :root {
   --canvas: #fafaf7;
   --ink: #1c1b19;
@@ -147,19 +125,6 @@ html[lang="ar"] .tracking-tightest2 {
 
 [dir="rtl"] .icon-flip {
   transform: scaleX(-1);
-}
-
-/* Gallery marquee — continuous left-scroll for the paintings carousel.
-   Percentage translateX is resolved against the track's own live width, so
-   it stays exact as `width: max-content` settles once images finish
-   loading — no JS remeasurement needed. */
-@keyframes scroll-left {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
 }
 
 @layer utilities {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import type { GalleryGroup } from "@/lib/data/gallery";
 import type { Locale } from "@/i18n/routing";
@@ -14,11 +14,12 @@ function GalleryStrip({
   onOpen,
 }: {
   group: GalleryGroup;
-  scrollDir: "scroll-left" | "scroll-right";
+  scrollDir: "forward" | "backward";
   onOpen: (categoryId: string, idx: number) => void;
 }) {
   const locale = useLocale() as Locale;
-  const trackRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const pausedRef = useRef(false);
   const { category, images } = group;
   // With very few source images, two copies barely fill the strip's width —
   // there's nothing left off-screen to scroll in, so the "loop" just looks
@@ -26,8 +27,51 @@ function GalleryStrip({
   // wider than any viewport, then duplicate that for the seamless loop.
   const repeats = Math.max(1, Math.ceil(10 / images.length));
   const base = Array.from({ length: repeats }, () => images).flat();
-  const duration = Math.max(20, base.length * 4);
   const looped = [...base, ...base];
+
+  // Plain JS-driven scrollLeft animation instead of a CSS @keyframes
+  // transform — on at least one real device (Chrome/iOS) an animated
+  // `transform` inside this overflow:hidden + forced-ltr strip loaded and
+  // laid out every image correctly (confirmed via on-device diagnostics —
+  // getBoundingClientRect and complete/naturalWidth all correct) but
+  // painted nothing at all, a GPU-compositing paint bug rather than a
+  // loading or layout one. Native scrollLeft goes through a completely
+  // different, far more heavily-used browser code path.
+  useEffect(() => {
+    const scroller = scrollerRef.current;
+    if (!scroller) return;
+
+    let rafId: number;
+    let lastTime: number | null = null;
+    const pxPerSecond = 30;
+
+    function step(time: number) {
+      if (lastTime === null) lastTime = time;
+      const dt = time - lastTime;
+      lastTime = time;
+
+      if (scroller && !pausedRef.current) {
+        const singleSetWidth = scroller.scrollWidth / 2;
+        const delta = (pxPerSecond * dt) / 1000;
+        let next = scroller.scrollLeft + (scrollDir === "forward" ? delta : -delta);
+        if (next >= singleSetWidth) next -= singleSetWidth;
+        if (next < 0) next += singleSetWidth;
+        scroller.scrollLeft = next;
+      }
+
+      rafId = requestAnimationFrame(step);
+    }
+
+    // Start "backward" strips already offset into the loop so both
+    // directions have somewhere to scroll from immediately, matching the
+    // old CSS animation's two starting keyframes.
+    if (scrollDir === "backward") {
+      scroller.scrollLeft = scroller.scrollWidth / 2;
+    }
+
+    rafId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafId);
+  }, [scrollDir]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-2">
@@ -39,32 +83,22 @@ function GalleryStrip({
       </div>
 
       <div
-        dir="ltr"
-        className="min-h-0 flex-1 overflow-hidden"
+        ref={scrollerRef}
+        style={{ direction: "ltr" }}
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-hidden"
         onMouseEnter={() => {
-          if (trackRef.current) trackRef.current.style.animationPlayState = "paused";
+          pausedRef.current = true;
         }}
         onMouseLeave={() => {
-          if (trackRef.current) trackRef.current.style.animationPlayState = "running";
+          pausedRef.current = false;
         }}
       >
-        <div
-          ref={trackRef}
-          className="scroll-track gap-3 px-4 sm:px-8"
-          style={{ animation: `${scrollDir} ${duration}s linear infinite` }}
-        >
+        <div className="flex h-full w-max gap-3 px-4 sm:px-8">
           {looped.map((img, i) => (
             <button
               key={`${img.id}-${i}`}
               type="button"
               onClick={() => onOpen(category.id, i % images.length)}
-              // Fixed pixel width/height per breakpoint (16:9), no calc(),
-              // no CSS custom properties, no aspect-ratio property — every
-              // "compute one dimension from the other" approach tried here
-              // (height:100%+aspect-ratio, then height+calc(var(...)*16/9))
-              // rendered fine in a modern WebKit test build but still came
-              // out invisible on at least one real iOS device, so this
-              // drops down to the most basic, unambiguous CSS there is.
               className="group relative h-20 w-[142px] shrink-0 self-center overflow-hidden rounded-lg sm:h-24 sm:w-[171px] lg:h-32 lg:w-[227px]"
             >
               {/* eslint-disable-next-line @next/next/no-img-element -- fixed-height scrolling strip, next/image's own layout modes don't fit a card this shape; proxiedImage() still routes the request through Next's image endpoint */}
@@ -108,7 +142,7 @@ export function GalleryClient({ groups }: { groups: GalleryGroup[] }) {
             <GalleryStrip
               key={group.category.id}
               group={group}
-              scrollDir={i % 2 === 0 ? "scroll-left" : "scroll-right"}
+              scrollDir={i % 2 === 0 ? "forward" : "backward"}
               onOpen={(categoryId, idx) => setLightbox({ categoryId, idx })}
             />
           ))}
