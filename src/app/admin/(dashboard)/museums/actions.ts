@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
+import { resolveUploadedImageUrl, resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
 
 function revalidatePublicSite() {
   revalidatePath("/admin/museums");
@@ -45,20 +45,35 @@ function parseBlockFields(formData: FormData) {
 }
 
 /**
- * Kept-thumbnail URLs (hidden inputs) plus any newly uploaded files, in
- * order. `image_url` is kept in sync as the first entry — the cover shown
- * in the homepage sections list — mirroring how updateProfile keeps
- * hero_image_url tied to hero_image_urls[0].
+ * Two independent image fields:
+ *   image_url  — the single main / cover photo (shown large on the section
+ *                detail page and as the thumbnail in the homepage list).
+ *   image_urls — an ordered list of *additional* photos (the cover is not
+ *                part of this list). Kept-thumbnail hidden inputs plus any
+ *                newly uploaded files.
  */
 async function resolveBlockImages(
   supabase: ReturnType<typeof createAdminClient>,
   formData: FormData
 ) {
-  const kept = formData.getAll("image_urls_kept").map(String);
-  const added = await resolveUploadedImageUrls(supabase, formData, "image_gallery_files");
-  const imageUrls = [...kept, ...added];
+  // A blank file input with the kept-URL hidden input still present returns
+  // that URL; removing the main photo drops the hidden input, so this comes
+  // back undefined → treated as "no cover".
+  const mainUrl = await resolveUploadedImageUrl(
+    supabase,
+    formData,
+    "main_image_file",
+    "main_image_url_kept"
+  );
+  const image_url = mainUrl ?? null;
 
-  return { image_urls: imageUrls, image_url: imageUrls[0] ?? null };
+  const kept = formData
+    .getAll("image_urls_kept")
+    .map(String)
+    .filter((url) => url && url !== image_url);
+  const added = await resolveUploadedImageUrls(supabase, formData, "image_gallery_files");
+
+  return { image_url, image_urls: [...kept, ...added] };
 }
 
 export async function createBiographyBlock(formData: FormData) {

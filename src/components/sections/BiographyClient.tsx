@@ -82,12 +82,17 @@ export function BiographyClient({
                           className="icon-flip transition-transform duration-300 group-hover:translate-x-1"
                         />
                       </span>
-                      {(block.image_urls?.length ?? 0) > 1 && (
-                        <span className="inline-flex items-center gap-1 text-fluid-xs text-ink-faint">
-                          <Images size={13} />
-                          {block.image_urls.length}
-                        </span>
-                      )}
+                      {(() => {
+                        const extra = (block.image_urls ?? []).filter(
+                          (url) => url && url !== block.image_url
+                        ).length;
+                        return extra > 0 ? (
+                          <span className="inline-flex items-center gap-1 text-fluid-xs text-ink-faint">
+                            <Images size={13} />
+                            {extra + (block.image_url ? 1 : 0)}
+                          </span>
+                        ) : null;
+                      })()}
                     </span>
                   </Reveal>
                 </Link>

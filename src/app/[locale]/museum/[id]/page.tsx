@@ -84,17 +84,11 @@ export default async function MuseumSectionPage({
   const number = String(index + 1);
   const body = pickBody(block, locale as Locale);
 
-  // Ordered photo gallery, falling back to the legacy single portrait for
-  // rows saved before the gallery column existed. The first entry is the
-  // cover shown large; any others render in the grid below.
-  const photos =
-    block.image_urls && block.image_urls.length > 0
-      ? block.image_urls
-      : block.image_url
-        ? [block.image_url]
-        : [];
-  const cover = photos[0] ?? null;
-  const morePhotos = photos.slice(1);
+  // The cover is its own field; image_urls holds the additional photos.
+  // Filter the cover out of the grid defensively in case an older save
+  // folded it into the list.
+  const cover = block.image_url ?? null;
+  const morePhotos = (block.image_urls ?? []).filter((url) => url && url !== cover);
 
   return (
     <>
@@ -147,7 +141,7 @@ export default async function MuseumSectionPage({
             {morePhotos.length > 0 && (
               <section className="flex flex-col gap-5">
                 <h2 className="font-display text-fluid-lg font-semibold text-ink">
-                  {t("photos", { count: String(photos.length) })}
+                  {t("photos", { count: String(morePhotos.length + (cover ? 1 : 0)) })}
                 </h2>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
                   {morePhotos.map((url, i) => (

@@ -12,14 +12,14 @@ export function BlockForm({
   action: (formData: FormData) => Promise<void>;
   block?: BiographyBlockRow;
 }) {
-  // Prefer the ordered gallery; fall back to the legacy single image_url for
-  // rows saved before the gallery column existed.
-  const initialGallery =
-    block?.image_urls && block.image_urls.length > 0
-      ? block.image_urls
-      : block?.image_url
-        ? [block.image_url]
-        : [];
+  const [mainPreview, setMainPreview] = useState<string | null>(block?.image_url ?? null);
+  const [mainKept, setMainKept] = useState<string | null>(block?.image_url ?? null);
+
+  // Additional photos only — the main/cover photo above is never part of
+  // this list.
+  const initialGallery = (block?.image_urls ?? []).filter(
+    (url) => url && url !== block?.image_url
+  );
   const [gallery, setGallery] = useState<string[]>(initialGallery);
   const [newFiles, setNewFiles] = useState<{ url: string; file: File }[]>([]);
 
@@ -27,7 +27,59 @@ export function BlockForm({
     <form action={action} className="flex flex-col gap-8">
       <fieldset className="flex flex-col gap-3">
         <legend className="text-fluid-xs font-medium uppercase tracking-[0.15em] text-ink-soft">
-          وێنەکانی ئەم بەشە
+          وێنەی سەرەکی
+        </legend>
+
+        {mainPreview && (
+          <div className="relative h-48 w-48">
+            {/* eslint-disable-next-line @next/next/no-img-element -- local blob: previews aren't eligible for next/image optimization */}
+            <img
+              src={mainPreview}
+              alt=""
+              className="h-full w-full rounded-xl border border-ink/10 bg-canvas-paper object-contain"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setMainPreview(null);
+                setMainKept(null);
+              }}
+              className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-fluid-xs text-canvas shadow-card"
+              aria-label="سڕینەوە"
+            >
+              ×
+            </button>
+          </div>
+        )}
+
+        {/* Carries the current cover URL when no new file is chosen. */}
+        {mainKept && <input type="hidden" name="main_image_url_kept" value={mainKept} />}
+
+        <label className="flex flex-col gap-1.5">
+          <span className="text-fluid-xs text-ink-faint">بارکردنی فایلێک</span>
+          <input
+            type="file"
+            name="main_image_file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                setMainPreview(URL.createObjectURL(file));
+                setMainKept(null);
+              }
+            }}
+            className="rounded-xl border border-dashed border-ink/20 bg-canvas px-3.5 py-2.5 text-fluid-sm text-ink-soft file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1.5 file:text-fluid-xs file:font-medium file:text-canvas"
+          />
+        </label>
+
+        <p className="text-fluid-xs text-ink-faint">
+          ئەم وێنەیە وەک وێنەی سەرەکی لە لیستی بەشەکاندا و لە سەرەی پەڕەی بەشەکەدا پیشان دەدرێت.
+        </p>
+      </fieldset>
+
+      <fieldset className="flex flex-col gap-3">
+        <legend className="text-fluid-xs font-medium uppercase tracking-[0.15em] text-ink-soft">
+          وێنەی زیاتر
         </legend>
 
         {(gallery.length > 0 || newFiles.length > 0) && (
@@ -41,11 +93,6 @@ export function BlockForm({
                   className="h-full w-full rounded-xl border border-ink/10 bg-canvas-paper object-cover"
                 />
                 <input type="hidden" name="image_urls_kept" value={url} />
-                {i === 0 && (
-                  <span className="absolute bottom-1 left-1 rounded-full bg-ink/80 px-2 py-0.5 text-[10px] font-medium text-canvas">
-                    سەرەکی
-                  </span>
-                )}
                 <button
                   type="button"
                   onClick={() => setGallery((prev) => prev.filter((_, idx) => idx !== i))}
@@ -86,8 +133,8 @@ export function BlockForm({
         </label>
 
         <p className="text-fluid-xs text-ink-faint">
-          یەکەم وێنە وەک وێنەی سەرەکی لە لیستی بەشەکاندا پیشان دەدرێت؛ هەموو وێنەکان لە پەڕەی بەشەکەدا
-          دەردەکەون. × لەسەر وێنەیەک لێبدە بۆ سڕینەوەی. وێنە نوێیەکان زیاد دەکرێن بۆ سەر ئەوانەی ماونەتەوە.
+          ئەم وێنانە لە پەڕەی بەشەکەدا لەژێر وێنەی سەرەکی بە شێوەی تۆڕێک پیشان دەدرێن. × لەسەر وێنەیەک
+          لێبدە بۆ سڕینەوەی. وێنە نوێیەکان زیاد دەکرێن بۆ سەر ئەوانەی ماونەتەوە.
         </p>
       </fieldset>
 
