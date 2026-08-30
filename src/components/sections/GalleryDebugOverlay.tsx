@@ -3,26 +3,27 @@
 import { useEffect, useState } from "react";
 
 /**
- * Temporary, on-device diagnostic panel — only renders when the page URL
- * has `?debug=1`, so it's invisible to normal visitors. Added specifically
- * to get real information off a phone that has no attachable devtools:
- * the browser's own identity, how many gallery <img> elements actually
- * exist and what state each one is really in, and any uncaught JS errors —
- * all rendered as plain visible text so it can be read straight off a
- * screenshot. Safe to delete once the underlying issue is found.
+ * Temporary, on-device diagnostic panel — invisible by default, so it
+ * doesn't affect normal visitors. Shows itself automatically the moment it
+ * detects the gallery's images actually failed to load (or none exist in
+ * the DOM at all), or if the page was loaded with `?debug=1` explicitly.
+ * Auto-showing matters because iOS Safari's address bar routinely
+ * autocompletes away query strings like `?debug=1` when you retype a
+ * site you've visited before, making that flag unreliable to rely on
+ * alone. Renders as plain visible text so it can be read straight off a
+ * screenshot with no devtools needed. Safe to delete once the underlying
+ * issue is found.
  */
-function isEnabled(): boolean {
+function debugFlagRequested(): boolean {
   if (typeof window === "undefined") return false;
   return new URLSearchParams(window.location.search).get("debug") === "1";
 }
 
 export function GalleryDebugOverlay() {
-  const [enabled] = useState(isEnabled);
+  const [visible, setVisible] = useState(false);
   const [report, setReport] = useState<string>("collecting...");
 
   useEffect(() => {
-    if (!enabled) return;
-
     const errors: string[] = [];
     function onError(e: ErrorEvent) {
       errors.push(`[error] ${e.message}`);
@@ -36,13 +37,15 @@ export function GalleryDebugOverlay() {
     function collect() {
       const section = document.getElementById("media");
       const imgs = section ? Array.from(section.querySelectorAll("img")) : [];
-      const swCount = "serviceWorker" in navigator ? "checking..." : "unsupported";
+      const failed = imgs.filter((img) => img.complete && img.naturalWidth === 0);
+      const hasFailure = imgs.length === 0 || failed.length > 0;
 
       const lines: string[] = [];
       lines.push(`UA: ${navigator.userAgent}`);
+      lines.push(`href: ${window.location.href}`);
       lines.push(`viewport: ${window.innerWidth}x${window.innerHeight}`);
       lines.push(`#media found: ${Boolean(section)}`);
-      lines.push(`img count in #media: ${imgs.length}`);
+      lines.push(`img count in #media: ${imgs.length}, failed: ${failed.length}`);
 
       imgs.slice(0, 4).forEach((img, i) => {
         const r = img.getBoundingClientRect();
@@ -56,28 +59,34 @@ export function GalleryDebugOverlay() {
         lines.push(...errors);
       }
 
-      lines.push(`serviceWorker: ${swCount}`);
+      lines.push("serviceWorker: checking...");
       setReport(lines.join("\n"));
+
+      if (debugFlagRequested() || hasFailure) {
+        setVisible(true);
+      }
 
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations().then((regs) => {
-          setReport((prev) => prev.replace("checking...", String(regs.length)));
+          setReport((prev) => prev.replace("serviceWorker: checking...", `serviceWorker: ${regs.length}`));
         });
       }
     }
 
     const t1 = setTimeout(collect, 1500);
     const t2 = setTimeout(collect, 4000);
+    const t3 = setTimeout(collect, 8000);
 
     return () => {
       window.removeEventListener("error", onError);
       window.removeEventListener("unhandledrejection", onRejection);
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(t3);
     };
-  }, [enabled]);
+  }, []);
 
-  if (!enabled) return null;
+  if (!visible) return null;
 
   return (
     <pre
