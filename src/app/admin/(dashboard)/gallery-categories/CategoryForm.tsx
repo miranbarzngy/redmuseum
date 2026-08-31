@@ -1,7 +1,10 @@
 "use client";
 
+import { LanguageProvider, LanguageTabs } from "../../_components/LanguageTabs";
 import { LocalizedField } from "../../_components/LocalizedField";
-import { SubmitButton } from "../../_components/SubmitButton";
+import { Field } from "../../_components/Field";
+import { Panel } from "../../_components/Panel";
+import { SaveBar } from "../../_components/SaveBar";
 import type { GalleryCategoryRow } from "@/lib/supabase/database.types";
 
 export function CategoryForm({
@@ -12,41 +15,35 @@ export function CategoryForm({
   category?: GalleryCategoryRow;
 }) {
   return (
-    <form action={action} className="flex flex-col gap-8">
-      <div className="grid gap-6 sm:grid-cols-2">
-        <label className="flex flex-col gap-1.5">
-          <span className="text-fluid-xs font-medium text-ink-soft">سلاگ (بۆ بەکارهێنانی داخلی)</span>
-          <input
-            type="text"
+    <LanguageProvider>
+      <form action={action} className="flex flex-col gap-5">
+        <Panel bodyClassName="flex flex-col gap-8">
+          <Field
+            label="سلاگ (بۆ بەکارهێنانی داخلی)"
             name="slug"
             required
-            placeholder="بۆ نموونە: activity"
             defaultValue={category?.slug ?? ""}
-            className="rounded-xl border border-ink/15 bg-canvas px-3.5 py-2.5 text-fluid-sm text-ink outline-none focus:border-pigment-terracotta focus:ring-2 focus:ring-pigment-terracotta/15"
+            placeholder="بۆ نموونە: activity"
+            dir="ltr"
+            className="max-w-xs"
           />
-        </label>
 
-        <label className="flex flex-col gap-1.5">
-          <span className="text-fluid-xs font-medium text-ink-soft">ڕیزبەندی پیشاندان</span>
-          <input
-            type="number"
-            name="sort_order"
-            defaultValue={category?.sort_order ?? 0}
-            className="rounded-xl border border-ink/15 bg-canvas px-3.5 py-2.5 text-fluid-sm text-ink outline-none focus:border-pigment-terracotta focus:ring-2 focus:ring-pigment-terracotta/15"
+          <div className="flex items-center justify-between gap-3 border-t border-ink/10 pt-6">
+            <span className="font-kurdish text-fluid-xs font-medium text-ink-faint">زمانی ناونیشان</span>
+            <LanguageTabs />
+          </div>
+
+          <LocalizedField
+            name="label"
+            label="ناونیشان"
+            required
+            hint="هەر سێ زمانەکە پێویستن."
+            defaults={{ ku: category?.label_ku, en: category?.label_en, ar: category?.label_ar }}
           />
-        </label>
-      </div>
+        </Panel>
 
-      <LocalizedField
-        name="label"
-        label="ناونیشان"
-        required
-        defaults={{ ku: category?.label_ku, en: category?.label_en, ar: category?.label_ar }}
-      />
-
-      <div>
-        <SubmitButton>{category ? "پاشەکەوتکردنی گۆڕانکارییەکان" : "زیادکردنی پۆل"}</SubmitButton>
-      </div>
-    </form>
+        <SaveBar label={category ? "پاشەکەوتکردنی گۆڕانکارییەکان" : "زیادکردنی پۆل"} />
+      </form>
+    </LanguageProvider>
   );
 }

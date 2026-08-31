@@ -7,15 +7,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
 import { useTranslations } from "next-intl";
-import { Mail, MapPin, Loader2, CheckCircle2, AlertCircle, ChevronDown } from "lucide-react";
+import { Mail, MapPin, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
 import { SocialIcon } from "@/components/ui/SocialIcon";
 import { socials } from "@/data/socials";
 import type { SiteProfileRow } from "@/lib/supabase/database.types";
-
-const TYPE_KEYS = ["commission", "media", "other"] as const;
 
 export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
   const t = useTranslations("contact");
@@ -28,7 +26,6 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
       .string()
       .min(7, t("form.errors.phone"))
       .regex(/^[0-9+\-\s()]+$/, t("form.errors.phone")),
-    type: z.enum(TYPE_KEYS),
     message: z.string().min(10, t("form.errors.message")),
   });
   type FormValues = z.infer<typeof schema>;
@@ -40,7 +37,6 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { type: "commission" },
   });
 
   async function onSubmit(values: FormValues) {
@@ -53,7 +49,7 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
       });
       if (!res.ok) throw new Error("Request failed");
       setStatus("success");
-      reset({ name: "", phone: "", type: "commission", message: "" });
+      reset({ name: "", phone: "", message: "" });
     } catch {
       setStatus("error");
     }
@@ -102,30 +98,6 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
                   {errors.phone && (
                     <span className="text-fluid-xs text-pigment-crimson">{errors.phone.message}</span>
                   )}
-                </div>
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="type" className="text-fluid-xs font-medium text-ink-soft">
-                  {t("form.type")}
-                </label>
-                <div className="relative">
-                  <select
-                    id="type"
-                    required
-                    {...register("type")}
-                    className="w-full appearance-none rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
-                  >
-                    {TYPE_KEYS.map((key) => (
-                      <option key={key} value={key}>
-                        {t(`form.typeOptions.${key}`)}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={16}
-                    className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 text-ink-faint"
-                  />
                 </div>
               </div>
 

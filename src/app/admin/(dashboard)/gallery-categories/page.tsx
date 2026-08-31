@@ -1,6 +1,8 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Tags } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "../../_components/PageHeader";
+import { EmptyState } from "../../_components/EmptyState";
+import { LinkButton } from "../../_components/Button";
 import { CategoryList } from "./CategoryList";
 
 export default async function AdminGalleryCategoriesPage() {
@@ -10,23 +12,20 @@ export default async function AdminGalleryCategoriesPage() {
     .select("*")
     .order("sort_order", { ascending: true });
 
+  const hasRows = (categories?.length ?? 0) > 0;
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="font-kurdish text-fluid-xl font-semibold text-ink">پۆلەکانی گەلەری</h1>
-          <p className="mt-1 text-fluid-sm text-ink-soft">
-            پۆلەکانی وێنە کە لە بەشی گەلەریدا وەک ستریپی جیاواز پیشان دەدرێن. بۆ گۆڕینی ڕیزبەندی، دەستەی{" "}
-            <span aria-hidden>⠿</span> ڕابکێشە.
-          </p>
-        </div>
-        <Link
-          href="/admin/gallery-categories/new"
-          className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-fluid-sm font-medium text-canvas transition-colors hover:bg-pigment-terracotta"
-        >
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        title="پۆلەکانی گەلەری"
+        description="پۆلەکانی وێنە کە لە گەلەریدا وەک ستریپی جیاواز پیشان دەدرێن. بە ڕاکێشان ڕیزبەندی بگۆڕە."
+        backHref="/admin/gallery"
+        backLabel="گەڕانەوە بۆ گەلەری"
+      >
+        <LinkButton href="/admin/gallery-categories/new">
           <Plus size={16} /> زیادکردنی پۆل
-        </Link>
-      </div>
+        </LinkButton>
+      </PageHeader>
 
       {error && (
         <p className="rounded-xl bg-pigment-crimson/10 px-4 py-3 text-fluid-sm text-pigment-crimson">
@@ -34,11 +33,15 @@ export default async function AdminGalleryCategoriesPage() {
         </p>
       )}
 
-      {!error && (categories?.length ?? 0) === 0 && (
-        <p className="text-fluid-sm text-ink-faint">هێشتا هیچ پۆلێک نییە — یەکەمیان زیاد بکە.</p>
+      {!error && !hasRows && (
+        <EmptyState icon={Tags} title="هێشتا هیچ پۆلێک نییە">
+          <LinkButton href="/admin/gallery-categories/new">
+            <Plus size={16} /> زیادکردنی یەکەم پۆل
+          </LinkButton>
+        </EmptyState>
       )}
 
-      {!error && (categories?.length ?? 0) > 0 && <CategoryList categories={categories!} />}
+      {!error && hasRows && <CategoryList categories={categories!} />}
     </div>
   );
 }

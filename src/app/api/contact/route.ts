@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/server";
 const schema = z.object({
   name: z.string().min(1),
   phone: z.string().min(7).regex(/^[0-9+\-\s()]+$/),
-  type: z.enum(["commission", "media", "other"]),
   message: z.string().min(10),
 });
 

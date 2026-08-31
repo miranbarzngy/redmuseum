@@ -84,11 +84,17 @@ const config: Config = {
         "float-slower": "float 14s ease-in-out infinite",
         "drift": "drift 22s linear infinite",
         "pulse-soft": "pulse-soft 4s ease-in-out infinite",
+        "glow-ring": "glowRing 1.9s ease-out infinite",
       },
       keyframes: {
         float: {
           "0%, 100%": { transform: "translateY(0px) rotate(0deg)" },
           "50%": { transform: "translateY(-16px) rotate(2deg)" },
+        },
+        glowRing: {
+          "0%": { boxShadow: "0 0 0 0 rgba(133,11,16,0.55)" },
+          "70%": { boxShadow: "0 0 0 7px rgba(133,11,16,0)" },
+          "100%": { boxShadow: "0 0 0 0 rgba(133,11,16,0)" },
         },
         drift: {
           "0%": { transform: "translateX(0) translateY(0)" },

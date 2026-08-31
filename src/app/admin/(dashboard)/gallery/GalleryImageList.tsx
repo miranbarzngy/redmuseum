@@ -1,131 +1,107 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
-import { GripVertical, Pencil } from "lucide-react";
-import {
-  DndContext,
-  PointerSensor,
-  TouchSensor,
-  KeyboardSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  arrayMove,
-  verticalListSortingStrategy,
-  useSortable,
-  sortableKeyboardCoordinates,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { DataList, type Column } from "../../_components/DataList";
+import { SortableDataList } from "../../_components/SortableDataList";
+import { RowCard, Thumb } from "../../_components/RowCard";
+import { StatusBadge } from "../../_components/StatusBadge";
+import { EditLink } from "../../_components/EditLink";
 import { DeleteButton } from "../../_components/DeleteButton";
 import { deleteGalleryImage, reorderGalleryImages } from "./actions";
 import type { GalleryRow, GalleryCategoryRow } from "@/lib/supabase/database.types";
 
-type GalleryRowWithCategory = GalleryRow & { category: GalleryCategoryRow | null };
+type Row = GalleryRow & { category: GalleryCategoryRow | null };
 
-function ImageRow({ item, draggable }: { item: GalleryRowWithCategory; draggable: boolean }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: item.id,
-    disabled: !draggable,
-  });
+const CONFIRM = "سڕینەوەی ئەم وێنەیە؟ ناتوانرێت هەڵبوەشێندرێتەوە.";
 
-  return (
-    <div
-      ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={`flex items-center gap-4 rounded-2xl border border-ink/10 bg-white p-4 shadow-card ${
-        isDragging ? "z-10 opacity-90 shadow-soft" : ""
-      }`}
-    >
-      {draggable && (
-        <button
-          type="button"
-          aria-label="گواستنەوە"
-          {...attributes}
-          {...listeners}
-          className="flex h-9 w-9 shrink-0 cursor-grab touch-none items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-canvas-paper hover:text-ink active:cursor-grabbing"
-        >
-          <GripVertical size={16} />
-        </button>
-      )}
-
-      <div className="aspect-video h-16 shrink-0 overflow-hidden rounded-xl bg-canvas-paper">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={item.image_url} alt="" className="h-full w-full object-cover" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="truncate text-fluid-sm font-medium text-ink">{item.title || "—"}</div>
-        <div className="text-fluid-xs text-ink-faint">
-          {item.category?.label_ku ?? "—"} · ڕیزبەندی {item.display_order}
-          {!item.is_active && " · ناچالاک"}
-        </div>
-      </div>
-      <Link
-        href={`/admin/gallery/${item.id}`}
-        aria-label="دەستکاریکردن"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 text-ink-faint transition-colors hover:border-pigment-terracotta hover:text-pigment-terracotta"
-      >
-        <Pencil size={15} />
-      </Link>
-      <DeleteButton
-        action={deleteGalleryImage.bind(null, item.id)}
-        confirmMessage="سڕینەوەی ئەم وێنەیە؟ ناتوانرێت هەڵبوەشێندرێتەوە."
-      />
-    </div>
+function stateBadge(g: Row) {
+  return g.is_active ? (
+    <StatusBadge tone="positive">چالاک</StatusBadge>
+  ) : (
+    <StatusBadge tone="muted">ناچالاک</StatusBadge>
   );
 }
 
-/** `draggable` should only be true when the list is scoped to a single
- * category — display_order is per-category, so reordering a mixed "all
- * categories" list wouldn't mean anything coherent. */
-export function GalleryImageList({
-  items,
-  draggable,
-}: {
-  items: GalleryRowWithCategory[];
-  draggable: boolean;
-}) {
-  const [ordered, setOrdered] = useState(items);
+/** `draggable` is only true when the list is scoped to one category —
+ * display_order is per-category, so reordering a mixed list is meaningless. */
+export function GalleryImageList({ items, draggable }: { items: Row[]; draggable: boolean }) {
+  const columns: Column<Row>[] = [
+    {
+      key: "thumb",
+      header: "وێنە",
+      className: "w-24",
+      cell: (g) => <Thumb src={g.image_url} className="aspect-video h-12" rounded="rounded-lg" />,
+    },
+    {
+      key: "title",
+      header: "ناونیشان",
+      cell: (g) => (
+        <Link
+          href={`/admin/gallery/${g.id}`}
+          className="font-medium text-ink transition-colors hover:text-pigment-terracotta"
+        >
+          {g.title || "—"}
+        </Link>
+      ),
+    },
+    {
+      key: "category",
+      header: "پۆل",
+      className: "w-40",
+      cell: (g) => <span className="text-fluid-xs text-ink-soft">{g.category?.label_ku ?? "—"}</span>,
+    },
+    {
+      key: "state",
+      header: "دۆخ",
+      align: "center",
+      className: "w-24",
+      cell: stateBadge,
+    },
+    {
+      key: "actions",
+      header: "",
+      align: "end",
+      className: "w-28",
+      cell: (g) => (
+        <div className="flex items-center justify-end gap-1.5">
+          <EditLink href={`/admin/gallery/${g.id}`} />
+          <DeleteButton action={deleteGalleryImage.bind(null, g.id)} confirmMessage={CONFIRM} />
+        </div>
+      ),
+    },
+  ];
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  const card = (g: Row, handle?: React.ReactNode) => (
+    <RowCard
+      leading={
+        <div className="flex items-center gap-2">
+          {handle}
+          <Thumb src={g.image_url} className="aspect-video h-12" rounded="rounded-lg" />
+        </div>
+      }
+      title={<Link href={`/admin/gallery/${g.id}`}>{g.title || "—"}</Link>}
+      meta={g.category?.label_ku ?? "—"}
+      badges={stateBadge(g)}
+      actions={
+        <>
+          <EditLink href={`/admin/gallery/${g.id}`} />
+          <DeleteButton action={deleteGalleryImage.bind(null, g.id)} confirmMessage={CONFIRM} />
+        </>
+      }
+    />
   );
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-
-    const oldIndex = ordered.findIndex((i) => i.id === active.id);
-    const newIndex = ordered.findIndex((i) => i.id === over.id);
-    const next = arrayMove(ordered, oldIndex, newIndex);
-    setOrdered(next);
-    reorderGalleryImages(next.map((i) => i.id));
-  }
-
   if (!draggable) {
-    return (
-      <div className="flex flex-col gap-3">
-        {items.map((item) => (
-          <ImageRow key={item.id} item={item} draggable={false} />
-        ))}
-      </div>
-    );
+    return <DataList rows={items} columns={columns} rowKey={(g) => g.id} renderCard={(g) => card(g)} />;
   }
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-      <SortableContext items={ordered.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col gap-3">
-          {ordered.map((item) => (
-            <ImageRow key={item.id} item={item} draggable />
-          ))}
-        </div>
-      </SortableContext>
-    </DndContext>
+    <SortableDataList
+      rows={items}
+      columns={columns}
+      rowKey={(g) => g.id}
+      onReorder={(ids) => reorderGalleryImages(ids)}
+      renderCard={(g, handle) => card(g, handle)}
+    />
   );
 }

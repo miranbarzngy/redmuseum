@@ -1,13 +1,16 @@
+import { PageHeader } from "../../../_components/PageHeader";
 import { CategoryForm } from "../CategoryForm";
 import { createCategory } from "../actions";
 
 export default function NewGalleryCategoryPage() {
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="font-kurdish text-fluid-xl font-semibold text-ink">زیادکردنی پۆل</h1>
-      <div className="max-w-2xl rounded-2xl border border-ink/10 bg-white p-6 shadow-card sm:p-8">
-        <CategoryForm action={createCategory} />
-      </div>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      <PageHeader
+        title="زیادکردنی پۆل"
+        backHref="/admin/gallery-categories"
+        backLabel="گەڕانەوە بۆ پۆلەکان"
+      />
+      <CategoryForm action={createCategory} />
     </div>
   );
 }

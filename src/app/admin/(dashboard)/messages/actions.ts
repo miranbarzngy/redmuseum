@@ -51,6 +51,19 @@ export async function getMessage(id: string): Promise<ContactMessageRow | null> 
   return data;
 }
 
+export async function markAllMessagesRead() {
+  await requireAdminSession();
+  const supabase = createAdminClient();
+  const { error } = await supabase
+    .from("contact_messages")
+    .update({ is_read: true })
+    .eq("is_read", false);
+
+  if (error) throw new Error(error.message);
+  revalidatePath("/admin/messages");
+  revalidatePath("/admin");
+}
+
 export async function markMessageRead(id: string) {
   await requireAdminSession();
   const supabase = createAdminClient();

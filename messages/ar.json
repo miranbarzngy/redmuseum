@@ -37,7 +37,8 @@
     "quote": "ما يُحفَظ لا يضيع أبدًا.",
     "timelineHeading": "المعارض والمحطات المهمة",
     "timelineEmpty": "لا توجد معارض بعد — يرجى المراجعة لاحقًا.",
-    "viewDetails": "عرض التفاصيل"
+    "viewDetails": "عرض التفاصيل",
+    "sectionsToggle": "كل الأقسام"
   },
   "gallery": {
     "heading": "الأنشطة والفعاليات",
@@ -48,6 +49,7 @@
     "sectionLabel": "القسم {number}",
     "ofTotal": "القسم {number} من {total}",
     "metaTitle": "القسم {number} — متحف أمنة سوركة الوطني",
+    "metaTitleNamed": "{name} — متحف أمنة سوركة الوطني",
     "prev": "القسم السابق",
     "next": "القسم التالي",
     "photos": "الصور ({count})",
@@ -62,8 +64,24 @@
       "namePlaceholder": "اسمك",
       "phone": "رقم الهاتف",
       "phonePlaceholder": "+964 750 123 4567",
+      "guestCount": "عدد الضيوف",
+      "visitorType": "نوع الزيارة",
+      "visitorTypePlaceholder": "اختر…",
+      "visitorTypes": {
+        "school": "مدرسة / جامعة",
+        "delegation": "وفد رسمي",
+        "personal": "شخصية",
+        "press": "صحافة",
+        "other": "أخرى"
+      },
       "visitDate": "تاريخ الزيارة",
       "visitTime": "وقت الزيارة",
+      "openingTime": "وقت فتح المتحف",
+      "openingTimeValue": "٩ صباحًا",
+      "staffBreak": "وقت استراحة الموظفين",
+      "staffBreakValue": "١٢ إلى ١ ظهرًا",
+      "closingTime": "وقت إغلاق المتحف",
+      "closingTimeValue": "٤ عصرًا",
       "note": "ملاحظة",
       "notePlaceholder": "حجم المجموعة، طلبات خاصة... (اختياري)",
       "submit": "احجز الزيارة",
@@ -73,6 +91,8 @@
       "errors": {
         "name": "يرجى إدخال اسمك.",
         "phone": "يرجى إدخال رقم هاتف صحيح.",
+        "guestCount": "يرجى إدخال عدد ضيوف صحيح.",
+        "visitorType": "يرجى اختيار نوع الزيارة.",
         "visitDate": "يرجى اختيار تاريخ الزيارة."
       }
     },
@@ -84,7 +104,6 @@
     },
     "photoStep": {
       "title": "التقط صورة",
-      "subtitle": "تساعدنا على التعرف عليك عند وصولك. اختياري.",
       "start": "فتح الكاميرا",
       "opening": "جارٍ فتح الكاميرا...",
       "shoot": "التقط الصورة",
@@ -100,7 +119,67 @@
       "back": "رجوع",
       "next": "التالي"
     },
-    "timePrefix": "وقت الزيارة: {time}"
+    "timePrefix": "وقت الزيارة: {time}",
+    "meridiem": { "am": "ص", "pm": "م" },
+    "weekdays": ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
+    "monthLabel": "الشهر {month}",
+    "holidays": {
+      "newYear": "رأس السنة",
+      "raparin": "يوم الانتفاضة",
+      "halabja": "ذكرى قصف حلبجة",
+      "newroz": "عيد نوروز",
+      "labourDay": "عيد العمال",
+      "flagDay": "يوم علم كردستان",
+      "christmas": "عيد الميلاد",
+      "eidFitr": "عيد الفطر",
+      "eidAdha": "عيد الأضحى"
+    },
+    "confirmation": {
+      "heading": "تم حجز زيارتك",
+      "subheading": "لقد استلمنا طلبك. سنُعلمك بمجرد الموافقة عليه.",
+      "reference": "رقم الحجز",
+      "name": "الاسم",
+      "phone": "رقم الهاتف",
+      "guests": "عدد الضيوف",
+      "visitorType": "نوع الزيارة",
+      "date": "التاريخ",
+      "time": "الوقت",
+      "note": "ملاحظة",
+      "qrHint": "اعرض هذا الرمز عند وصولك — يُظهر حالة حجزك.",
+      "viewStatus": "عرض حالة الحجز",
+      "again": "حجز زيارة أخرى"
+    },
+    "statusPage": {
+      "title": "حالة الحجز",
+      "notFound": "لم يتم العثور على أي حجز بهذا الرمز.",
+      "backHome": "العودة إلى الموقع",
+      "status": {
+        "pending": "بانتظار الموافقة",
+        "confirmed": "تمت الموافقة",
+        "checked_in": "تم تسجيل الدخول",
+        "cancelled": "ملغى",
+        "no_show": "لم يحضر"
+      },
+      "statusHint": {
+        "pending": "طلبك قيد المراجعة. سنؤكده قريبًا.",
+        "confirmed": "تمت الموافقة على زيارتك. أهلًا بك في المتحف!",
+        "checked_in": "تم تسجيل وصولك.",
+        "cancelled": "تم إلغاء هذا الحجز. يرجى التواصل معنا.",
+        "no_show": "لم تحضر في الوقت المحدد."
+      }
+    },
+    "toggle": {
+      "book": "حجز زيارة",
+      "status": "التحقق من الحالة"
+    },
+    "lookup": {
+      "heading": "لديك حجز بالفعل؟",
+      "subheading": "أدخل رقم هاتفك لعرض حالة زيارتك.",
+      "submit": "تحقق",
+      "empty": "لم يتم العثور على أي حجز بهذا الرقم.",
+      "error": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      "rateLimited": "محاولات كثيرة. يرجى الانتظار بضع ثوانٍ والمحاولة مجددًا."
+    }
   },
   "contact": {
     "eyebrow": "تواصل معنا",
@@ -111,12 +190,6 @@
       "namePlaceholder": "اسمك",
       "phone": "رقم الهاتف",
       "phonePlaceholder": "+964 750 123 4567",
-      "type": "نوع الاستفسار",
-      "typeOptions": {
-        "commission": "زيارة / حجز جماعي",
-        "media": "صحافة / إعلام",
-        "other": "أخرى"
-      },
       "message": "الرسالة",
       "messagePlaceholder": "أخبرنا عن استفسارك...",
       "submit": "إرسال الرسالة",

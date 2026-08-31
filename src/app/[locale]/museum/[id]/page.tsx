@@ -9,6 +9,7 @@ import { ScrollExperience } from "@/components/background/ScrollExperience";
 import { ArtworkPlaceholder } from "@/components/ui/ArtworkPlaceholder";
 import { Link } from "@/i18n/navigation";
 import { getBiographyBlocks } from "@/lib/data/biography";
+import { pickSectionTitle } from "@/lib/museumSectionTitle";
 import type { Locale } from "@/i18n/routing";
 import type { BiographyBlockRow } from "@/lib/supabase/database.types";
 
@@ -61,9 +62,10 @@ export async function generateMetadata({
   const t = await getTranslations({ locale, namespace: "museum" });
   const number = String(section.index + 1);
   const body = pickBody(section.block, locale as Locale);
+  const title = pickSectionTitle(section.block, locale as Locale);
 
   return {
-    title: t("metaTitle", { number }),
+    title: title ? t("metaTitleNamed", { name: title }) : t("metaTitle", { number }),
     description: body ? body.slice(0, 160) : undefined,
   };
 }
@@ -83,6 +85,7 @@ export default async function MuseumSectionPage({
   const t = await getTranslations({ locale, namespace: "museum" });
   const number = String(index + 1);
   const body = pickBody(block, locale as Locale);
+  const title = pickSectionTitle(block, locale as Locale);
 
   // The cover is its own field; image_urls holds the additional photos.
   // Filter the cover out of the grid defensively in case an older save
@@ -132,6 +135,9 @@ export default async function MuseumSectionPage({
                 <p className="text-fluid-xs uppercase tracking-[0.3em]" style={{ color: ACCENT }}>
                   {t("ofTotal", { number, total: String(total) })}
                 </p>
+                <h1 className="font-display text-fluid-xl font-semibold leading-tight text-ink">
+                  {title || t("sectionLabel", { number })}
+                </h1>
                 <p className="whitespace-pre-line text-sm leading-relaxed text-ink-soft sm:text-fluid-base">
                   {body || t("noContent")}
                 </p>

@@ -1,5 +1,6 @@
-export type ContactRequestType = "commission" | "media" | "other";
 export type BookingStatus = "pending" | "confirmed" | "checked_in" | "cancelled" | "no_show";
+
+export type BookingVisitorType = "school" | "delegation" | "personal" | "press" | "other";
 
 export interface Database {
   public: {
@@ -241,6 +242,9 @@ export interface Database {
       biography_blocks: {
         Row: {
           id: string;
+          title_ku: string;
+          title_en: string;
+          title_ar: string;
           body_ku: string;
           body_en: string;
           body_ar: string;
@@ -252,6 +256,9 @@ export interface Database {
         };
         Insert: {
           id?: string;
+          title_ku?: string;
+          title_en?: string;
+          title_ar?: string;
           body_ku?: string;
           body_en?: string;
           body_ar?: string;
@@ -269,7 +276,6 @@ export interface Database {
           id: string;
           name: string;
           phone: string;
-          type: ContactRequestType;
           message: string;
           is_read: boolean;
           created_at: string;
@@ -278,7 +284,6 @@ export interface Database {
           id?: string;
           name: string;
           phone: string;
-          type: ContactRequestType;
           message: string;
           is_read?: boolean;
           created_at?: string;
@@ -344,16 +349,37 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["system_settings"]["Insert"]>;
         Relationships: [];
       };
+      booking_settings: {
+        Row: {
+          id: number;
+          open_weekdays: number[];
+          time_slots: string[];
+          booking_window_days: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          open_weekdays?: number[];
+          time_slots?: string[];
+          booking_window_days?: number;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["booking_settings"]["Insert"]>;
+        Relationships: [];
+      };
       bookings: {
         Row: {
           id: string;
           name: string;
           phone: string;
           visit_date: string;
+          guest_count: number;
+          visitor_type: BookingVisitorType;
           note: string | null;
           face_image_path: string | null;
           face_scan_consent: boolean;
           status: BookingStatus;
+          public_token: string;
           created_at: string;
           updated_at: string;
         };
@@ -362,10 +388,13 @@ export interface Database {
           name: string;
           phone: string;
           visit_date: string;
+          guest_count?: number;
+          visitor_type?: BookingVisitorType;
           note?: string | null;
           face_image_path?: string | null;
           face_scan_consent?: boolean;
           status?: BookingStatus;
+          public_token?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -396,6 +425,10 @@ export interface Database {
     Views: Record<string, never>;
     Functions: {
       check_admin_login_attempt: {
+        Args: { client_ip: string };
+        Returns: boolean;
+      };
+      check_booking_lookup_attempt: {
         Args: { client_ip: string };
         Returns: boolean;
       };
@@ -432,5 +465,6 @@ export type TributeInsert = Database["public"]["Tables"]["tributes"]["Insert"];
 export type AdminPushTokenRow = Database["public"]["Tables"]["admin_push_tokens"]["Row"];
 export type AdminPushTokenInsert = Database["public"]["Tables"]["admin_push_tokens"]["Insert"];
 export type SystemSettingsRow = Database["public"]["Tables"]["system_settings"]["Row"];
+export type BookingSettingsRow = Database["public"]["Tables"]["booking_settings"]["Row"];
 export type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
 export type BookingInsert = Database["public"]["Tables"]["bookings"]["Insert"];

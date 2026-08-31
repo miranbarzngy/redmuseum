@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "../../../../_components/PageHeader";
 import { BlockForm } from "../../BlockForm";
 import { updateBiographyBlock } from "../../actions";
 
@@ -15,11 +16,13 @@ export default async function EditBiographyBlockPage(props: { params: Promise<{ 
   if (!block) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="font-kurdish text-fluid-xl font-semibold text-ink">دەستکاریکردنی بەشەکانی مۆزەخانە</h1>
-      <div className="max-w-2xl rounded-2xl border border-ink/10 bg-white p-6 shadow-card sm:p-8">
-        <BlockForm action={updateBiographyBlock.bind(null, block.id)} block={block} />
-      </div>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      <PageHeader
+        title="دەستکاریکردنی بەش"
+        backHref="/admin/museums"
+        backLabel="گەڕانەوە بۆ بەشەکان"
+      />
+      <BlockForm action={updateBiographyBlock.bind(null, block.id)} block={block} />
     </div>
   );
 }

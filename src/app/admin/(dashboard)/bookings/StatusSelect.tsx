@@ -2,23 +2,8 @@
 
 import { useTransition } from "react";
 import { updateBookingStatus } from "./actions";
+import { STATUS_LABELS, STATUS_STYLES, STATUS_ORDER } from "./status";
 import type { BookingStatus } from "@/lib/supabase/database.types";
-
-const STATUS_LABELS: Record<BookingStatus, string> = {
-  pending: "چاوەڕوان",
-  confirmed: "پشتڕاستکراوە",
-  checked_in: "هاتووە",
-  cancelled: "هەڵوەشێنراوەتەوە",
-  no_show: "نەهاتووە",
-};
-
-const STATUS_STYLES: Record<BookingStatus, string> = {
-  pending: "bg-pigment-gold/15 text-[#8a6d1f]",
-  confirmed: "bg-pigment-teal/15 text-pigment-teal",
-  checked_in: "bg-ink/10 text-ink",
-  cancelled: "bg-pigment-crimson/10 text-pigment-crimson",
-  no_show: "bg-ink/5 text-ink-faint",
-};
 
 export function StatusSelect({ id, status }: { id: string; status: BookingStatus }) {
   const [pending, startTransition] = useTransition();
@@ -27,8 +12,8 @@ export function StatusSelect({ id, status }: { id: string; status: BookingStatus
     const next = e.target.value as BookingStatus;
     startTransition(() => {
       updateBookingStatus(id, next).catch(() => {
-        // Best-effort — the select will simply keep showing the prior value
-        // on next render if the update failed.
+        // Best-effort — the select keeps showing the prior value on next
+        // render if the update failed.
       });
     });
   }
@@ -41,7 +26,7 @@ export function StatusSelect({ id, status }: { id: string; status: BookingStatus
       onClick={(e) => e.stopPropagation()}
       className={`font-kurdish rounded-full border-0 px-3 py-1.5 text-fluid-xs font-medium outline-none disabled:opacity-60 ${STATUS_STYLES[status]}`}
     >
-      {(Object.keys(STATUS_LABELS) as BookingStatus[]).map((key) => (
+      {STATUS_ORDER.map((key) => (
         <option key={key} value={key}>
           {STATUS_LABELS[key]}
         </option>
@@ -49,5 +34,3 @@ export function StatusSelect({ id, status }: { id: string; status: BookingStatus
     </select>
   );
 }
-
-export { STATUS_LABELS };

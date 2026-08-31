@@ -1,14 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
-import { ArrowRight, Images } from "lucide-react";
+import { ArrowRight, ChevronDown, Images } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { ArtworkPlaceholder } from "@/components/ui/ArtworkPlaceholder";
+import { easeArt } from "@/lib/motionVariants";
+import { pickSectionTitle } from "@/lib/museumSectionTitle";
 import { Link } from "@/i18n/navigation";
 import type { Locale } from "@/i18n/routing";
 import type { BiographyBlockRow, BiographyIntroRow } from "@/lib/supabase/database.types";
+
+const ACCENT = "#850B10";
 
 function pickIntro(intro: BiographyIntroRow | null, field: "eyebrow" | "heading" | "intro", locale: Locale) {
   const value = intro?.[`${field}_${locale}`];
@@ -19,6 +25,18 @@ function pickBody(block: BiographyBlockRow, locale: Locale) {
   return block[`body_${locale}`];
 }
 
+/** First non-empty line of the localized body (falling back across
+ * locales), trimmed to a single-line label for the sections list. */
+function sectionExcerpt(block: BiographyBlockRow, locale: Locale): string {
+  const raw =
+    (block[`body_${locale}`] || "").trim() ||
+    block.body_ku.trim() ||
+    block.body_en.trim() ||
+    block.body_ar.trim();
+  const firstLine = raw.split("\n").map((line) => line.trim()).find(Boolean) ?? "";
+  return firstLine.length > 70 ? `${firstLine.slice(0, 70).trimEnd()}…` : firstLine;
+}
+
 export function BiographyClient({
   intro,
   blocks,
@@ -27,17 +45,99 @@ export function BiographyClient({
   blocks: BiographyBlockRow[];
 }) {
   const t = useTranslations("biography");
+  const tm = useTranslations("museum");
   const locale = useLocale() as Locale;
+  const reduceMotion = useReducedMotion();
+  const [showList, setShowList] = useState(false);
   const fallbackParagraphs = t.raw("paragraphs") as string[];
 
-  const eyebrow = pickIntro(intro, "eyebrow", locale) ?? t("eyebrow");
-  const heading = pickIntro(intro, "heading", locale) ?? t("heading");
   const introText = pickIntro(intro, "intro", locale) ?? t("intro");
+
+  const sectionsToggle =
+    blocks.length > 0 ? (
+      <button
+        type="button"
+        onClick={() => setShowList((open) => !open)}
+        aria-expanded={showList}
+        aria-controls="museum-sections-list"
+        className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-fluid-sm font-semibold uppercase tracking-[0.15em] transition-colors hover:bg-white/50"
+        style={{ borderColor: ACCENT, color: ACCENT }}
+      >
+        {t("sectionsToggle")}
+        <span
+          className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1 text-[0.7rem] tabular-nums"
+          style={{ backgroundColor: "rgba(133, 11, 16, 0.12)" }}
+        >
+          {blocks.length}
+        </span>
+        <ChevronDown
+          size={15}
+          className={`transition-transform duration-300 ${showList ? "rotate-180" : ""}`}
+        />
+      </button>
+    ) : null;
 
   return (
     <section id="biography" className="relative py-24 sm:py-32">
       <div className="container-art section-px flex flex-col gap-20">
-        <SectionHeading eyebrow={eyebrow} heading={heading} subheading={introText} size="compact" />
+        <div className="flex flex-col gap-5">
+          <div className="flex max-w-2xl flex-col items-start gap-4">
+            {sectionsToggle && <Reveal from="fade">{sectionsToggle}</Reveal>}
+            <SectionHeading subheading={introText} size="compact" />
+          </div>
+
+          {blocks.length > 0 && (
+            <AnimatePresence initial={false}>
+              {showList && (
+                <motion.div
+                  id="museum-sections-list"
+                  key="museum-sections-list"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: reduceMotion ? 0 : 0.3, ease: easeArt }}
+                  className="max-w-2xl overflow-hidden"
+                >
+                  <ul className="mt-1 flex flex-col divide-y divide-ink/5 rounded-2xl bg-white/40 p-2 ring-1 ring-ink/5">
+                    {blocks.map((block, i) => (
+                      <li key={block.id}>
+                        <Link
+                          href={`/museum/${block.id}`}
+                          className="group flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white/60"
+                        >
+                          <span
+                            className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full font-display text-fluid-xs font-bold text-white"
+                            style={{ backgroundColor: ACCENT }}
+                          >
+                            {i + 1}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span
+                              className="block truncate text-fluid-sm font-semibold"
+                              style={{ color: ACCENT }}
+                            >
+                              {pickSectionTitle(block, locale) ||
+                                tm("sectionLabel", { number: String(i + 1) })}
+                            </span>
+                            {sectionExcerpt(block, locale) && (
+                              <span className="mt-0.5 line-clamp-1 text-fluid-xs text-ink-faint">
+                                {sectionExcerpt(block, locale)}
+                              </span>
+                            )}
+                          </span>
+                          <ArrowRight
+                            size={14}
+                            className="icon-flip shrink-0 text-ink-faint transition-transform duration-300 group-hover:translate-x-1"
+                          />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          )}
+        </div>
 
         <div className="flex flex-col gap-16">
           {blocks.length > 0

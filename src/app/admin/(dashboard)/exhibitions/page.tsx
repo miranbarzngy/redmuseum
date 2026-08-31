@@ -1,8 +1,9 @@
-import Link from "next/link";
-import { Plus, Pencil } from "lucide-react";
+import { Plus, CalendarClock } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { DeleteButton } from "../../_components/DeleteButton";
-import { deleteExhibition } from "./actions";
+import { PageHeader } from "../../_components/PageHeader";
+import { EmptyState } from "../../_components/EmptyState";
+import { LinkButton } from "../../_components/Button";
+import { ExhibitionList } from "./ExhibitionList";
 
 export default async function AdminExhibitionsPage() {
   const supabase = createClient();
@@ -11,20 +12,18 @@ export default async function AdminExhibitionsPage() {
     .select("*")
     .order("sort_order", { ascending: true });
 
+  const hasRows = (exhibitions?.length ?? 0) > 0;
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="font-kurdish text-fluid-xl font-semibold text-ink">پێشانگاکان</h1>
-          <p className="mt-1 text-fluid-sm text-ink-soft">هێڵی کاتی پیشاندراو لە بەشەکانی مۆزەخانەدا.</p>
-        </div>
-        <Link
-          href="/admin/exhibitions/new"
-          className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2.5 text-fluid-sm font-medium text-canvas transition-colors hover:bg-pigment-terracotta"
-        >
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        title="پێشانگاکان"
+        description="هێڵی کاتی پێشانگاکان لە بەشەکانی مۆزەخانەدا. بە ڕاکێشان ڕیزبەندی بگۆڕە."
+      >
+        <LinkButton href="/admin/exhibitions/new">
           <Plus size={16} /> زیادکردنی پێشانگا
-        </Link>
-      </div>
+        </LinkButton>
+      </PageHeader>
 
       {error && (
         <p className="rounded-xl bg-pigment-crimson/10 px-4 py-3 text-fluid-sm text-pigment-crimson">
@@ -32,36 +31,15 @@ export default async function AdminExhibitionsPage() {
         </p>
       )}
 
-      {!error && (exhibitions?.length ?? 0) === 0 && (
-        <p className="text-fluid-sm text-ink-faint">هێشتا هیچ پێشانگایەک نییە — یەکەمیان زیاد بکە.</p>
+      {!error && !hasRows && (
+        <EmptyState icon={CalendarClock} title="هێشتا هیچ پێشانگایەک نییە">
+          <LinkButton href="/admin/exhibitions/new">
+            <Plus size={16} /> زیادکردنی یەکەم پێشانگا
+          </LinkButton>
+        </EmptyState>
       )}
 
-      <div className="flex flex-col gap-3">
-        {exhibitions?.map((ex) => (
-          <div
-            key={ex.id}
-            className="flex items-center gap-4 rounded-2xl border border-ink/10 bg-white p-4 shadow-card"
-          >
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-fluid-sm font-medium text-ink">{ex.title_ku}</div>
-              <div className="text-fluid-xs text-ink-faint">
-                {ex.year} · ڕیزبەندی {ex.sort_order}
-              </div>
-            </div>
-            <Link
-              href={`/admin/exhibitions/${ex.id}`}
-              aria-label="دەستکاریکردن"
-              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 text-ink-faint transition-colors hover:border-pigment-terracotta hover:text-pigment-terracotta"
-            >
-              <Pencil size={15} />
-            </Link>
-            <DeleteButton
-              action={deleteExhibition.bind(null, ex.id)}
-              confirmMessage={`سڕینەوەی پێشانگای "${ex.title_ku}"؟`}
-            />
-          </div>
-        ))}
-      </div>
+      {!error && hasRows && <ExhibitionList exhibitions={exhibitions ?? []} />}
     </div>
   );
 }

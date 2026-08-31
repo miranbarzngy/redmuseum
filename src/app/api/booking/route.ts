@@ -9,6 +9,8 @@ const schema = z.object({
     .min(7)
     .regex(/^[0-9+\-\s()]+$/),
   visitDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  guestCount: z.coerce.number().int().min(1).max(200),
+  visitorType: z.enum(["school", "delegation", "personal", "press", "other"]),
   note: z.string().optional(),
   // The wizard's photo step is optional (camera access can be denied, or
   // the visitor can skip it) — so this is never required server-side.
@@ -35,13 +37,24 @@ export async function POST(request: Request) {
 
   const supabase = createClient();
 
+  // Generated here rather than read back from the insert: the public
+  // booking flow uses the anon client, and bookings has an INSERT-only RLS
+  // policy (no SELECT for anon), so `.insert().select()` would come back
+  // empty. This is the same 32-hex-char shape as the column's DB default;
+  // the visitor's confirmation screen turns it into the QR code that links
+  // to /[locale]/booking/<token>.
+  const publicToken = crypto.randomUUID().replace(/-/g, "");
+
   const { error } = await supabase.from("bookings").insert({
     name: parsed.data.name,
     phone: parsed.data.phone,
     visit_date: parsed.data.visitDate,
+    guest_count: parsed.data.guestCount,
+    visitor_type: parsed.data.visitorType,
     note: parsed.data.note || null,
     face_image_path: parsed.data.faceImagePath ?? null,
     face_scan_consent: Boolean(parsed.data.faceImagePath),
+    public_token: publicToken,
   });
 
   if (error) {
@@ -49,5 +62,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "save_failed" }, { status: 500 });
   }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, token: publicToken });
 }

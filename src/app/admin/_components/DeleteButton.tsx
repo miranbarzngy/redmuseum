@@ -1,30 +1,41 @@
 "use client";
 
-import { Trash2 } from "lucide-react";
+import { useState, useTransition } from "react";
+import { Trash2, Loader2 } from "lucide-react";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 export function DeleteButton({
   action,
   confirmMessage,
+  label = "سڕینەوە",
 }: {
   action: () => Promise<void>;
   confirmMessage: string;
+  label?: string;
 }) {
+  const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+
   return (
-    <form
-      action={action}
-      onSubmit={(e) => {
-        if (!window.confirm(confirmMessage)) {
-          e.preventDefault();
-        }
-      }}
-    >
+    <>
       <button
-        type="submit"
-        aria-label="سڕینەوە"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 text-ink-faint transition-colors hover:border-pigment-crimson hover:text-pigment-crimson"
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={label}
+        disabled={pending}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 text-ink-faint transition-colors hover:border-pigment-crimson hover:text-pigment-crimson disabled:opacity-50"
       >
-        <Trash2 size={15} />
+        {pending ? <Loader2 size={15} className="animate-spin" /> : <Trash2 size={15} />}
       </button>
-    </form>
+      <ConfirmDialog
+        open={open}
+        message={confirmMessage}
+        onCancel={() => setOpen(false)}
+        onConfirm={() => {
+          setOpen(false);
+          startTransition(() => action());
+        }}
+      />
+    </>
   );
 }

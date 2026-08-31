@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
+// sort_order is owned by the drag-and-drop list (reorderCategories), not the
+// form. The public gallery (GalleryClient) renders label[locale] with no
+// fallback, so all three label languages stay required.
 function parseCategoryFields(formData: FormData) {
   const slug = String(formData.get("slug") ?? "").trim();
   const label_ku = String(formData.get("label_ku") ?? "").trim();
@@ -15,13 +18,7 @@ function parseCategoryFields(formData: FormData) {
     throw new Error("سلاگ و ناونیشان (بە هەر سێ زمانەکە) پێویستن.");
   }
 
-  return {
-    slug,
-    label_ku,
-    label_en,
-    label_ar,
-    sort_order: Number(formData.get("sort_order") ?? 0) || 0,
-  };
+  return { slug, label_ku, label_en, label_ar };
 }
 
 function revalidatePublicSite() {
@@ -35,11 +32,19 @@ export async function createCategory(formData: FormData) {
   const supabase = createAdminClient();
   const fields = parseCategoryFields(formData);
 
-  const { error } = await supabase.from("gallery_categories").insert(fields);
+  const { data: last } = await supabase
+    .from("gallery_categories")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sort_order = (last?.sort_order ?? -1) + 1;
+
+  const { error } = await supabase.from("gallery_categories").insert({ ...fields, sort_order });
   if (error) throw new Error(error.message);
 
   revalidatePublicSite();
-  redirect("/admin/gallery-categories");
+  redirect("/admin/gallery-categories?saved=1");
 }
 
 export async function updateCategory(id: string, formData: FormData) {
@@ -51,7 +56,7 @@ export async function updateCategory(id: string, formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePublicSite();
-  redirect("/admin/gallery-categories");
+  redirect("/admin/gallery-categories?saved=1");
 }
 
 export async function deleteCategory(id: string) {

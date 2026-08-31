@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "../../../_components/PageHeader";
 import { CategoryForm } from "../CategoryForm";
 import { updateCategory } from "../actions";
 
@@ -15,11 +16,13 @@ export default async function EditGalleryCategoryPage(props: { params: Promise<{
   if (!category) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="font-kurdish text-fluid-xl font-semibold text-ink">دەستکاریکردنی پۆل</h1>
-      <div className="max-w-2xl rounded-2xl border border-ink/10 bg-white p-6 shadow-card sm:p-8">
-        <CategoryForm action={updateCategory.bind(null, category.id)} category={category} />
-      </div>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      <PageHeader
+        title="دەستکاریکردنی پۆل"
+        backHref="/admin/gallery-categories"
+        backLabel="گەڕانەوە بۆ پۆلەکان"
+      />
+      <CategoryForm action={updateCategory.bind(null, category.id)} category={category} />
     </div>
   );
 }

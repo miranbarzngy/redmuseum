@@ -6,6 +6,8 @@ import { requireAdminSession } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveUploadedImageUrl } from "@/lib/supabase/uploadImage";
 
+// display_order is owned by the drag-and-drop list on /admin/gallery (see
+// reorderGalleryImages) — it is per-category, so the form never sets it.
 function parseGalleryFields(formData: FormData) {
   const category_id = String(formData.get("category_id") ?? "").trim();
   if (!category_id) {
@@ -15,7 +17,6 @@ function parseGalleryFields(formData: FormData) {
   return {
     category_id,
     title: String(formData.get("title") ?? "").trim() || null,
-    display_order: Number(formData.get("display_order") ?? 0) || 0,
     is_active: formData.get("is_active") === "on",
   };
 }
@@ -23,6 +24,20 @@ function parseGalleryFields(formData: FormData) {
 function revalidatePublicSite() {
   revalidatePath("/admin/gallery");
   revalidatePath("/[locale]", "layout");
+}
+
+async function nextDisplayOrder(
+  supabase: ReturnType<typeof createAdminClient>,
+  categoryId: string
+) {
+  const { data: last } = await supabase
+    .from("gallery")
+    .select("display_order")
+    .eq("category_id", categoryId)
+    .order("display_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (last?.display_order ?? -1) + 1;
 }
 
 export async function createGalleryImage(formData: FormData) {
@@ -35,11 +50,15 @@ export async function createGalleryImage(formData: FormData) {
     throw new Error("تکایە وێنەیەک باربکە.");
   }
 
-  const { error } = await supabase.from("gallery").insert({ ...fields, image_url: imageUrl });
+  const display_order = await nextDisplayOrder(supabase, fields.category_id);
+
+  const { error } = await supabase
+    .from("gallery")
+    .insert({ ...fields, display_order, image_url: imageUrl });
   if (error) throw new Error(error.message);
 
   revalidatePublicSite();
-  redirect("/admin/gallery");
+  redirect("/admin/gallery?saved=1");
 }
 
 export async function updateGalleryImage(id: string, formData: FormData) {
@@ -55,7 +74,7 @@ export async function updateGalleryImage(id: string, formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePublicSite();
-  redirect("/admin/gallery");
+  redirect("/admin/gallery?saved=1");
 }
 
 export async function deleteGalleryImage(id: string) {

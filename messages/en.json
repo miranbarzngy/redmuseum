@@ -37,7 +37,8 @@
     "quote": "What is preserved is never truly lost.",
     "timelineHeading": "Exhibitions & Milestones",
     "timelineEmpty": "No exhibitions to show yet — please check back soon.",
-    "viewDetails": "View details"
+    "viewDetails": "View details",
+    "sectionsToggle": "All sections"
   },
   "gallery": {
     "heading": "Activities & Events",
@@ -48,6 +49,7 @@
     "sectionLabel": "Section {number}",
     "ofTotal": "Section {number} of {total}",
     "metaTitle": "Section {number} — National Museum Amnasuraka",
+    "metaTitleNamed": "{name} — National Museum Amnasuraka",
     "prev": "Previous section",
     "next": "Next section",
     "photos": "Photos ({count})",
@@ -62,8 +64,24 @@
       "namePlaceholder": "Your name",
       "phone": "Phone number",
       "phonePlaceholder": "+964 750 123 4567",
+      "guestCount": "Number of guests",
+      "visitorType": "Visit type",
+      "visitorTypePlaceholder": "Select…",
+      "visitorTypes": {
+        "school": "School / University",
+        "delegation": "Official delegation",
+        "personal": "Personal",
+        "press": "Press",
+        "other": "Other"
+      },
       "visitDate": "Visit date",
       "visitTime": "Visit time",
+      "openingTime": "Museum opening time",
+      "openingTimeValue": "9 AM",
+      "staffBreak": "Staff break time",
+      "staffBreakValue": "12 to 1 PM",
+      "closingTime": "Museum closing time",
+      "closingTimeValue": "4 PM",
       "note": "Note",
       "notePlaceholder": "Group size, special requests, etc. (optional)",
       "submit": "Book visit",
@@ -73,6 +91,8 @@
       "errors": {
         "name": "Please enter your name.",
         "phone": "Please enter a valid phone number.",
+        "guestCount": "Please enter a valid number of guests.",
+        "visitorType": "Please choose a visit type.",
         "visitDate": "Please choose a visit date."
       }
     },
@@ -84,7 +104,6 @@
     },
     "photoStep": {
       "title": "Take a photo",
-      "subtitle": "Helps us recognize you when you arrive. Optional.",
       "start": "Open camera",
       "opening": "Opening camera...",
       "shoot": "Take photo",
@@ -100,7 +119,67 @@
       "back": "Back",
       "next": "Next"
     },
-    "timePrefix": "Visit time: {time}"
+    "timePrefix": "Visit time: {time}",
+    "meridiem": { "am": "AM", "pm": "PM" },
+    "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+    "monthLabel": "Month {month}",
+    "holidays": {
+      "newYear": "New Year's Day",
+      "raparin": "Uprising Day",
+      "halabja": "Halabja Memorial Day",
+      "newroz": "Newroz",
+      "labourDay": "Labour Day",
+      "flagDay": "Kurdistan Flag Day",
+      "christmas": "Christmas",
+      "eidFitr": "Eid al-Fitr",
+      "eidAdha": "Eid al-Adha"
+    },
+    "confirmation": {
+      "heading": "Your visit is booked",
+      "subheading": "We've received your request. We'll notify you once it's approved.",
+      "reference": "Booking reference",
+      "name": "Name",
+      "phone": "Phone number",
+      "guests": "Number of guests",
+      "visitorType": "Visit type",
+      "date": "Date",
+      "time": "Time",
+      "note": "Note",
+      "qrHint": "Show this code when you arrive — it displays your booking status.",
+      "viewStatus": "View booking status",
+      "again": "Book another visit"
+    },
+    "statusPage": {
+      "title": "Booking status",
+      "notFound": "No booking was found for this code.",
+      "backHome": "Back to the website",
+      "status": {
+        "pending": "Awaiting approval",
+        "confirmed": "Approved",
+        "checked_in": "Checked in",
+        "cancelled": "Cancelled",
+        "no_show": "No show"
+      },
+      "statusHint": {
+        "pending": "Your request is under review. We'll confirm it shortly.",
+        "confirmed": "Your visit is approved. Welcome to the museum!",
+        "checked_in": "Your arrival has been recorded.",
+        "cancelled": "This booking has been cancelled. Please contact us.",
+        "no_show": "You did not attend at the scheduled time."
+      }
+    },
+    "toggle": {
+      "book": "Book a visit",
+      "status": "Check status"
+    },
+    "lookup": {
+      "heading": "Already booked?",
+      "subheading": "Enter your phone number to see the status of your visit.",
+      "submit": "Check",
+      "empty": "No bookings found for this number.",
+      "error": "Something went wrong. Please try again.",
+      "rateLimited": "Too many attempts. Please wait a few seconds and try again."
+    }
   },
   "contact": {
     "eyebrow": "Get in Touch",
@@ -111,12 +190,6 @@
       "namePlaceholder": "Your name",
       "phone": "Phone number",
       "phonePlaceholder": "+964 750 123 4567",
-      "type": "Inquiry type",
-      "typeOptions": {
-        "commission": "Visit / Group booking",
-        "media": "Press / Media",
-        "other": "Other"
-      },
       "message": "Message",
       "messagePlaceholder": "Tell us about your inquiry...",
       "submit": "Send message",

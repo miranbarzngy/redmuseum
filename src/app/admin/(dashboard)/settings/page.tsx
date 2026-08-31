@@ -1,48 +1,61 @@
 import { ScanFace } from "lucide-react";
-import { SubmitButton } from "../../_components/SubmitButton";
 import { getSystemSettings, updateFaceScanSetting } from "./actions";
+import { PageHeader } from "../../_components/PageHeader";
+import { Panel } from "../../_components/Panel";
+import { Toggle } from "../../_components/Toggle";
+import { SubmitButton } from "../../_components/SubmitButton";
 
 export default async function AdminSettingsPage() {
   const settings = await getSystemSettings();
 
   return (
-    <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="font-kurdish text-fluid-xl font-semibold text-ink">ڕێکخستنەکان</h1>
-        <p className="mt-1 text-fluid-sm text-ink-soft">ڕێکخستنە گشتییەکانی ماڵپەڕ و فۆرمی سەردان.</p>
-      </div>
+    <div className="mx-auto flex max-w-2xl flex-col gap-8">
+      <PageHeader
+        title="ڕێکخستنەکان"
+        description="ڕێکخستنە گشتییەکانی ماڵپەڕ و فۆرمی سەردان."
+      />
 
-      <form
-        action={updateFaceScanSetting}
-        className="flex max-w-2xl flex-col gap-4 rounded-2xl border border-ink/10 bg-white p-6 shadow-card sm:p-8"
-      >
-        <div className="flex items-start gap-4">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-pigment-terracotta/10 text-pigment-terracotta">
-            <ScanFace size={18} />
-          </span>
-          <div className="flex-1">
-            <label htmlFor="enable_face_scan" className="font-kurdish flex items-center gap-3 text-fluid-sm font-medium text-ink">
-              <input
+      <Panel title="فۆرمی سەردان">
+        <form action={updateFaceScanSetting} className="flex flex-col gap-5">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-pigment-terracotta/10 text-pigment-terracotta">
+                <ScanFace size={18} />
+              </span>
+              <div>
+                <label
+                  htmlFor="enable_face_scan"
+                  className="font-kurdish text-fluid-sm font-medium text-ink"
+                >
+                  پشتڕاستکردنەوەی ڕوخسار لە فۆرمی سەردان
+                </label>
+                <p className="font-kurdish mt-1 text-fluid-xs text-ink-faint">
+                  کاتێک چالاک بێت، میوانان ناتوانن داواکاری سەردان بنێرن هەتا وێنەی ڕوخساریان تۆمار
+                  نەکەن. کاتێک ناچالاک بێت، هیچ وێنەیەکی ڕوخسار وەرناگیرێت یان هەڵناگیرێت، و فۆرمەکە
+                  بەبێ پشتڕاستکردنەوە دەنێردرێت.
+                </p>
+              </div>
+            </div>
+            <div className="shrink-0 pt-1">
+              <Toggle
                 id="enable_face_scan"
                 name="enable_face_scan"
-                type="checkbox"
                 defaultChecked={settings.enable_face_scan}
-                className="h-5 w-5 rounded border-ink/20 accent-pigment-terracotta"
               />
-              پشتڕاستکردنەوەی ڕوخسار لە فۆرمی سەردان
-            </label>
-            <p className="font-kurdish mt-2 text-fluid-xs text-ink-faint">
-              کاتێک چالاک بێت، پشتڕاستکردنەوەی ڕوخسار پێویستە — میوانان ناتوانن داواکاری سەردان بنێرن هەتا وێنەی
-              ڕوخساریان تۆمار نەکەن. کاتێک ناچالاک بێت، هیچ وێنەیەکی ڕوخسار وەرناگیرێت یان هەڵناگیرێت، و فۆرمەکە
-              بەبێ پشتڕاستکردنەوە دەنێردرێت.
-            </p>
+            </div>
           </div>
-        </div>
 
-        <div className="border-t border-ink/10 pt-4">
-          <SubmitButton>پاشەکەوتکردن</SubmitButton>
-        </div>
-      </form>
+          <div className="flex justify-end border-t border-ink/10 pt-4">
+            <SubmitButton>پاشەکەوتکردن</SubmitButton>
+          </div>
+        </form>
+      </Panel>
+
+      <Panel title="زیاتر">
+        <p className="font-kurdish text-fluid-xs text-ink-faint">
+          ڕێکخستنی زیاتر بەم زووانە لێرە زیاد دەکرێن.
+        </p>
+      </Panel>
     </div>
   );
 }

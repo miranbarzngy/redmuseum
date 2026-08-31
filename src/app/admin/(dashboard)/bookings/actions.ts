@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { BookingRow, BookingStatus } from "@/lib/supabase/database.types";
@@ -66,7 +65,6 @@ export async function updateBookingStatus(id: string, status: BookingStatus) {
 
   if (error) throw new Error(error.message);
   revalidatePath("/admin/bookings");
-  revalidatePath(`/admin/bookings/${id}`);
   revalidatePath("/admin");
 }
 
@@ -78,5 +76,4 @@ export async function deleteBooking(id: string) {
   if (error) throw new Error(error.message);
   revalidatePath("/admin/bookings");
   revalidatePath("/admin");
-  redirect("/admin/bookings");
 }

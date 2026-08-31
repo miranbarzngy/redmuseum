@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "../../../_components/PageHeader";
 import { GalleryForm } from "../GalleryForm";
 import { updateGalleryImage } from "../actions";
 
@@ -14,11 +15,13 @@ export default async function EditGalleryImagePage(props: { params: Promise<{ id
   if (!item) notFound();
 
   return (
-    <div className="flex flex-col gap-6">
-      <h1 className="font-kurdish text-fluid-xl font-semibold text-ink">دەستکاریکردنی وێنە</h1>
-      <div className="max-w-2xl rounded-2xl border border-ink/10 bg-white p-6 shadow-card sm:p-8">
-        <GalleryForm action={updateGalleryImage.bind(null, item.id)} item={item} categories={categories ?? []} />
-      </div>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      <PageHeader title="دەستکاریکردنی وێنە" backHref="/admin/gallery" backLabel="گەڕانەوە بۆ گەلەری" />
+      <GalleryForm
+        action={updateGalleryImage.bind(null, item.id)}
+        item={item}
+        categories={categories ?? []}
+      />
     </div>
   );
 }

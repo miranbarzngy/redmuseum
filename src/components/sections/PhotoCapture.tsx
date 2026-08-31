@@ -39,7 +39,7 @@ export function PhotoCapture({
   imageUrl: string | null;
   onCaptured: (result: { url: string; path: string }) => void;
   onReset: () => void;
-  onSkip: () => void;
+  onSkip?: () => void;
 }) {
   const t = useTranslations("booking.photoStep");
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -147,10 +147,14 @@ export function PhotoCapture({
   if (state === "done" && imageUrl) {
     return (
       <div className="flex flex-col items-center gap-5 text-center">
-        <div className="relative h-40 w-40 shrink-0 overflow-hidden rounded-full border-4 border-[#c8a96e] shadow-soft">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={imageUrl} alt="" className="h-full w-full object-cover" />
-          <span className="absolute bottom-1 right-1 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white ring-2 ring-white">
+        {/* Outer wrapper is NOT clipped so the check badge can sit on the
+            circle's edge without the rounded-full mask cropping it. */}
+        <div className="relative h-40 w-40 shrink-0">
+          <div className="h-full w-full overflow-hidden rounded-full border-4 border-[#c8a96e] shadow-soft">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={imageUrl} alt="" className="h-full w-full object-cover" />
+          </div>
+          <span className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white ring-2 ring-white">
             <Check size={16} strokeWidth={3} />
           </span>
         </div>
@@ -319,7 +323,7 @@ export function PhotoCapture({
         )}
       </div>
 
-      {(state === "prestart" || state === "camera-error") && (
+      {onSkip && (state === "prestart" || state === "camera-error") && (
         <motion.button
           type="button"
           onClick={onSkip}

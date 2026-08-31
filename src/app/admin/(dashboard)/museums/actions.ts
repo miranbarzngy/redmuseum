@@ -33,14 +33,22 @@ export async function updateBiographyIntro(formData: FormData) {
   redirect("/admin/museums?saved=1");
 }
 
+// Ordering is owned by the drag-and-drop list on /admin/museums (see
+// reorderBiographyBlocks), never by the form — so sort_order isn't parsed
+// here. New rows are appended at the end; edits leave sort_order untouched.
 function parseBlockFields(formData: FormData) {
-  const sortOrder = Number(formData.get("sort_order"));
+  const body_ku = String(formData.get("body_ku") ?? "").trim();
+  if (!body_ku) {
+    throw new Error("پەراگرافی کوردی پێویستە.");
+  }
 
   return {
-    body_ku: String(formData.get("body_ku") ?? "").trim(),
+    title_ku: String(formData.get("title_ku") ?? "").trim(),
+    title_en: String(formData.get("title_en") ?? "").trim(),
+    title_ar: String(formData.get("title_ar") ?? "").trim(),
+    body_ku,
     body_en: String(formData.get("body_en") ?? "").trim(),
     body_ar: String(formData.get("body_ar") ?? "").trim(),
-    sort_order: Number.isFinite(sortOrder) ? sortOrder : 0,
   };
 }
 
@@ -82,11 +90,21 @@ export async function createBiographyBlock(formData: FormData) {
   const fields = parseBlockFields(formData);
   const images = await resolveBlockImages(supabase, formData);
 
-  const { error } = await supabase.from("biography_blocks").insert({ ...fields, ...images });
+  const { data: last } = await supabase
+    .from("biography_blocks")
+    .select("sort_order")
+    .order("sort_order", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  const sort_order = (last?.sort_order ?? -1) + 1;
+
+  const { error } = await supabase
+    .from("biography_blocks")
+    .insert({ ...fields, ...images, sort_order });
   if (error) throw new Error(error.message);
 
   revalidatePublicSite();
-  redirect("/admin/museums");
+  redirect("/admin/museums?saved=1");
 }
 
 export async function updateBiographyBlock(id: string, formData: FormData) {
@@ -102,7 +120,7 @@ export async function updateBiographyBlock(id: string, formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePublicSite();
-  redirect("/admin/museums");
+  redirect("/admin/museums?saved=1");
 }
 
 export async function deleteBiographyBlock(id: string) {
@@ -110,6 +128,24 @@ export async function deleteBiographyBlock(id: string) {
   const supabase = createAdminClient();
   const { error } = await supabase.from("biography_blocks").delete().eq("id", id);
   if (error) throw new Error(error.message);
+
+  revalidatePublicSite();
+}
+
+/** Persists a drag-and-drop reorder of the whole section list — `orderedIds`
+ * is every block id in its new top-to-bottom order, each given its index as
+ * sort_order. Mirrors reorderGalleryImages in the gallery actions. */
+export async function reorderBiographyBlocks(orderedIds: string[]) {
+  await requireAdminSession();
+  const supabase = createAdminClient();
+
+  const results = await Promise.all(
+    orderedIds.map((id, index) =>
+      supabase.from("biography_blocks").update({ sort_order: index }).eq("id", id)
+    )
+  );
+  const failed = results.find((r) => r.error);
+  if (failed?.error) throw new Error(failed.error.message);
 
   revalidatePublicSite();
 }

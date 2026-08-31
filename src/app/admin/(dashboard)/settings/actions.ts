@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SystemSettingsRow } from "@/lib/supabase/database.types";
@@ -27,4 +28,5 @@ export async function updateFaceScanSetting(formData: FormData) {
   if (error) throw new Error(error.message);
   revalidatePath("/admin/settings");
   revalidatePath("/");
+  redirect("/admin/settings?saved=1");
 }
