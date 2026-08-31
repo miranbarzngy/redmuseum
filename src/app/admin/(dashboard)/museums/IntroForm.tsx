@@ -21,18 +21,6 @@ export function IntroForm({
         </div>
 
         <LocalizedField
-          name="eyebrow"
-          label="دەربڕینی بچووک (خشتەیەکی بچووک لەسەر ناونیشان)"
-          defaults={{ ku: intro?.eyebrow_ku ?? "", en: intro?.eyebrow_en ?? "", ar: intro?.eyebrow_ar ?? "" }}
-        />
-
-        <LocalizedField
-          name="heading"
-          label="ناونیشان"
-          defaults={{ ku: intro?.heading_ku ?? "", en: intro?.heading_en ?? "", ar: intro?.heading_ar ?? "" }}
-        />
-
-        <LocalizedField
           name="intro"
           label="پەراگرافی سەرەتا"
           multiline

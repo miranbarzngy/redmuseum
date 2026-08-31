@@ -60,15 +60,23 @@ export function BiographyClient({
         onClick={() => setShowList((open) => !open)}
         aria-expanded={showList}
         aria-controls="museum-sections-list"
-        className="inline-flex items-center gap-2 rounded-full border px-4 py-2 text-fluid-sm font-semibold uppercase tracking-[0.15em] transition-colors hover:bg-white/50"
-        style={{ borderColor: ACCENT, color: ACCENT }}
+        className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-fluid-sm font-semibold uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-90"
+        style={{ backgroundColor: ACCENT }}
       >
         {t("sectionsToggle")}
         <span
-          className="inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1 text-[0.7rem] tabular-nums"
-          style={{ backgroundColor: "rgba(133, 11, 16, 0.12)" }}
+          className="grid h-5 min-w-[1.25rem] place-items-center rounded-full px-1 text-[0.7rem] leading-none tabular-nums"
+          style={{
+            backgroundColor: "#AAABAF",
+            // Force a Latin-digit font: the Kurdish/Arabic body faces render
+            // the count with glyph metrics that won't sit centered in the
+            // flex circle, so override them here (inline beats the
+            // html[lang] locale font rules).
+            fontFamily: '"Vazirmatn", ui-sans-serif, system-ui, sans-serif',
+          }}
         >
-          {blocks.length}
+          {/* optical nudge — digit glyphs still sit ~1px high in the circle */}
+          <span className="block translate-x-[1px] translate-y-[1.5px]">{blocks.length}</span>
         </span>
         <ChevronDown
           size={15}

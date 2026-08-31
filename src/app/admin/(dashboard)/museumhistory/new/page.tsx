@@ -6,9 +6,9 @@ export default function NewExhibitionPage() {
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <PageHeader
-        title="زیادکردنی پێشانگا"
-        backHref="/admin/exhibitions"
-        backLabel="گەڕانەوە بۆ پێشانگاکان"
+        title="زیادکردنی ڕووداو"
+        backHref="/admin/museumhistory"
+        backLabel="گەڕانەوە بۆ مێژووی مۆزەخانە"
       />
       <ExhibitionForm action={createExhibition} />
     </div>

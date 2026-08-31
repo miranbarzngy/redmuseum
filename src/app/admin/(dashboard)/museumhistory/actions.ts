@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-// Ordering is owned by the drag-and-drop list on /admin/exhibitions (see
+// Ordering is owned by the drag-and-drop list on /admin/museumhistory (see
 // reorderExhibitions) — not the form. The public timeline
 // (ExhibitionsTimeline) renders title[locale] with no fallback, so all
 // three title languages stay required.
@@ -31,7 +31,7 @@ function parseExhibitionFields(formData: FormData) {
 }
 
 function revalidatePublicSite() {
-  revalidatePath("/admin/exhibitions");
+  revalidatePath("/admin/museumhistory");
   revalidatePath("/[locale]", "layout");
 }
 
@@ -52,7 +52,7 @@ export async function createExhibition(formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePublicSite();
-  redirect("/admin/exhibitions?saved=1");
+  redirect("/admin/museumhistory?saved=1");
 }
 
 export async function updateExhibition(id: string, formData: FormData) {
@@ -64,7 +64,7 @@ export async function updateExhibition(id: string, formData: FormData) {
   if (error) throw new Error(error.message);
 
   revalidatePublicSite();
-  redirect("/admin/exhibitions?saved=1");
+  redirect("/admin/museumhistory?saved=1");
 }
 
 export async function deleteExhibition(id: string) {

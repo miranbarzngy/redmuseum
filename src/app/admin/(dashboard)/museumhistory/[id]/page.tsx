@@ -18,9 +18,9 @@ export default async function EditExhibitionPage(props: { params: Promise<{ id: 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
       <PageHeader
-        title="دەستکاریکردنی پێشانگا"
-        backHref="/admin/exhibitions"
-        backLabel="گەڕانەوە بۆ پێشانگاکان"
+        title="دەستکاریکردنی ڕووداو"
+        backHref="/admin/museumhistory"
+        backLabel="گەڕانەوە بۆ مێژووی مۆزەخانە"
       />
       <ExhibitionForm action={updateExhibition.bind(null, exhibition.id)} exhibition={exhibition} />
     </div>

@@ -43,7 +43,7 @@ export default async function AdminOverviewPage() {
 
   const quickActions = [
     { href: "/admin/museums/blocks/new", label: "زیادکردنی بەش", icon: BookOpen },
-    { href: "/admin/exhibitions/new", label: "زیادکردنی پێشانگا", icon: CalendarClock },
+    { href: "/admin/museumhistory/new", label: "زیادکردنی ڕووداو", icon: CalendarClock },
     { href: "/admin/gallery/new", label: "زیادکردنی وێنە", icon: Images },
     { href: "/admin/profile", label: "دەستکاری پرۆفایل", icon: UserRound },
   ];
@@ -60,7 +60,7 @@ export default async function AdminOverviewPage() {
       ),
     },
     { href: "/admin/museums", label: "بەشەکان", icon: BookOpen, value: counts.blocks },
-    { href: "/admin/exhibitions", label: "پێشانگاکان", icon: CalendarClock, value: counts.exhibitions },
+    { href: "/admin/museumhistory", label: "مێژووی مۆزەخانە", icon: CalendarClock, value: counts.exhibitions },
     { href: "/admin/gallery", label: "گەلەری", icon: Images, value: counts.gallery },
     { href: "/admin/gallery-categories", label: "پۆلەکان", icon: Tags, value: counts.categories },
   ];

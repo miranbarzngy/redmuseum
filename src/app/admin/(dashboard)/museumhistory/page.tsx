@@ -5,7 +5,7 @@ import { EmptyState } from "../../_components/EmptyState";
 import { LinkButton } from "../../_components/Button";
 import { ExhibitionList } from "./ExhibitionList";
 
-export default async function AdminExhibitionsPage() {
+export default async function AdminMuseumHistoryPage() {
   const supabase = createClient();
   const { data: exhibitions, error } = await supabase
     .from("exhibitions")
@@ -17,24 +17,24 @@ export default async function AdminExhibitionsPage() {
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
-        title="پێشانگاکان"
-        description="هێڵی کاتی پێشانگاکان لە بەشەکانی مۆزەخانەدا. بە ڕاکێشان ڕیزبەندی بگۆڕە."
+        title="مێژووی مۆزەخانە"
+        description="هێڵی کاتی ڕووداوەکانی مۆزەخانە. بە ڕاکێشان ڕیزبەندی بگۆڕە."
       >
-        <LinkButton href="/admin/exhibitions/new">
-          <Plus size={16} /> زیادکردنی پێشانگا
+        <LinkButton href="/admin/museumhistory/new">
+          <Plus size={16} /> زیادکردنی ڕووداو
         </LinkButton>
       </PageHeader>
 
       {error && (
         <p className="rounded-xl bg-pigment-crimson/10 px-4 py-3 text-fluid-sm text-pigment-crimson">
-          سەرکەوتوو نەبوو لە بارکردنی پێشانگاکان: {error.message}
+          سەرکەوتوو نەبوو لە بارکردنی مێژووی مۆزەخانە: {error.message}
         </p>
       )}
 
       {!error && !hasRows && (
-        <EmptyState icon={CalendarClock} title="هێشتا هیچ پێشانگایەک نییە">
-          <LinkButton href="/admin/exhibitions/new">
-            <Plus size={16} /> زیادکردنی یەکەم پێشانگا
+        <EmptyState icon={CalendarClock} title="هێشتا هیچ ڕووداوێک نییە">
+          <LinkButton href="/admin/museumhistory/new">
+            <Plus size={16} /> زیادکردنی یەکەمین ڕووداو
           </LinkButton>
         </EmptyState>
       )}

@@ -12,8 +12,6 @@ import { BookingDetailModal } from "./BookingDetailModal";
 import { ConfirmDialog } from "../../_components/ConfirmDialog";
 import { EmptyState } from "../../_components/EmptyState";
 import { DataList, type Column } from "../../_components/DataList";
-import { RowCard } from "../../_components/RowCard";
-import { StatusBadge, BOOKING_STATUS_TONE } from "../../_components/StatusBadge";
 import type { BookingRow, BookingStatus } from "@/lib/supabase/database.types";
 
 type Filter = "all" | BookingStatus;
@@ -43,8 +41,42 @@ function initials(name: string): string {
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "؟";
 }
 
-const iconBtn =
-  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white transition-colors";
+/** A round coloured icon button with its label stacked underneath. */
+function IconAction({
+  label,
+  colorClass,
+  onClick,
+  disabled,
+  children,
+}: {
+  label: string;
+  colorClass: string;
+  onClick: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className="flex w-14 shrink-0 flex-col items-center gap-1 disabled:opacity-60"
+    >
+      <span
+        className={clsx(
+          "flex h-9 w-9 items-center justify-center rounded-full text-white transition-colors",
+          colorClass
+        )}
+      >
+        {children}
+      </span>
+      <span className="font-kurdish text-center text-[10px] font-medium leading-tight text-ink-soft">
+        {label}
+      </span>
+    </button>
+  );
+}
 
 /** Avatar circle with a red "needs action" dot for still-pending bookings. */
 function Avatar({ name, pending, big = false }: { name: string; pending: boolean; big?: boolean }) {
@@ -195,22 +227,18 @@ export function BookingsBoard({
       : dateScoped.filter((b) => b.status === filter);
   const openBooking = openId ? bookings.find((b) => b.id === openId) ?? null : null;
 
-  const stats: { key: Filter; label: string; Icon: typeof Ticket; tone: string }[] = [
-    { key: "all", label: "کۆی گشتی", Icon: Ticket, tone: "text-ink" },
-    { key: "pending", label: STATUS_LABELS.pending, Icon: Clock, tone: "text-[#8a6d1f]" },
-    { key: "confirmed", label: STATUS_LABELS.confirmed, Icon: CheckCircle2, tone: "text-pigment-teal" },
-    { key: "checked_in", label: STATUS_LABELS.checked_in, Icon: LogIn, tone: "text-pigment-teal" },
-    { key: "no_show", label: STATUS_LABELS.no_show, Icon: CircleSlash, tone: "text-ink-faint" },
-    { key: "cancelled", label: STATUS_LABELS.cancelled, Icon: XCircle, tone: "text-pigment-crimson" },
+  const stats: { key: Filter; label: string; Icon: typeof Ticket }[] = [
+    { key: "all", label: "کۆی گشتی", Icon: Ticket },
+    { key: "pending", label: STATUS_LABELS.pending, Icon: Clock },
+    { key: "confirmed", label: STATUS_LABELS.confirmed, Icon: CheckCircle2 },
+    { key: "checked_in", label: STATUS_LABELS.checked_in, Icon: LogIn },
+    { key: "no_show", label: STATUS_LABELS.no_show, Icon: CircleSlash },
+    { key: "cancelled", label: STATUS_LABELS.cancelled, Icon: XCircle },
   ];
 
-  function RowStatusActions({ b, compact = false }: { b: BookingRow; compact?: boolean }) {
+  function RowStatusActions({ b }: { b: BookingRow }) {
     if (b.status !== "pending" && b.status !== "confirmed") return null;
     const busy = busyId === b.id;
-    const base = clsx(
-      "font-kurdish inline-flex items-center justify-center gap-1 rounded-full font-medium transition-colors disabled:opacity-60",
-      compact ? "h-9 w-9" : "px-2.5 py-1 text-[11px]"
-    );
 
     // pending → approve / reject (Check / X) ;
     // confirmed → visited / no-show (LogIn / CircleSlash) — deliberately
@@ -223,31 +251,27 @@ export function BookingsBoard({
           ] as const)
         : ([
             { status: "checked_in" as const, label: "هاتوو", Icon: LogIn },
-            { status: "no_show" as const, label: "نەهاتووە", Icon: CircleSlash },
+            { status: "no_show" as const, label: "نەهاتوو", Icon: CircleSlash },
           ] as const);
 
     return (
       <>
-        <button
-          type="button"
-          onClick={() => setConfirmTask({ id: b.id, name: b.name, status: positive.status })}
+        <IconAction
+          label={positive.label}
+          colorClass="bg-[#0C6B4E] hover:bg-[#0A5A41]"
           disabled={busy}
-          aria-label={positive.label}
-          className={clsx(base, "bg-[#0C6B4E] text-white hover:bg-[#0A5A41]")}
+          onClick={() => setConfirmTask({ id: b.id, name: b.name, status: positive.status })}
         >
           {busy ? <Loader2 size={16} className="animate-spin" /> : <positive.Icon size={16} strokeWidth={2.75} />}
-          {!compact && positive.label}
-        </button>
-        <button
-          type="button"
-          onClick={() => setConfirmTask({ id: b.id, name: b.name, status: negative.status })}
+        </IconAction>
+        <IconAction
+          label={negative.label}
+          colorClass="bg-[#850B10] hover:bg-[#6a090d]"
           disabled={busy}
-          aria-label={negative.label}
-          className={clsx(base, "bg-[#850B10] text-white hover:bg-[#6a090d]")}
+          onClick={() => setConfirmTask({ id: b.id, name: b.name, status: negative.status })}
         >
           {busy ? <Loader2 size={16} className="animate-spin" /> : <negative.Icon size={16} strokeWidth={2.75} />}
-          {!compact && negative.label}
-        </button>
+        </IconAction>
       </>
     );
   }
@@ -271,10 +295,10 @@ export function BookingsBoard({
     {
       key: "quick",
       header: "",
-      className: "w-28",
+      className: "w-32",
       cell: (b) => (
-        <div className="flex items-center gap-2.5">
-          <RowStatusActions b={b} compact />
+        <div className="flex items-start gap-2">
+          <RowStatusActions b={b} />
         </div>
       ),
     },
@@ -308,16 +332,22 @@ export function BookingsBoard({
       key: "status",
       header: "دۆخ",
       align: "center",
-      className: "w-16",
+      className: "w-24",
       cell: (b) => {
         const Icon = STATUS_ICON[b.status];
         return (
-          <span
-            title={STATUS_LABELS[b.status]}
-            aria-label={STATUS_LABELS[b.status]}
-            className={clsx("inline-flex h-9 w-9 items-center justify-center rounded-full", STATUS_SOLID[b.status])}
-          >
-            <Icon size={16} strokeWidth={2.75} />
+          <span className="mx-auto flex w-20 flex-col items-center gap-1">
+            <span
+              className={clsx(
+                "flex h-9 w-9 items-center justify-center rounded-full",
+                STATUS_SOLID[b.status]
+              )}
+            >
+              <Icon size={16} strokeWidth={2.75} />
+            </span>
+            <span className="font-kurdish text-center text-[10px] font-medium leading-tight text-ink-soft">
+              {STATUS_LABELS[b.status]}
+            </span>
           </span>
         );
       },
@@ -326,25 +356,23 @@ export function BookingsBoard({
       key: "actions",
       header: "",
       align: "end",
-      className: "w-24",
+      className: "w-32",
       cell: (b) => (
-        <div className="flex items-center justify-end gap-2.5 whitespace-nowrap">
-          <button
-            type="button"
+        <div className="flex items-start justify-end gap-2 whitespace-nowrap">
+          <IconAction
+            label="چاپکردن"
+            colorClass="bg-[#1D5AA8] hover:bg-[#184C8F]"
             onClick={() => printBooking(b)}
-            aria-label="چاپکردن"
-            className={clsx(iconBtn, "bg-[#1D5AA8] hover:bg-[#184C8F]")}
           >
             <Printer size={16} strokeWidth={2.75} />
-          </button>
-          <button
-            type="button"
+          </IconAction>
+          <IconAction
+            label="بینین"
+            colorClass="bg-pigment-terracotta hover:bg-pigment-terracotta/90"
             onClick={() => setOpenId(b.id)}
-            aria-label="بینین"
-            className={clsx(iconBtn, "bg-pigment-terracotta hover:bg-pigment-terracotta/90")}
           >
             <Eye size={16} strokeWidth={2.75} />
-          </button>
+          </IconAction>
         </div>
       ),
     },
@@ -419,8 +447,8 @@ export function BookingsBoard({
 
       {/* KPI row (scoped to the active date filter). Tiles show the booking
           count; only "هاتووە" also splits out the visited-person total. */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {stats.map(({ key, label, Icon, tone }) => {
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
+        {stats.map(({ key, label, Icon }) => {
           const active = filter === key && !showOverdueOnly;
           return (
             <button
@@ -428,21 +456,21 @@ export function BookingsBoard({
               type="button"
               onClick={() => pickStatus(key)}
               className={clsx(
-                "group flex flex-col items-center gap-2 rounded-2xl border bg-white p-4 text-center shadow-card transition-all hover:-translate-y-0.5",
+                "group flex flex-col items-center gap-1 rounded-xl border bg-white p-2.5 text-center shadow-card transition-all hover:-translate-y-0.5 sm:gap-2 sm:rounded-2xl sm:p-4",
                 active
                   ? "border-2 border-[#850B10] ring-2 ring-[#850B10]/20"
                   : "border-ink/10 hover:border-[#850B10]/30"
               )}
             >
-              <span className={clsx("flex h-12 w-12 items-center justify-center rounded-full bg-canvas-paper", tone)}>
-                <Icon size={22} />
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#850B10] text-white sm:h-12 sm:w-12">
+                <Icon className="h-4 w-4 sm:h-[22px] sm:w-[22px]" strokeWidth={2.5} />
               </span>
-              <span className="font-kurdish text-fluid-2xl font-semibold leading-none text-ink">
+              <span className="font-kurdish text-fluid-lg font-semibold leading-none text-ink sm:text-fluid-2xl">
                 {counts.rows[key]}
               </span>
-              <span className="font-kurdish text-fluid-xs text-ink-soft">{label}</span>
+              <span className="font-kurdish text-[11px] leading-tight text-ink-soft sm:text-fluid-xs">{label}</span>
               {key === "checked_in" && (
-                <span className="font-kurdish text-fluid-xs font-medium text-pigment-teal">
+                <span className="font-kurdish text-[11px] font-medium leading-tight text-pigment-teal sm:text-fluid-xs">
                   {counts.people.checked_in} کەس هاتوون
                 </span>
               )}
@@ -489,55 +517,76 @@ export function BookingsBoard({
           columns={columns}
           rowKey={(b) => b.id}
           rowClassName={(b) => (b.status === "pending" ? "bg-[#850B10]/[0.04]" : undefined)}
-          renderCard={(b) => (
-            <RowCard
-              className={
-                b.status === "pending"
-                  ? "border-[#850B10] shadow-[0_0_16px_-2px_rgba(133,11,16,0.45)]"
-                  : undefined
-              }
-              leading={<Avatar name={b.name} pending={b.status === "pending"} big />}
-              title={
-                <button type="button" onClick={() => setOpenId(b.id)} className="text-start">
-                  {b.name}
-                </button>
-              }
-              meta={
-                <>
-                  <span dir="ltr">{b.phone}</span>
-                  <span> · {formatVisitDate(b.visit_date)}</span>
-                </>
-              }
-              badges={
-                <>
-                  <StatusBadge tone={BOOKING_STATUS_TONE[b.status]}>{STATUS_LABELS[b.status]}</StatusBadge>
-                  <StatusBadge tone="neutral">{VISITOR_TYPE_LABELS[b.visitor_type]}</StatusBadge>
-                  <StatusBadge tone="muted">{b.guest_count} کەس</StatusBadge>
-                </>
-              }
-              actions={
-                <div className="flex items-center gap-2.5">
-                  <RowStatusActions b={b} compact />
-                  <button
-                    type="button"
-                    onClick={() => printBooking(b)}
-                    aria-label="چاپکردن"
-                    className={clsx(iconBtn, "bg-[#1D5AA8] hover:bg-[#184C8F]")}
-                  >
-                    <Printer size={16} strokeWidth={2.75} />
-                  </button>
+          renderCard={(b) => {
+            const StatusIcon = STATUS_ICON[b.status];
+            return (
+              <div
+                className={clsx(
+                  "flex flex-col rounded-2xl border bg-white p-4 shadow-card",
+                  b.status === "pending"
+                    ? "border-[#850B10] shadow-[0_0_16px_-2px_rgba(133,11,16,0.45)]"
+                    : "border-ink/10"
+                )}
+              >
+                <div className="flex items-start justify-between gap-3">
                   <button
                     type="button"
                     onClick={() => setOpenId(b.id)}
-                    aria-label="بینین"
-                    className={clsx(iconBtn, "bg-pigment-terracotta hover:bg-pigment-terracotta/90")}
+                    className="flex min-w-0 items-center gap-3 text-start"
                   >
-                    <Eye size={16} strokeWidth={2.75} />
+                    <Avatar name={b.name} pending={b.status === "pending"} big />
+                    <span className="min-w-0">
+                      <span className="block truncate font-semibold text-ink">{b.name}</span>
+                      <span dir="ltr" className="block truncate text-fluid-xs text-ink-faint">
+                        {b.phone}
+                      </span>
+                    </span>
                   </button>
+                  <span className="flex shrink-0 flex-col items-center gap-1">
+                    <span
+                      className={clsx(
+                        "flex h-8 w-8 items-center justify-center rounded-full",
+                        STATUS_SOLID[b.status]
+                      )}
+                    >
+                      <StatusIcon size={15} strokeWidth={2.5} />
+                    </span>
+                    <span className="font-kurdish text-[10px] font-medium leading-none text-ink-soft">
+                      {STATUS_LABELS[b.status]}
+                    </span>
+                  </span>
                 </div>
-              }
-            />
-          )}
+
+                <div className="my-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-ink/5 py-2.5 text-fluid-xs text-ink-soft">
+                  <span dir="ltr">{formatVisitDate(b.visit_date)}</span>
+                  <span>{VISITOR_TYPE_LABELS[b.visitor_type]}</span>
+                  <span className="text-ink-faint">{b.guest_count} کەس</span>
+                </div>
+
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="flex items-start gap-2">
+                    <RowStatusActions b={b} />
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <IconAction
+                      label="چاپکردن"
+                      colorClass="bg-[#1D5AA8] hover:bg-[#184C8F]"
+                      onClick={() => printBooking(b)}
+                    >
+                      <Printer size={16} strokeWidth={2.75} />
+                    </IconAction>
+                    <IconAction
+                      label="بینین"
+                      colorClass="bg-pigment-terracotta hover:bg-pigment-terracotta/90"
+                      onClick={() => setOpenId(b.id)}
+                    >
+                      <Eye size={16} strokeWidth={2.75} />
+                    </IconAction>
+                  </div>
+                </div>
+              </div>
+            );
+          }}
         />
       )}
 
@@ -545,8 +594,8 @@ export function BookingsBoard({
 
       <ConfirmDialog
         open={!!confirmTask}
-        title="دڵنیایت؟"
-        message={confirmTask ? `«${confirmTask.name}» — ${CONFIRM_MESSAGE[confirmTask.status]}` : ""}
+        name={confirmTask?.name}
+        message={confirmTask ? CONFIRM_MESSAGE[confirmTask.status] : ""}
         confirmLabel="دڵنیام"
         danger={confirmTask ? DANGER_STATUS.has(confirmTask.status) : false}
         onCancel={() => setConfirmTask(null)}

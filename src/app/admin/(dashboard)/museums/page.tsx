@@ -50,7 +50,7 @@ export default async function AdminMuseumSectionsPage() {
 
       <Panel
         title="دەقی سەرەتای بەشەکان"
-        description="دەربڕین، ناونیشان و پەراگرافی سەرەتا کە پێش لیستی بەشەکان دەردەکەون."
+        description="پەراگرافی سەرەتا کە پێش لیستی بەشەکان دەردەکەوێت."
         collapsible
         defaultOpen={false}
       >

@@ -17,12 +17,6 @@ export async function updateBiographyIntro(formData: FormData) {
 
   const { error } = await supabase.from("biography_intro").upsert({
     id: 1,
-    eyebrow_ku: String(formData.get("eyebrow_ku") ?? "").trim(),
-    eyebrow_en: String(formData.get("eyebrow_en") ?? "").trim(),
-    eyebrow_ar: String(formData.get("eyebrow_ar") ?? "").trim(),
-    heading_ku: String(formData.get("heading_ku") ?? "").trim(),
-    heading_en: String(formData.get("heading_en") ?? "").trim(),
-    heading_ar: String(formData.get("heading_ar") ?? "").trim(),
     intro_ku: String(formData.get("intro_ku") ?? "").trim(),
     intro_en: String(formData.get("intro_en") ?? "").trim(),
     intro_ar: String(formData.get("intro_ar") ?? "").trim(),

@@ -31,7 +31,7 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
     items: [
       { href: "/admin/profile", label: "پرۆفایل", icon: UserRound },
       { href: "/admin/museums", label: "بەشەکانی مۆزەخانە", icon: BookOpen },
-      { href: "/admin/exhibitions", label: "پێشانگاکان", icon: CalendarClock },
+      { href: "/admin/museumhistory", label: "مێژووی مۆزەخانە", icon: CalendarClock },
       { href: "/admin/gallery", label: "گەلەری", icon: Images },
     ],
   },

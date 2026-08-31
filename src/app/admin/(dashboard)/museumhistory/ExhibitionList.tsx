@@ -10,7 +10,7 @@ import { DeleteButton } from "../../_components/DeleteButton";
 import { deleteExhibition, reorderExhibitions } from "./actions";
 import type { ExhibitionRow } from "@/lib/supabase/database.types";
 
-const confirmFor = (ex: ExhibitionRow) => `سڕینەوەی پێشانگای «${ex.title_ku}»؟`;
+const confirmFor = (ex: ExhibitionRow) => `سڕینەوەی ڕووداوی «${ex.title_ku}»؟`;
 
 export function ExhibitionList({ exhibitions }: { exhibitions: ExhibitionRow[] }) {
   const columns: Column<ExhibitionRow>[] = [
@@ -19,7 +19,7 @@ export function ExhibitionList({ exhibitions }: { exhibitions: ExhibitionRow[] }
       header: "ناونیشان",
       cell: (ex) => (
         <Link
-          href={`/admin/exhibitions/${ex.id}`}
+          href={`/admin/museumhistory/${ex.id}`}
           className="font-medium text-ink transition-colors hover:text-pigment-terracotta"
         >
           {ex.title_ku}
@@ -43,7 +43,7 @@ export function ExhibitionList({ exhibitions }: { exhibitions: ExhibitionRow[] }
       className: "w-28",
       cell: (ex) => (
         <div className="flex items-center justify-end gap-1.5">
-          <EditLink href={`/admin/exhibitions/${ex.id}`} />
+          <EditLink href={`/admin/museumhistory/${ex.id}`} />
           <DeleteButton action={deleteExhibition.bind(null, ex.id)} confirmMessage={confirmFor(ex)} />
         </div>
       ),
@@ -59,11 +59,11 @@ export function ExhibitionList({ exhibitions }: { exhibitions: ExhibitionRow[] }
       renderCard={(ex, handle) => (
         <RowCard
           leading={handle}
-          title={<Link href={`/admin/exhibitions/${ex.id}`}>{ex.title_ku}</Link>}
+          title={<Link href={`/admin/museumhistory/${ex.id}`}>{ex.title_ku}</Link>}
           badges={<StatusBadge tone="muted">{ex.year}</StatusBadge>}
           actions={
             <>
-              <EditLink href={`/admin/exhibitions/${ex.id}`} />
+              <EditLink href={`/admin/museumhistory/${ex.id}`} />
               <DeleteButton action={deleteExhibition.bind(null, ex.id)} confirmMessage={confirmFor(ex)} />
             </>
           }

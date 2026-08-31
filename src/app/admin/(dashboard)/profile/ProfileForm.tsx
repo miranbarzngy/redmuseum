@@ -7,6 +7,7 @@ import { ImageField } from "../../_components/ImageField";
 import { ImageGalleryField } from "../../_components/ImageGalleryField";
 import { Panel } from "../../_components/Panel";
 import { SaveBar } from "../../_components/SaveBar";
+import { statDefaults } from "@/lib/statDefaults";
 import type { SiteProfileRow } from "@/lib/supabase/database.types";
 import type { heroDefaults } from "@/lib/heroDefaults";
 
@@ -84,30 +85,50 @@ export function ProfileForm({
           />
         </Panel>
 
-        <Panel title="ئامارەکانی لای لۆگۆ" bodyClassName="flex flex-col gap-4">
+        <Panel
+          title="ئامارەکانی لای لۆگۆ"
+          action={<LanguageTabs />}
+          bodyClassName="flex flex-col gap-4"
+        >
           <StatFieldPair
             nameBase="stat_museums"
             title="مۆزەکان"
-            value={withFallback(profile?.stat_museums_value, "١١")}
-            label={withFallback(profile?.stat_museums_label, "مۆزە")}
+            valueDefault={withFallback(profile?.stat_museums_value, statDefaults.museums.value)}
+            labelDefaults={{
+              ku: withFallback(profile?.stat_museums_label_ku, statDefaults.museums.label.ku),
+              en: withFallback(profile?.stat_museums_label_en, statDefaults.museums.label.en),
+              ar: withFallback(profile?.stat_museums_label_ar, statDefaults.museums.label.ar),
+            }}
           />
           <StatFieldPair
             nameBase="stat_archive"
             title="ئەرشیف"
-            value={withFallback(profile?.stat_archive_value, "١,٨٩٨")}
-            label={withFallback(profile?.stat_archive_label, "پارچە ئەرشیف")}
+            valueDefault={withFallback(profile?.stat_archive_value, statDefaults.archive.value)}
+            labelDefaults={{
+              ku: withFallback(profile?.stat_archive_label_ku, statDefaults.archive.label.ku),
+              en: withFallback(profile?.stat_archive_label_en, statDefaults.archive.label.en),
+              ar: withFallback(profile?.stat_archive_label_ar, statDefaults.archive.label.ar),
+            }}
           />
           <StatFieldPair
             nameBase="stat_activities"
             title="چالاکییەکان"
-            value={withFallback(profile?.stat_activities_value, "+٥٠")}
-            label={withFallback(profile?.stat_activities_label, "چالاکی ساڵانە")}
+            valueDefault={withFallback(profile?.stat_activities_value, statDefaults.activities.value)}
+            labelDefaults={{
+              ku: withFallback(profile?.stat_activities_label_ku, statDefaults.activities.label.ku),
+              en: withFallback(profile?.stat_activities_label_en, statDefaults.activities.label.en),
+              ar: withFallback(profile?.stat_activities_label_ar, statDefaults.activities.label.ar),
+            }}
           />
           <StatFieldPair
             nameBase="stat_visitors"
             title="سەردانیکەران"
-            value={withFallback(profile?.stat_visitors_value, "٢٠,٠٠٠")}
-            label={withFallback(profile?.stat_visitors_label, "سەردانیکەر ساڵانە")}
+            valueDefault={withFallback(profile?.stat_visitors_value, statDefaults.visitors.value)}
+            labelDefaults={{
+              ku: withFallback(profile?.stat_visitors_label_ku, statDefaults.visitors.label.ku),
+              en: withFallback(profile?.stat_visitors_label_en, statDefaults.visitors.label.en),
+              ar: withFallback(profile?.stat_visitors_label_ar, statDefaults.visitors.label.ar),
+            }}
           />
         </Panel>
 
@@ -120,20 +141,23 @@ export function ProfileForm({
 function StatFieldPair({
   nameBase,
   title,
-  value,
-  label,
+  valueDefault,
+  labelDefaults,
 }: {
   nameBase: string;
   title: string;
-  value: string;
-  label: string;
+  valueDefault: string;
+  labelDefaults: { ku: string; en: string; ar: string };
 }) {
   return (
     <div className="flex flex-col gap-3 rounded-xl border border-ink/10 p-4">
       <span className="font-kurdish text-fluid-xs font-medium text-ink-soft">{title}</span>
       <div className="grid gap-4 sm:grid-cols-2">
-        <Field label="ژمارە" name={`${nameBase}_value`} defaultValue={value} dir="rtl" />
-        <Field label="ناونیشان" name={`${nameBase}_label`} defaultValue={label} dir="rtl" />
+        {/* One number, formatted per locale on the public site (Western
+            digits for en, Arabic-Indic for ku/ar) — so it's entered once,
+            LTR, in plain digits. The label follows the active language tab. */}
+        <Field label="ژمارە" name={`${nameBase}_value`} defaultValue={valueDefault} dir="ltr" />
+        <LocalizedField name={`${nameBase}_label`} label="ناونیشان" defaults={labelDefaults} />
       </div>
     </div>
   );

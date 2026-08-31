@@ -50,7 +50,7 @@ export function ExhibitionForm({
           />
         </Panel>
 
-        <SaveBar label={exhibition ? "پاشەکەوتکردنی گۆڕانکارییەکان" : "زیادکردنی پێشانگا"} />
+        <SaveBar label={exhibition ? "پاشەکەوتکردنی گۆڕانکارییەکان" : "زیادکردنی ڕووداو"} />
       </form>
     </LanguageProvider>
   );
