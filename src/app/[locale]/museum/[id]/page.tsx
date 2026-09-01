@@ -109,7 +109,7 @@ export default async function MuseumSectionPage({
 
             <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
               <div className="w-full lg:w-1/2">
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl bg-white shadow-soft ring-1 ring-ink/5">
+                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl">
                   {cover ? (
                     <Image
                       src={cover}
@@ -153,14 +153,14 @@ export default async function MuseumSectionPage({
                   {morePhotos.map((url, i) => (
                     <div
                       key={url}
-                      className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-white ring-1 ring-ink/5"
+                      className="relative aspect-[4/3] overflow-hidden rounded-2xl"
                     >
                       <Image
                         src={url}
                         alt=""
                         fill
                         sizes="(min-width: 640px) 33vw, 50vw"
-                        className="object-cover"
+                        className="object-contain"
                         loading={i < 3 ? "eager" : "lazy"}
                       />
                     </div>
