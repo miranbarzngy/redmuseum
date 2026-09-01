@@ -10,6 +10,7 @@ import { SaveBar } from "../../_components/SaveBar";
 import { statDefaults } from "@/lib/statDefaults";
 import type { SiteProfileRow } from "@/lib/supabase/database.types";
 import type { heroDefaults } from "@/lib/heroDefaults";
+import type { contactDefaults as contactDefaultsType } from "@/lib/contactDefaults";
 
 function withFallback(value: string | null | undefined, fallback: string) {
   return value?.trim() ? value : fallback;
@@ -19,10 +20,12 @@ export function ProfileForm({
   action,
   profile,
   homepageDefaults,
+  contactDefaults,
 }: {
   action: (formData: FormData) => Promise<void>;
   profile: SiteProfileRow | null;
   homepageDefaults: typeof heroDefaults;
+  contactDefaults: typeof contactDefaultsType;
 }) {
   const initialGallery =
     profile?.hero_image_urls && profile.hero_image_urls.length > 0
@@ -130,6 +133,82 @@ export function ProfileForm({
               ar: withFallback(profile?.stat_visitors_label_ar, statDefaults.visitors.label.ar),
             }}
           />
+        </Panel>
+
+        <Panel
+          title="پەیوەندی و لینکەکان"
+          description="ئیمەیل، شوێن و لینکی تۆڕە کۆمەڵایەتییەکان لە کارتی «سەردان و پەیوەندی» و پێوانەی پەڕەکە."
+          action={<LanguageTabs />}
+          bodyClassName="flex flex-col gap-8"
+        >
+          <Field
+            label="ئیمەیل"
+            name="contact_email"
+            type="text"
+            dir="ltr"
+            defaultValue={withFallback(profile?.contact_email, contactDefaults.email)}
+            hint="ناونیشانی ئیمەیل کە لە کارتی پەیوەندیدا پیشان دەدرێت."
+          />
+          <LocalizedField
+            name="contact_location"
+            label="شوێن"
+            defaults={{
+              ku: withFallback(profile?.contact_location_ku, contactDefaults.location.ku),
+              en: withFallback(profile?.contact_location_en, contactDefaults.location.en),
+              ar: withFallback(profile?.contact_location_ar, contactDefaults.location.ar),
+            }}
+          />
+          <Field
+            label="لینکی نەخشە (شوێنی مۆزەخانەکە)"
+            name="contact_map_url"
+            type="text"
+            dir="ltr"
+            defaultValue={withFallback(profile?.contact_map_url, contactDefaults.mapUrl)}
+            hint="بەتاڵی بهێڵەرەوە ئەگەر ناتەوێت شوێنەکە ببێتە لینک بۆ گووگڵ ماپس."
+          />
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field
+              label="ئینستاگرام"
+              name="social_instagram_url"
+              type="text"
+              dir="ltr"
+              defaultValue={withFallback(
+                profile?.social_instagram_url,
+                contactDefaults.socials.instagram
+              )}
+            />
+            <Field
+              label="فەیسبووک"
+              name="social_facebook_url"
+              type="text"
+              dir="ltr"
+              defaultValue={withFallback(
+                profile?.social_facebook_url,
+                contactDefaults.socials.facebook
+              )}
+            />
+            <Field
+              label="ئێکس (تویتەر)"
+              name="social_x_url"
+              type="text"
+              dir="ltr"
+              defaultValue={withFallback(profile?.social_x_url, contactDefaults.socials.x)}
+            />
+            <Field
+              label="یوتیوب"
+              name="social_youtube_url"
+              type="text"
+              dir="ltr"
+              defaultValue={withFallback(
+                profile?.social_youtube_url,
+                contactDefaults.socials.youtube
+              )}
+            />
+          </div>
+          <span className="font-kurdish text-fluid-xs text-ink-faint">
+            هەر خانەیەک بەتاڵ بکەیتەوە، ئەو دوگمەیە لە ماڵپەڕەکە لادەبرێت.
+          </span>
         </Panel>
 
         <SaveBar />

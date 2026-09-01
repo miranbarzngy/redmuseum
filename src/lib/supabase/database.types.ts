@@ -185,6 +185,15 @@ export interface Database {
           hero_image_url: string | null;
           hero_image_urls: string[];
           contact_card_image_url: string | null;
+          contact_email: string | null;
+          contact_location_ku: string | null;
+          contact_location_en: string | null;
+          contact_location_ar: string | null;
+          contact_map_url: string | null;
+          social_instagram_url: string | null;
+          social_facebook_url: string | null;
+          social_x_url: string | null;
+          social_youtube_url: string | null;
           updated_at: string;
         };
         Insert: {
@@ -220,6 +229,15 @@ export interface Database {
           hero_image_url?: string | null;
           hero_image_urls?: string[];
           contact_card_image_url?: string | null;
+          contact_email?: string | null;
+          contact_location_ku?: string | null;
+          contact_location_en?: string | null;
+          contact_location_ar?: string | null;
+          contact_map_url?: string | null;
+          social_instagram_url?: string | null;
+          social_facebook_url?: string | null;
+          social_x_url?: string | null;
+          social_youtube_url?: string | null;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["site_profile"]["Insert"]>;

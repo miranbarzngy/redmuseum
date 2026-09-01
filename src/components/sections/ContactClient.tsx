@@ -6,19 +6,30 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Mail, MapPin, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
 import { SocialIcon } from "@/components/ui/SocialIcon";
-import { socials } from "@/data/socials";
+import { resolveSocials } from "@/data/socials";
+import type { Locale } from "@/i18n/routing";
 import type { SiteProfileRow } from "@/lib/supabase/database.types";
 
 export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
   const t = useTranslations("contact");
+  const locale = useLocale() as Locale;
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const contactCardImageUrl = profile?.contact_card_image_url ?? null;
+
+  const savedLocation = profile?.[`contact_location_${locale}`];
+  const email = profile?.contact_email?.trim() || "info@amnasuraka.museum";
+  const location =
+    typeof savedLocation === "string" && savedLocation.trim()
+      ? savedLocation.trim()
+      : t("info.studioValue");
+  const mapUrl = profile?.contact_map_url?.trim() || null;
+  const socials = resolveSocials(profile);
 
   const schema = z.object({
     name: z.string().min(1, t("form.errors.name")),
@@ -174,9 +185,8 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
                       <div className="text-fluid-xs uppercase tracking-[0.2em] text-canvas/60">
                         {t("info.emailLabel")}
                       </div>
-                      {/* TODO: replace with the museum's real contact email */}
-                      <a href="mailto:info@amnasuraka.museum" className="hover:text-pigment-gold">
-                        info@amnasuraka.museum
+                      <a href={`mailto:${email}`} className="hover:text-pigment-gold">
+                        {email}
                       </a>
                     </div>
                   </div>
@@ -186,13 +196,24 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
                       <div className="text-fluid-xs uppercase tracking-[0.2em] text-canvas/60">
                         {t("info.studioLabel")}
                       </div>
-                      <span>{t("info.studioValue")}</span>
+                      {mapUrl ? (
+                        <a
+                          href={mapUrl}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="hover:text-pigment-gold"
+                        >
+                          {location}
+                        </a>
+                      ) : (
+                        <span>{location}</span>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-4" hidden={socials.length === 0}>
                 <span className="text-fluid-xs uppercase tracking-[0.2em] text-canvas/60">
                   {t("info.socialsHeading")}
                 </span>

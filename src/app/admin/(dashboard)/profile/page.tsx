@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { heroDefaults } from "@/lib/heroDefaults";
+import { contactDefaults } from "@/lib/contactDefaults";
 import { PageHeader } from "../../_components/PageHeader";
 import { ProfileForm } from "./ProfileForm";
 import { updateProfile } from "./actions";
@@ -14,7 +15,12 @@ export default async function AdminProfilePage() {
         title="پرۆفایلی پەڕەی سەرەکی"
         description="ناو، دەربڕین، دەربارە و وێنەکانی پیشاندراو لە بەشی سەرەکی پەڕەی سەرەکیدا."
       />
-      <ProfileForm action={updateProfile} profile={profile} homepageDefaults={heroDefaults} />
+      <ProfileForm
+        action={updateProfile}
+        profile={profile}
+        homepageDefaults={heroDefaults}
+        contactDefaults={contactDefaults}
+      />
     </div>
   );
 }
