@@ -18,8 +18,11 @@ android {
         applicationId "com.amnaka.admin"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // Bump BOTH on every release you want the in-app updater to offer:
+        // versionCode must strictly increase (it's what /api/app-version is
+        // compared against), versionName is the human label shown in Settings.
+        versionCode 2
+        versionName "1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

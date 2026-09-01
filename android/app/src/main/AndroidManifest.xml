@@ -38,4 +38,8 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- In-app self-updater: download a newer signed APK and hand it to the
+         system installer (see ApkUpdaterPlugin). This app is sideloaded, not
+         on Play, so the restricted-permission review doesn't apply. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>
