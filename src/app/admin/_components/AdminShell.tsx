@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import clsx from "clsx";
 import {
   LayoutDashboard,
   CalendarClock,
@@ -19,10 +20,14 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { signOut } from "../actions";
+import { useIsNativeApp } from "@/lib/useIsNativeApp";
 import { NativePushBridge } from "./NativePushBridge";
 import { ToastProvider, FlashToast } from "./Toast";
 
-type NavItem = { href: string; label: string; icon: LucideIcon };
+// `shortLabel` is the compact form for the phone bottom bar, where a
+// two-word label like «بەشەکانی مۆزەخانە» wraps to two lines and breaks the
+// row's alignment. The sidebar and «زیاتر» sheet always use the full `label`.
+type NavItem = { href: string; label: string; shortLabel?: string; icon: LucideIcon };
 
 const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
   { items: [{ href: "/admin", label: "گشتی", icon: LayoutDashboard }] },
@@ -30,7 +35,7 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
     label: "ناوەڕۆکی ماڵپەڕ",
     items: [
       { href: "/admin/profile", label: "پرۆفایل", icon: UserRound },
-      { href: "/admin/museums", label: "بەشەکانی مۆزەخانە", icon: BookOpen },
+      { href: "/admin/museums", label: "بەشەکانی مۆزەخانە", shortLabel: "بەشەکان", icon: BookOpen },
       { href: "/admin/museumhistory", label: "مێژووی مۆزەخانە", icon: CalendarClock },
       { href: "/admin/gallery", label: "گەلەری", icon: Images },
     ],
@@ -57,8 +62,14 @@ const MOBILE_PRIMARY = new Set([
   "/admin/messages",
 ]);
 
-// The sidebar/bottom-nav split uses `md` (768px) rather than `lg` so an
-// iPad in portrait already gets the sidebar instead of the phone bottom bar.
+// Layout split between the desktop sidebar and the phone-style bottom bar:
+//
+//  - In a browser, the sidebar only takes over at `lg` (1024px) and up, so
+//    phones and portrait tablets / iPads keep the bottom bar.
+//  - Inside the installed native APK (`useIsNativeApp`) the bottom bar is
+//    forced at every width — an Android tablet's WebView reports a
+//    desktop-width viewport, so a CSS breakpoint alone would wrongly give it
+//    the sidebar.
 export function AdminShell({
   children,
   unreadMessages = 0,
@@ -70,6 +81,9 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
+  // When true, the phone-style bottom nav is used at every width and the
+  // sidebar is never rendered (see the layout note above the component).
+  const forceBottomNav = useIsNativeApp();
 
   function isActive(href: string) {
     return href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
@@ -91,15 +105,24 @@ export function AdminShell({
 
   return (
     <ToastProvider>
-      <div dir="rtl" className="min-h-screen bg-canvas text-ink md:pr-64">
+      <div
+        dir="rtl"
+        className={clsx("min-h-screen bg-canvas text-ink", !forceBottomNav && "lg:pr-64")}
+      >
         <NativePushBridge />
         <Suspense fallback={null}>
           <FlashToast />
         </Suspense>
 
-        {/* Desktop / iPad sidebar — this shell is permanently RTL, so physical
-            right-0 / border-l are used directly rather than logical props. */}
-        <aside className="fixed inset-y-0 right-0 z-40 hidden w-64 flex-col border-l border-ink/10 bg-white md:flex">
+        {/* Desktop sidebar (browser, ≥ lg) — this shell is permanently RTL, so
+            physical right-0 / border-l are used directly rather than logical
+            props. Never rendered inside the native APK. */}
+        <aside
+          className={clsx(
+            "fixed inset-y-0 right-0 z-40 hidden w-64 flex-col border-l border-ink/10 bg-white",
+            !forceBottomNav && "lg:flex",
+          )}
+        >
           <div className="border-b border-ink/10 px-5 py-5">
             <span className="font-kurdish text-fluid-base font-semibold text-ink">ئەمنە سورەکە</span>
             <p className="font-kurdish mt-0.5 text-fluid-xs text-ink-faint">بەڕێوەبردن</p>
@@ -143,28 +166,46 @@ export function AdminShell({
         {/* Top header */}
         <header className="sticky top-0 z-30 border-b border-ink/10 bg-white/90 backdrop-blur-md">
           <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-8">
-            <span className="font-kurdish text-fluid-base font-semibold text-ink md:hidden">
+            <span
+              className={clsx(
+                "font-kurdish text-fluid-base font-semibold text-ink",
+                !forceBottomNav && "lg:hidden",
+              )}
+            >
               {currentLabel}
             </span>
-            <span className="font-kurdish hidden text-fluid-lg font-semibold text-ink md:block">
+            <span
+              className={clsx(
+                "font-kurdish hidden text-fluid-lg font-semibold text-ink",
+                !forceBottomNav && "lg:block",
+              )}
+            >
               {currentLabel}
             </span>
           </div>
         </header>
 
-        {/* Mobile / tablet bottom nav: 5 primary + More, with per-item
-            animation (icon lift + fading pill + sliding top indicator +
-            label reveal). Pure CSS transitions so it behaves identically in
-            the Capacitor APK build. */}
+        {/* Phone / tablet bottom nav: 5 primary + More. Every item keeps a
+            persistent label (no layout-shifting reveal); the active one gets
+            a single soft brand-red pill behind the icon plus a red label,
+            matching the sidebar / «زیاتر» sheet. Pure CSS transitions so it
+            behaves identically in the Capacitor APK build. Shown at every
+            width in the native APK, and below `lg` in a browser — the row is
+            capped and centred so it stays a "bar" on a wide tablet. */}
         <nav
-          className="fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-white/95 backdrop-blur-md md:hidden"
+          className={clsx(
+            "fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-white/95 backdrop-blur-md",
+            "shadow-[0_-10px_30px_-18px_rgba(28,27,25,0.25)]",
+            !forceBottomNav && "lg:hidden",
+          )}
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
-          <ul className="flex items-stretch">
+          <ul className="mx-auto flex max-w-md items-stretch">
             {mobileBar.map((item) => (
               <li key={item.href} className="flex-1">
                 <BottomNavItem
-                  label={item.label}
+                  label={item.shortLabel ?? item.label}
+                  ariaLabel={item.label}
                   icon={item.icon}
                   href={item.href}
                   active={isActive(item.href)}
@@ -186,7 +227,10 @@ export function AdminShell({
         {/* Mobile "More" sheet */}
         {sheetOpen && (
           <div
-            className="fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm md:hidden"
+            className={clsx(
+              "fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm",
+              !forceBottomNav && "lg:hidden",
+            )}
             onClick={() => setSheetOpen(false)}
           >
             <div
@@ -239,7 +283,14 @@ export function AdminShell({
           </div>
         )}
 
-        <main className="mx-auto max-w-5xl px-5 py-8 pb-28 sm:px-8 sm:py-10 md:pb-12">{children}</main>
+        <main
+          className={clsx(
+            "mx-auto max-w-5xl px-5 py-8 pb-28 sm:px-8 sm:py-10",
+            !forceBottomNav && "lg:pb-12",
+          )}
+        >
+          {children}
+        </main>
       </div>
     </ToastProvider>
   );
@@ -247,6 +298,7 @@ export function AdminShell({
 
 function BottomNavItem({
   label,
+  ariaLabel,
   icon: Icon,
   href,
   active,
@@ -254,6 +306,8 @@ function BottomNavItem({
   onClick,
 }: {
   label: string;
+  /** Full accessible name when `label` is an abbreviated form. Defaults to `label`. */
+  ariaLabel?: string;
   icon: LucideIcon;
   href?: string;
   active: boolean;
@@ -262,32 +316,37 @@ function BottomNavItem({
 }) {
   const inner = (
     <>
-      {/* sliding top indicator */}
+      {/* icon in a pill that fills with soft brand red and lifts when active */}
       <span
-        className={`absolute top-0 h-0.5 rounded-full bg-pigment-terracotta transition-all duration-300 ease-out ${
-          active ? "w-7 opacity-100" : "w-0 opacity-0"
-        }`}
-      />
-      {/* icon + fading pill; lifts on active */}
-      <span
-        className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ease-out ${
+        className={clsx(
+          "relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out",
           active
-            ? "-translate-y-0.5 bg-pigment-terracotta/12 text-pigment-terracotta"
-            : "translate-y-0 text-ink-faint group-hover:text-ink-soft"
-        }`}
+            ? "-translate-y-0.5 bg-[#850B10]/12 text-[#850B10]"
+            : "translate-y-0 text-ink-faint group-hover:bg-canvas-paper group-hover:text-ink-soft",
+        )}
       >
-        <Icon size={18} className="transition-transform duration-200 group-active:scale-90" />
+        <Icon
+          size={19}
+          strokeWidth={active ? 2.4 : 2}
+          className="transition-transform duration-200 group-active:scale-90"
+        />
         {badge && badge.count > 0 && (
           <span
-            className={`absolute -top-0.5 right-0.5 h-2 w-2 rounded-full ring-2 ring-white ${badge.tone}`}
-          />
+            className={clsx(
+              "absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none text-canvas ring-2 ring-white",
+              badge.tone,
+            )}
+          >
+            {badge.count > 9 ? "9+" : badge.count}
+          </span>
         )}
       </span>
-      {/* label reveal */}
+      {/* persistent label — only the colour changes on active */}
       <span
-        className={`font-kurdish overflow-hidden text-[10px] font-medium leading-none transition-all duration-300 ease-out ${
-          active ? "max-h-4 opacity-100 text-pigment-terracotta" : "max-h-0 opacity-0 text-ink-faint"
-        }`}
+        className={clsx(
+          "font-kurdish whitespace-nowrap text-[10px] leading-none transition-colors duration-200",
+          active ? "font-semibold text-[#850B10]" : "font-medium text-ink-faint",
+        )}
       >
         {label}
       </span>
@@ -295,14 +354,19 @@ function BottomNavItem({
   );
 
   const className =
-    "group relative flex w-full flex-col items-center justify-center gap-1 py-2 outline-none";
+    "group relative flex w-full flex-col items-center justify-center gap-1 py-2.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#850B10]/25";
 
   return href ? (
-    <Link href={href} aria-label={label} aria-current={active ? "page" : undefined} className={className}>
+    <Link
+      href={href}
+      aria-label={ariaLabel ?? label}
+      aria-current={active ? "page" : undefined}
+      className={className}
+    >
       {inner}
     </Link>
   ) : (
-    <button type="button" onClick={onClick} aria-label={label} className={className}>
+    <button type="button" onClick={onClick} aria-label={ariaLabel ?? label} className={className}>
       {inner}
     </button>
   );

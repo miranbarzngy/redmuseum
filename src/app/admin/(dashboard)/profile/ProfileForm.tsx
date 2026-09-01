@@ -40,8 +40,8 @@ export function ProfileForm({
             name="hero_image_gallery_files"
             keptName="hero_image_urls_kept"
             currentUrls={initialGallery}
-            fileLabel="زیادکردنی وێنە (چەند وێنە بۆ گۆڕانی خۆکار هەر ٦ چرکە)"
-            hint="× لەسەر وێنەیەک بۆ سڕینەوەی. وێنە نوێیەکان زیاد دەکرێن بۆ سەر ئەوانەی ماونەتەوە."
+            fileLabel="زیادکردنی وێنە"
+            hint="چەند وێنە زیاد بکە بۆ گۆڕانی خۆکار هەر ٦ چرکە. × لەسەر وێنەیەک بۆ سڕینەوەی. وێنە نوێیەکان زیاد دەکرێن بۆ سەر ئەوانەی ماونەتەوە."
           />
 
           <ImageField

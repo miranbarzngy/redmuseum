@@ -9,11 +9,9 @@ import type { CapacitorConfig } from "@capacitor/cli";
 // native plugins like push notifications) around the live admin panel,
 // not an offline bundle of it.
 //
-// TODO: this Vercel project has not been created/repointed yet — this is a
-// placeholder slug. Update this once the real production deployment exists,
-// and update this if/when a custom domain replaces the vercel.app one — it's
-// the only place that needs to change.
-const PRODUCTION_ADMIN_URL = "https://amnasuraka.vercel.app/admin";
+// Update this if/when a custom domain replaces the vercel.app one — it's the
+// only place that needs to change (then run `npm run cap:sync`).
+const PRODUCTION_ADMIN_URL = "https://redmuseum.vercel.app/admin";
 
 const config: CapacitorConfig = {
   appId: "com.amnasuraka.admin",

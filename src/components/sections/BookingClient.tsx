@@ -92,7 +92,7 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", phone: "", guestCount: "1", visitorType: undefined, note: "" },
+    defaultValues: { name: "", phone: "", guestCount: "0", visitorType: undefined, note: "" },
   });
 
   const days = useMemo(
@@ -120,7 +120,7 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
     setVisitTime(null);
     setStep(0);
     setDirection(1);
-    reset({ name: "", phone: "", guestCount: "1", visitorType: undefined, note: "" });
+    reset({ name: "", phone: "", guestCount: "0", visitorType: undefined, note: "" });
   }
 
   async function handleNextFromInfo() {

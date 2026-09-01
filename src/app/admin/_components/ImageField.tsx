@@ -2,13 +2,77 @@
 
 import { useState } from "react";
 import clsx from "clsx";
+import { Plus } from "lucide-react";
 
-export const fileInputClass =
-  "rounded-xl border border-dashed border-ink/20 bg-canvas px-3.5 py-2.5 text-fluid-sm text-ink-soft file:mr-3 file:rounded-full file:border-0 file:bg-ink file:px-3 file:py-1.5 file:text-fluid-xs file:font-medium file:text-canvas";
+/** A dashed "+" tile that opens the file picker — the visible stand-in for a
+ * raw <input type="file">. The real input stays mounted (screen-reader-only)
+ * so form submission, `required`, and a pending file selection all survive the
+ * tile ↔ "change photo" swap that <ImageField> does when a preview appears.
+ *
+ * `sizeClassName` is the same value the thumbnails get as `previewClassName`,
+ * so the tile lines up with them in a grid; any `object-*` in it is inert here. */
+export function AddPhotoTile({
+  name,
+  onChange,
+  sizeClassName,
+  caption = "زیادکردنی وێنە",
+  multiple = false,
+  required = false,
+  compact = false,
+}: {
+  name: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  sizeClassName?: string;
+  caption?: string;
+  multiple?: boolean;
+  required?: boolean;
+  /** Render as a small pill instead of a full tile — used once an image is
+   * already previewed and the input's only job is "replace it". */
+  compact?: boolean;
+}) {
+  return (
+    <label
+      className={clsx(
+        "group cursor-pointer border-dashed border-ink/25 text-ink-soft transition",
+        "hover:border-ink/45 hover:bg-canvas-paper",
+        "focus-within:border-ink/45 focus-within:ring-2 focus-within:ring-ink/15",
+        compact
+          ? "font-kurdish inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-fluid-xs"
+          : clsx(
+              "flex flex-col items-center justify-center gap-1.5 rounded-xl border bg-canvas-paper/60 p-1.5 text-center",
+              sizeClassName
+            )
+      )}
+    >
+      {compact ? (
+        <>
+          <Plus size={13} />
+          <span>{caption}</span>
+        </>
+      ) : (
+        <>
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-ink/5 text-ink-soft transition group-hover:bg-ink/10">
+            <Plus size={16} />
+          </span>
+          <span className="font-kurdish text-fluid-xs leading-tight text-ink-faint">{caption}</span>
+        </>
+      )}
+      <input
+        type="file"
+        name={name}
+        accept="image/*"
+        multiple={multiple}
+        required={required}
+        onChange={onChange}
+        className="sr-only"
+      />
+    </label>
+  );
+}
 
-/** Single image: preview + file input, optionally removable, optionally
- * carrying the current URL in a hidden `keptName` input so the server action
- * can tell "keep" from "cleared". */
+/** Single image: preview + "+" tile, optionally removable, optionally carrying
+ * the current URL in a hidden `keptName` input so the server action can tell
+ * "keep" from "cleared". */
 export function ImageField({
   label,
   name,
@@ -61,23 +125,22 @@ export function ImageField({
 
       {keptName && kept && <input type="hidden" name={keptName} value={kept} />}
 
-      <label className="flex flex-col gap-1.5">
-        <span className="text-fluid-xs text-ink-faint">بارکردنی فایلێک</span>
-        <input
-          type="file"
-          name={name}
-          accept="image/*"
-          required={required}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) {
-              setPreview(URL.createObjectURL(file));
-              setKept(null);
-            }
-          }}
-          className={fileInputClass}
-        />
-      </label>
+      {/* One AddPhotoTile, always mounted: swapping `compact` keeps the same
+          <input> element, so a file picked before the preview renders isn't lost. */}
+      <AddPhotoTile
+        name={name}
+        required={required}
+        compact={!!preview}
+        caption={preview ? "گۆڕینی وێنە" : "زیادکردنی وێنە"}
+        sizeClassName={previewClassName}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            setPreview(URL.createObjectURL(file));
+            setKept(null);
+          }
+        }}
+      />
 
       {hint && <p className="font-kurdish text-fluid-xs text-ink-faint">{hint}</p>}
     </fieldset>
