@@ -22,7 +22,9 @@ import type { LucideIcon } from "lucide-react";
 import { signOut } from "../actions";
 import { useIsNativeApp } from "@/lib/useIsNativeApp";
 import { NativePushBridge } from "./NativePushBridge";
+import { NotificationsBell } from "./NotificationsBell";
 import { ToastProvider, FlashToast } from "./Toast";
+import { EMPTY_ADMIN_NOTIFICATIONS, type AdminNotifications } from "./adminNotificationsShape";
 
 // `shortLabel` is the compact form for the phone bottom bar, where a
 // two-word label like «بەشەکانی مۆزەخانە» wraps to two lines and breaks the
@@ -43,8 +45,8 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
   {
     label: "داواکارییەکان",
     items: [
-      { href: "/admin/bookings", label: "سەردانەکان", icon: Ticket },
-      { href: "/admin/messages", label: "پەیامەکان", icon: Inbox },
+      { href: "/admin/bookings", label: "سەردانەکان", shortLabel: "سەردان", icon: Ticket },
+      { href: "/admin/messages", label: "پەیامەکان", shortLabel: "پەیام", icon: Inbox },
     ],
   },
 ];
@@ -52,8 +54,9 @@ const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
 const SETTINGS_ITEM: NavItem = { href: "/admin/settings", label: "ڕێکخستنەکان", icon: Settings };
 const ALL_ITEMS: NavItem[] = [...NAV_GROUPS.flatMap((g) => g.items), SETTINGS_ITEM];
 
-// Five items get a permanent slot in the phone bottom bar; everything else
-// lives behind the «زیاتر» sheet.
+// Five items get a permanent slot in the phone bottom bar (followed by the
+// notification bell and the «زیاتر» sheet trigger — seven cells total);
+// everything else lives behind the «زیاتر» sheet.
 const MOBILE_PRIMARY = new Set([
   "/admin",
   "/admin/museums",
@@ -74,10 +77,12 @@ export function AdminShell({
   children,
   unreadMessages = 0,
   pendingBookings = 0,
+  notifications = EMPTY_ADMIN_NOTIFICATIONS,
 }: {
   children: React.ReactNode;
   unreadMessages?: number;
   pendingBookings?: number;
+  notifications?: AdminNotifications;
 }) {
   const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -185,7 +190,8 @@ export function AdminShell({
           </div>
         </header>
 
-        {/* Phone / tablet bottom nav: 5 primary + More. Every item keeps a
+        {/* Phone / tablet bottom nav: 5 primary + notification bell + More.
+            Every item keeps a
             persistent label (no layout-shifting reveal); the active one gets
             a single soft brand-red pill behind the icon plus a red label,
             matching the sidebar / «زیاتر» sheet. Pure CSS transitions so it
@@ -200,7 +206,7 @@ export function AdminShell({
           )}
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
-          <ul className="mx-auto flex max-w-md items-stretch">
+          <ul className="mx-auto flex max-w-xl items-stretch">
             {mobileBar.map((item) => (
               <li key={item.href} className="flex-1">
                 <BottomNavItem
@@ -213,6 +219,9 @@ export function AdminShell({
                 />
               </li>
             ))}
+            <li className="flex-1">
+              <NotificationsBell notifications={notifications} />
+            </li>
             <li className="flex-1">
               <BottomNavItem
                 label="زیاتر"

@@ -2,8 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ADMIN_COOKIE_NAME, isValidSessionCookie } from "@/lib/adminAuth";
 import { AdminShell } from "../_components/AdminShell";
-import { getUnreadMessageCount } from "./messages/actions";
-import { getPendingBookingCount } from "./bookings/actions";
+import { getAdminNotifications } from "./getAdminNotifications";
 
 // Defense in depth: middleware already guards /admin, but every protected
 // server render re-checks the session directly rather than trusting it was
@@ -15,11 +14,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/admin/login");
   }
 
-  const unreadMessages = await getUnreadMessageCount();
-  const pendingBookings = await getPendingBookingCount();
+  const notifications = await getAdminNotifications();
 
   return (
-    <AdminShell unreadMessages={unreadMessages} pendingBookings={pendingBookings}>
+    <AdminShell
+      unreadMessages={notifications.unreadMessages}
+      pendingBookings={notifications.pendingBookings}
+      notifications={notifications}
+    >
       {children}
     </AdminShell>
   );
