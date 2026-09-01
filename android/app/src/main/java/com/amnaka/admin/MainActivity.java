@@ -1,4 +1,4 @@
-package com.amnasuraka.admin;
+package com.amnaka.admin;
 
 import com.getcapacitor.BridgeActivity;
 

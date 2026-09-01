@@ -14,7 +14,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const PRODUCTION_ADMIN_URL = "https://redmuseum.vercel.app/admin";
 
 const config: CapacitorConfig = {
-  appId: "com.amnasuraka.admin",
+  appId: "com.amnaka.admin",
   appName: "Amna Suraka Admin",
   // No webDir build output is shipped inside the APK for the same reason —
   // Capacitor still requires this key to exist, but with server.url set,

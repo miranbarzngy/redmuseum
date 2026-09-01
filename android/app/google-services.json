@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "748390846875",
+    "project_id": "amnasuraka-68337",
+    "storage_bucket": "amnasuraka-68337.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:748390846875:android:12cb8d6aeaaf3691bb513e",
+        "android_client_info": {
+          "package_name": "com.amnaka.admin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDZqWOEX5rlqKErQsWzh0VG185EFM49hoQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

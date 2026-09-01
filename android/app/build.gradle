@@ -12,10 +12,10 @@ if (hasReleaseSigning) {
 }
 
 android {
-    namespace = "com.amnasuraka.admin"
+    namespace = "com.amnaka.admin"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.amnasuraka.admin"
+        applicationId "com.amnaka.admin"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

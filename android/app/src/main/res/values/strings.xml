@@ -2,6 +2,6 @@
 <resources>
     <string name="app_name">Amna Suraka Admin</string>
     <string name="title_activity_main">Amna Suraka Admin</string>
-    <string name="package_name">com.amnasuraka.admin</string>
-    <string name="custom_url_scheme">com.amnasuraka.admin</string>
+    <string name="package_name">com.amnaka.admin</string>
+    <string name="custom_url_scheme">com.amnaka.admin</string>
 </resources>
