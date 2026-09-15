@@ -83,8 +83,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Kurdish locale: use the custom Kurdish typeface everywhere, headings included */
-html[lang="ku"] body,
+/* Kurdish locale: use the custom Kurdish typeface everywhere, headings included.
+   :not(.font-kurdish) on the body selector keeps this from outranking the
+   admin layout's own `.font-kurdish` utility class (tailwind.config.ts) —
+   without it, this rule's higher specificity (element+attribute vs. a bare
+   class) would win on admin's <body>, silently discarding the digit-safe
+   `--font-kurdish-local` font stack that admin/layout.tsx sets up specifically
+   so dates/times/counts render with plain Western digits instead of this
+   face's Eastern Arabic-Indic glyphs for 0-9. Every element that inherits
+   body's font-family (i.e. anything without its own font-kurdish class) was
+   silently falling back to this unrestricted face and showing Kurdish digits. */
+html[lang="ku"] body:not(.font-kurdish),
 html[lang="ku"] .font-display,
 html[lang="ku"] .font-body {
   font-family: "Kurdish Sarchia", var(--font-vazirmatn, Vazirmatn), "Vazirmatn", sans-serif;
@@ -97,8 +106,10 @@ html[lang="ku"] .font-body {
   font-synthesis: none;
 }
 
-/* Arabic locale: use the dedicated Arabic typeface everywhere, headings included */
-html[lang="ar"] body,
+/* Arabic locale: use the dedicated Arabic typeface everywhere, headings included.
+   Same :not(.font-kurdish) reasoning as the Kurdish rule above, kept here so
+   this rule can't clobber an admin-style digit-safe font class either. */
+html[lang="ar"] body:not(.font-kurdish),
 html[lang="ar"] .font-display,
 html[lang="ar"] .font-body {
   font-family: "Khebrat Musamim", var(--font-vazirmatn, Vazirmatn), "Vazirmatn", sans-serif;

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
+import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveUploadedImageUrl, resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
 
@@ -12,7 +13,7 @@ function revalidatePublicSite() {
 }
 
 export async function updateBiographyIntro(formData: FormData) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.museumsManage);
   const supabase = createAdminClient();
 
   const { error } = await supabase.from("biography_intro").upsert({
@@ -79,7 +80,7 @@ async function resolveBlockImages(
 }
 
 export async function createBiographyBlock(formData: FormData) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.museumsManage);
   const supabase = createAdminClient();
   const fields = parseBlockFields(formData);
   const images = await resolveBlockImages(supabase, formData);
@@ -102,7 +103,7 @@ export async function createBiographyBlock(formData: FormData) {
 }
 
 export async function updateBiographyBlock(id: string, formData: FormData) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.museumsManage);
   const supabase = createAdminClient();
   const fields = parseBlockFields(formData);
   const images = await resolveBlockImages(supabase, formData);
@@ -118,7 +119,7 @@ export async function updateBiographyBlock(id: string, formData: FormData) {
 }
 
 export async function deleteBiographyBlock(id: string) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.museumsManage);
   const supabase = createAdminClient();
   const { error } = await supabase.from("biography_blocks").delete().eq("id", id);
   if (error) throw new Error(error.message);
@@ -130,7 +131,7 @@ export async function deleteBiographyBlock(id: string) {
  * is every block id in its new top-to-bottom order, each given its index as
  * sort_order. Mirrors reorderGalleryImages in the gallery actions. */
 export async function reorderBiographyBlocks(orderedIds: string[]) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.museumsManage);
   const supabase = createAdminClient();
 
   const results = await Promise.all(

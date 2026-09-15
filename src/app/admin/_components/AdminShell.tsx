@@ -16,11 +16,14 @@ import {
   Ticket,
   Settings,
   MoreHorizontal,
+  Users,
+  ClipboardList,
   X,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { signOut } from "../actions";
 import { useIsNativeApp } from "@/lib/useIsNativeApp";
+import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import { NativePushBridge } from "./NativePushBridge";
 import { NotificationsBell } from "./NotificationsBell";
 import { ToastProvider, FlashToast } from "./Toast";
@@ -29,30 +32,75 @@ import { EMPTY_ADMIN_NOTIFICATIONS, type AdminNotifications } from "./adminNotif
 // `shortLabel` is the compact form for the phone bottom bar, where a
 // two-word label like «بەشەکانی مۆزەخانە» wraps to two lines and breaks the
 // row's alignment. The sidebar and «زیاتر» sheet always use the full `label`.
-type NavItem = { href: string; label: string; shortLabel?: string; icon: LucideIcon };
+// `permission`, when set, hides the item from any session whose role
+// doesn't hold it (see src/lib/permissions.ts). Every section item now sets
+// one, matching its actions.ts's own requireAdminSession(permission) check
+// — گشتی (the dashboard home) is the one deliberate exception, visible to
+// any logged-in admin regardless of role.
+type NavItem = {
+  href: string;
+  label: string;
+  shortLabel?: string;
+  icon: LucideIcon;
+  permission?: string;
+};
 
 const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
   { items: [{ href: "/admin", label: "گشتی", icon: LayoutDashboard }] },
   {
     label: "ناوەڕۆکی ماڵپەڕ",
     items: [
-      { href: "/admin/profile", label: "پرۆفایل", icon: UserRound },
-      { href: "/admin/museums", label: "بەشەکانی مۆزەخانە", shortLabel: "بەشەکان", icon: BookOpen },
-      { href: "/admin/museumhistory", label: "مێژووی مۆزەخانە", icon: CalendarClock },
-      { href: "/admin/gallery", label: "گەلەری", icon: Images },
+      { href: "/admin/profile", label: "پرۆفایل", icon: UserRound, permission: PERMISSIONS.profileManage },
+      {
+        href: "/admin/museums",
+        label: "بەشەکانی مۆزەخانە",
+        shortLabel: "بەشەکان",
+        icon: BookOpen,
+        permission: PERMISSIONS.museumsManage,
+      },
+      {
+        href: "/admin/museumhistory",
+        label: "مێژووی مۆزەخانە",
+        icon: CalendarClock,
+        permission: PERMISSIONS.museumHistoryManage,
+      },
+      { href: "/admin/gallery", label: "گەلەری", icon: Images, permission: PERMISSIONS.galleryManage },
     ],
   },
   {
     label: "داواکارییەکان",
     items: [
-      { href: "/admin/bookings", label: "سەردانەکان", shortLabel: "سەردان", icon: Ticket },
-      { href: "/admin/messages", label: "پەیامەکان", shortLabel: "پەیام", icon: Inbox },
+      {
+        href: "/admin/bookings",
+        label: "سەردانەکان",
+        shortLabel: "سەردان",
+        icon: Ticket,
+        permission: PERMISSIONS.bookingsManage,
+      },
+      {
+        href: "/admin/messages",
+        label: "پەیامەکان",
+        shortLabel: "پەیام",
+        icon: Inbox,
+        permission: PERMISSIONS.messagesManage,
+      },
+    ],
+  },
+  {
+    label: "بەڕێوەبردنی سیستم",
+    items: [
+      { href: "/admin/users", label: "بەکارهێنەران", icon: Users, permission: PERMISSIONS.usersManage },
+      { href: "/admin/audit-logs", label: "تۆمارەکانی چاودێری", icon: ClipboardList, permission: PERMISSIONS.auditView },
     ],
   },
 ];
 
-const SETTINGS_ITEM: NavItem = { href: "/admin/settings", label: "ڕێکخستنەکان", icon: Settings };
-const ALL_ITEMS: NavItem[] = [...NAV_GROUPS.flatMap((g) => g.items), SETTINGS_ITEM];
+const SETTINGS_ITEM: NavItem = {
+  href: "/admin/settings",
+  label: "ڕێکخستنەکان",
+  icon: Settings,
+  permission: PERMISSIONS.settingsManage,
+};
 
 // Five items get a permanent slot in the phone bottom bar (followed by the
 // notification bell and the «زیاتر» sheet trigger — seven cells total);
@@ -78,11 +126,13 @@ export function AdminShell({
   unreadMessages = 0,
   pendingBookings = 0,
   notifications = EMPTY_ADMIN_NOTIFICATIONS,
+  permissions = [],
 }: {
   children: React.ReactNode;
   unreadMessages?: number;
   pendingBookings?: number;
   notifications?: AdminNotifications;
+  permissions?: string[];
 }) {
   const pathname = usePathname();
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -90,11 +140,18 @@ export function AdminShell({
   // sidebar is never rendered (see the layout note above the component).
   const forceBottomNav = useIsNativeApp();
 
+  const visibleGroups = NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => !item.permission || hasPermission(permissions, item.permission)),
+  })).filter((group) => group.items.length > 0);
+  const showSettings = hasPermission(permissions, SETTINGS_ITEM.permission!);
+  const visibleItems: NavItem[] = [...visibleGroups.flatMap((g) => g.items), ...(showSettings ? [SETTINGS_ITEM] : [])];
+
   function isActive(href: string) {
     return href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
   }
 
-  const currentLabel = ALL_ITEMS.find((n) => isActive(n.href))?.label ?? "بەڕێوەبردن";
+  const currentLabel = visibleItems.find((n) => isActive(n.href))?.label ?? "بەڕێوەبردن";
 
   function badgeFor(href: string) {
     if (href === "/admin/messages" && unreadMessages > 0)
@@ -104,8 +161,8 @@ export function AdminShell({
     return null;
   }
 
-  const mobileBar = ALL_ITEMS.filter((n) => MOBILE_PRIMARY.has(n.href));
-  const sheetItems = ALL_ITEMS.filter((n) => !MOBILE_PRIMARY.has(n.href));
+  const mobileBar = visibleItems.filter((n) => MOBILE_PRIMARY.has(n.href));
+  const sheetItems = visibleItems.filter((n) => !MOBILE_PRIMARY.has(n.href));
   const moreActive = sheetItems.some((n) => isActive(n.href));
 
   return (
@@ -134,7 +191,7 @@ export function AdminShell({
           </div>
 
           <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-4">
-            {NAV_GROUPS.map((group, gi) => (
+            {visibleGroups.map((group, gi) => (
               <div key={group.label ?? gi} className="flex flex-col gap-1">
                 {group.label && (
                   <p className="font-kurdish px-3.5 pb-1 text-[11px] font-medium text-ink-faint">
@@ -149,7 +206,9 @@ export function AdminShell({
           </nav>
 
           <div className="flex flex-col gap-1 border-t border-ink/10 p-3">
-            <SidebarLink item={SETTINGS_ITEM} active={isActive(SETTINGS_ITEM.href)} badge={null} />
+            {showSettings && (
+              <SidebarLink item={SETTINGS_ITEM} active={isActive(SETTINGS_ITEM.href)} badge={null} />
+            )}
             <Link
               href="/"
               target="_blank"

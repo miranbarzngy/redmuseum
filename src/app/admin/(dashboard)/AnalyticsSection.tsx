@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { Eye, Users, Globe } from "lucide-react";
 import type { VisitStats } from "./getVisitStats";
 
@@ -11,7 +12,7 @@ function StatCard({
   value: number;
 }) {
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white/70 p-6 shadow-card backdrop-blur-md">
+    <div className="flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white p-6 shadow-card">
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas-paper text-pigment-terracotta">
         <Icon size={18} />
       </span>
@@ -23,11 +24,19 @@ function StatCard({
   );
 }
 
-function RankedList({ title, entries }: { title: string; entries: { label: string; count: number }[] }) {
+function RankedList({
+  title,
+  entries,
+  dir,
+}: {
+  title: string;
+  entries: { label: string; count: number }[];
+  dir?: "ltr" | "rtl";
+}) {
   const max = Math.max(1, ...entries.map((e) => e.count));
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white/70 p-6 shadow-card backdrop-blur-md">
+    <div className="flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white p-6 shadow-card">
       <h3 className="font-kurdish text-fluid-sm font-semibold text-ink">{title}</h3>
       {entries.length === 0 ? (
         <p className="font-kurdish text-fluid-xs text-ink-faint">هێشتا هیچ سەردانێک تۆمار نەکراوە.</p>
@@ -36,7 +45,7 @@ function RankedList({ title, entries }: { title: string; entries: { label: strin
           {entries.map(({ label, count }) => (
             <div key={label} className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between gap-2">
-                <span className="truncate text-fluid-xs text-ink" dir="ltr">
+                <span className={clsx("truncate text-fluid-xs text-ink", dir === "rtl" && "font-kurdish")} dir={dir}>
                   {label}
                 </span>
                 <span className="font-kurdish shrink-0 text-fluid-xs text-ink-soft">{count}</span>
@@ -59,7 +68,7 @@ function DailyTrendChart({ dailyCounts }: { dailyCounts: { date: string; count: 
   const max = Math.max(1, ...dailyCounts.map((d) => d.count));
 
   return (
-    <div className="flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white/70 p-6 shadow-card backdrop-blur-md">
+    <div className="flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white p-6 shadow-card">
       <h3 className="font-kurdish text-fluid-sm font-semibold text-ink">ڕەوتی ڕۆژانە</h3>
       <div className="flex h-32 items-end gap-1.5">
         {dailyCounts.map(({ date, count }) => (
@@ -99,8 +108,8 @@ export function AnalyticsSection({ stats }: { stats: VisitStats }) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <DailyTrendChart dailyCounts={stats.dailyCounts} />
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-1">
-          <RankedList title="زۆرترین وڵات" entries={stats.topCountries} />
-          <RankedList title="زۆرترین پەڕە" entries={stats.topPaths} />
+          <RankedList title="زۆرترین وڵات" entries={stats.topCountries} dir="ltr" />
+          <RankedList title="زۆرترین پەڕە" entries={stats.topPaths} dir="rtl" />
         </div>
       </div>
     </div>

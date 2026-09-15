@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
+import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Ordering is owned by the drag-and-drop list on /admin/museumhistory (see
@@ -36,7 +37,7 @@ function revalidatePublicSite() {
 }
 
 export async function createExhibition(formData: FormData) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.museumHistoryManage);
   const supabase = createAdminClient();
   const fields = parseExhibitionFields(formData);
 
@@ -56,7 +57,7 @@ export async function createExhibition(formData: FormData) {
 }
 
 export async function updateExhibition(id: string, formData: FormData) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.museumHistoryManage);
   const supabase = createAdminClient();
   const fields = parseExhibitionFields(formData);
 
@@ -68,7 +69,7 @@ export async function updateExhibition(id: string, formData: FormData) {
 }
 
 export async function deleteExhibition(id: string) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.museumHistoryManage);
   const supabase = createAdminClient();
   const { error } = await supabase.from("exhibitions").delete().eq("id", id);
   if (error) throw new Error(error.message);
@@ -79,7 +80,7 @@ export async function deleteExhibition(id: string) {
 /** Persists a drag-and-drop reorder of the whole list — `orderedIds` is
  * every exhibition id in its new order, each given its index as sort_order. */
 export async function reorderExhibitions(orderedIds: string[]) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.museumHistoryManage);
   const supabase = createAdminClient();
 
   const results = await Promise.all(

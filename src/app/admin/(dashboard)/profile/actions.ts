@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
+import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveUploadedImageUrl, resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
 
 export async function updateProfile(formData: FormData) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.profileManage);
   const supabase = createAdminClient();
 
   const contactCardImageUrl = await resolveUploadedImageUrl(

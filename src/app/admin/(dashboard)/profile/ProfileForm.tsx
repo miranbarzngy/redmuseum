@@ -56,7 +56,13 @@ export function ProfileForm({
           />
         </Panel>
 
-        <Panel title="دەقەکان" action={<LanguageTabs />} bodyClassName="flex flex-col gap-8">
+        <Panel
+          title="دەقەکان"
+          action={<LanguageTabs />}
+          collapsible
+          defaultOpen={false}
+          bodyClassName="flex flex-col gap-8"
+        >
           <LocalizedField
             name="eyebrow"
             label="دەربڕینی بچووک (خشتەیەکی بچووک لەسەر ناو)"
@@ -91,6 +97,8 @@ export function ProfileForm({
         <Panel
           title="ئامارەکانی لای لۆگۆ"
           action={<LanguageTabs />}
+          collapsible
+          defaultOpen={false}
           bodyClassName="flex flex-col gap-4"
         >
           <StatFieldPair
@@ -139,6 +147,8 @@ export function ProfileForm({
           title="پەیوەندی و لینکەکان"
           description="ئیمەیل، شوێن و لینکی تۆڕە کۆمەڵایەتییەکان لە کارتی «سەردان و پەیوەندی» و پێوانەی پەڕەکە."
           action={<LanguageTabs />}
+          collapsible
+          defaultOpen={false}
           bodyClassName="flex flex-col gap-8"
         >
           <Field

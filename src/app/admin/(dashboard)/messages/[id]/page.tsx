@@ -32,7 +32,7 @@ export default async function AdminMessageDetailPage(props: { params: Promise<{ 
           >
             <Phone size={14} /> {message.phone}
           </a>
-          <div className="text-end text-fluid-xs text-ink-faint">
+          <div dir="ltr" className="text-end text-fluid-xs text-ink-faint">
             {formatMessageDate(message.created_at)}
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
+import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // sort_order is owned by the drag-and-drop list (reorderCategories), not the
@@ -28,7 +29,7 @@ function revalidatePublicSite() {
 }
 
 export async function createCategory(formData: FormData) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.galleryManage);
   const supabase = createAdminClient();
   const fields = parseCategoryFields(formData);
 
@@ -48,7 +49,7 @@ export async function createCategory(formData: FormData) {
 }
 
 export async function updateCategory(id: string, formData: FormData) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.galleryManage);
   const supabase = createAdminClient();
   const fields = parseCategoryFields(formData);
 
@@ -60,7 +61,7 @@ export async function updateCategory(id: string, formData: FormData) {
 }
 
 export async function deleteCategory(id: string) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.galleryManage);
   const supabase = createAdminClient();
   const { error } = await supabase.from("gallery_categories").delete().eq("id", id);
   if (error) throw new Error(error.message);
@@ -71,7 +72,7 @@ export async function deleteCategory(id: string) {
 /** Persists a drag-and-drop reorder — `orderedIds` is the full category list
  * in its new top-to-bottom order, each assigned its index as sort_order. */
 export async function reorderCategories(orderedIds: string[]) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.galleryManage);
   const supabase = createAdminClient();
 
   const updates = orderedIds.map((id, index) =>

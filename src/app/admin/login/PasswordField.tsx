@@ -34,6 +34,7 @@ export function PasswordField() {
         autoFocus
         autoComplete="current-password"
         lang="en"
+        dir="ltr"
         onChange={handleChange}
         className="w-full rounded-xl border border-ink/15 bg-canvas px-3.5 py-2.5 pl-10 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta focus:ring-2 focus:ring-pigment-terracotta/15"
       />

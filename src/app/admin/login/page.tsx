@@ -1,5 +1,7 @@
 import { signIn } from "./actions";
 import { PasswordField } from "./PasswordField";
+import { Field } from "../_components/Field";
+import { BrandLockup } from "@/components/BrandLockup";
 
 export const metadata = { title: "چوونەژوورەوەی بەڕێوەبردن — ئەمنە سورەکە" };
 
@@ -14,14 +16,14 @@ export default async function AdminLoginPage(
   const next = searchParams.next ?? "/admin";
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-canvas px-6 py-16">
-      <div className="w-full max-w-sm rounded-2xl border border-ink/10 bg-white p-8 shadow-soft">
-        <h1 className="font-kurdish text-fluid-lg font-semibold text-ink">چوونەژوورەوەی بەڕێوەبردن</h1>
-        <p className="mt-1 text-fluid-sm text-ink-soft">داشبۆردی ناوەڕۆکی ئەمنە سورەکە</p>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-gray-100 px-6 py-16">
+      <BrandLockup size="lg" />
+      <div className="w-full max-w-md rounded-2xl border border-ink/10 bg-white p-10 shadow-soft">
+        <h1 className="text-center font-kurdish text-fluid-xl font-semibold text-ink">چوونەژوورەوە</h1>
 
         {hasWrongPasswordError && (
           <p className="mt-4 rounded-lg bg-pigment-crimson/10 px-3 py-2 text-fluid-xs text-pigment-crimson">
-            وشەی نهێنی هەڵەیە.
+            ئیمەیل یان وشەی نهێنی هەڵەیە.
           </p>
         )}
         {hasRateLimitError && (
@@ -30,15 +32,16 @@ export default async function AdminLoginPage(
           </p>
         )}
 
-        <form action={signIn} className="mt-6 flex flex-col gap-4">
+        <form action={signIn} className="mt-8 flex flex-col gap-5">
           <input type="hidden" name="next" value={next} />
+          <Field label="ئیمەیل" name="email" type="email" required dir="ltr" />
           <label className="flex flex-col gap-1.5">
             <span className="text-fluid-xs font-medium text-ink-soft">وشەی نهێنی</span>
             <PasswordField />
           </label>
           <button
             type="submit"
-            className="mt-2 rounded-full bg-ink px-4 py-2.5 text-fluid-sm font-medium text-canvas transition-all duration-200 hover:-translate-y-0.5 hover:bg-pigment-terracotta hover:shadow-soft active:translate-y-0 active:scale-95"
+            className="mt-2 rounded-full bg-[#850B10] px-4 py-3.5 text-fluid-base font-medium text-canvas transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#6a090d] hover:shadow-soft active:translate-y-0 active:scale-95"
           >
             چوونەژوورەوە
           </button>

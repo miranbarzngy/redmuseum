@@ -1,7 +1,7 @@
 import createIntlMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 import { routing } from "./i18n/routing";
-import { ADMIN_COOKIE_NAME, isValidSessionCookie } from "./lib/adminAuth";
+import { ADMIN_COOKIE_NAME, isValidSessionToken } from "./lib/adminAuth";
 
 const intlMiddleware = createIntlMiddleware(routing);
 
@@ -15,7 +15,7 @@ export default async function proxy(request: NextRequest) {
   // gets its own password-session guard instead.
   if (pathname.startsWith("/admin")) {
     const isPublicAdminPath = PUBLIC_ADMIN_PATHS.some((p) => pathname.startsWith(p));
-    const authed = await isValidSessionCookie(request.cookies.get(ADMIN_COOKIE_NAME)?.value);
+    const authed = await isValidSessionToken(request.cookies.get(ADMIN_COOKIE_NAME)?.value);
 
     if (!authed && !isPublicAdminPath) {
       const redirectUrl = new URL("/admin/login", request.url);

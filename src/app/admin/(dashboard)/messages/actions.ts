@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
+import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ContactMessageRow } from "@/lib/supabase/database.types";
 
@@ -15,7 +16,7 @@ import type { ContactMessageRow } from "@/lib/supabase/database.types";
 // allowed to be imported.
 
 export async function getMessages(): Promise<ContactMessageRow[]> {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.messagesManage);
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("contact_messages")
@@ -27,7 +28,7 @@ export async function getMessages(): Promise<ContactMessageRow[]> {
 }
 
 export async function getUnreadMessageCount(): Promise<number> {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.messagesManage);
   const supabase = createAdminClient();
   const { count, error } = await supabase
     .from("contact_messages")
@@ -39,7 +40,7 @@ export async function getUnreadMessageCount(): Promise<number> {
 }
 
 export async function getMessage(id: string): Promise<ContactMessageRow | null> {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.messagesManage);
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("contact_messages")
@@ -52,7 +53,7 @@ export async function getMessage(id: string): Promise<ContactMessageRow | null> 
 }
 
 export async function markAllMessagesRead() {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.messagesManage);
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("contact_messages")
@@ -65,7 +66,7 @@ export async function markAllMessagesRead() {
 }
 
 export async function markMessageRead(id: string) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.messagesManage);
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("contact_messages")
@@ -78,7 +79,7 @@ export async function markMessageRead(id: string) {
 }
 
 export async function deleteMessage(id: string) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.messagesManage);
   const supabase = createAdminClient();
   const { error } = await supabase.from("contact_messages").delete().eq("id", id);
 

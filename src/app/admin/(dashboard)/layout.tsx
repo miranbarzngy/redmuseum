@@ -1,16 +1,16 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { ADMIN_COOKIE_NAME, isValidSessionCookie } from "@/lib/adminAuth";
+import { getAdminSession } from "@/lib/adminAuth";
 import { AdminShell } from "../_components/AdminShell";
 import { getAdminNotifications } from "./getAdminNotifications";
 
-// Defense in depth: middleware already guards /admin, but every protected
-// server render re-checks the session directly rather than trusting it was
-// already verified upstream.
+// Defense in depth: proxy.ts already guards /admin with a cheap signature-
+// only check, but every protected server render re-fetches the session
+// (including its current role/permissions) directly rather than trusting
+// it was already verified upstream.
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const authed = await isValidSessionCookie((await cookies()).get(ADMIN_COOKIE_NAME)?.value);
+  const session = await getAdminSession();
 
-  if (!authed) {
+  if (!session) {
     redirect("/admin/login");
   }
 
@@ -21,6 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       unreadMessages={notifications.unreadMessages}
       pendingBookings={notifications.pendingBookings}
       notifications={notifications}
+      permissions={session.role.permissions}
     >
       {children}
     </AdminShell>

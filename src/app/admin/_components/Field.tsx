@@ -16,7 +16,7 @@ type CommonProps = {
 };
 
 type InputFieldProps = CommonProps & {
-  type?: "text" | "number";
+  type?: "text" | "number" | "email" | "password";
   placeholder?: string;
   multiline?: false;
   select?: false;

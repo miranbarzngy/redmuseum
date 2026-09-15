@@ -3,11 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
+import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { SystemSettingsRow } from "@/lib/supabase/database.types";
 
 export async function getSystemSettings(): Promise<SystemSettingsRow> {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.settingsManage);
   const supabase = createAdminClient();
   const { data, error } = await supabase.from("system_settings").select("*").eq("id", 1).maybeSingle();
 
@@ -16,7 +17,7 @@ export async function getSystemSettings(): Promise<SystemSettingsRow> {
 }
 
 export async function updateFaceScanSetting(formData: FormData) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.settingsManage);
   const supabase = createAdminClient();
 
   const enableFaceScan = formData.get("enable_face_scan") === "on";

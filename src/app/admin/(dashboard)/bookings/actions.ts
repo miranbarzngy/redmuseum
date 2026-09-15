@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/lib/adminAuth";
+import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { BookingRow, BookingStatus } from "@/lib/supabase/database.types";
 
@@ -10,7 +11,7 @@ import type { BookingRow, BookingStatus } from "@/lib/supabase/database.types";
 // live here, next to the writes, all gated by requireAdminSession().
 
 export async function getBookings(): Promise<BookingRow[]> {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("bookings")
@@ -22,7 +23,7 @@ export async function getBookings(): Promise<BookingRow[]> {
 }
 
 export async function getPendingBookingCount(): Promise<number> {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
   const { count, error } = await supabase
     .from("bookings")
@@ -34,7 +35,7 @@ export async function getPendingBookingCount(): Promise<number> {
 }
 
 export async function getBooking(id: string): Promise<BookingRow | null> {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
   const { data, error } = await supabase.from("bookings").select("*").eq("id", id).maybeSingle();
 
@@ -47,7 +48,7 @@ export async function getBooking(id: string): Promise<BookingRow | null> {
 // requireAdminSession()-gated call site. Short TTL since it's regenerated
 // fresh on every page render rather than persisted anywhere.
 export async function getFacePhotoUrl(path: string): Promise<string | null> {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
   const { data, error } = await supabase.storage.from("face-scans").createSignedUrl(path, 300);
 
@@ -59,7 +60,7 @@ export async function getFacePhotoUrl(path: string): Promise<string | null> {
 }
 
 export async function updateBookingStatus(id: string, status: BookingStatus) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
   const { error } = await supabase.from("bookings").update({ status }).eq("id", id);
 
@@ -69,7 +70,7 @@ export async function updateBookingStatus(id: string, status: BookingStatus) {
 }
 
 export async function deleteBooking(id: string) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
   const { error } = await supabase.from("bookings").delete().eq("id", id);
 

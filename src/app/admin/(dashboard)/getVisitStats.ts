@@ -27,6 +27,21 @@ function topEntries(counts: Map<string, number>, limit: number) {
     .map(([label, count]) => ({ label, count }));
 }
 
+/** Groups a raw request path (locale prefix + optional dynamic segment,
+ * e.g. "/en/museum/1fefba…") into the public route it belongs to, so pages
+ * that differ only by language or by which museum section / booking token
+ * was viewed are counted together under one human-readable title instead of
+ * listing every UUID as its own row. */
+function pathLabel(rawPath: string): string {
+  const segments = rawPath.split("/").filter(Boolean).slice(1); // drop the locale segment
+
+  if (segments.length === 0) return "پەڕەی سەرەکی";
+  if (segments[0] === "museum") return "بەشی مۆزەخانە";
+  if (segments[0] === "booking") return segments.length > 1 ? "دۆخی سەردان" : "تۆمارکردنی سەردان";
+
+  return "/" + segments.join("/");
+}
+
 /**
  * Gated by (dashboard)/layout.tsx's own requireAdminSession() check — see
  * the allowed-call-sites list on createAdminClient() — so this is safe to
@@ -53,7 +68,8 @@ export async function getVisitStats(): Promise<VisitStats> {
 
   for (const visit of data) {
     countryCounts.set(visit.country ?? "نەزانراو", (countryCounts.get(visit.country ?? "نەزانراو") ?? 0) + 1);
-    pathCounts.set(visit.path, (pathCounts.get(visit.path) ?? 0) + 1);
+    const label = pathLabel(visit.path);
+    pathCounts.set(label, (pathCounts.get(label) ?? 0) + 1);
 
     const day = visit.created_at.slice(0, 10);
     dayCounts.set(day, (dayCounts.get(day) ?? 0) + 1);

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
+import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { routing } from "@/i18n/routing";
 import type { BookingSettingsRow } from "@/lib/supabase/database.types";
@@ -15,7 +16,7 @@ const DEFAULTS: Omit<BookingSettingsRow, "updated_at"> = {
 };
 
 export async function getBookingSettingsAdmin(): Promise<BookingSettingsRow> {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
   const { data, error } = await supabase
     .from("booking_settings")
@@ -28,7 +29,7 @@ export async function getBookingSettingsAdmin(): Promise<BookingSettingsRow> {
 }
 
 export async function updateBookingSettings(formData: FormData) {
-  await requireAdminSession();
+  await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
 
   const open_weekdays = formData

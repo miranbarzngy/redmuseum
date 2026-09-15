@@ -5,7 +5,7 @@ import { Panel } from "../../_components/Panel";
 import { EmptyState } from "../../_components/EmptyState";
 import { LinkButton } from "../../_components/Button";
 import { IntroForm } from "./IntroForm";
-import { SectionList } from "./SectionList";
+import { SectionGrid } from "./SectionGrid";
 import { updateBiographyIntro } from "./actions";
 
 export default async function AdminMuseumSectionsPage() {
@@ -46,7 +46,7 @@ export default async function AdminMuseumSectionsPage() {
         </EmptyState>
       )}
 
-      {!blocksError && hasBlocks && <SectionList blocks={blocks ?? []} />}
+      {!blocksError && hasBlocks && <SectionGrid blocks={blocks ?? []} />}
 
       <Panel
         title="دەقی سەرەتای بەشەکان"

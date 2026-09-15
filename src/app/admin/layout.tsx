@@ -20,11 +20,23 @@ import "../globals.css";
 // since it's a single static weight, not a variable font; leaving weight
 // unset would default the face to matching only 400 and skip it elsewhere,
 // and 500 (the old kurdish.ttf's weight) would be wrong for this file.
+//
+// kurdish.otf also draws the plain ASCII digits 0-9 as Eastern Arabic-Indic
+// numeral shapes (confirmed by rendering the glyphs directly) — not what the
+// admin panel's dates/counts/etc. want. The `declarations` unicode-range
+// below excludes just that range from this face, so digits fall through to
+// next/font's own auto-generated metrics-matched fallback (a plain
+// `local(Arial)` face it always creates alongside this one for CLS
+// prevention) — giving ordinary Western digits with no extra font, no
+// network dependency, and no risk of an unrestricted fallback swallowing
+// Kurdish text too, since that fallback is only ever reached for the
+// characters this face deliberately excludes.
 const kurdishFont = localFont({
   src: "../../../public/font/kurdish.otf",
   variable: "--font-kurdish-local",
   weight: "400",
   display: "swap",
+  declarations: [{ prop: "unicode-range", value: "U+0-2F, U+3A-10FFFF" }],
 });
 
 export const metadata: Metadata = {

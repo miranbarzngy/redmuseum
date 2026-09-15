@@ -4,7 +4,7 @@ import { PageHeader } from "../../_components/PageHeader";
 import { EmptyState } from "../../_components/EmptyState";
 import { LinkButton } from "../../_components/Button";
 import { FilterTabs, type FilterOption } from "../../_components/FilterTabs";
-import { GalleryImageList } from "./GalleryImageList";
+import { GalleryGrid } from "./GalleryGrid";
 import type { GalleryRow, GalleryCategoryRow } from "@/lib/supabase/database.types";
 
 // database.types.ts is hand-written with no Relationships metadata, so the
@@ -76,7 +76,7 @@ export default async function AdminGalleryPage({
       )}
 
       {visible && visible.length > 0 && (
-        <GalleryImageList key={activeSlug} items={visible} draggable />
+        <GalleryGrid key={activeSlug} items={visible} draggable />
       )}
     </div>
   );

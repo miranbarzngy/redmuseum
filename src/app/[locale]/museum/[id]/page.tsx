@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { HeaderServer } from "@/components/layout/HeaderServer";
 import { Footer } from "@/components/layout/Footer";
 import { ScrollExperience } from "@/components/background/ScrollExperience";
-import { ArtworkPlaceholder } from "@/components/ui/ArtworkPlaceholder";
+import { MuseumPhotoMarquee } from "@/components/sections/MuseumPhotoMarquee";
 import { Link } from "@/i18n/navigation";
 import { getBiographyBlocks } from "@/lib/data/biography";
 import { pickSectionTitle } from "@/lib/museumSectionTitle";
@@ -81,7 +80,7 @@ export default async function MuseumSectionPage({
   const section = await loadSection(id);
   if (!section) notFound();
 
-  const { block, index, total, prev, next } = section;
+  const { block, index, prev, next } = section;
   const t = await getTranslations({ locale, namespace: "museum" });
   const number = String(index + 1);
   const body = pickBody(block, locale as Locale);
@@ -99,73 +98,28 @@ export default async function MuseumSectionPage({
       <ScrollExperience>
         <main className="min-h-screen pb-24 pt-28 sm:pt-32">
           <div className="container-art section-px flex flex-col gap-12">
-            <Link
-              href="/#biography"
-              className="inline-flex items-center gap-2 text-fluid-sm font-medium text-ink-soft transition-colors hover:text-[#850B10]"
-            >
-              <ArrowLeft size={16} className="icon-flip" />
-              {t("backToSections")}
-            </Link>
-
             <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
-              <div className="w-full lg:w-1/2">
-                <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl">
-                  {cover ? (
-                    <Image
-                      src={cover}
-                      alt=""
-                      fill
-                      sizes="(min-width: 1024px) 50vw, 100vw"
-                      className="object-contain"
-                      priority
-                    />
-                  ) : (
-                    <ArtworkPlaceholder seed={`bio-${block.id}`} className="h-full w-full" />
-                  )}
+              <div className="flex w-full flex-col items-center gap-3 text-center">
+                <div className="flex items-center justify-center gap-3">
+                  <span
+                    className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-display text-fluid-base font-bold text-white"
+                    style={{ backgroundColor: ACCENT }}
+                  >
+                    {number}
+                  </span>
+                  <h1 className="font-display text-fluid-2xl font-semibold leading-tight text-ink">
+                    {title || t("sectionLabel", { number })}
+                  </h1>
                 </div>
-              </div>
-
-              <div className="flex w-full flex-col gap-5 lg:w-1/2">
-                <span
-                  className="inline-flex h-14 w-14 items-center justify-center rounded-full font-display text-fluid-xl font-bold text-white"
-                  style={{ backgroundColor: ACCENT }}
-                >
-                  {number}
-                </span>
-                <p className="text-fluid-xs uppercase tracking-[0.3em]" style={{ color: ACCENT }}>
-                  {t("ofTotal", { number, total: String(total) })}
-                </p>
-                <h1 className="font-display text-fluid-xl font-semibold leading-tight text-ink">
-                  {title || t("sectionLabel", { number })}
-                </h1>
-                <p className="whitespace-pre-line text-sm leading-relaxed text-ink-soft sm:text-fluid-base">
+                <p className="whitespace-pre-line text-xs leading-relaxed text-ink-soft sm:text-fluid-sm">
                   {body || t("noContent")}
                 </p>
               </div>
             </div>
 
             {morePhotos.length > 0 && (
-              <section className="flex flex-col gap-5">
-                <h2 className="font-display text-fluid-lg font-semibold text-ink">
-                  {t("photos", { count: String(morePhotos.length + (cover ? 1 : 0)) })}
-                </h2>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-                  {morePhotos.map((url, i) => (
-                    <div
-                      key={url}
-                      className="relative aspect-[4/3] overflow-hidden rounded-2xl"
-                    >
-                      <Image
-                        src={url}
-                        alt=""
-                        fill
-                        sizes="(min-width: 640px) 33vw, 50vw"
-                        className="object-contain"
-                        loading={i < 3 ? "eager" : "lazy"}
-                      />
-                    </div>
-                  ))}
-                </div>
+              <section className="relative left-1/2 right-1/2 -mx-[50vw] flex w-screen flex-col gap-5">
+                <MuseumPhotoMarquee photos={morePhotos} />
               </section>
             )}
 
@@ -174,7 +128,7 @@ export default async function MuseumSectionPage({
                 {prev ? (
                   <Link
                     href={`/museum/${prev.id}`}
-                    className="group inline-flex items-center gap-2 text-fluid-sm font-medium text-ink-soft transition-colors hover:text-[#850B10]"
+                    className="group inline-flex items-center gap-2 rounded-full bg-[#850B10] px-4 py-2 text-fluid-sm font-medium text-white transition-opacity hover:opacity-90"
                   >
                     <ArrowLeft
                       size={16}
@@ -188,7 +142,7 @@ export default async function MuseumSectionPage({
                 {next && (
                   <Link
                     href={`/museum/${next.id}`}
-                    className="group inline-flex items-center gap-2 text-fluid-sm font-medium text-ink-soft transition-colors hover:text-[#850B10] sm:flex-row-reverse sm:text-end"
+                    className="group inline-flex items-center gap-2 rounded-full bg-[#850B10] px-4 py-2 text-fluid-sm font-medium text-white transition-opacity hover:opacity-90 sm:flex-row-reverse sm:text-end"
                   >
                     <ArrowRight
                       size={16}

@@ -7,9 +7,9 @@ import { ConfirmDialog } from "./ConfirmDialog";
 
 const REMOVE_CONFIRM = "سڕینەوەی ئەم وێنەیە؟ ناتوانرێت هەڵبوەشێندرێتەوە.";
 
-/** Multi-image: a grid of kept photos (each removable, each backed by a
- * hidden `keptName` input) plus a trailing "+" tile whose `multiple` file
- * input previews new selections alongside. Matches the museum-block and
+/** Multi-image: a leading "+" tile whose `multiple` file input previews new
+ * selections alongside, plus a grid of kept photos (each removable, each
+ * backed by a hidden `keptName` input). Matches the museum-block and
  * hero-gallery inputs.
  *
  * `previewClassName` sets the size/fit of each thumbnail — and of the tile —
@@ -41,6 +41,19 @@ export function ImageGalleryField({
       <legend className="font-kurdish text-fluid-xs font-medium text-ink-soft">{label}</legend>
 
       <div className="flex flex-wrap gap-3">
+        {/* Leading tile stays at a stable position, so its `multiple` input
+            keeps a pending selection even as previews render after it. */}
+        <AddPhotoTile
+          name={name}
+          multiple
+          caption={fileLabel}
+          sizeClassName={previewClassName}
+          onChange={(e) => {
+            const files = Array.from(e.target.files ?? []);
+            setAdded(files.map((f) => URL.createObjectURL(f)));
+          }}
+        />
+
         {kept.map((url, i) => (
           <div key={url} className="relative">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -75,19 +88,6 @@ export function ImageGalleryField({
             )}
           />
         ))}
-
-        {/* Trailing tile stays at a stable position, so its `multiple` input
-            keeps a pending selection even as previews render before it. */}
-        <AddPhotoTile
-          name={name}
-          multiple
-          caption={fileLabel}
-          sizeClassName={previewClassName}
-          onChange={(e) => {
-            const files = Array.from(e.target.files ?? []);
-            setAdded(files.map((f) => URL.createObjectURL(f)));
-          }}
-        />
       </div>
 
       {hint && <p className="font-kurdish text-fluid-xs text-ink-faint">{hint}</p>}

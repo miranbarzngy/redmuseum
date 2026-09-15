@@ -455,6 +455,76 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["page_visits"]["Insert"]>;
         Relationships: [];
       };
+      admin_roles: {
+        Row: {
+          id: string;
+          name: string;
+          permissions: string[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          permissions?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["admin_roles"]["Insert"]>;
+        Relationships: [];
+      };
+      admin_users: {
+        Row: {
+          id: string;
+          full_name: string;
+          email: string;
+          password_hash: string;
+          role_id: string;
+          is_active: boolean;
+          last_login: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          full_name: string;
+          email: string;
+          password_hash: string;
+          role_id: string;
+          is_active?: boolean;
+          last_login?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["admin_users"]["Insert"]>;
+        Relationships: [];
+      };
+      admin_audit_logs: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          user_email: string;
+          action: string;
+          target_entity: string;
+          target_id: string | null;
+          details: { before?: unknown; after?: unknown; user_agent?: string | null };
+          ip_address: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          user_email: string;
+          action: string;
+          target_entity: string;
+          target_id?: string | null;
+          details?: { before?: unknown; after?: unknown; user_agent?: string | null };
+          ip_address?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["admin_audit_logs"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -501,4 +571,10 @@ export type AdminPushTokenInsert = Database["public"]["Tables"]["admin_push_toke
 export type SystemSettingsRow = Database["public"]["Tables"]["system_settings"]["Row"];
 export type BookingSettingsRow = Database["public"]["Tables"]["booking_settings"]["Row"];
 export type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
+export type AdminRoleRow = Database["public"]["Tables"]["admin_roles"]["Row"];
+export type AdminRoleInsert = Database["public"]["Tables"]["admin_roles"]["Insert"];
+export type AdminUserRow = Database["public"]["Tables"]["admin_users"]["Row"];
+export type AdminUserInsert = Database["public"]["Tables"]["admin_users"]["Insert"];
+export type AdminAuditLogRow = Database["public"]["Tables"]["admin_audit_logs"]["Row"];
+export type AdminAuditLogInsert = Database["public"]["Tables"]["admin_audit_logs"]["Insert"];
 export type BookingInsert = Database["public"]["Tables"]["bookings"]["Insert"];

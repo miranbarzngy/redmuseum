@@ -10,7 +10,15 @@ const BRAND_NAME_EN = "National Museum Amnasuraka";
  * client trees. The wordmark stays Kurdish + English regardless of the
  * active locale, exactly like the header.
  */
-export function BrandLockup({ className }: { className?: string }) {
+export function BrandLockup({
+  className,
+  size = "sm",
+}: {
+  className?: string;
+  size?: "sm" | "lg";
+}) {
+  const isLarge = size === "lg";
+
   return (
     <div className={`flex items-center justify-center gap-2.5 ${className ?? ""}`}>
       <Image
@@ -18,13 +26,21 @@ export function BrandLockup({ className }: { className?: string }) {
         alt=""
         width={96}
         height={96}
-        className="h-9 w-9 shrink-0 object-contain"
+        className={`shrink-0 object-contain ${isLarge ? "h-16 w-16" : "h-9 w-9"}`}
       />
       <span className="flex flex-col items-start">
-        <span className="font-kurdish text-fluid-xs font-semibold leading-tight text-ink">
+        <span
+          className={`whitespace-nowrap font-kurdish font-semibold leading-tight text-ink ${
+            isLarge ? "text-fluid-lg" : "text-fluid-xs"
+          }`}
+        >
           {BRAND_NAME_KU}
         </span>
-        <span className="text-[10px] font-medium uppercase tracking-wider text-ink-faint">
+        <span
+          className={`font-medium uppercase tracking-wider text-ink-faint ${
+            isLarge ? "text-fluid-xs" : "text-[10px]"
+          }`}
+        >
           {BRAND_NAME_EN}
         </span>
       </span>

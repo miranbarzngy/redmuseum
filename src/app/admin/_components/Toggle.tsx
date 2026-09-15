@@ -8,6 +8,7 @@
 export function Toggle({
   id,
   name,
+  value,
   defaultChecked,
   checked,
   onChange,
@@ -15,6 +16,9 @@ export function Toggle({
 }: {
   id?: string;
   name?: string;
+  /** Submitted value when checked — e.g. distinguishing several same-`name`
+   * checkboxes in a permission matrix. Native checkboxes default to "on". */
+  value?: string;
   defaultChecked?: boolean;
   checked?: boolean;
   onChange?: (checked: boolean) => void;
@@ -26,11 +30,12 @@ export function Toggle({
         id={id}
         type="checkbox"
         name={name}
+        value={value}
         defaultChecked={defaultChecked}
         checked={checked}
         onChange={onChange ? (e) => onChange(e.target.checked) : undefined}
         disabled={disabled}
-        className="peer h-full w-full cursor-pointer appearance-none rounded-full border border-ink/15 bg-canvas-paper transition-colors checked:border-pigment-terracotta checked:bg-pigment-terracotta disabled:cursor-not-allowed disabled:opacity-60"
+        className="peer h-full w-full cursor-pointer appearance-none rounded-full border border-ink/15 bg-canvas-paper transition-colors checked:border-[#850B10] checked:bg-[#850B10] disabled:cursor-not-allowed disabled:opacity-60"
       />
       {/* Off: knob at the start edge (right, in RTL). On: slides to the end. */}
       <span className="pointer-events-none absolute right-1 h-4 w-4 rounded-full bg-white shadow-card transition-transform peer-checked:-translate-x-5" />

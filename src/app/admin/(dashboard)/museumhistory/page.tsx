@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "../../_components/PageHeader";
 import { EmptyState } from "../../_components/EmptyState";
 import { LinkButton } from "../../_components/Button";
-import { ExhibitionList } from "./ExhibitionList";
+import { EventGrid } from "./EventGrid";
 
 export default async function AdminMuseumHistoryPage() {
   const supabase = createClient();
@@ -39,7 +39,7 @@ export default async function AdminMuseumHistoryPage() {
         </EmptyState>
       )}
 
-      {!error && hasRows && <ExhibitionList exhibitions={exhibitions ?? []} />}
+      {!error && hasRows && <EventGrid exhibitions={exhibitions ?? []} />}
     </div>
   );
 }
