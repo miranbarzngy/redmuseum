@@ -46,9 +46,23 @@ const config: Config = {
         // custom font on /admin.
         display: ["var(--font-vazirmatn, Vazirmatn)", "Vazirmatn", "sans-serif"],
         body: ["var(--font-vazirmatn, Vazirmatn)", "Vazirmatn", "sans-serif"],
+        // No standalone "Kurdish Sarchia" entry after the var() — on the
+        // public site (where --font-kurdish-local is undefined) the var()'s
+        // own fallback argument already resolves to that exact face, so a
+        // second standalone entry is never reached there. On /admin, where
+        // --font-kurdish-local IS defined, that var() resolves to
+        // "kurdishFont, kurdishFont Fallback" — kurdishFont excludes digits
+        // (see admin/layout.tsx) and kurdishFont Fallback is `local(Arial)`,
+        // which silently fails to match on Android (Arial isn't a system
+        // font there, unlike Windows/macOS). A standalone "Kurdish Sarchia"
+        // here used to be exactly what digits fell through to on Android
+        // after that Arial lookup failed — and that face draws 0-9 as
+        // Eastern Arabic-Indic glyphs. Dropping it lets digits cascade
+        // straight to the sans-serif generic instead, which always resolves
+        // to a real installed font (Roboto/Noto Sans on Android, Segoe UI on
+        // Windows, etc.) with ordinary Western digit glyphs.
         kurdish: [
           "var(--font-kurdish-local, 'Kurdish Sarchia')",
-          "Kurdish Sarchia",
           "var(--font-vazirmatn, Vazirmatn)",
           "Vazirmatn",
           "sans-serif",
