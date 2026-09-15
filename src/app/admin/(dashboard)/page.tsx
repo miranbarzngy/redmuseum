@@ -30,7 +30,7 @@ export default async function AdminOverviewPage() {
           action={
             <Link
               href="/admin/bookings"
-              className="font-kurdish text-fluid-xs font-medium text-pigment-terracotta hover:underline"
+              className="font-kurdish text-fluid-xs font-medium text-[#850B10] hover:underline"
             >
               هەموو
             </Link>
@@ -46,7 +46,7 @@ export default async function AdminOverviewPage() {
                 href={`/admin/bookings?view=${b.id}`}
                 className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-canvas-paper"
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-canvas-paper text-pigment-terracotta">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#850B10] text-white">
                   <CalendarClock size={14} />
                 </span>
                 <span className="min-w-0 flex-1 truncate text-fluid-sm text-ink">{b.name}</span>
@@ -64,7 +64,7 @@ export default async function AdminOverviewPage() {
           action={
             <Link
               href="/admin/messages"
-              className="font-kurdish text-fluid-xs font-medium text-pigment-terracotta hover:underline"
+              className="font-kurdish text-fluid-xs font-medium text-[#850B10] hover:underline"
             >
               هەموو
             </Link>
@@ -82,7 +82,7 @@ export default async function AdminOverviewPage() {
                   href={`/admin/messages/${m.id}`}
                   className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-canvas-paper"
                 >
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-canvas-paper text-pigment-terracotta">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#850B10] text-white">
                     <Mail size={14} />
                   </span>
                   <span className="min-w-0 flex-1 truncate text-fluid-sm text-ink">{m.name}</span>

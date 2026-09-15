@@ -44,7 +44,7 @@ export default async function AdminMessageDetailPage(props: { params: Promise<{ 
         <div className="flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
           <a
             href={`tel:${message.phone}`}
-            className="font-kurdish inline-flex items-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-fluid-sm font-medium text-canvas transition-colors hover:bg-pigment-terracotta"
+            className="font-kurdish inline-flex items-center gap-1.5 rounded-full bg-[#850B10] px-5 py-2.5 text-fluid-sm font-medium text-canvas transition-colors hover:bg-pigment-terracotta"
           >
             <Phone size={15} /> پەیوەندیکردن
           </a>

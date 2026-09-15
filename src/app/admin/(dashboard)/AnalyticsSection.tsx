@@ -13,7 +13,7 @@ function StatCard({
 }) {
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white p-6 shadow-card">
-      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-canvas-paper text-pigment-terracotta">
+      <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#850B10] text-white">
         <Icon size={18} />
       </span>
       <div>
@@ -52,7 +52,7 @@ function RankedList({
               </div>
               <div className="h-1.5 rounded-full bg-canvas-paper">
                 <div
-                  className="h-full rounded-full bg-pigment-terracotta/70"
+                  className="h-full rounded-full bg-[#850B10]"
                   style={{ width: `${(count / max) * 100}%` }}
                 />
               </div>
@@ -75,7 +75,7 @@ function DailyTrendChart({ dailyCounts }: { dailyCounts: { date: string; count: 
           <div key={date} className="flex flex-1 flex-col items-center gap-1.5" title={`${date}: ${count}`}>
             <div className="flex w-full flex-1 items-end">
               <div
-                className="w-full rounded-t-sm bg-pigment-terracotta/70"
+                className="w-full rounded-t-sm bg-[#850B10]"
                 style={{ height: `${Math.max(4, (count / max) * 100)}%` }}
               />
             </div>

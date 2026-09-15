@@ -41,7 +41,7 @@ export function FilterTabs({
             className={clsx(
               "font-kurdish inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-fluid-xs font-medium transition-colors",
               active
-                ? "bg-ink text-canvas"
+                ? "bg-[#850B10] text-canvas"
                 : "border border-ink/15 text-ink-soft hover:border-pigment-terracotta hover:text-pigment-terracotta"
             )}
           >

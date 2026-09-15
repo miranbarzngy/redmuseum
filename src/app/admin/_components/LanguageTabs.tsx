@@ -54,7 +54,7 @@ export function LanguageTabs({ className }: { className?: string }) {
             onClick={() => ctx.setActive(lang.code)}
             className={clsx(
               "font-kurdish rounded-full px-3.5 py-1.5 text-fluid-xs font-medium transition-colors",
-              isActive ? "bg-ink text-canvas" : "text-ink-soft hover:text-ink"
+              isActive ? "bg-[#850B10] text-canvas" : "text-ink-soft hover:text-ink"
             )}
           >
             {lang.label}
