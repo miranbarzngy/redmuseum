@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -20,7 +19,6 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
   const t = useTranslations("contact");
   const locale = useLocale() as Locale;
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-  const contactCardImageUrl = profile?.contact_card_image_url ?? null;
 
   const savedLocation = profile?.[`contact_location_${locale}`];
   const email = profile?.contact_email?.trim() || "info@amnasuraka.museum";
@@ -163,76 +161,64 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
           </Reveal>
 
           <Reveal from="end" delay={0.15}>
-            {contactCardImageUrl ? (
-              <div className="relative hidden h-full min-h-[420px] w-full overflow-hidden rounded-2xl lg:block">
-                <Image
-                  src={contactCardImageUrl}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1024px) 40vw, 100vw"
-                  className="object-cover"
-                />
-              </div>
-            ) : (
-              <div className="flex h-full flex-col justify-between gap-10 rounded-2xl bg-ink p-8 text-white sm:p-10">
-                <div className="flex flex-col gap-6">
-                  <h3 className="font-display text-fluid-lg font-semibold">{t("info.heading")}</h3>
-                  <div className="flex flex-col gap-4 text-fluid-sm text-white">
-                    <div className="flex items-start gap-3">
-                      <Mail size={18} className="mt-0.5 shrink-0 text-pigment-gold" />
-                      <div>
-                        <div className="text-fluid-xs uppercase tracking-[0.2em] text-white">
-                          {t("info.emailLabel")}
-                        </div>
-                        <a href={`mailto:${email}`} className="hover:text-pigment-gold">
-                          {email}
-                        </a>
+            <div className="flex h-full flex-col justify-between gap-10 rounded-2xl bg-ink p-8 text-white sm:p-10">
+              <div className="flex flex-col gap-6">
+                <h3 className="font-display text-fluid-lg font-semibold">{t("info.heading")}</h3>
+                <div className="flex flex-col gap-4 text-fluid-sm text-white">
+                  <div className="flex items-start gap-3">
+                    <Mail size={18} className="mt-0.5 shrink-0 text-pigment-gold" />
+                    <div>
+                      <div className="text-fluid-xs uppercase tracking-[0.2em] text-white">
+                        {t("info.emailLabel")}
                       </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <MapPin size={18} className="mt-0.5 shrink-0 text-pigment-gold" />
-                      <div>
-                        <div className="text-fluid-xs uppercase tracking-[0.2em] text-white">
-                          {t("info.studioLabel")}
-                        </div>
-                        {mapUrl ? (
-                          <a
-                            href={mapUrl}
-                            target="_blank"
-                            rel="noreferrer noopener"
-                            className="hover:text-pigment-gold"
-                          >
-                            {location}
-                          </a>
-                        ) : (
-                          <span>{location}</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4" hidden={socials.length === 0}>
-                  <span className="text-fluid-xs uppercase tracking-[0.2em] text-white">
-                    {t("info.socialsHeading")}
-                  </span>
-                  <div className="flex items-center gap-3">
-                    {socials.map((s) => (
-                      <a
-                        key={s.type}
-                        href={s.href}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                        aria-label={s.label}
-                        className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 text-white transition-colors hover:border-pigment-gold hover:text-pigment-gold"
-                      >
-                        <SocialIcon type={s.type} className="h-6 w-6" />
+                      <a href={`mailto:${email}`} className="hover:text-pigment-gold">
+                        {email}
                       </a>
-                    ))}
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <MapPin size={18} className="mt-0.5 shrink-0 text-pigment-gold" />
+                    <div>
+                      <div className="text-fluid-xs uppercase tracking-[0.2em] text-white">
+                        {t("info.studioLabel")}
+                      </div>
+                      {mapUrl ? (
+                        <a
+                          href={mapUrl}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="hover:text-pigment-gold"
+                        >
+                          {location}
+                        </a>
+                      ) : (
+                        <span>{location}</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            )}
+
+              <div className="flex items-center gap-4" hidden={socials.length === 0}>
+                <span className="text-fluid-xs uppercase tracking-[0.2em] text-white">
+                  {t("info.socialsHeading")}
+                </span>
+                <div className="flex items-center gap-3">
+                  {socials.map((s) => (
+                    <a
+                      key={s.type}
+                      href={s.href}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      aria-label={s.label}
+                      className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 text-white transition-colors hover:border-pigment-gold hover:text-pigment-gold"
+                    >
+                      <SocialIcon type={s.type} className="h-6 w-6" />
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
           </Reveal>
         </div>
       </div>

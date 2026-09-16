@@ -5,18 +5,11 @@ import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveUploadedImageUrl, resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
+import { resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
 
 export async function updateProfile(formData: FormData) {
   await requireAdminSession(PERMISSIONS.profileManage);
   const supabase = createAdminClient();
-
-  const contactCardImageUrl = await resolveUploadedImageUrl(
-    supabase,
-    formData,
-    "contact_card_image_file",
-    "contact_card_image_url"
-  );
 
   const keptHeroGalleryUrls = formData.getAll("hero_image_urls_kept").map(String);
   const newHeroGalleryUrls = await resolveUploadedImageUrls(supabase, formData, "hero_image_gallery_files");
@@ -58,7 +51,6 @@ export async function updateProfile(formData: FormData) {
     social_facebook_url: String(formData.get("social_facebook_url") ?? "").trim(),
     social_x_url: String(formData.get("social_x_url") ?? "").trim(),
     social_youtube_url: String(formData.get("social_youtube_url") ?? "").trim(),
-    ...(contactCardImageUrl !== undefined ? { contact_card_image_url: contactCardImageUrl } : {}),
     hero_image_url: heroImageUrls[0] ?? null,
     hero_image_urls: heroImageUrls,
   });

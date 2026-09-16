@@ -1,5 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import sharp from "sharp";
 import type { createAdminClient } from "./admin";
 
 // Allow-listed by MIME type, not by the client-supplied filename extension —
@@ -25,6 +26,32 @@ function assertAllowedImage(file: File): string {
   return ext;
 }
 
+// Caps every upload's longer edge and re-encodes to WEBP so the `artwork`
+// bucket doesn't fill up with untouched multi-megabyte phone photos — 2000px
+// comfortably covers the largest thing we render (the hero banner) with
+// room to spare. Quality 90 sits at the "visually lossless" end of WEBP —
+// museum/artifact photos and cover cards with fine text keep their detail —
+// while `effort: 6` (max) squeezes the file further at that same quality.
+// Animated GIFs are passed through as-is: sharp's default pipeline only
+// keeps the first frame, which would silently kill the animation.
+const MAX_DIMENSION = 2000;
+const WEBP_QUALITY = 90;
+
+async function optimizeImage(file: File): Promise<{ buffer: Buffer; contentType: string; ext: string }> {
+  if (file.type === "image/gif") {
+    return { buffer: Buffer.from(await file.arrayBuffer()), contentType: file.type, ext: "gif" };
+  }
+
+  const input = Buffer.from(await file.arrayBuffer());
+  const buffer = await sharp(input)
+    .rotate()
+    .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
+    .webp({ quality: WEBP_QUALITY, effort: 6 })
+    .toBuffer();
+
+  return { buffer, contentType: "image/webp", ext: "webp" };
+}
+
 /**
  * Uploads `fieldName` (a file input) to the `artwork` storage bucket if a
  * file was actually chosen, falling back to a plain pasted URL from
@@ -42,10 +69,11 @@ export async function resolveUploadedImageUrl(
   const urlField = urlFieldName ? String(formData.get(urlFieldName) ?? "").trim() : "";
 
   if (file instanceof File && file.size > 0) {
-    const ext = assertAllowedImage(file);
+    assertAllowedImage(file);
+    const { buffer, contentType, ext } = await optimizeImage(file);
     const path = `${randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from("artwork").upload(path, file, {
-      contentType: file.type,
+    const { error } = await supabase.storage.from("artwork").upload(path, buffer, {
+      contentType,
       cacheControl: "31536000",
       upsert: false,
     });
@@ -74,10 +102,11 @@ export async function resolveUploadedImageUrls(
 
   const urls: string[] = [];
   for (const file of files) {
-    const ext = assertAllowedImage(file);
+    assertAllowedImage(file);
+    const { buffer, contentType, ext } = await optimizeImage(file);
     const path = `${randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from("artwork").upload(path, file, {
-      contentType: file.type,
+    const { error } = await supabase.storage.from("artwork").upload(path, buffer, {
+      contentType,
       cacheControl: "31536000",
       upsert: false,
     });

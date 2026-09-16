@@ -38,7 +38,7 @@ export function ImageGalleryField({
 
   return (
     <fieldset className="flex flex-col gap-3">
-      <legend className="font-kurdish text-fluid-xs font-medium text-ink-soft">{label}</legend>
+      <legend className="font-kurdish mb-4 text-fluid-xs font-medium text-ink-soft">{label}</legend>
 
       <div className="flex flex-wrap gap-3">
         {/* Leading tile stays at a stable position, so its `multiple` input

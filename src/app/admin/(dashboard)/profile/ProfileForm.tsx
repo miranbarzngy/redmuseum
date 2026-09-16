@@ -3,7 +3,6 @@
 import { LanguageProvider, LanguageTabs } from "../../_components/LanguageTabs";
 import { LocalizedField } from "../../_components/LocalizedField";
 import { Field } from "../../_components/Field";
-import { ImageField } from "../../_components/ImageField";
 import { ImageGalleryField } from "../../_components/ImageGalleryField";
 import { Panel } from "../../_components/Panel";
 import { SaveBar } from "../../_components/SaveBar";
@@ -46,20 +45,13 @@ export function ProfileForm({
       <form action={action} className="flex flex-col gap-5">
         <Panel title="وێنەکان" bodyClassName="flex flex-col gap-8">
           <ImageGalleryField
-            label="وێنەی پۆرترێتی پەڕەی سەرەکی"
+            label="وێنەی پۆرترێتی پەڕەی سەرەکی (16:9)"
             name="hero_image_gallery_files"
             keptName="hero_image_urls_kept"
             currentUrls={initialGallery}
             fileLabel="زیادکردنی وێنە"
-            hint="چەند وێنە زیاد بکە بۆ گۆڕانی خۆکار هەر ٦ چرکە. × لەسەر وێنەیەک بۆ سڕینەوەی. وێنە نوێیەکان زیاد دەکرێن بۆ سەر ئەوانەی ماونەتەوە."
-          />
-
-          <ImageField
-            label="وێنەی کارتی پەیوەندی (بەشی «بەشی»)"
-            name="contact_card_image_file"
-            currentUrl={profile?.contact_card_image_url}
-            previewClassName="h-44 w-44 object-cover"
-            hint="کاتێک دابنرێت، لە جێی کارتی ستۆدیۆ و پەیوەندیی ڕەشدا پیشان دەدرێت. بەتاڵی بهێڵەرەوە بۆ کارتی بنەڕەتی."
+            hint="چەند وێنە زیاد بکە بۆ گۆڕانی خۆکار هەر ٦ چرکە."
+            previewClassName="aspect-video h-28 object-cover"
           />
         </Panel>
 

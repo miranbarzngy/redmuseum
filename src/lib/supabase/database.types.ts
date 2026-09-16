@@ -184,7 +184,6 @@ export interface Database {
           stat_visitors_label_ar: string | null;
           hero_image_url: string | null;
           hero_image_urls: string[];
-          contact_card_image_url: string | null;
           contact_email: string | null;
           contact_location_ku: string | null;
           contact_location_en: string | null;
@@ -228,7 +227,6 @@ export interface Database {
           stat_visitors_label_ar?: string | null;
           hero_image_url?: string | null;
           hero_image_urls?: string[];
-          contact_card_image_url?: string | null;
           contact_email?: string | null;
           contact_location_ku?: string | null;
           contact_location_en?: string | null;
