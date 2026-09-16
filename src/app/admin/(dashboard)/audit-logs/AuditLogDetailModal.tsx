@@ -3,7 +3,25 @@
 import clsx from "clsx";
 import { Modal } from "../../_components/Modal";
 import { formatMessageDate } from "../messages/formatMessageDate";
+import { describeAuditAction, describeAuditTargetPrefix } from "./actionLabels";
 import type { AdminAuditLogRow } from "@/lib/supabase/database.types";
+
+type AuditLogWithUserName = AdminAuditLogRow & { user_name: string; target_label: string | null };
+
+/** Same prefix + label logic as AuditLogGrid's TargetCell. */
+function TargetSummary({ log }: { log: AuditLogWithUserName }) {
+  const prefix = describeAuditTargetPrefix(log);
+  return (
+    <>
+      {prefix}
+      {log.target_label ? (
+        <span>{prefix ? " · " : ""}{log.target_label}</span>
+      ) : log.target_id ? (
+        <span dir="ltr"> · {log.target_id.slice(0, 8)}</span>
+      ) : null}
+    </>
+  );
+}
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
@@ -75,17 +93,22 @@ export function AuditLogDetailModal({
   log,
   onClose,
 }: {
-  log: AdminAuditLogRow | null;
+  log: AuditLogWithUserName | null;
   onClose: () => void;
 }) {
   return (
-    <Modal open={log !== null} title={log?.action ?? ""} onClose={onClose} widthClassName="max-w-2xl">
+    <Modal
+      open={log !== null}
+      title={log ? describeAuditAction(log) : ""}
+      onClose={onClose}
+      widthClassName="max-w-2xl"
+    >
       {log && (
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3 text-fluid-xs text-ink-faint sm:grid-cols-4">
             <div>
               <span className="font-kurdish block text-ink-soft">بەکارهێنەر</span>
-              <span dir="ltr">{log.user_email}</span>
+              <span>{log.user_name}</span>
             </div>
             <div>
               <span className="font-kurdish block text-ink-soft">کات</span>
@@ -93,8 +116,7 @@ export function AuditLogDetailModal({
             </div>
             <div>
               <span className="font-kurdish block text-ink-soft">ئامانج</span>
-              {log.target_entity}
-              {log.target_id ? ` · ${log.target_id.slice(0, 8)}` : ""}
+              <TargetSummary log={log} />
             </div>
             <div>
               <span className="font-kurdish block text-ink-soft">ئای‌پی</span>

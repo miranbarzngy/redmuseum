@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Phone, ScanFace, Users, Tag, CalendarDays, Clock3, Hash, Loader2, Trash2, Printer } from "lucide-react";
-import { deleteBooking, getFacePhotoUrl } from "./actions";
+import { deleteBooking, getFacePhotoUrl, logBookingPrinted } from "./actions";
 import { openBookingPrint } from "./bookingPrint";
 import { formatVisitDate, formatSubmittedAt } from "./formatBookingDate";
 import { StatusSelect } from "./StatusSelect";
@@ -180,7 +180,10 @@ export function BookingDetailModal({ booking, onClose }: { booking: BookingRow; 
             </a>
             <button
               type="button"
-              onClick={() => openBookingPrint(booking, facePhotoUrl)}
+              onClick={() => {
+                openBookingPrint(booking, facePhotoUrl);
+                logBookingPrinted(booking.id).catch(() => {});
+              }}
               className="font-kurdish inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-4 py-2.5 text-fluid-sm font-medium text-ink-soft transition-colors hover:border-[#850B10] hover:text-[#850B10]"
             >
               <Printer size={15} /> چاپکردن

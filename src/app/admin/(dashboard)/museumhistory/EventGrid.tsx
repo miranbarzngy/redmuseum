@@ -64,9 +64,13 @@ function EventCard({ exhibition }: { exhibition: ExhibitionRow }) {
         {exhibition.title_ku}
       </Link>
 
-      <div className="mt-2 flex items-center justify-center gap-1.5">
-        <EditLink href={`/admin/museumhistory/${exhibition.id}`} />
-        <DeleteButton action={deleteExhibition.bind(null, exhibition.id)} confirmMessage={confirmFor(exhibition)} />
+      <div className="mt-2 flex items-start justify-center gap-3">
+        <EditLink href={`/admin/museumhistory/${exhibition.id}`} showLabel />
+        <DeleteButton
+          action={deleteExhibition.bind(null, exhibition.id)}
+          confirmMessage={confirmFor(exhibition)}
+          showLabel
+        />
       </div>
     </div>
   );

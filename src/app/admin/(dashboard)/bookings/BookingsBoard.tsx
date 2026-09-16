@@ -3,7 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { Ticket, Clock, CheckCircle2, LogIn, XCircle, CircleSlash, AlertTriangle, Eye, Check, X, Loader2, Printer } from "lucide-react";
 import clsx from "clsx";
-import { updateBookingStatus, getFacePhotoUrl } from "./actions";
+import { updateBookingStatus, getFacePhotoUrl, logBookingPrinted } from "./actions";
 import { openBookingPrint } from "./bookingPrint";
 import { formatVisitDate } from "./formatBookingDate";
 import { STATUS_LABELS, STATUS_SOLID } from "./status";
@@ -112,6 +112,7 @@ function printBooking(b: BookingRow) {
   // Kick off the signed-URL fetch here (sync) and hand the promise to
   // openBookingPrint, which opens its window before awaiting it.
   openBookingPrint(b, b.face_image_path ? getFacePhotoUrl(b.face_image_path) : null);
+  logBookingPrinted(b.id).catch(() => {});
 }
 
 /** `visit_date` is a plain "YYYY-MM-DD". The period filters look forward

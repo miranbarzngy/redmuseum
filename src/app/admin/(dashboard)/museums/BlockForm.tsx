@@ -57,6 +57,7 @@ export function BlockForm({
             label="پەراگراف"
             multiline
             required
+            resizable
             defaults={{ ku: block?.body_ku, en: block?.body_en, ar: block?.body_ar }}
           />
         </Panel>

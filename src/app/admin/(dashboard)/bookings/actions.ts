@@ -2,9 +2,21 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdminSession } from "@/lib/adminAuth";
+import { withAuditLog } from "@/lib/auditLogger";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { BookingRow, BookingStatus } from "@/lib/supabase/database.types";
+
+// Which audit action a status transition counts as — StatusSelect and
+// BookingsBoard's quick approve/reject/visited/no-show buttons all funnel
+// through updateBookingStatus below, so labelling it here covers every path.
+const STATUS_ACTION: Record<BookingStatus, string> = {
+  pending: "update_booking_status",
+  confirmed: "accept_booking",
+  cancelled: "decline_booking",
+  checked_in: "mark_booking_visited",
+  no_show: "mark_booking_not_visited",
+};
 
 // bookings holds visitor PII (and, when face scan is on, biometric data)
 // with no public-read RLS policy — same shape as contact_messages. Reads
@@ -60,21 +72,48 @@ export async function getFacePhotoUrl(path: string): Promise<string | null> {
 }
 
 export async function updateBookingStatus(id: string, status: BookingStatus) {
-  await requireAdminSession(PERMISSIONS.bookingsManage);
+  const session = await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
-  const { error } = await supabase.from("bookings").update({ status }).eq("id", id);
 
-  if (error) throw new Error(error.message);
+  await withAuditLog(session, STATUS_ACTION[status], "bookings", async () => {
+    // Only the status field, not the full row — bookings carries visitor PII
+    // (see the note atop this file), and a status change has no business
+    // duplicating that into the audit log's details column.
+    const { data: before } = await supabase
+      .from("bookings")
+      .select("status")
+      .eq("id", id)
+      .maybeSingle();
+    const { error } = await supabase.from("bookings").update({ status }).eq("id", id);
+    if (error) throw new Error(error.message);
+    return { result: undefined, targetId: id, before, after: { status } };
+  });
+
   revalidatePath("/admin/bookings");
   revalidatePath("/admin");
 }
 
 export async function deleteBooking(id: string) {
-  await requireAdminSession(PERMISSIONS.bookingsManage);
+  const session = await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
-  const { error } = await supabase.from("bookings").delete().eq("id", id);
 
-  if (error) throw new Error(error.message);
+  await withAuditLog(session, "delete_booking", "bookings", async () => {
+    const { data: before } = await supabase.from("bookings").select().eq("id", id).maybeSingle();
+    const { error } = await supabase.from("bookings").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+    return { result: undefined, targetId: id, before };
+  });
+
   revalidatePath("/admin/bookings");
   revalidatePath("/admin");
+}
+
+/** Printing has no data to change, so there's nothing for withAuditLog to
+ * diff — this just records that someone printed a booking and when. */
+export async function logBookingPrinted(id: string) {
+  const session = await requireAdminSession(PERMISSIONS.bookingsManage);
+  await withAuditLog(session, "print_booking", "bookings", async () => ({
+    result: undefined,
+    targetId: id,
+  }));
 }

@@ -11,12 +11,30 @@ import { btnSecondary } from "../../_components/Button";
  * FilterTabs' URL-searchParam idiom — more fields than a segmented control
  * fits. Date/select inputs re-submit immediately on change; the text field
  * only applies on Enter/submit so typing doesn't navigate per keystroke. */
+// The generic buckets match by prefix (see the action filter in page.tsx)
+// and cover every create_/update_/delete_-style action; the booking group
+// below adds exact-match options for actions worth picking out on their
+// own — see ACTION_LABELS in ./actionLabels.ts.
+const GENERAL_ACTION_OPTIONS = [
+  { value: "create", label: "زیادکردن" },
+  { value: "update", label: "نوێکردنەوە" },
+  { value: "delete", label: "سڕینەوە" },
+];
+
+const BOOKING_ACTION_OPTIONS = [
+  { value: "accept_booking", label: "پەسەندکردنی سەردان" },
+  { value: "decline_booking", label: "ڕەتکردنەوەی سەردان" },
+  { value: "mark_booking_visited", label: "دیاریکردن وەک هاتوو" },
+  { value: "mark_booking_not_visited", label: "دیاریکردن وەک نەهاتوو" },
+  { value: "print_booking", label: "چاپکردنی سەردان" },
+  { value: "update_booking_status", label: "نوێکردنەوەی دۆخی سەردان" },
+  { value: "delete_booking", label: "سڕینەوەی سەردان" },
+];
+
 export function AuditLogFilters({
   users,
-  actions,
 }: {
-  users: { id: string; email: string }[];
-  actions: string[];
+  users: { id: string; full_name: string }[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -70,7 +88,7 @@ export function AuditLogFilters({
           <option value="">هەموو</option>
           {users.map((u) => (
             <option key={u.id} value={u.id}>
-              {u.email}
+              {u.full_name}
             </option>
           ))}
         </select>
@@ -84,11 +102,18 @@ export function AuditLogFilters({
           className={fieldControlClass}
         >
           <option value="">هەموو</option>
-          {actions.map((a) => (
-            <option key={a} value={a}>
-              {a}
+          {GENERAL_ACTION_OPTIONS.map((a) => (
+            <option key={a.value} value={a.value}>
+              {a.label}
             </option>
           ))}
+          <optgroup label="سەردانەکان">
+            {BOOKING_ACTION_OPTIONS.map((a) => (
+              <option key={a.value} value={a.value}>
+                {a.label}
+              </option>
+            ))}
+          </optgroup>
         </select>
       </label>
       <label className="flex min-w-[12rem] flex-1 flex-col gap-1.5">

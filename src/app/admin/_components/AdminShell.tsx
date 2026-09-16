@@ -265,7 +265,7 @@ export function AdminShell({
           )}
           style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
         >
-          <ul className="mx-auto flex max-w-xl items-stretch">
+          <ul className="mx-auto flex max-w-xl items-stretch md:max-w-3xl">
             {mobileBar.map((item) => (
               <li key={item.href} className="flex-1">
                 <BottomNavItem
@@ -353,7 +353,7 @@ export function AdminShell({
 
         <main
           className={clsx(
-            "mx-auto max-w-5xl px-5 py-8 pb-28 sm:px-8 sm:py-10",
+            "mx-auto max-w-5xl px-5 py-8 pb-28 sm:px-8 sm:py-10 md:pb-40",
             !forceBottomNav && "lg:pb-12",
           )}
         >
@@ -387,21 +387,20 @@ function BottomNavItem({
       {/* icon in a pill that fills with soft brand red and lifts when active */}
       <span
         className={clsx(
-          "relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out",
+          "relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out md:h-16 md:w-16",
           active
             ? "-translate-y-0.5 bg-[#850B10]/12 text-[#850B10]"
             : "translate-y-0 text-ink-faint group-hover:bg-canvas-paper group-hover:text-ink-soft",
         )}
       >
         <Icon
-          size={19}
           strokeWidth={active ? 2.4 : 2}
-          className="transition-transform duration-200 group-active:scale-90"
+          className="h-[19px] w-[19px] transition-transform duration-200 group-active:scale-90 md:h-8 md:w-8"
         />
         {badge && badge.count > 0 && (
           <span
             className={clsx(
-              "absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none text-canvas ring-2 ring-white",
+              "absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none text-canvas ring-2 ring-white md:-top-2 md:-right-2.5 md:h-6 md:min-w-6 md:text-xs",
               badge.tone,
             )}
           >
@@ -412,7 +411,7 @@ function BottomNavItem({
       {/* persistent label — only the colour changes on active */}
       <span
         className={clsx(
-          "font-kurdish whitespace-nowrap text-[10px] leading-none transition-colors duration-200",
+          "font-kurdish whitespace-nowrap text-[10px] leading-none transition-colors duration-200 md:text-sm",
           active ? "font-semibold text-[#850B10]" : "font-medium text-ink-faint",
         )}
       >
@@ -422,7 +421,7 @@ function BottomNavItem({
   );
 
   const className =
-    "group relative flex w-full flex-col items-center justify-center gap-1 py-2.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#850B10]/25";
+    "group relative flex w-full flex-col items-center justify-center gap-1 py-2.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#850B10]/25 md:gap-2 md:py-6";
 
   return href ? (
     <Link

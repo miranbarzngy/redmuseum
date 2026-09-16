@@ -61,9 +61,13 @@ function GalleryCardBody({ item, handle }: { item: Row; handle?: React.ReactNode
           {stateBadge(item)}
         </div>
 
-        <div className="mt-1 flex items-center justify-center gap-1.5">
-          <EditLink href={`/admin/gallery/${item.id}`} />
-          <DeleteButton action={deleteGalleryImage.bind(null, item.id)} confirmMessage={CONFIRM} />
+        <div className="mt-1 flex items-start justify-center gap-3">
+          <EditLink href={`/admin/gallery/${item.id}`} showLabel />
+          <DeleteButton
+            action={deleteGalleryImage.bind(null, item.id)}
+            confirmMessage={CONFIRM}
+            showLabel
+          />
         </div>
       </div>
     </div>

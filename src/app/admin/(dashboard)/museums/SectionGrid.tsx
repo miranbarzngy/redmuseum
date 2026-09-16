@@ -80,9 +80,13 @@ function SectionCard({ block }: { block: BiographyBlockRow }) {
           {block.image_urls?.length ?? 0} وێنەی زیاتر
         </span>
 
-        <div className="mt-3 flex items-center justify-center gap-1.5">
-          <EditLink href={`/admin/museums/blocks/${block.id}`} />
-          <DeleteButton action={deleteBiographyBlock.bind(null, block.id)} confirmMessage={CONFIRM} />
+        <div className="mt-3 flex items-start justify-center gap-3">
+          <EditLink href={`/admin/museums/blocks/${block.id}`} showLabel />
+          <DeleteButton
+            action={deleteBiographyBlock.bind(null, block.id)}
+            confirmMessage={CONFIRM}
+            showLabel
+          />
         </div>
       </div>
     </div>
