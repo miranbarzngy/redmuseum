@@ -20,15 +20,6 @@ export const STATUS_STYLES: Record<BookingStatus, string> = {
   no_show: "bg-ink/5 text-ink-faint",
 };
 
-/** Solid-fill variant for the bookings list's status pill. */
-export const STATUS_SOLID: Record<BookingStatus, string> = {
-  pending: "bg-[#A67C1E] text-white",
-  confirmed: "bg-pigment-teal text-white",
-  checked_in: "bg-[#850B10] text-white",
-  cancelled: "bg-pigment-crimson text-white",
-  no_show: "bg-ink-faint text-white",
-};
-
 export const STATUS_ORDER: BookingStatus[] = [
   "pending",
   "confirmed",
@@ -36,3 +27,24 @@ export const STATUS_ORDER: BookingStatus[] = [
   "cancelled",
   "no_show",
 ];
+
+/** Soft pill background + text — the table/card/drawer status indicator.
+ * Emerald for attended, amber for pending, rose for cancelled, per the
+ * bookings redesign spec; confirmed/no-show get a sky/slate tone so all
+ * five stay visually distinct at a glance. */
+export const STATUS_PILL: Record<BookingStatus, string> = {
+  pending: "bg-amber-50 text-amber-700",
+  confirmed: "bg-sky-50 text-sky-700",
+  checked_in: "bg-emerald-50 text-emerald-700",
+  cancelled: "bg-rose-50 text-rose-700",
+  no_show: "bg-ink/5 text-ink-faint",
+};
+
+/** Matching dot colour for STATUS_PILL. */
+export const STATUS_DOT: Record<BookingStatus, string> = {
+  pending: "bg-amber-500",
+  confirmed: "bg-sky-500",
+  checked_in: "bg-emerald-500",
+  cancelled: "bg-rose-500",
+  no_show: "bg-ink-faint",
+};

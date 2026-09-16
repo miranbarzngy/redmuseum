@@ -99,6 +99,10 @@ const config: Config = {
         "drift": "drift 22s linear infinite",
         "pulse-soft": "pulse-soft 4s ease-in-out infinite",
         "glow-ring": "glowRing 1.9s ease-out infinite",
+        "overlay-in": "overlayIn 0.2s ease-out",
+        "modal-in": "modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        "drawer-in": "drawerIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
+        "drawer-in-left": "drawerInLeft 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
       },
       keyframes: {
         float: {
@@ -118,6 +122,22 @@ const config: Config = {
         "pulse-soft": {
           "0%, 100%": { opacity: "0.5" },
           "50%": { opacity: "1" },
+        },
+        overlayIn: {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        modalIn: {
+          "0%": { opacity: "0", transform: "translateY(10px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        drawerIn: {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(0)" },
+        },
+        drawerInLeft: {
+          "0%": { transform: "translateX(-100%)" },
+          "100%": { transform: "translateX(0)" },
         },
       },
       maxWidth: {

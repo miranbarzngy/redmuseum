@@ -1,22 +1,22 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { Ticket, Clock, CheckCircle2, LogIn, XCircle, CircleSlash, AlertTriangle, Eye, Check, X, Loader2, Printer } from "lucide-react";
+import { AlertTriangle, Ticket } from "lucide-react";
 import clsx from "clsx";
 import { updateBookingStatus, getFacePhotoUrl, logBookingPrinted } from "./actions";
 import { openBookingPrint } from "./bookingPrint";
 import { formatVisitDate } from "./formatBookingDate";
-import { STATUS_LABELS, STATUS_SOLID } from "./status";
 import { VISITOR_TYPE_LABELS } from "./visitorType";
-import { BookingDetailModal } from "./BookingDetailModal";
+import { StatusPill } from "./StatusPill";
+import { BookingAvatar } from "./BookingAvatar";
+import { BookingActions, type TargetStatus } from "./BookingActions";
+import { BookingStatCards, type BookingFilter } from "./BookingStatCards";
+import { BookingToolbar, type DateRange } from "./BookingToolbar";
+import { BookingDrawer } from "./BookingDrawer";
 import { ConfirmDialog } from "../../_components/ConfirmDialog";
 import { EmptyState } from "../../_components/EmptyState";
 import { DataList, type Column } from "../../_components/DataList";
 import type { BookingRow, BookingStatus } from "@/lib/supabase/database.types";
-
-type Filter = "all" | BookingStatus;
-type DateRange = "all" | "today" | "week" | "month" | "custom";
-type TargetStatus = "confirmed" | "cancelled" | "checked_in" | "no_show";
 
 const CONFIRM_MESSAGE: Record<TargetStatus, string> = {
   confirmed: "ئەم داواکاریی سەردانە پەسەند بکرێت؟",
@@ -25,95 +25,6 @@ const CONFIRM_MESSAGE: Record<TargetStatus, string> = {
   no_show: "دیاری بکرێت کە میوانەکە نەهاتووە؟",
 };
 const DANGER_STATUS = new Set<TargetStatus>(["cancelled", "no_show"]);
-
-const DATE_RANGES: { key: Exclude<DateRange, "custom">; label: string }[] = [
-  { key: "all", label: "هەموو" },
-  { key: "today", label: "ئەمڕۆ" },
-  { key: "week", label: "ئەم هەفتەیە" },
-  { key: "month", label: "ئەم مانگە" },
-];
-
-const dateInputClass =
-  "rounded-xl border border-ink/15 bg-canvas px-3 py-1.5 text-fluid-xs text-ink outline-none transition-colors focus:border-pigment-terracotta";
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "؟";
-}
-
-/** A round coloured icon button with its label stacked underneath. */
-function IconAction({
-  label,
-  colorClass,
-  onClick,
-  disabled,
-  children,
-}: {
-  label: string;
-  colorClass: string;
-  onClick: () => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={label}
-      className="flex w-14 shrink-0 flex-col items-center gap-1 disabled:opacity-60"
-    >
-      <span
-        className={clsx(
-          "flex h-9 w-9 items-center justify-center rounded-full text-white transition-colors",
-          colorClass
-        )}
-      >
-        {children}
-      </span>
-      <span className="font-kurdish text-center text-[10px] font-medium leading-tight text-ink-soft">
-        {label}
-      </span>
-    </button>
-  );
-}
-
-/** Avatar circle with a red "needs action" dot for still-pending bookings. */
-function Avatar({ name, pending, big = false }: { name: string; pending: boolean; big?: boolean }) {
-  return (
-    <span className="relative shrink-0">
-      <span
-        className={clsx(
-          "flex items-center justify-center rounded-full bg-canvas-paper text-fluid-xs font-semibold text-ink-soft",
-          big ? "h-10 w-10" : "h-9 w-9"
-        )}
-      >
-        {initials(name)}
-      </span>
-      {pending && (
-        <span
-          aria-label="نوێ — پەسەند نەکراوە"
-          className="animate-glow-ring absolute -end-0.5 -top-0.5 h-3 w-3 rounded-full bg-[#850B10] ring-2 ring-white"
-        />
-      )}
-    </span>
-  );
-}
-
-const STATUS_ICON: Record<BookingStatus, typeof Ticket> = {
-  pending: Clock,
-  confirmed: CheckCircle2,
-  checked_in: LogIn,
-  cancelled: XCircle,
-  no_show: CircleSlash,
-};
-
-function printBooking(b: BookingRow) {
-  // Kick off the signed-URL fetch here (sync) and hand the promise to
-  // openBookingPrint, which opens its window before awaiting it.
-  openBookingPrint(b, b.face_image_path ? getFacePhotoUrl(b.face_image_path) : null);
-  logBookingPrinted(b.id).catch(() => {});
-}
 
 /** `visit_date` is a plain "YYYY-MM-DD". The period filters look forward
  * only: "today" is today's visits, "week" is today → end of this
@@ -140,6 +51,21 @@ function inRange(visitDate: string, range: DateRange): boolean {
   return vd <= endOfWeek;
 }
 
+function matchesQuery(b: BookingRow, needle: string): boolean {
+  if (!needle) return true;
+  if (b.name.toLowerCase().includes(needle)) return true;
+  if (b.phone.includes(needle)) return true;
+  const digits = needle.replace(/\D/g, "");
+  return digits.length > 0 && b.phone.replace(/\D/g, "").includes(digits);
+}
+
+function printBooking(b: BookingRow) {
+  // Kick off the signed-URL fetch here (sync) and hand the promise to
+  // openBookingPrint, which opens its window before awaiting it.
+  openBookingPrint(b, b.face_image_path ? getFacePhotoUrl(b.face_image_path) : null);
+  logBookingPrinted(b.id).catch(() => {});
+}
+
 export function BookingsBoard({
   bookings,
   initialViewId = null,
@@ -147,10 +73,11 @@ export function BookingsBoard({
   bookings: BookingRow[];
   initialViewId?: string | null;
 }) {
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<BookingFilter>("all");
   const [dateRange, setDateRange] = useState<DateRange>("all");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
+  const [query, setQuery] = useState("");
   const [openId, setOpenId] = useState<string | null>(
     initialViewId && bookings.some((b) => b.id === initialViewId) ? initialViewId : null
   );
@@ -181,22 +108,16 @@ export function BookingsBoard({
     return bookings.filter((b) => inRange(b.visit_date, dateRange));
   }, [bookings, dateRange, customFrom, customTo]);
 
-  function pickPreset(key: DateRange) {
-    setDateRange(key);
-    setCustomFrom("");
-    setCustomTo("");
-    setShowOverdueOnly(false);
-  }
-
-  function pickStatus(key: Filter) {
+  function pickStatus(key: BookingFilter) {
     setShowOverdueOnly(false);
     setFilter(key);
   }
 
-  // Two numbers per status: how many bookings, and how many people
-  // (sum of guest_count). Both scoped to the active date filter.
+  // Two numbers per status: how many bookings, and how many people (sum of
+  // guest_count). Both scoped to the active date filter only — search
+  // narrows the visible list further without changing these totals.
   const counts = useMemo(() => {
-    const empty = (): Record<Filter, number> => ({
+    const empty = (): Record<BookingFilter, number> => ({
       all: 0,
       pending: 0,
       confirmed: 0,
@@ -221,97 +142,38 @@ export function BookingsBoard({
     [bookings, todayISO]
   );
 
-  const visible = showOverdueOnly
-    ? overdue
-    : filter === "all"
-      ? dateScoped
-      : dateScoped.filter((b) => b.status === filter);
+  const needle = query.trim().toLowerCase();
+  const visible = useMemo(() => {
+    if (showOverdueOnly) return overdue;
+    const statusScoped = filter === "all" ? dateScoped : dateScoped.filter((b) => b.status === filter);
+    return needle ? statusScoped.filter((b) => matchesQuery(b, needle)) : statusScoped;
+  }, [showOverdueOnly, overdue, filter, dateScoped, needle]);
+
   const openBooking = openId ? bookings.find((b) => b.id === openId) ?? null : null;
 
-  const stats: { key: Filter; label: string; Icon: typeof Ticket }[] = [
-    { key: "all", label: "کۆی گشتی", Icon: Ticket },
-    { key: "pending", label: STATUS_LABELS.pending, Icon: Clock },
-    { key: "confirmed", label: STATUS_LABELS.confirmed, Icon: CheckCircle2 },
-    { key: "checked_in", label: STATUS_LABELS.checked_in, Icon: LogIn },
-    { key: "no_show", label: STATUS_LABELS.no_show, Icon: CircleSlash },
-    { key: "cancelled", label: STATUS_LABELS.cancelled, Icon: XCircle },
-  ];
-
-  function RowStatusActions({ b }: { b: BookingRow }) {
-    if (b.status !== "pending" && b.status !== "confirmed") return null;
-    const busy = busyId === b.id;
-
-    // pending → approve / reject (Check / X) ;
-    // confirmed → visited / no-show (LogIn / CircleSlash) — deliberately
-    // different glyphs so it's obvious this is the arrival step, not approval.
-    const [positive, negative] =
-      b.status === "pending"
-        ? ([
-            { status: "confirmed" as const, label: "پەسەندکردن", Icon: Check },
-            { status: "cancelled" as const, label: "ڕەتکردنەوە", Icon: X },
-          ] as const)
-        : ([
-            { status: "checked_in" as const, label: "هاتوو", Icon: LogIn },
-            { status: "no_show" as const, label: "نەهاتوو", Icon: CircleSlash },
-          ] as const);
-
-    return (
-      <>
-        <IconAction
-          label={positive.label}
-          colorClass="bg-[#0C6B4E] hover:bg-[#0A5A41]"
-          disabled={busy}
-          onClick={() => setConfirmTask({ id: b.id, name: b.name, status: positive.status })}
-        >
-          {busy ? <Loader2 size={16} className="animate-spin" /> : <positive.Icon size={16} strokeWidth={2.75} />}
-        </IconAction>
-        <IconAction
-          label={negative.label}
-          colorClass="bg-[#850B10] hover:bg-[#6a090d]"
-          disabled={busy}
-          onClick={() => setConfirmTask({ id: b.id, name: b.name, status: negative.status })}
-        >
-          {busy ? <Loader2 size={16} className="animate-spin" /> : <negative.Icon size={16} strokeWidth={2.75} />}
-        </IconAction>
-      </>
-    );
-  }
-
-  const nameCell = (b: BookingRow) => (
-    <button type="button" onClick={() => setOpenId(b.id)} className="flex items-center gap-3 text-start">
-      <Avatar name={b.name} pending={b.status === "pending"} />
-      <span className="min-w-0">
-        <span className="block truncate font-medium text-ink transition-colors hover:text-pigment-terracotta">
-          {b.name}
-        </span>
-        <span dir="ltr" className="block truncate text-fluid-xs font-normal text-ink-faint">
-          {b.phone}
-        </span>
-      </span>
-    </button>
-  );
-
   const columns: Column<BookingRow>[] = [
-    { key: "name", header: "میوان", cell: nameCell },
     {
-      key: "quick",
-      header: "",
-      className: "w-32",
+      key: "name",
+      header: "میوان",
       cell: (b) => (
-        <div className="flex items-start gap-2">
-          <RowStatusActions b={b} />
-        </div>
+        <button type="button" onClick={() => setOpenId(b.id)} className="flex items-center gap-3 text-start">
+          <BookingAvatar name={b.name} pending={b.status === "pending"} />
+          <span className="min-w-0">
+            <span className="block truncate font-medium text-ink transition-colors hover:text-pigment-terracotta">
+              {b.name}
+            </span>
+            <span dir="ltr" className="block truncate text-fluid-xs font-normal text-ink-faint">
+              {b.phone}
+            </span>
+          </span>
+        </button>
       ),
     },
     {
       key: "type",
       header: "جۆر",
-      className: "w-44",
-      cell: (b) => (
-        <span className="text-fluid-xs text-ink-soft">
-          {VISITOR_TYPE_LABELS[b.visitor_type]}
-        </span>
-      ),
+      className: "w-40",
+      cell: (b) => <span className="text-fluid-xs text-ink-soft">{VISITOR_TYPE_LABELS[b.visitor_type]}</span>,
     },
     {
       key: "guests",
@@ -322,7 +184,7 @@ export function BookingsBoard({
     {
       key: "date",
       header: "بەرواری سەردان",
-      className: "w-36",
+      className: "w-32",
       cell: (b) => (
         <span dir="ltr" className="text-fluid-xs text-ink-soft">
           {formatVisitDate(b.visit_date)}
@@ -332,153 +194,49 @@ export function BookingsBoard({
     {
       key: "status",
       header: "دۆخ",
-      align: "center",
-      className: "w-24",
-      cell: (b) => {
-        const Icon = STATUS_ICON[b.status];
-        return (
-          <span className="mx-auto flex w-20 flex-col items-center gap-1">
-            <span
-              className={clsx(
-                "flex h-9 w-9 items-center justify-center rounded-full",
-                STATUS_SOLID[b.status]
-              )}
-            >
-              <Icon size={16} strokeWidth={2.75} />
-            </span>
-            <span className="font-kurdish text-center text-[10px] font-medium leading-tight text-ink-soft">
-              {STATUS_LABELS[b.status]}
-            </span>
-          </span>
-        );
-      },
+      className: "w-32",
+      cell: (b) => <StatusPill status={b.status} />,
     },
     {
       key: "actions",
       header: "",
       align: "end",
-      className: "w-32",
+      className: "w-40",
       cell: (b) => (
-        <div className="flex items-start justify-end gap-2 whitespace-nowrap">
-          <IconAction
-            label="چاپکردن"
-            colorClass="bg-[#1D5AA8] hover:bg-[#184C8F]"
-            onClick={() => printBooking(b)}
-          >
-            <Printer size={16} strokeWidth={2.75} />
-          </IconAction>
-          <IconAction
-            label="بینین"
-            colorClass="bg-pigment-terracotta hover:bg-pigment-terracotta/90"
-            onClick={() => setOpenId(b.id)}
-          >
-            <Eye size={16} strokeWidth={2.75} />
-          </IconAction>
+        <div className="flex items-center justify-end">
+          <BookingActions
+            booking={b}
+            busy={busyId === b.id}
+            onRequestStatus={(status) => setConfirmTask({ id: b.id, name: b.name, status })}
+            onView={() => setOpenId(b.id)}
+            onPrint={() => printBooking(b)}
+          />
         </div>
       ),
     },
   ];
 
   return (
-    <div className="flex flex-col gap-6">
-      {/* Date filter: quick presets + a custom from/to range */}
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          {DATE_RANGES.map(({ key, label }) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => pickPreset(key)}
-              className={clsx(
-                "font-kurdish rounded-full px-3.5 py-1.5 text-fluid-xs font-medium transition-colors",
-                dateRange === key
-                  ? "bg-[#850B10] text-canvas"
-                  : "border border-ink/15 text-ink-soft hover:border-pigment-terracotta hover:text-pigment-terracotta"
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+    <div className="flex flex-col gap-5">
+      <BookingStatCards counts={counts} filter={showOverdueOnly ? "all" : filter} onSelect={pickStatus} />
 
-        <div
-          className={clsx(
-            "flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2 transition-colors",
-            dateRange === "custom" ? "border-pigment-terracotta/40 bg-pigment-terracotta/[0.04]" : "border-ink/10"
-          )}
-        >
-          <span className="font-kurdish text-fluid-xs font-medium text-ink-soft">بەرواری دیاریکراو:</span>
-          <label className="flex items-center gap-1.5">
-            <span className="font-kurdish text-fluid-xs text-ink-faint">لە</span>
-            <input
-              type="date"
-              value={customFrom}
-              max={customTo || undefined}
-              onChange={(e) => {
-                setCustomFrom(e.target.value);
-                setDateRange("custom");
-              }}
-              className={dateInputClass}
-            />
-          </label>
-          <label className="flex items-center gap-1.5">
-            <span className="font-kurdish text-fluid-xs text-ink-faint">بۆ</span>
-            <input
-              type="date"
-              value={customTo}
-              min={customFrom || undefined}
-              onChange={(e) => {
-                setCustomTo(e.target.value);
-                setDateRange("custom");
-              }}
-              className={dateInputClass}
-            />
-          </label>
-          {dateRange === "custom" && (customFrom || customTo) && (
-            <button
-              type="button"
-              onClick={() => pickPreset("all")}
-              className="font-kurdish text-fluid-xs font-medium text-pigment-terracotta hover:underline"
-            >
-              پاککردنەوە
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* KPI row (scoped to the active date filter). Tiles show the booking
-          count; only "هاتووە" also splits out the visited-person total. */}
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-6">
-        {stats.map(({ key, label, Icon }) => {
-          const active = filter === key && !showOverdueOnly;
-          return (
-            <button
-              key={key}
-              type="button"
-              onClick={() => pickStatus(key)}
-              className={clsx(
-                "group flex flex-col items-center gap-1 rounded-xl border bg-white p-2.5 text-center shadow-card transition-all hover:-translate-y-0.5 sm:gap-2 sm:rounded-2xl sm:p-4",
-                active
-                  ? "border-2 border-[#850B10] ring-2 ring-[#850B10]/20"
-                  : "border-ink/10 hover:border-[#850B10]/30"
-              )}
-            >
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#850B10] text-white sm:h-12 sm:w-12">
-                <Icon className="h-4 w-4 sm:h-[22px] sm:w-[22px]" strokeWidth={2.5} />
-              </span>
-              <span className="font-kurdish text-fluid-lg font-semibold leading-none text-ink sm:text-fluid-2xl">
-                {counts.rows[key]}
-              </span>
-              <span className="font-kurdish text-[11px] leading-tight text-ink-soft sm:text-fluid-xs">{label}</span>
-              {key === "checked_in" && (
-                <span className="font-kurdish text-[11px] font-medium leading-tight text-pigment-teal sm:text-fluid-xs">
-                  {counts.people.checked_in} کەس هاتوون
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      <BookingToolbar
+        query={query}
+        onQueryChange={setQuery}
+        dateRange={dateRange}
+        onDateRangeChange={(v) => {
+          setDateRange(v);
+          if (v !== "custom") {
+            setCustomFrom("");
+            setCustomTo("");
+          }
+          setShowOverdueOnly(false);
+        }}
+        customFrom={customFrom}
+        onCustomFromChange={setCustomFrom}
+        customTo={customTo}
+        onCustomToChange={setCustomTo}
+      />
 
       {/* "You forgot to mark a visit" nudge — mirrors the daily APK push. */}
       {overdue.length > 0 && (
@@ -518,80 +276,51 @@ export function BookingsBoard({
           columns={columns}
           rowKey={(b) => b.id}
           rowClassName={(b) => (b.status === "pending" ? "bg-[#850B10]/[0.04]" : undefined)}
-          renderCard={(b) => {
-            const StatusIcon = STATUS_ICON[b.status];
-            return (
-              <div
-                className={clsx(
-                  "flex flex-col rounded-2xl border bg-white p-4 shadow-card",
-                  b.status === "pending"
-                    ? "border-[#850B10] shadow-[0_0_16px_-2px_rgba(133,11,16,0.45)]"
-                    : "border-ink/10"
-                )}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setOpenId(b.id)}
-                    className="flex min-w-0 items-center gap-3 text-start"
-                  >
-                    <Avatar name={b.name} pending={b.status === "pending"} big />
-                    <span className="min-w-0">
-                      <span className="block truncate font-semibold text-ink">{b.name}</span>
-                      <span dir="ltr" className="block truncate text-fluid-xs text-ink-faint">
-                        {b.phone}
-                      </span>
-                    </span>
-                  </button>
-                  <span className="flex shrink-0 flex-col items-center gap-1">
-                    <span
-                      className={clsx(
-                        "flex h-8 w-8 items-center justify-center rounded-full",
-                        STATUS_SOLID[b.status]
-                      )}
-                    >
-                      <StatusIcon size={15} strokeWidth={2.5} />
-                    </span>
-                    <span className="font-kurdish text-[10px] font-medium leading-none text-ink-soft">
-                      {STATUS_LABELS[b.status]}
+          renderCard={(b) => (
+            <div
+              className={clsx(
+                "flex flex-col rounded-2xl border bg-white p-4 shadow-card",
+                b.status === "pending"
+                  ? "border-[#850B10] shadow-[0_0_16px_-2px_rgba(133,11,16,0.45)]"
+                  : "border-ink/10"
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setOpenId(b.id)}
+                  className="flex min-w-0 items-center gap-3 text-start"
+                >
+                  <BookingAvatar name={b.name} pending={b.status === "pending"} size="lg" />
+                  <span className="min-w-0">
+                    <span className="block truncate font-semibold text-ink">{b.name}</span>
+                    <span dir="ltr" className="block truncate text-fluid-xs text-ink-faint">
+                      {b.phone}
                     </span>
                   </span>
-                </div>
-
-                <div className="my-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-ink/5 py-2.5 text-fluid-xs text-ink-soft">
-                  <span dir="ltr">{formatVisitDate(b.visit_date)}</span>
-                  <span>{VISITOR_TYPE_LABELS[b.visitor_type]}</span>
-                  <span className="text-ink-faint">{b.guest_count} کەس</span>
-                </div>
-
-                <div className="flex flex-wrap items-start justify-between gap-2">
-                  <div className="flex items-start gap-2">
-                    <RowStatusActions b={b} />
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <IconAction
-                      label="چاپکردن"
-                      colorClass="bg-[#1D5AA8] hover:bg-[#184C8F]"
-                      onClick={() => printBooking(b)}
-                    >
-                      <Printer size={16} strokeWidth={2.75} />
-                    </IconAction>
-                    <IconAction
-                      label="بینین"
-                      colorClass="bg-pigment-terracotta hover:bg-pigment-terracotta/90"
-                      onClick={() => setOpenId(b.id)}
-                    >
-                      <Eye size={16} strokeWidth={2.75} />
-                    </IconAction>
-                  </div>
-                </div>
+                </button>
+                <StatusPill status={b.status} />
               </div>
-            );
-          }}
+
+              <div className="my-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-ink/5 py-2.5 text-fluid-xs text-ink-soft">
+                <span dir="ltr">{formatVisitDate(b.visit_date)}</span>
+                <span>{VISITOR_TYPE_LABELS[b.visitor_type]}</span>
+                <span className="text-ink-faint">{b.guest_count} کەس</span>
+              </div>
+
+              <BookingActions
+                booking={b}
+                busy={busyId === b.id}
+                onRequestStatus={(status) => setConfirmTask({ id: b.id, name: b.name, status })}
+                onView={() => setOpenId(b.id)}
+                onPrint={() => printBooking(b)}
+              />
+            </div>
+          )}
         />
       )}
 
-      {openBooking && <BookingDetailModal booking={openBooking} onClose={() => setOpenId(null)} />}
+      <BookingDrawer booking={openBooking} onClose={() => setOpenId(null)} />
 
       <ConfirmDialog
         open={!!confirmTask}
