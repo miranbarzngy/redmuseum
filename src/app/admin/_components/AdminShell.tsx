@@ -256,16 +256,18 @@ export function AdminShell({
             matching the sidebar / «زیاتر» sheet. Pure CSS transitions so it
             behaves identically in the Capacitor APK build. Shown at every
             width in the native APK, and below `lg` in a browser — the row is
-            capped and centred so it stays a "bar" on a wide tablet. */}
+            capped and centred so it stays a "bar" on a wide tablet.
+            The bar itself floats — a rounded capsule inset from the screen
+            edges and lifted clear of the home indicator, rather than a
+            flush-to-edge strip. */}
         <nav
           className={clsx(
-            "fixed inset-x-0 bottom-0 z-40 border-t border-ink/10 bg-white/95 backdrop-blur-md",
-            "shadow-[0_-10px_30px_-18px_rgba(28,27,25,0.25)]",
+            "fixed inset-x-0 bottom-0 z-40 flex justify-center px-4",
             !forceBottomNav && "lg:hidden",
           )}
-          style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)" }}
         >
-          <ul className="mx-auto flex max-w-xl items-stretch md:max-w-3xl">
+          <ul className="mx-auto flex w-full max-w-xl items-stretch rounded-full border border-ink/10 bg-white/95 px-2 shadow-[0_20px_45px_-12px_rgba(28,27,25,0.35)] backdrop-blur-md">
             {mobileBar.map((item) => (
               <li key={item.href} className="flex-1">
                 <BottomNavItem
@@ -353,7 +355,7 @@ export function AdminShell({
 
         <main
           className={clsx(
-            "mx-auto max-w-5xl px-5 py-8 pb-28 sm:px-8 sm:py-10 md:pb-40",
+            "mx-auto max-w-5xl px-5 py-8 pb-32 sm:px-8 sm:py-10",
             !forceBottomNav && "lg:pb-12",
           )}
         >
@@ -387,7 +389,7 @@ function BottomNavItem({
       {/* icon in a pill that fills with soft brand red and lifts when active */}
       <span
         className={clsx(
-          "relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out md:h-16 md:w-16",
+          "relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out md:h-11 md:w-11",
           active
             ? "-translate-y-0.5 bg-[#850B10]/12 text-[#850B10]"
             : "translate-y-0 text-ink-faint group-hover:bg-canvas-paper group-hover:text-ink-soft",
@@ -395,12 +397,12 @@ function BottomNavItem({
       >
         <Icon
           strokeWidth={active ? 2.4 : 2}
-          className="h-[19px] w-[19px] transition-transform duration-200 group-active:scale-90 md:h-8 md:w-8"
+          className="h-[19px] w-[19px] transition-transform duration-200 group-active:scale-90 md:h-[22px] md:w-[22px]"
         />
         {badge && badge.count > 0 && (
           <span
             className={clsx(
-              "absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none text-canvas ring-2 ring-white md:-top-2 md:-right-2.5 md:h-6 md:min-w-6 md:text-xs",
+              "absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none text-canvas ring-2 ring-white md:-top-1 md:-right-1.5 md:h-4 md:min-w-4 md:text-[9px]",
               badge.tone,
             )}
           >
@@ -411,7 +413,7 @@ function BottomNavItem({
       {/* persistent label — only the colour changes on active */}
       <span
         className={clsx(
-          "font-kurdish whitespace-nowrap text-[10px] leading-none transition-colors duration-200 md:text-sm",
+          "font-kurdish whitespace-nowrap text-[10px] leading-none transition-colors duration-200",
           active ? "font-semibold text-[#850B10]" : "font-medium text-ink-faint",
         )}
       >
@@ -421,7 +423,7 @@ function BottomNavItem({
   );
 
   const className =
-    "group relative flex w-full flex-col items-center justify-center gap-1 py-2.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#850B10]/25 md:gap-2 md:py-6";
+    "group relative flex w-full flex-col items-center justify-center gap-1 py-2.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#850B10]/25 md:py-3";
 
   return href ? (
     <Link

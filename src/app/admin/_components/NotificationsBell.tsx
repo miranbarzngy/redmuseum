@@ -24,11 +24,11 @@ export function NotificationsBell({ notifications }: { notifications: AdminNotif
         type="button"
         onClick={() => setOpen(true)}
         aria-label={total > 0 ? `ئاگادارییەکان — ${total}` : "ئاگادارییەکان"}
-        className="group relative flex w-full flex-col items-center justify-center gap-1 py-2.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#850B10]/25 md:gap-2 md:py-6"
+        className="group relative flex w-full flex-col items-center justify-center gap-1 py-2.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#850B10]/25 md:py-3"
       >
         <span
           className={clsx(
-            "relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out md:h-16 md:w-16",
+            "relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out md:h-11 md:w-11",
             open
               ? "-translate-y-0.5 bg-[#850B10]/12 text-[#850B10]"
               : "translate-y-0 text-ink-faint group-hover:bg-canvas-paper group-hover:text-ink-soft",
@@ -36,17 +36,17 @@ export function NotificationsBell({ notifications }: { notifications: AdminNotif
         >
           <Bell
             strokeWidth={open ? 2.4 : 2}
-            className="h-[19px] w-[19px] transition-transform duration-200 group-active:scale-90 md:h-8 md:w-8"
+            className="h-[19px] w-[19px] transition-transform duration-200 group-active:scale-90 md:h-[22px] md:w-[22px]"
           />
           {total > 0 && (
-            <span className="absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-pigment-crimson px-1 text-[9px] font-bold leading-none text-canvas ring-2 ring-white md:-top-2 md:-right-2.5 md:h-6 md:min-w-6 md:text-xs">
+            <span className="absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-pigment-crimson px-1 text-[9px] font-bold leading-none text-canvas ring-2 ring-white md:-top-1 md:-right-1.5 md:h-4 md:min-w-4 md:text-[9px]">
               {total > 9 ? "9+" : total}
             </span>
           )}
         </span>
         <span
           className={clsx(
-            "font-kurdish whitespace-nowrap text-[10px] leading-none transition-colors duration-200 md:text-sm",
+            "font-kurdish whitespace-nowrap text-[10px] leading-none transition-colors duration-200",
             open ? "font-semibold text-[#850B10]" : "font-medium text-ink-faint",
           )}
         >
