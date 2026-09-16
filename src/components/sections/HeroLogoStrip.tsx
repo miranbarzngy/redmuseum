@@ -60,7 +60,6 @@ export async function HeroLogoStrip() {
       <ExhibitionsTimeline exhibitions={exhibitions} locale={loc} emptyText={t("timelineEmpty")} />
 
       <MuseumStatsPanel
-        locale={loc}
         stats={{
           museums: {
             value: pick(profile?.stat_museums_value, statDefaults.museums.value),

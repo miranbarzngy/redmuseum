@@ -18,6 +18,15 @@
     font-weight: 400;
     font-style: normal;
     font-display: swap;
+    /* kurdish.otf draws plain ASCII 0-9 as Eastern Arabic-Indic numeral
+       shapes (same issue admin/layout.tsx works around via next/font's
+       `declarations`). Excluding that range here means any ASCII digit in
+       Kurdish-font text (e.g. MuseumStatsPanel's counters) falls through to
+       the next font in the stack — var(--font-vazirmatn)/Vazirmatn — which
+       draws ordinary Western digits, instead of silently being restyled by
+       this face. Real Eastern-Indic digit characters (٠-٩, a different
+       codepoint range) are untouched and still render from this face. */
+    unicode-range: U+0-2F, U+3A-10FFFF;
   }
 
   @font-face {

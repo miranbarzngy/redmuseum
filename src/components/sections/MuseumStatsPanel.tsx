@@ -38,32 +38,22 @@ function toWesternDigits(input: string): string {
   });
 }
 
-function toEasternDigits(input: string): string {
-  return input.replace(/[0-9]/g, (d) => String.fromCharCode(0x0660 + Number(d)));
-}
-
 /**
  * Parses a free-typed stat value like "20,000", "٢٠,٠٠٠" or "+٥٠" into a
  * numeric count-up target plus a formatter that reproduces the style
- * (leading "+", thousands grouping) at any point during the animation, in
- * the active locale's digit system — Western for "en", Arabic-Indic for
- * ku/ar. Returns null for non-numeric admin input, which just renders as
- * static text instead of animating.
+ * (leading "+", thousands grouping) at any point during the animation.
+ * Always renders Western digits, regardless of locale. Returns null for
+ * non-numeric admin input, which just renders as static text instead of
+ * animating.
  */
-function parseStat(
-  raw: string,
-  locale: string
-): { target: number; format: (n: number) => string } | null {
+function parseStat(raw: string): { target: number; format: (n: number) => string } | null {
   const trimmed = raw.trim();
   const prefix = trimmed.startsWith("+") ? "+" : "";
   const digitsOnly = toWesternDigits(trimmed.slice(prefix.length)).replace(/,/g, "");
   if (!digitsOnly || !/^\d+$/.test(digitsOnly)) return null;
 
   const target = Number(digitsOnly);
-  const format = (n: number) => {
-    const grouped = Math.round(n).toLocaleString("en-US");
-    return prefix + (locale === "en" ? grouped : toEasternDigits(grouped));
-  };
+  const format = (n: number) => prefix + Math.round(n).toLocaleString("en-US");
   return { target, format };
 }
 
@@ -71,19 +61,17 @@ function AnimatedStatCard({
   icon: Icon,
   value,
   label,
-  locale,
   index = 0,
 }: {
   icon: LucideIcon;
   value: string;
   label: string;
-  locale: string;
   index?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, amount: 0.5 });
   const reduceMotion = useReducedMotion();
-  const parsed = useMemo(() => parseStat(value, locale), [value, locale]);
+  const parsed = useMemo(() => parseStat(value), [value]);
   const [display, setDisplay] = useState(() => (parsed ? parsed.format(0) : value));
 
   useEffect(() => {
@@ -134,10 +122,8 @@ function AnimatedStatCard({
 
 export function MuseumStatsPanel({
   stats,
-  locale,
 }: {
   stats: { museums: Stat; archive: Stat; activities: Stat; visitors: Stat };
-  locale: string;
 }) {
   const reduceMotion = useReducedMotion();
 
@@ -154,8 +140,8 @@ export function MuseumStatsPanel({
       className="flex flex-col items-center gap-6 lg:flex-row lg:items-center lg:gap-8"
     >
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
-        <AnimatedStatCard icon={Landmark} value={stats.museums.value} label={stats.museums.label} locale={locale} index={0} />
-        <AnimatedStatCard icon={Archive} value={stats.archive.value} label={stats.archive.label} locale={locale} index={1} />
+        <AnimatedStatCard icon={Landmark} value={stats.museums.value} label={stats.museums.label} index={0} />
+        <AnimatedStatCard icon={Archive} value={stats.archive.value} label={stats.archive.label} index={1} />
       </div>
 
       <motion.div variants={itemVariants} whileHover={{ y: -4 }} className="group relative">
@@ -189,8 +175,8 @@ export function MuseumStatsPanel({
       </motion.div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-1">
-        <AnimatedStatCard icon={CalendarDays} value={stats.activities.value} label={stats.activities.label} locale={locale} index={2} />
-        <AnimatedStatCard icon={Users} value={stats.visitors.value} label={stats.visitors.label} locale={locale} index={3} />
+        <AnimatedStatCard icon={CalendarDays} value={stats.activities.value} label={stats.activities.label} index={2} />
+        <AnimatedStatCard icon={Users} value={stats.visitors.value} label={stats.visitors.label} index={3} />
       </div>
     </motion.div>
   );
