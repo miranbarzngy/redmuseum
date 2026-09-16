@@ -10,7 +10,7 @@ export default async function AdminSettingsPage() {
   const settings = await getSystemSettings();
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-8">
+    <div className="mx-auto flex max-w-2xl flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader
         title="ڕێکخستنەکان"
         description="ڕێکخستنە گشتییەکانی ماڵپەڕ و فۆرمی سەردان."

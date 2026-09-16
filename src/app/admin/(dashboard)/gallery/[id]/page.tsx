@@ -15,7 +15,7 @@ export default async function EditGalleryImagePage(props: { params: Promise<{ id
   if (!item) notFound();
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 mb-24 lg:mb-0">
       <PageHeader title="دەستکاریکردنی وێنە" backHref="/admin/gallery" backLabel="گەڕانەوە بۆ گەلەری" />
       <GalleryForm
         action={updateGalleryImage.bind(null, item.id)}

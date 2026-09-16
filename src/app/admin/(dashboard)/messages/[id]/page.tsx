@@ -14,7 +14,7 @@ export default async function AdminMessageDetailPage(props: { params: Promise<{ 
   if (!message) notFound();
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 mb-24 lg:mb-0">
       {!message.is_read && <MarkAsRead id={message.id} />}
 
       <PageHeader

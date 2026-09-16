@@ -44,7 +44,7 @@ export default async function AdminGalleryPage({
   }));
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader
         title="گەلەری"
         description="وێنەکانی چالاکی، بەخشین، سەردان و شاندەکان."

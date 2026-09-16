@@ -32,7 +32,7 @@ export default async function AdminUsersPage() {
   const roleRows = roles ?? [];
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader
         title="بەکارهێنەران و ڕۆڵەکان"
         description="بەڕێوەبردنی هەژمارەکانی بەڕێوەبردن و دەسەڵاتەکانیان."

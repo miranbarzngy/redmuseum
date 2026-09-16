@@ -11,7 +11,7 @@ export default async function NewGalleryImagePage() {
     .order("sort_order", { ascending: true });
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 mb-24 lg:mb-0">
       <PageHeader title="زیادکردنی وێنە" backHref="/admin/gallery" backLabel="گەڕانەوە بۆ گەلەری" />
       <GalleryForm action={createGalleryImage} categories={categories ?? []} />
     </div>

@@ -151,7 +151,7 @@ export default async function AuditLogsPage({
   }));
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 mb-24 lg:mb-0">
       <PageHeader title="تۆمارەکانی چاودێری" description="کردارەکانی هەموو بەکارهێنەرانی بەڕێوەبردن." />
       <AuditLogFilters users={users ?? []} />
       {logsWithTargets.length === 0 ? (

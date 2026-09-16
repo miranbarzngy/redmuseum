@@ -22,7 +22,7 @@ export default async function AdminMessagesPage({
   const visible = filter === "unread" ? messages.filter((m) => !m.is_read) : messages;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader
         title="پەیامەکان"
         description="پەیامەکانی پەیوەندی لە فۆرمی «بەشی»ی ماڵپەڕی گشتییەوە."

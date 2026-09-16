@@ -15,7 +15,7 @@ export default async function AdminMuseumHistoryPage() {
   const hasRows = (exhibitions?.length ?? 0) > 0;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader
         title="مێژووی مۆزەخانە"
         description="هێڵی کاتی ڕووداوەکانی مۆزەخانە. بە ڕاکێشان ڕیزبەندی بگۆڕە."

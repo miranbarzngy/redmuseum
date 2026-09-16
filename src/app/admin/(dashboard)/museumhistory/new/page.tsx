@@ -4,7 +4,7 @@ import { createExhibition } from "../actions";
 
 export default function NewExhibitionPage() {
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 mb-24 lg:mb-0">
       <PageHeader
         title="زیادکردنی ڕووداو"
         backHref="/admin/museumhistory"

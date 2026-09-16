@@ -15,7 +15,7 @@ export default async function AdminGalleryCategoriesPage() {
   const hasRows = (categories?.length ?? 0) > 0;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader
         title="پۆلەکانی گەلەری"
         description="پۆلەکانی وێنە کە لە گەلەریدا وەک ستریپی جیاواز پیشان دەدرێن. بە ڕاکێشان ڕیزبەندی بگۆڕە."

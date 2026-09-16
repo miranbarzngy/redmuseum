@@ -18,7 +18,7 @@ export default async function AdminMuseumSectionsPage() {
   const hasBlocks = (blocks?.length ?? 0) > 0;
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader
         title="بەشەکانی مۆزەخانە"
         description="هەر بەشێک پەراگرافێک و کۆمەڵێک وێنە دەگرێتەخۆ. بە ڕاکێشان ڕیزبەندییان بگۆڕە."

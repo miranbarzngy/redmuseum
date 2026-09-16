@@ -12,7 +12,7 @@ export default async function AdminBookingsPage({
   const bookings = await getBookings();
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader
         title="سەردانەکان"
         description="داواکاری سەردانی مۆزەخانە لە فۆرمی «سەردان»ی ماڵپەڕی گشتییەوە."

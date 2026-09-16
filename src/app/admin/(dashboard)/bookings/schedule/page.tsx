@@ -13,7 +13,7 @@ export default async function BookingSchedulePage({
   const settings = await getBookingSettingsAdmin();
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader
         title="سەردانەکان"
         description="ڕۆژ و کاتەکانی بەردەست لە فۆرمی سەردانی گشتیدا."

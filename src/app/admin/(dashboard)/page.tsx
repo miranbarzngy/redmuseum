@@ -20,7 +20,7 @@ export default async function AdminOverviewPage() {
   const unread = messages.filter((m) => !m.is_read);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader title="گشتی" description="بەڕێوەبردنی ناوەڕۆکی پیشاندراو لە ماڵپەڕی گشتیدا." />
 
       <div className="grid gap-6 md:grid-cols-2">

@@ -16,7 +16,7 @@ export default async function EditGalleryCategoryPage(props: { params: Promise<{
   if (!category) notFound();
 
   return (
-    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+    <div className="mx-auto flex max-w-3xl flex-col gap-6 mb-24 lg:mb-0">
       <PageHeader
         title="دەستکاریکردنی پۆل"
         backHref="/admin/gallery-categories"
