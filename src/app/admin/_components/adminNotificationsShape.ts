@@ -1,22 +1,42 @@
-// Shared shape for the bottom-nav notification bell. Deliberately free of
+// Shared shape for the admin notification bell + modal. Deliberately free of
 // any server-only import — (dashboard)/getAdminNotifications.ts builds this
-// data with the service-role client, but the client bell and AdminShell
-// only need the type and an empty fallback, and importing those from the
-// data module would drag "server-only" into the browser bundle.
+// data with the service-role client, but the client components only need
+// the type and an empty fallback, and importing those from the data module
+// would drag "server-only" into the browser bundle.
+//
+// Each variant mirrors its source table (`bookings` / `contact_messages`)
+// closely, just camelCased and pre-formatted — dates/times go through the
+// same formatVisitDate()/formatSubmittedAt() helpers the rest of /admin
+// uses, so digits stay ASCII and the client never re-parses timestamps.
 
-export type AdminNotificationItem = {
-  kind: "booking" | "message";
+export type AdminBookingNotification = {
+  kind: "booking";
   id: string;
   name: string;
-  /** One-line supporting text (visit details / message snippet). */
-  detail: string;
-  /** Pre-formatted timestamp for display, LTR. */
-  atLabel: string;
-  /** Sort key — raw ISO `created_at`. */
-  at: string;
-  /** In-app path the row links to. */
+  phone: string;
+  guestCount: number;
+  /** Kurdish label, e.g. "سەردانی کەسی" / "وەفدی فەرمی". */
+  visitorType: string;
+  /** Pre-formatted visit date, LTR ("YYYY-MM-DD"). */
+  visitDate: string;
+  /** Pre-formatted submission timestamp, LTR. */
+  submittedAt: string;
   href: string;
 };
+
+export type AdminMessageNotification = {
+  kind: "message";
+  id: string;
+  name: string;
+  phone: string;
+  /** Truncated message body. */
+  preview: string;
+  /** Pre-formatted submission timestamp, LTR. */
+  submittedAt: string;
+  href: string;
+};
+
+export type AdminNotificationItem = AdminBookingNotification | AdminMessageNotification;
 
 export type AdminNotifications = {
   total: number;

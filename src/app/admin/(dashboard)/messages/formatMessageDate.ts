@@ -17,7 +17,7 @@ function formatTimePart(date: Date): string {
 }
 
 /** Date and time as separate strings, for layouts that stack them on two
- * lines instead of running them together (e.g. MessageGrid, the dashboard's
+ * lines instead of running them together (e.g. MessageCard, the dashboard's
  * unread-messages panel). */
 export function formatMessageDateParts(iso: string): { date: string; time: string } {
   const date = new Date(iso);

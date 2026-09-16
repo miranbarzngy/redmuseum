@@ -103,8 +103,8 @@ const SETTINGS_ITEM: NavItem = {
 };
 
 // Five items get a permanent slot in the phone bottom bar (followed by the
-// notification bell and the «زیاتر» sheet trigger — seven cells total);
-// everything else lives behind the «زیاتر» sheet.
+// «زیاتر» sheet trigger — six cells total); everything else lives behind
+// the «زیاتر» sheet. The notification bell lives in the header instead.
 const MOBILE_PRIMARY = new Set([
   "/admin",
   "/admin/museums",
@@ -227,7 +227,10 @@ export function AdminShell({
           </div>
         </aside>
 
-        {/* Top header */}
+        {/* Top header. justify-between with the (single, breakpoint-toggled)
+            title span and the bell puts the title at the RTL start (physical
+            right) and the bell at the RTL end (physical top-left of the
+            page), matching the rest of the shell's RTL layout. */}
         <header className="sticky top-0 z-30 border-b border-ink/10 bg-white/90 backdrop-blur-md">
           <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-8">
             <span
@@ -246,10 +249,12 @@ export function AdminShell({
             >
               {currentLabel}
             </span>
+            <NotificationsBell notifications={notifications} />
           </div>
         </header>
 
-        {/* Phone / tablet bottom nav: 5 primary + notification bell + More.
+        {/* Phone / tablet bottom nav: 5 primary + More (the notification bell
+            lives in the header now, not here — see above).
             Every item keeps a
             persistent label (no layout-shifting reveal); the active one gets
             a single soft brand-red pill behind the icon plus a red label,
@@ -280,9 +285,6 @@ export function AdminShell({
                 />
               </li>
             ))}
-            <li className="flex-1">
-              <NotificationsBell notifications={notifications} />
-            </li>
             <li className="flex-1">
               <BottomNavItem
                 label="زیاتر"
