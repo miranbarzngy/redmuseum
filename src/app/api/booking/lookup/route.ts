@@ -29,17 +29,34 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "invalid_input" }, { status: 400 });
   }
 
-  // Per-IP cooldown (0035) — phone numbers are guessable, so this endpoint
-  // must not be usable to enumerate them.
-  const { data: allowed, error: throttleError } = await createClient().rpc(
+  // Two independent cooldowns — phone numbers are guessable, so this
+  // endpoint must not be usable to enumerate them. The per-IP one (0035) is
+  // keyed on a client-influenceable header (see clientIp.ts) and can be
+  // bypassed by spoofing a fresh value on every request; the per-phone one
+  // (0043) can't be dodged that way since the attacker can't change which
+  // number they're checking. Both must allow the attempt.
+  const throttleClient = createClient();
+  const { data: ipAllowed, error: ipThrottleError } = await throttleClient.rpc(
     "check_booking_lookup_attempt",
     { client_ip: await clientIp() }
   );
-  if (throttleError) {
-    console.error("[booking/lookup] throttle check failed", throttleError.message);
+  if (ipThrottleError) {
+    console.error("[booking/lookup] IP throttle check failed", ipThrottleError.message);
     return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });
   }
-  if (!allowed) {
+  if (!ipAllowed) {
+    return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+  }
+
+  const { data: phoneAllowed, error: phoneThrottleError } = await throttleClient.rpc(
+    "check_booking_lookup_attempt_by_phone",
+    { p_phone_key: key }
+  );
+  if (phoneThrottleError) {
+    console.error("[booking/lookup] phone throttle check failed", phoneThrottleError.message);
+    return NextResponse.json({ ok: false, error: "server_error" }, { status: 500 });
+  }
+  if (!phoneAllowed) {
     return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
   }
 

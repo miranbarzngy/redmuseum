@@ -532,8 +532,16 @@ export interface Database {
         Args: { client_ip: string };
         Returns: boolean;
       };
+      check_admin_login_attempt_by_email: {
+        Args: { p_email: string };
+        Returns: boolean;
+      };
       check_booking_lookup_attempt: {
         Args: { client_ip: string };
+        Returns: boolean;
+      };
+      check_booking_lookup_attempt_by_phone: {
+        Args: { p_phone_key: string };
         Returns: boolean;
       };
       record_page_visit: {

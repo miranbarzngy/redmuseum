@@ -18,12 +18,29 @@ export async function signIn(formData: FormData) {
   const rawNext = String(formData.get("next") ?? "/admin");
   const next = rawNext.startsWith("/admin") ? rawNext : "/admin";
 
-  const { data: allowed, error } = await createClient().rpc("check_admin_login_attempt", {
+  // Two independent throttles: per-IP (0016) and per-email (0043). The IP
+  // one is keyed on a client-influenceable header (see clientIp.ts) and can
+  // be bypassed by spoofing a fresh value on every request; the per-email
+  // one can't be dodged that way since the attacker can't change which
+  // account they're guessing. Both must allow the attempt.
+  const throttleClient = createClient();
+  const { data: ipAllowed, error: ipError } = await throttleClient.rpc("check_admin_login_attempt", {
     client_ip: await clientIp(),
   });
-  if (error) throw error;
-  if (!allowed) {
+  if (ipError) throw ipError;
+  if (!ipAllowed) {
     redirect(`/admin/login?error=2&next=${encodeURIComponent(next)}`);
+  }
+
+  if (email) {
+    const { data: emailAllowed, error: emailError } = await throttleClient.rpc(
+      "check_admin_login_attempt_by_email",
+      { p_email: email }
+    );
+    if (emailError) throw emailError;
+    if (!emailAllowed) {
+      redirect(`/admin/login?error=2&next=${encodeURIComponent(next)}`);
+    }
   }
 
   const supabase = createAdminClient();
