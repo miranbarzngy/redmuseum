@@ -76,7 +76,7 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
             <form
               onSubmit={handleSubmit(onSubmit)}
               noValidate
-              className="flex h-full flex-col justify-between gap-5 rounded-2xl border-4 border-[#850B10] bg-white p-6 shadow-[0_20px_45px_-28px_rgba(133,11,16,0.55)] sm:p-8"
+              className="flex h-full flex-col justify-between gap-5 rounded-2xl border-4 border-ink/15 bg-white p-6 shadow-[0_20px_45px_-28px_rgba(28,27,25,0.35)] sm:p-8"
             >
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
@@ -88,7 +88,7 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
                     required
                     {...register("name")}
                     placeholder={t("form.namePlaceholder")}
-                    className="rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
+                    className="rounded-xl border border-ink/30 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
                   />
                   {errors.name && (
                     <span className="text-fluid-xs text-pigment-crimson">{errors.name.message}</span>
@@ -104,7 +104,7 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
                     required
                     {...register("phone")}
                     placeholder={t("form.phonePlaceholder")}
-                    className="rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
+                    className="rounded-xl border border-ink/30 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
                   />
                   {errors.phone && (
                     <span className="text-fluid-xs text-pigment-crimson">{errors.phone.message}</span>
@@ -122,7 +122,7 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
                   required
                   {...register("message")}
                   placeholder={t("form.messagePlaceholder")}
-                  className="resize-y rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
+                  className="resize-y rounded-xl border border-ink/30 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
                 />
                 {errors.message && (
                   <span className="text-fluid-xs text-pigment-crimson">{errors.message.message}</span>

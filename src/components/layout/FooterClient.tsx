@@ -2,11 +2,9 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { SocialIcon } from "@/components/ui/SocialIcon";
-import type { SocialLink } from "@/data/socials";
 import { scrollToId } from "@/lib/scrollTo";
 
-export function FooterClient({ socials }: { socials: SocialLink[] }) {
+export function FooterClient() {
   const tNav = useTranslations("nav");
   const tFooter = useTranslations("footer");
   const year = new Date().getFullYear();
@@ -35,34 +33,17 @@ export function FooterClient({ socials }: { socials: SocialLink[] }) {
           <div className="flex flex-col gap-2">
             <button
               onClick={() => scrollToId("hero")}
-              className="font-display text-fluid-xl font-semibold tracking-tight text-ink"
+              className="font-display text-fluid-base font-semibold tracking-tight text-ink"
             >
               {tNav("brand")}
             </button>
             <p className="max-w-sm text-fluid-sm text-ink-soft">{tFooter("tagline")}</p>
           </div>
-
-          {socials.length > 0 && (
-            <div className="flex items-center gap-4">
-              {socials.map((s) => (
-                <a
-                  key={s.type}
-                  href={s.href}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  aria-label={s.label}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-ink/10 text-ink-soft transition-colors hover:border-pigment-terracotta hover:text-pigment-terracotta"
-                >
-                  <SocialIcon type={s.type} className="h-4 w-4" />
-                </a>
-              ))}
-            </div>
-          )}
         </div>
 
         <div className="flex flex-col gap-2 border-t border-ink/10 pt-8 text-fluid-xs text-ink-faint sm:flex-row sm:items-center sm:justify-between sm:pt-6">
           <span>
-            © {year} {tFooter("developedBy")} — {tFooter("rights")}
+            © {year} - {tFooter("rights")}
           </span>
         </div>
       </div>
