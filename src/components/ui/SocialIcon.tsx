@@ -22,7 +22,11 @@ export function SocialIcon({ type, className }: { type: SocialType; className?: 
       return (
         <svg viewBox="0 0 24 24" className={className} {...commonProps}>
           <circle cx="12" cy="12" r="8.5" />
-          <path d="M13.8 8.4h-1.4c-.9 0-1.4.5-1.4 1.4v1.4H13.8l-.3 2.1h-1.5v5.4" />
+          <path
+            d="M13.9 19v-6.4h2.1l.3-2.5h-2.4V8.4c0-.7.2-1.2 1.2-1.2h1.3V5c-.2 0-1-.1-1.9-.1-1.9 0-3.2 1.2-3.2 3.3v1.9H9.2v2.5h2.1V19h2.6z"
+            fill="currentColor"
+            stroke="none"
+          />
         </svg>
       );
     case "x":

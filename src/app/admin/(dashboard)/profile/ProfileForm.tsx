@@ -16,6 +16,13 @@ function withFallback(value: string | null | undefined, fallback: string) {
   return value?.trim() ? value : fallback;
 }
 
+// Unlike withFallback, this keeps an explicitly-cleared value ("") empty
+// instead of re-showing the shipped default — otherwise saving the form
+// again after clearing a social link would silently restore it.
+function savedOrFallback(value: string | null | undefined, fallback: string) {
+  return value == null ? fallback : value;
+}
+
 export function ProfileForm({
   action,
   profile,
@@ -183,7 +190,7 @@ export function ProfileForm({
               name="social_instagram_url"
               type="text"
               dir="ltr"
-              defaultValue={withFallback(
+              defaultValue={savedOrFallback(
                 profile?.social_instagram_url,
                 contactDefaults.socials.instagram
               )}
@@ -193,7 +200,7 @@ export function ProfileForm({
               name="social_facebook_url"
               type="text"
               dir="ltr"
-              defaultValue={withFallback(
+              defaultValue={savedOrFallback(
                 profile?.social_facebook_url,
                 contactDefaults.socials.facebook
               )}
@@ -203,14 +210,14 @@ export function ProfileForm({
               name="social_x_url"
               type="text"
               dir="ltr"
-              defaultValue={withFallback(profile?.social_x_url, contactDefaults.socials.x)}
+              defaultValue={savedOrFallback(profile?.social_x_url, contactDefaults.socials.x)}
             />
             <Field
               label="یوتیوب"
               name="social_youtube_url"
               type="text"
               dir="ltr"
-              defaultValue={withFallback(
+              defaultValue={savedOrFallback(
                 profile?.social_youtube_url,
                 contactDefaults.socials.youtube
               )}

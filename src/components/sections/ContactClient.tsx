@@ -68,15 +68,15 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
 
   return (
     <section id="contact" className="relative py-24 sm:py-32">
-      <div className="container-art section-px grid gap-16 sm:gap-14 lg:grid-cols-[3fr_2fr] lg:gap-20">
-        <div className="flex flex-col gap-10">
-          <SectionHeading eyebrow={t("eyebrow")} heading={t("heading")} subheading={t("subheading")} />
+      <div className="container-art section-px flex flex-col gap-10">
+        <SectionHeading eyebrow={t("eyebrow")} heading={t("heading")} subheading={t("subheading")} />
 
+        <div className="grid gap-16 sm:gap-14 lg:grid-cols-[3fr_2fr] lg:gap-20">
           <Reveal delay={0.1}>
             <form
               onSubmit={handleSubmit(onSubmit)}
               noValidate
-              className="flex flex-col gap-5 rounded-2xl border-4 border-[#850B10] bg-white p-6 shadow-[0_20px_45px_-28px_rgba(133,11,16,0.55)] sm:p-8"
+              className="flex h-full flex-col justify-between gap-5 rounded-2xl border-4 border-[#850B10] bg-white p-6 shadow-[0_20px_45px_-28px_rgba(133,11,16,0.55)] sm:p-8"
             >
               <div className="grid gap-5 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
@@ -122,7 +122,7 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
                   required
                   {...register("message")}
                   placeholder={t("form.messagePlaceholder")}
-                  className="resize-none rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
+                  className="resize-y rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
                 />
                 {errors.message && (
                   <span className="text-fluid-xs text-pigment-crimson">{errors.message.message}</span>
@@ -161,80 +161,80 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
               </div>
             </form>
           </Reveal>
-        </div>
 
-        <Reveal from="end" delay={0.15}>
-          {contactCardImageUrl ? (
-            <div className="relative hidden h-full min-h-[420px] w-full overflow-hidden rounded-2xl lg:block">
-              <Image
-                src={contactCardImageUrl}
-                alt=""
-                fill
-                sizes="(min-width: 1024px) 40vw, 100vw"
-                className="object-cover"
-              />
-            </div>
-          ) : (
-            <div className="flex h-full flex-col justify-between gap-10 rounded-2xl bg-ink p-8 text-canvas sm:p-10">
-              <div className="flex flex-col gap-6">
-                <h3 className="font-display text-fluid-lg font-semibold">{t("info.heading")}</h3>
-                <div className="flex flex-col gap-4 text-fluid-sm text-canvas/85">
-                  <div className="flex items-start gap-3">
-                    <Mail size={18} className="mt-0.5 shrink-0 text-pigment-gold" />
-                    <div>
-                      <div className="text-fluid-xs uppercase tracking-[0.2em] text-canvas/60">
-                        {t("info.emailLabel")}
-                      </div>
-                      <a href={`mailto:${email}`} className="hover:text-pigment-gold">
-                        {email}
-                      </a>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <MapPin size={18} className="mt-0.5 shrink-0 text-pigment-gold" />
-                    <div>
-                      <div className="text-fluid-xs uppercase tracking-[0.2em] text-canvas/60">
-                        {t("info.studioLabel")}
-                      </div>
-                      {mapUrl ? (
-                        <a
-                          href={mapUrl}
-                          target="_blank"
-                          rel="noreferrer noopener"
-                          className="hover:text-pigment-gold"
-                        >
-                          {location}
+          <Reveal from="end" delay={0.15}>
+            {contactCardImageUrl ? (
+              <div className="relative hidden h-full min-h-[420px] w-full overflow-hidden rounded-2xl lg:block">
+                <Image
+                  src={contactCardImageUrl}
+                  alt=""
+                  fill
+                  sizes="(min-width: 1024px) 40vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+            ) : (
+              <div className="flex h-full flex-col justify-between gap-10 rounded-2xl bg-ink p-8 text-white sm:p-10">
+                <div className="flex flex-col gap-6">
+                  <h3 className="font-display text-fluid-lg font-semibold">{t("info.heading")}</h3>
+                  <div className="flex flex-col gap-4 text-fluid-sm text-white">
+                    <div className="flex items-start gap-3">
+                      <Mail size={18} className="mt-0.5 shrink-0 text-pigment-gold" />
+                      <div>
+                        <div className="text-fluid-xs uppercase tracking-[0.2em] text-white">
+                          {t("info.emailLabel")}
+                        </div>
+                        <a href={`mailto:${email}`} className="hover:text-pigment-gold">
+                          {email}
                         </a>
-                      ) : (
-                        <span>{location}</span>
-                      )}
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <MapPin size={18} className="mt-0.5 shrink-0 text-pigment-gold" />
+                      <div>
+                        <div className="text-fluid-xs uppercase tracking-[0.2em] text-white">
+                          {t("info.studioLabel")}
+                        </div>
+                        {mapUrl ? (
+                          <a
+                            href={mapUrl}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                            className="hover:text-pigment-gold"
+                          >
+                            {location}
+                          </a>
+                        ) : (
+                          <span>{location}</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex flex-col gap-4" hidden={socials.length === 0}>
-                <span className="text-fluid-xs uppercase tracking-[0.2em] text-canvas/60">
-                  {t("info.socialsHeading")}
-                </span>
-                <div className="flex items-center gap-3">
-                  {socials.map((s) => (
-                    <a
-                      key={s.type}
-                      href={s.href}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      aria-label={s.label}
-                      className="flex h-10 w-10 items-center justify-center rounded-full border border-canvas/20 text-canvas/85 transition-colors hover:border-pigment-gold hover:text-pigment-gold"
-                    >
-                      <SocialIcon type={s.type} className="h-4 w-4" />
-                    </a>
-                  ))}
+                <div className="flex items-center gap-4" hidden={socials.length === 0}>
+                  <span className="text-fluid-xs uppercase tracking-[0.2em] text-white">
+                    {t("info.socialsHeading")}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    {socials.map((s) => (
+                      <a
+                        key={s.type}
+                        href={s.href}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                        aria-label={s.label}
+                        className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 text-white transition-colors hover:border-pigment-gold hover:text-pigment-gold"
+                      >
+                        <SocialIcon type={s.type} className="h-6 w-6" />
+                      </a>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-        </Reveal>
+            )}
+          </Reveal>
+        </div>
       </div>
     </section>
   );
