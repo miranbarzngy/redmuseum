@@ -355,7 +355,7 @@ export function AdminShell({
 
         <main
           className={clsx(
-            "mx-auto max-w-5xl px-5 py-8 pb-32 sm:px-8 sm:py-10",
+            "mx-auto max-w-5xl px-5 py-8 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] sm:px-8 sm:py-10",
             !forceBottomNav && "lg:pb-12",
           )}
         >
