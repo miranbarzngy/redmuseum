@@ -145,12 +145,22 @@
       "phone": "Phone number",
       "guests": "Number of guests",
       "visitorType": "Visit type",
-      "date": "Date",
+      "date": "Visit date",
       "time": "Time",
+      "submittedAt": "Submitted at",
       "note": "Note",
-      "qrHint": "Show this code when you arrive — it displays your booking status.",
+      "qrHint": "Show this code when you arrive.",
       "viewStatus": "View booking status",
-      "again": "Book another visit"
+      "again": "Book another visit",
+      "downloadImage": "Download pass as image"
+    },
+    "print": {
+      "title": "Visit Pass",
+      "guidelinesTitle": "Visit guidelines",
+      "guidelines": [
+        "Reception staff may request ID verification at entry.",
+        "Please follow the museum's internal guidelines."
+      ]
     },
     "statusPage": {
       "title": "Booking status",

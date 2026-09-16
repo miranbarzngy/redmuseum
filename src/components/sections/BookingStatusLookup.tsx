@@ -37,9 +37,10 @@ export function BookingStatusLookup() {
 
   function dateLabel(iso: string): string {
     const d = new Date(`${iso}T00:00:00Z`);
-    return `${weekdays[d.getUTCDay()] ?? ""} · ${localizeDigits(d.getUTCDate(), locale)} ${t("monthLabel", {
-      month: localizeDigits(d.getUTCMonth() + 1, locale),
-    })}`;
+    return `${weekdays[d.getUTCDay()] ?? ""} ${localizeDigits(d.getUTCDate(), locale)} / ${localizeDigits(
+      d.getUTCMonth() + 1,
+      locale
+    )}`;
   }
 
   async function handleSubmit(e: React.FormEvent) {

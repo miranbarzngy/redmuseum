@@ -83,9 +83,9 @@ export default async function BookingStatusPage({
 
   const weekdays = t.raw("weekdays") as string[];
   const d = new Date(`${booking.visit_date}T00:00:00Z`);
-  const dateLabel = `${weekdays[d.getUTCDay()] ?? ""} · ${localizeDigits(d.getUTCDate(), locale)} ${t(
-    "monthLabel",
-    { month: localizeDigits(d.getUTCMonth() + 1, locale) }
+  const dateLabel = `${weekdays[d.getUTCDay()] ?? ""} ${localizeDigits(d.getUTCDate(), locale)} / ${localizeDigits(
+    d.getUTCMonth() + 1,
+    locale
   )}`;
 
   return (

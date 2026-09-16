@@ -165,11 +165,15 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
 
       // visit_date is a plain SQL date — parse/format it in UTC so the day
       // matches what the admin panel shows (see formatBookingDate.ts).
+      // Weekday and day/month are kept separate (not one joined string) so
+      // the confirmation card can stack them — weekday above, numeric
+      // day/month below.
       const d = new Date(`${visitDate}T00:00:00Z`);
-      const dateLabel = `${weekdayNames[d.getUTCDay()] ?? ""} · ${localizeDigits(
-        d.getUTCDate(),
+      const visitWeekday = weekdayNames[d.getUTCDay()] ?? "";
+      const visitDayMonth = `${localizeDigits(d.getUTCDate(), locale)} / ${localizeDigits(
+        d.getUTCMonth() + 1,
         locale
-      )} ${t("monthLabel", { month: localizeDigits(d.getUTCMonth() + 1, locale) })}`;
+      )}`;
 
       setConfirmation({
         token: data.token,
@@ -178,7 +182,8 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
         phone: values.phone,
         guests: Number(values.guestCount),
         visitorTypeLabel: t(`form.visitorTypes.${values.visitorType}`),
-        dateLabel,
+        visitWeekday,
+        visitDayMonth,
         timeLabel: `${slot.time} ${slot.period}`,
         note: userNote,
       });
