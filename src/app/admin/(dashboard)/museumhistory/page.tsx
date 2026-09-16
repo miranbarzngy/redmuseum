@@ -19,11 +19,7 @@ export default async function AdminMuseumHistoryPage() {
       <PageHeader
         title="مێژووی مۆزەخانە"
         description="هێڵی کاتی ڕووداوەکانی مۆزەخانە. بە ڕاکێشان ڕیزبەندی بگۆڕە."
-      >
-        <LinkButton href="/admin/museumhistory/new">
-          <Plus size={16} /> زیادکردنی ڕووداو
-        </LinkButton>
-      </PageHeader>
+      />
 
       {error && (
         <p className="rounded-xl bg-pigment-crimson/10 px-4 py-3 text-fluid-sm text-pigment-crimson">

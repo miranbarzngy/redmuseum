@@ -52,9 +52,6 @@ export default async function AdminGalleryPage({
         <LinkButton href="/admin/gallery-categories" variant="secondary">
           <Tags size={16} /> بەڕێوەبردنی پۆلەکان
         </LinkButton>
-        <LinkButton href="/admin/gallery/new">
-          <Plus size={16} /> زیادکردنی وێنە
-        </LinkButton>
       </PageHeader>
 
       {cats.length > 0 && (

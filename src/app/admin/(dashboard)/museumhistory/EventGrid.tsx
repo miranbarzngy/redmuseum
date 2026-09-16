@@ -29,6 +29,26 @@ import type { ExhibitionRow } from "@/lib/supabase/database.types";
 const HANDLE_LABEL = "گواستنەوە";
 const confirmFor = (ex: ExhibitionRow) => `سڕینەوەی ڕووداوی «${ex.title_ku}»؟`;
 
+// Matches ExhibitionsTimeline's (the public homepage timeline) accent red,
+// so the admin list reads as the same timeline rather than a plain card grid.
+const ACCENT = "#850B10";
+
+// Cancels the container's ps-10 so the dot's w-10 gutter lines up with the
+// line's w-10 gutter — see ExhibitionsTimeline for the full reasoning.
+const DOT_GUTTER_OFFSET = "-2.5rem";
+
+function TimelineDot() {
+  return (
+    <span
+      aria-hidden
+      className="absolute top-1/2 flex w-10 -translate-y-1/2 justify-center"
+      style={{ insetInlineStart: DOT_GUTTER_OFFSET }}
+    >
+      <span className="h-3.5 w-3.5 rounded-full ring-4 ring-canvas" style={{ backgroundColor: ACCENT }} />
+    </span>
+  );
+}
+
 function EventCard({ exhibition }: { exhibition: ExhibitionRow }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: exhibition.id,
@@ -43,6 +63,8 @@ function EventCard({ exhibition }: { exhibition: ExhibitionRow }) {
         isDragging && "relative z-10 opacity-90 shadow-soft"
       )}
     >
+      <TimelineDot />
+
       <button
         type="button"
         aria-label={HANDLE_LABEL}
@@ -80,8 +102,9 @@ function AddEventTile() {
   return (
     <Link
       href="/admin/museumhistory/new"
-      className="group flex h-full min-h-[9.5rem] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-pigment-crimson/40 bg-canvas-paper/60 p-6 text-center text-ink-soft transition hover:border-pigment-crimson/70 hover:bg-canvas-paper"
+      className="group relative flex h-full min-h-[9.5rem] flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-pigment-crimson/40 bg-canvas-paper/60 p-6 text-center text-ink-soft transition hover:border-pigment-crimson/70 hover:bg-canvas-paper"
     >
+      <TimelineDot />
       <span className="flex h-10 w-10 items-center justify-center rounded-full bg-ink/5 text-ink-soft transition group-hover:bg-ink/10">
         <Plus size={18} />
       </span>
@@ -93,7 +116,9 @@ function AddEventTile() {
 /** Grid of history-event cards — year, title, edit/delete actions — with
  * drag-to-reorder (persisted via reorderExhibitions) and a trailing "+" tile
  * to add a new event. Mirrors museums/SectionGrid, minus the cover photo
- * since exhibitions carry no image. */
+ * since exhibitions carry no image. The cards sit on a connecting vertical
+ * line + dot per card (ps-10 gutter, same geometry as the public homepage's
+ * ExhibitionsTimeline) so this reads as the same timeline, just editable. */
 export function EventGrid({ exhibitions }: { exhibitions: ExhibitionRow[] }) {
   const [ordered, setOrdered] = useState(exhibitions);
   // Re-sync when the server sends a fresh list (add / delete / revalidate),
@@ -125,15 +150,21 @@ export function EventGrid({ exhibitions }: { exhibitions: ExhibitionRow[] }) {
   const ids = ordered.map((ex) => ex.id);
 
   return (
-    <DndContext id={baseId} sensors={sensors} onDragEnd={handleDragEnd}>
-      <SortableContext items={ids} strategy={verticalListSortingStrategy}>
-        <div className="grid grid-cols-1 gap-5">
-          {ordered.map((exhibition) => (
-            <EventCard key={exhibition.id} exhibition={exhibition} />
-          ))}
-          <AddEventTile />
-        </div>
-      </SortableContext>
-    </DndContext>
+    <div className="relative w-full ps-10">
+      <div className="absolute inset-y-0 start-0 flex w-10 justify-center">
+        <div className="h-full w-1 rounded-full" style={{ backgroundColor: `${ACCENT}33` }} />
+      </div>
+
+      <DndContext id={baseId} sensors={sensors} onDragEnd={handleDragEnd}>
+        <SortableContext items={ids} strategy={verticalListSortingStrategy}>
+          <div className="grid grid-cols-1 gap-5">
+            {ordered.map((exhibition) => (
+              <EventCard key={exhibition.id} exhibition={exhibition} />
+            ))}
+            <AddEventTile />
+          </div>
+        </SortableContext>
+      </DndContext>
+    </div>
   );
 }

@@ -22,11 +22,7 @@ export default async function AdminMuseumSectionsPage() {
       <PageHeader
         title="بەشەکانی مۆزەخانە"
         description="هەر بەشێک پەراگرافێک و کۆمەڵێک وێنە دەگرێتەخۆ. بە ڕاکێشان ڕیزبەندییان بگۆڕە."
-      >
-        <LinkButton href="/admin/museums/blocks/new">
-          <Plus size={16} /> زیادکردنی بەش
-        </LinkButton>
-      </PageHeader>
+      />
 
       {blocksError && (
         <p className="rounded-xl bg-pigment-crimson/10 px-4 py-3 text-fluid-sm text-pigment-crimson">

@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "../../_components/PageHeader";
 import { EmptyState } from "../../_components/EmptyState";
 import { LinkButton } from "../../_components/Button";
-import { CategoryList } from "./CategoryList";
+import { CategoryGrid } from "./CategoryGrid";
 
 export default async function AdminGalleryCategoriesPage() {
   const supabase = createClient();
@@ -21,11 +21,7 @@ export default async function AdminGalleryCategoriesPage() {
         description="پۆلەکانی وێنە کە لە گەلەریدا وەک ستریپی جیاواز پیشان دەدرێن. بە ڕاکێشان ڕیزبەندی بگۆڕە."
         backHref="/admin/gallery"
         backLabel="گەڕانەوە بۆ گەلەری"
-      >
-        <LinkButton href="/admin/gallery-categories/new">
-          <Plus size={16} /> زیادکردنی پۆل
-        </LinkButton>
-      </PageHeader>
+      />
 
       {error && (
         <p className="rounded-xl bg-pigment-crimson/10 px-4 py-3 text-fluid-sm text-pigment-crimson">
@@ -41,7 +37,7 @@ export default async function AdminGalleryCategoriesPage() {
         </EmptyState>
       )}
 
-      {!error && hasRows && <CategoryList categories={categories!} />}
+      {!error && hasRows && <CategoryGrid categories={categories!} />}
     </div>
   );
 }
