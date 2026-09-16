@@ -28,7 +28,7 @@ const PhotoCapture = dynamic(() => import("./PhotoCapture").then((m) => m.PhotoC
 // the slot grid (booking.form.openingTimeValue etc.), independent of these.
 const STEP_COUNT = 4;
 const MAX_GUESTS = 200;
-const VISITOR_TYPES = ["school", "delegation", "personal", "press", "other"] as const;
+const VISITOR_TYPES = ["school", "university", "delegation", "personal", "press", "other"] as const;
 
 /** "13:00" -> { time: "1:00", period: "PM" } (digits and meridiem localized for ku/ar). */
 function formatSlot(slot: string, locale: string, meridiem: { am: string; pm: string }): { time: string; period: string } {

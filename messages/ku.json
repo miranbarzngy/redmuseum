@@ -70,9 +70,10 @@
       "visitorType": "جۆری سەردان",
       "visitorTypePlaceholder": "هەڵبژێرە",
       "visitorTypes": {
-        "school": "خوێندنگە / زانکۆ",
+        "school": "خوێندنگە",
+        "university": "زانکۆ",
         "delegation": "سەردانی وەفدی فەرمی",
-        "personal": "کەسی",
+        "personal": "سەردانی کەسی",
         "press": "ڕۆژنامەوانی",
         "other": "هیتر"
       },

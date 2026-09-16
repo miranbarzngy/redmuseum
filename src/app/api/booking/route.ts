@@ -10,7 +10,7 @@ const schema = z.object({
     .regex(/^[0-9+\-\s()]+$/),
   visitDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   guestCount: z.coerce.number().int().min(1).max(200),
-  visitorType: z.enum(["school", "delegation", "personal", "press", "other"]),
+  visitorType: z.enum(["school", "university", "delegation", "personal", "press", "other"]),
   note: z.string().optional(),
   // The wizard's photo step is optional (camera access can be denied, or
   // the visitor can skip it) — so this is never required server-side.

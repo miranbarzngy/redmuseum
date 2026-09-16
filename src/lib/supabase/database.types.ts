@@ -1,6 +1,6 @@
 export type BookingStatus = "pending" | "confirmed" | "checked_in" | "cancelled" | "no_show";
 
-export type BookingVisitorType = "school" | "delegation" | "personal" | "press" | "other";
+export type BookingVisitorType = "school" | "university" | "delegation" | "personal" | "press" | "other";
 
 export interface Database {
   public: {

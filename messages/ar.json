@@ -70,7 +70,8 @@
       "visitorType": "نوع الزيارة",
       "visitorTypePlaceholder": "اختر…",
       "visitorTypes": {
-        "school": "مدرسة / جامعة",
+        "school": "مدرسة",
+        "university": "جامعة",
         "delegation": "وفد رسمي",
         "personal": "شخصية",
         "press": "صحافة",

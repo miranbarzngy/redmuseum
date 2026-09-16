@@ -23,13 +23,14 @@ interface BookingRecord {
   phone: string;
   visit_date: string;
   guest_count?: number;
-  visitor_type?: "school" | "delegation" | "personal" | "press" | "other";
+  visitor_type?: "school" | "university" | "delegation" | "personal" | "press" | "other";
 }
 
 const VISITOR_TYPE_LABELS: Record<NonNullable<BookingRecord["visitor_type"]>, string> = {
-  school: "خوێندنگە / زانکۆ",
+  school: "خوێندنگە",
+  university: "زانکۆ",
   delegation: "سەردانی وەفدی فەرمی",
-  personal: "کەسی",
+  personal: "سەردانی کەسی",
   press: "ڕۆژنامەوانی",
   other: "هیتر",
 };

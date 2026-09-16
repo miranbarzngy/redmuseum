@@ -70,7 +70,8 @@
       "visitorType": "Visit type",
       "visitorTypePlaceholder": "Select…",
       "visitorTypes": {
-        "school": "School / University",
+        "school": "School",
+        "university": "University",
         "delegation": "Official delegation",
         "personal": "Personal",
         "press": "Press",

@@ -7,9 +7,10 @@ import type { BookingVisitorType } from "@/lib/supabase/database.types";
  * Kurdish-only). */
 
 export const VISITOR_TYPE_LABELS: Record<BookingVisitorType, string> = {
-  school: "خوێندنگە / زانکۆ",
+  school: "خوێندنگە",
+  university: "زانکۆ",
   delegation: "سەردانی وەفدی فەرمی",
-  personal: "کەسی",
+  personal: "سەردانی کەسی",
   press: "ڕۆژنامەوانی",
   other: "هیتر",
 };
