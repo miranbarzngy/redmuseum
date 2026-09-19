@@ -26,6 +26,11 @@ export async function updateProfile(formData: FormData) {
     statement_ku: String(formData.get("statement_ku") ?? "").trim(),
     statement_en: String(formData.get("statement_en") ?? "").trim(),
     statement_ar: String(formData.get("statement_ar") ?? "").trim(),
+    statement_words_ku: formData
+      .getAll("statement_words_ku")
+      .map((word) => String(word).trim())
+      .filter(Boolean),
+    statement_suffix_ku: String(formData.get("statement_suffix_ku") ?? "").trim(),
     stat_museums_value: String(formData.get("stat_museums_value") ?? "").trim(),
     stat_museums_label_ku: String(formData.get("stat_museums_label_ku") ?? "").trim(),
     stat_museums_label_en: String(formData.get("stat_museums_label_en") ?? "").trim(),
@@ -43,6 +48,7 @@ export async function updateProfile(formData: FormData) {
     stat_visitors_label_en: String(formData.get("stat_visitors_label_en") ?? "").trim(),
     stat_visitors_label_ar: String(formData.get("stat_visitors_label_ar") ?? "").trim(),
     contact_email: String(formData.get("contact_email") ?? "").trim(),
+    contact_phone: String(formData.get("contact_phone") ?? "").trim(),
     contact_location_ku: String(formData.get("contact_location_ku") ?? "").trim(),
     contact_location_en: String(formData.get("contact_location_en") ?? "").trim(),
     contact_location_ar: String(formData.get("contact_location_ar") ?? "").trim(),

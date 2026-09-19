@@ -1,8 +1,10 @@
 "use client";
 
+import { useState } from "react";
+import clsx from "clsx";
 import { LanguageProvider, LanguageTabs } from "../../_components/LanguageTabs";
 import { LocalizedField } from "../../_components/LocalizedField";
-import { Field } from "../../_components/Field";
+import { Field, fieldControlClass } from "../../_components/Field";
 import { ImageGalleryField } from "../../_components/ImageGalleryField";
 import { Panel } from "../../_components/Panel";
 import { SaveBar } from "../../_components/SaveBar";
@@ -80,17 +82,40 @@ export function ProfileForm({
               ar: withFallback(profile?.name_ar, homepageDefaults.name.ar),
             }}
           />
-          <LocalizedField
-            name="statement"
-            label="دەربارە / دەربڕین"
-            multiline
-            resizable
-            defaults={{
-              ku: withFallback(profile?.statement_ku, homepageDefaults.statement.ku),
-              en: withFallback(profile?.statement_en, homepageDefaults.statement.en),
-              ar: withFallback(profile?.statement_ar, homepageDefaults.statement.ar),
-            }}
-          />
+          <NumberedField number={1}>
+            <LocalizedField
+              name="statement"
+              label="دەربارە / دەربڕین"
+              multiline
+              resizable
+              defaults={{
+                ku: withFallback(profile?.statement_ku, homepageDefaults.statement.ku),
+                en: withFallback(profile?.statement_en, homepageDefaults.statement.en),
+                ar: withFallback(profile?.statement_ar, homepageDefaults.statement.ar),
+              }}
+            />
+          </NumberedField>
+          <NumberedField number={2}>
+            <WordsGridField
+              name="statement_words_ku"
+              label="وشە جێگۆڕەکان"
+              defaultWords={
+                profile?.statement_words_ku && profile.statement_words_ku.length > 0
+                  ? profile.statement_words_ku
+                  : homepageDefaults.statementWords
+              }
+              hint="لە دوای 'دەربارە / دەربڕین' پیشان دەدرێت"
+            />
+          </NumberedField>
+          <NumberedField number={3}>
+            <Field
+              name="statement_suffix_ku"
+              label="تەواوکەری ڕستە"
+              dir="rtl"
+              defaultValue={savedOrFallback(profile?.statement_suffix_ku, homepageDefaults.statementSuffix)}
+              hint="دەقی کۆتای"
+            />
+          </NumberedField>
         </Panel>
 
         <Panel
@@ -158,6 +183,14 @@ export function ProfileForm({
             defaultValue={withFallback(profile?.contact_email, contactDefaults.email)}
             hint="ناونیشانی ئیمەیل کە لە کارتی پەیوەندیدا پیشان دەدرێت."
           />
+          <Field
+            label="ژمارەی پەیوەندی"
+            name="contact_phone"
+            type="text"
+            dir="ltr"
+            defaultValue={savedOrFallback(profile?.contact_phone, contactDefaults.phone)}
+            hint="بەتاڵی بهێڵەرەوە ئەگەر ناتەوێت ژمارەیەک لە پێڕستەکەدا دەربکەوێت."
+          />
           <LocalizedField
             name="contact_location"
             label="شوێن"
@@ -223,6 +256,82 @@ export function ProfileForm({
         <SaveBar />
       </form>
     </LanguageProvider>
+  );
+}
+
+/** Marks a field as step N of the sentence the hero rotator assembles
+ * (statement prefix → rotating word → suffix), so the order reads clearly
+ * even though the three fields sit in separate blocks. */
+function NumberedField({ number, children }: { number: number; children: React.ReactNode }) {
+  return (
+    <div className="relative ps-8">
+      <span className="absolute start-0 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-ink/5 text-fluid-xs font-medium text-ink-faint">
+        {number}
+      </span>
+      {children}
+    </div>
+  );
+}
+
+/** Grid of individually-editable words sharing one `name` — submitted as
+ * repeated FormData entries and collected server-side with `getAll()`.
+ * Used for the hero rotator's word list, where a stacked textarea made each
+ * word harder to scan than a short grid. */
+function WordsGridField({
+  name,
+  label,
+  hint,
+  defaultWords,
+}: {
+  name: string;
+  label: string;
+  hint?: string;
+  defaultWords: string[];
+}) {
+  const [words, setWords] = useState<string[]>(defaultWords.length > 0 ? defaultWords : [""]);
+
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="font-kurdish text-fluid-sm font-medium text-ink-soft">{label}</legend>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {words.map((word, i) => (
+          <div key={i} className="relative">
+            <span className="pointer-events-none absolute start-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-ink/5 text-fluid-xs font-medium text-ink-faint">
+              {i + 1}
+            </span>
+            <input
+              name={name}
+              dir="rtl"
+              value={word}
+              onChange={(e) =>
+                setWords((prev) => prev.map((w, idx) => (idx === i ? e.target.value : w)))
+              }
+              className={clsx(fieldControlClass, "pe-8 ps-8")}
+            />
+            <button
+              type="button"
+              onClick={() => setWords((prev) => prev.filter((_, idx) => idx !== i))}
+              disabled={words.length <= 1}
+              aria-label="سڕینەوە"
+              className="absolute end-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-pigment-crimson/10 hover:text-pigment-crimson disabled:pointer-events-none disabled:opacity-30"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={() => setWords((prev) => [...prev, ""])}
+          className={clsx(
+            fieldControlClass,
+            "flex items-center justify-center border-dashed text-ink-faint transition-colors hover:border-pigment-terracotta hover:text-pigment-terracotta"
+          )}
+        >
+          + وشە
+        </button>
+      </div>
+      {hint && <span className="font-kurdish text-fluid-xs text-ink-faint">{hint}</span>}
+    </fieldset>
   );
 }
 

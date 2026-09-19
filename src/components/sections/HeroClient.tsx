@@ -36,6 +36,30 @@ export function HeroClient({ profile }: { profile: SiteProfileRow | null }) {
   const eyebrow = pick(profile, "eyebrow", locale) ?? t("eyebrow");
   const name = pick(profile, "name", locale) ?? t("name");
   const statement = pick(profile, "statement", locale) ?? t("statement");
+  // The Kurdish statement is written to end right before the historical term
+  // ("...مێژووی") — the rotator below supplies that term plus its suffix, so
+  // it only applies to `ku`; en/ar keep the full static sentence as-is.
+  // The word list is admin-editable (site_profile.statement_words_ku); the
+  // translation file's list is only the shipped fallback.
+  const dynamicWords =
+    locale === "ku"
+      ? profile?.statement_words_ku && profile.statement_words_ku.length > 0
+        ? profile.statement_words_ku
+        : (t.raw("statementWords") as string[])
+      : [];
+  // Nullish, not `||` — an explicitly-cleared suffix (saved as "") should stay
+  // blank instead of reverting to the shipped default every time.
+  const dynamicSuffix = locale === "ku" ? (profile?.statement_suffix_ku ?? t("statementSuffix")) : "";
+  const [dynamicWordIndex, setDynamicWordIndex] = useState(0);
+
+  useEffect(() => {
+    if (reduceMotion || dynamicWords.length < 2) return;
+    const id = setInterval(() => {
+      setDynamicWordIndex((i) => (i + 1) % dynamicWords.length);
+    }, 6000);
+    return () => clearInterval(id);
+  }, [reduceMotion, dynamicWords.length]);
+
   const heroImages =
     profile?.hero_image_urls && profile.hero_image_urls.length > 0
       ? profile.hero_image_urls
@@ -131,10 +155,30 @@ export function HeroClient({ profile }: { profile: SiteProfileRow | null }) {
             ))}
           </motion.h1>
 
-          <div className="flex max-w-xl flex-col gap-6">
+          <div className="flex flex-col gap-6">
             <Reveal delay={0.2}>
-              <p className="max-w-md whitespace-pre-line text-[9px] leading-relaxed text-canvas/85 sm:text-[11px] lg:text-sm">
+              <p className="whitespace-pre-line text-lg leading-relaxed text-gray-200 sm:whitespace-nowrap sm:text-xl lg:text-2xl">
                 {statement}
+                {dynamicWords.length > 1 && (
+                  <>
+                    {" "}
+                    <span className="relative inline-grid align-baseline">
+                      <AnimatePresence mode="wait">
+                        <motion.span
+                          key={dynamicWords[dynamicWordIndex]}
+                          initial={reduceMotion ? undefined : { opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={reduceMotion ? undefined : { opacity: 0, y: -10 }}
+                          transition={{ duration: reduceMotion ? 0 : 1, ease: easeArt }}
+                          className="col-start-1 row-start-1 font-semibold text-pigment-gold [text-shadow:0_0_18px_rgba(201,162,39,0.5)]"
+                        >
+                          {dynamicWords[dynamicWordIndex]}
+                        </motion.span>
+                      </AnimatePresence>
+                    </span>{" "}
+                    {dynamicSuffix}
+                  </>
+                )}
               </p>
             </Reveal>
             <Reveal delay={0.3}>
@@ -168,7 +212,7 @@ export function HeroClient({ profile }: { profile: SiteProfileRow | null }) {
 
       <motion.button
         onClick={() => scrollToId("biography")}
-        className="absolute inset-x-0 bottom-24 z-10 mx-auto hidden w-fit flex-col items-center gap-2 text-canvas/80 transition-colors hover:text-pigment-gold sm:bottom-32 lg:flex"
+        className="absolute inset-x-0 bottom-24 z-10 mx-auto hidden w-fit flex-col items-center gap-2 text-gray-300 transition-colors hover:text-pigment-gold sm:bottom-32 lg:flex"
         animate={reduceMotion ? undefined : { y: [0, 8, 0] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         aria-label={t("scrollHint")}

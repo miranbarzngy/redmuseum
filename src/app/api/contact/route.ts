@@ -1,11 +1,15 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { CONTACT_SUBJECTS } from "@/lib/contactSubjects";
 
 const schema = z.object({
   name: z.string().min(1),
   phone: z.string().min(7).regex(/^[0-9+\-\s()]+$/),
   message: z.string().min(10),
+  // Optional so the homepage's simpler contact form (which doesn't collect a
+  // subject) keeps working unchanged — defaults to "general" when omitted.
+  subject: z.enum(CONTACT_SUBJECTS).default("general"),
 });
 
 // TODO: also wire this up to a real email provider (Resend, SMTP, etc.) once

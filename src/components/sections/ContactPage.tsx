@@ -2,27 +2,22 @@ import { getSiteProfile } from "@/lib/data/profile";
 import { getBookingSettings } from "@/lib/data/bookingSettings";
 import { resolveSocials } from "@/data/socials";
 import { contactDefaults } from "@/lib/contactDefaults";
-import { FooterClient } from "./FooterClient";
+import { ContactPageClient } from "./ContactPageClient";
 
-// FooterClient itself is a client component (locale-aware formatting, nav
-// clicks), so it can't read Supabase directly — this thin server wrapper
-// fetches the admin-entered profile plus the live booking schedule and hands
-// the resolved values down as plain props, the same split HeaderServer uses.
-export async function Footer() {
+// Server wrapper for the standalone /contact route — same split as
+// Footer/FooterClient: this fetches the admin-entered profile plus the live
+// booking schedule, ContactPageClient (client, for the form + locale-aware
+// formatting) just renders the resolved values.
+export async function ContactPage() {
   const [profile, bookingSettings] = await Promise.all([getSiteProfile(), getBookingSettings()]);
 
   const email = profile?.contact_email?.trim() || contactDefaults.email;
   const phone = profile?.contact_phone?.trim() || contactDefaults.phone;
   const mapUrl = profile?.contact_map_url?.trim() || contactDefaults.mapUrl || null;
-  // The footer's social row only has room for Facebook/Instagram/YouTube (+ a
-  // Maps pin below) — X/Twitter stays exclusive to the Contact section.
   const socials = resolveSocials(profile).filter((s) => s.type !== "x");
 
   return (
-    <FooterClient
-      nameKu={profile?.name_ku ?? null}
-      nameEn={profile?.name_en ?? null}
-      nameAr={profile?.name_ar ?? null}
+    <ContactPageClient
       email={email}
       phone={phone}
       mapUrl={mapUrl}

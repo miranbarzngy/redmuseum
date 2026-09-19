@@ -230,7 +230,7 @@ export function PhotoCapture({
               type="button"
               onClick={handleStart}
               disabled={state === "opening"}
-              className="flex h-full w-full flex-col items-center justify-center gap-3 text-canvas/90 transition-colors hover:text-canvas disabled:opacity-70"
+              className="flex h-full w-full flex-col items-center justify-center gap-3 text-gray-100 transition-colors hover:text-canvas disabled:opacity-70"
             >
               {state === "opening" ? (
                 <Loader2 size={30} className="animate-spin" />
@@ -244,7 +244,7 @@ export function PhotoCapture({
           )}
 
           {state === "camera-error" && (
-            <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center text-canvas/90">
+            <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-4 text-center text-gray-100">
               <AlertCircle size={24} className="text-pigment-crimson" />
               <span className="text-fluid-xs leading-snug">{t("error")}</span>
               <button

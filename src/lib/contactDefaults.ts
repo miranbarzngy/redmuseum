@@ -14,6 +14,10 @@ const href = (type: string) => socials.find((s) => s.type === type)?.href ?? "";
  */
 export const contactDefaults = {
   email: "info@amnasuraka.museum",
+  // No shipped fallback — unlike email, there's no real museum phone number
+  // to ship as a default, so the footer's phone row just stays hidden until
+  // an admin sets one.
+  phone: "",
   location: {
     ku: ku.contact.info.studioValue,
     en: en.contact.info.studioValue,

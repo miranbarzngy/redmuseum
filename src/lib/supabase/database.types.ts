@@ -163,6 +163,8 @@ export interface Database {
           statement_ku: string | null;
           statement_en: string | null;
           statement_ar: string | null;
+          statement_words_ku: string[] | null;
+          statement_suffix_ku: string | null;
           history_ku: string | null;
           history_en: string | null;
           history_ar: string | null;
@@ -185,6 +187,7 @@ export interface Database {
           hero_image_url: string | null;
           hero_image_urls: string[];
           contact_email: string | null;
+          contact_phone: string | null;
           contact_location_ku: string | null;
           contact_location_en: string | null;
           contact_location_ar: string | null;
@@ -206,6 +209,8 @@ export interface Database {
           statement_ku?: string | null;
           statement_en?: string | null;
           statement_ar?: string | null;
+          statement_words_ku?: string[] | null;
+          statement_suffix_ku?: string | null;
           history_ku?: string | null;
           history_en?: string | null;
           history_ar?: string | null;
@@ -228,6 +233,7 @@ export interface Database {
           hero_image_url?: string | null;
           hero_image_urls?: string[];
           contact_email?: string | null;
+          contact_phone?: string | null;
           contact_location_ku?: string | null;
           contact_location_en?: string | null;
           contact_location_ar?: string | null;
@@ -309,6 +315,7 @@ export interface Database {
           name: string;
           phone: string;
           message: string;
+          subject: string;
           is_read: boolean;
           created_at: string;
         };
@@ -317,6 +324,7 @@ export interface Database {
           name: string;
           phone: string;
           message: string;
+          subject?: string;
           is_read?: boolean;
           created_at?: string;
         };

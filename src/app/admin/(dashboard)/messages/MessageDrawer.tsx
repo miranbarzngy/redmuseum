@@ -8,6 +8,7 @@ import { deleteMessage } from "./actions";
 import { formatMessageDate } from "./formatMessageDate";
 import { MessageAvatar } from "./MessageAvatar";
 import type { ContactMessageRow } from "@/lib/supabase/database.types";
+import { CONTACT_SUBJECT_LABELS_KU, type ContactSubject } from "@/lib/contactSubjects";
 
 /** Right-edge detail drawer opened from a MessageCard. Not portaled —
  * unlike NotificationModal's bell trigger, everything this mounts under
@@ -81,8 +82,13 @@ export function MessageDrawer({
           >
             <Phone size={14} /> {message.phone}
           </a>
-          <div dir="ltr" className="flex w-fit items-center gap-1.5 text-fluid-xs font-bold text-ink-faint">
-            <Clock3 size={13} /> {formatMessageDate(message.created_at)}
+          <div className="flex flex-wrap items-center gap-2">
+            <div dir="ltr" className="flex w-fit items-center gap-1.5 text-fluid-xs font-bold text-ink-faint">
+              <Clock3 size={13} /> {formatMessageDate(message.created_at)}
+            </div>
+            <span className="font-kurdish rounded-full bg-canvas-paper px-2.5 py-0.5 text-[10px] font-medium text-ink-soft">
+              {CONTACT_SUBJECT_LABELS_KU[message.subject as ContactSubject] ?? CONTACT_SUBJECT_LABELS_KU.general}
+            </span>
           </div>
         </div>
 

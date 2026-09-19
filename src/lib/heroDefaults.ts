@@ -13,4 +13,6 @@ export const heroDefaults = {
   eyebrow: { ku: ku.hero.eyebrow, en: en.hero.eyebrow, ar: ar.hero.eyebrow },
   name: { ku: ku.hero.name, en: en.hero.name, ar: ar.hero.name },
   statement: { ku: ku.hero.statement, en: en.hero.statement, ar: ar.hero.statement },
+  statementWords: ku.hero.statementWords,
+  statementSuffix: ku.hero.statementSuffix,
 };

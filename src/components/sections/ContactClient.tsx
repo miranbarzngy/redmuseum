@@ -5,29 +5,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { useLocale, useTranslations } from "next-intl";
-import { Mail, MapPin, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
-import { SocialIcon } from "@/components/ui/SocialIcon";
-import { resolveSocials } from "@/data/socials";
-import type { Locale } from "@/i18n/routing";
-import type { SiteProfileRow } from "@/lib/supabase/database.types";
 
-export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
+export function ContactClient() {
   const t = useTranslations("contact");
-  const locale = useLocale() as Locale;
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
-
-  const savedLocation = profile?.[`contact_location_${locale}`];
-  const email = profile?.contact_email?.trim() || "info@amnasuraka.museum";
-  const location =
-    typeof savedLocation === "string" && savedLocation.trim()
-      ? savedLocation.trim()
-      : t("info.studioValue");
-  const mapUrl = profile?.contact_map_url?.trim() || null;
-  const socials = resolveSocials(profile);
 
   const schema = z.object({
     name: z.string().min(1, t("form.errors.name")),
@@ -69,7 +55,7 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
       <div className="container-art section-px flex flex-col gap-10">
         <SectionHeading eyebrow={t("eyebrow")} heading={t("heading")} subheading={t("subheading")} />
 
-        <div className="grid gap-16 sm:gap-14 lg:grid-cols-[3fr_2fr] lg:gap-20">
+        <div className="mx-auto w-full max-w-2xl">
           <Reveal delay={0.1}>
             <form
               onSubmit={handleSubmit(onSubmit)}
@@ -158,67 +144,6 @@ export function ContactClient({ profile }: { profile: SiteProfileRow | null }) {
                 )}
               </div>
             </form>
-          </Reveal>
-
-          <Reveal from="end" delay={0.15}>
-            <div className="flex h-full flex-col justify-between gap-10 rounded-2xl bg-ink p-8 text-white sm:p-10">
-              <div className="flex flex-col gap-6">
-                <h3 className="font-display text-fluid-lg font-semibold">{t("info.heading")}</h3>
-                <div className="flex flex-col gap-4 text-fluid-sm text-white">
-                  <div className="flex items-start gap-3">
-                    <Mail size={18} className="mt-0.5 shrink-0 text-pigment-gold" />
-                    <div>
-                      <div className="text-fluid-xs uppercase tracking-[0.2em] text-white">
-                        {t("info.emailLabel")}
-                      </div>
-                      <a href={`mailto:${email}`} className="hover:text-pigment-gold">
-                        {email}
-                      </a>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <MapPin size={18} className="mt-0.5 shrink-0 text-pigment-gold" />
-                    <div>
-                      <div className="text-fluid-xs uppercase tracking-[0.2em] text-white">
-                        {t("info.studioLabel")}
-                      </div>
-                      {mapUrl ? (
-                        <a
-                          href={mapUrl}
-                          target="_blank"
-                          rel="noreferrer noopener"
-                          className="hover:text-pigment-gold"
-                        >
-                          {location}
-                        </a>
-                      ) : (
-                        <span>{location}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4" hidden={socials.length === 0}>
-                <span className="text-fluid-xs uppercase tracking-[0.2em] text-white">
-                  {t("info.socialsHeading")}
-                </span>
-                <div className="flex items-center gap-3">
-                  {socials.map((s) => (
-                    <a
-                      key={s.type}
-                      href={s.href}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      aria-label={s.label}
-                      className="flex h-14 w-14 items-center justify-center rounded-full border border-white/20 text-white transition-colors hover:border-pigment-gold hover:text-pigment-gold"
-                    >
-                      <SocialIcon type={s.type} className="h-6 w-6" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
           </Reveal>
         </div>
       </div>

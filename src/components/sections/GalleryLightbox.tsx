@@ -32,7 +32,7 @@ export function GalleryLightbox({
       className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/95 backdrop-blur-sm"
       onClick={onClose}
     >
-      <span className="absolute top-6 left-1/2 -translate-x-1/2 font-mono text-sm text-white/80">
+      <span className="absolute top-6 left-1/2 -translate-x-1/2 font-mono text-sm text-gray-300">
         {idx + 1} / {images.length}
       </span>
 
@@ -79,7 +79,7 @@ export function GalleryLightbox({
           alt={current.title ?? ""}
           className="max-h-[75vh] max-w-full rounded-lg object-contain shadow-[0_0_0_1px_#c8a96e,0_20px_60px_-15px_rgba(200,169,110,0.5)]"
         />
-        {current.title && <p className="text-center text-sm text-white/80">{current.title}</p>}
+        {current.title && <p className="text-center text-sm text-gray-300">{current.title}</p>}
       </div>
 
       <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 items-center gap-2">

@@ -203,6 +203,15 @@
       "namePlaceholder": "Your name",
       "phone": "Phone number",
       "phonePlaceholder": "+964 750 123 4567",
+      "subjectLabel": "Subject",
+      "subjectPlaceholder": "Choose one",
+      "subjectOptions": {
+        "general": "General inquiry",
+        "visit": "Visit / group booking",
+        "media": "Media & press",
+        "partnership": "Partnership",
+        "other": "Other"
+      },
       "message": "Message",
       "messagePlaceholder": "Tell us about your inquiry...",
       "submit": "Send message",
@@ -223,8 +232,28 @@
       "socialsHeading": "Follow the museum"
     }
   },
+  "contactPage": {
+    "breadcrumbHome": "Home",
+    "infoHeading": "Contact Information",
+    "mapHeading": "Find Us on the Map",
+    "getDirections": "Get Directions"
+  },
   "footer": {
     "tagline": "Preserving memory, sharing history.",
-    "rights": "All rights reserved."
+    "rights": "All rights reserved.",
+    "about": "The National Museum Amnasuraka safeguards the region's history through its collections, exhibitions, and archives.",
+    "quickNavHeading": "Quick Links",
+    "hoursHeading": "Visiting Hours",
+    "hoursClosed": "Closed",
+    "contactHeading": "Contact & Location",
+    "phoneLabel": "Phone",
+    "privacyLink": "Privacy Policy",
+    "termsLink": "Terms of Service"
+  },
+  "legal": {
+    "privacyTitle": "Privacy Policy",
+    "privacyBody": "We respect our visitors' privacy. Information submitted through the booking or contact forms is used only to prepare for your visit and improve our services, and is never shared with third parties. Contact us if you have any questions about your data.",
+    "termsTitle": "Terms of Service",
+    "termsBody": "Using this website means you agree to the museum's visiting guidelines. Booking details may be reviewed and confirmed by museum staff. Contact us with any questions about these terms."
   }
 }

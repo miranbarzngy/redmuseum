@@ -9,6 +9,7 @@ import { formatMessageDateParts } from "./formatMessageDate";
 import { deleteMessage } from "./actions";
 import { MessageAvatar } from "./MessageAvatar";
 import type { ContactMessageRow } from "@/lib/supabase/database.types";
+import { CONTACT_SUBJECT_LABELS_KU, type ContactSubject } from "@/lib/contactSubjects";
 
 /**
  * One inbox row. The whole card opens the detail drawer; a small action row
@@ -136,9 +137,12 @@ export function MessageCard({
         </div>
 
         <div className="mt-3 border-t border-ink/10" />
+        <span className="font-kurdish mt-3 inline-block rounded-full bg-canvas-paper px-2.5 py-0.5 text-[10px] font-medium text-ink-soft">
+          {CONTACT_SUBJECT_LABELS_KU[message.subject as ContactSubject] ?? CONTACT_SUBJECT_LABELS_KU.general}
+        </span>
         <p
           className={clsx(
-            "font-kurdish mt-3 line-clamp-2 text-fluid-sm",
+            "font-kurdish mt-2 line-clamp-2 text-fluid-sm",
             unread ? "text-ink-soft" : "text-ink-faint",
           )}
         >

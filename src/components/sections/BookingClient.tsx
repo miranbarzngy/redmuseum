@@ -412,11 +412,11 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
                               {holidayName && !selected && (
                                 <span className="absolute end-2 top-2 h-1.5 w-1.5 rounded-full bg-[#c8a96e]" />
                               )}
-                              <span className={clsx("text-fluid-xs", selected ? "text-canvas/80" : "text-ink-faint")}>
+                              <span className={clsx("text-fluid-xs", selected ? "text-red-100" : "text-ink-faint")}>
                                 {weekday}
                               </span>
                               <span className="text-fluid-lg font-semibold leading-none">{day}</span>
-                              <span className={clsx("text-fluid-xs", selected ? "text-canvas/80" : "text-ink-faint")}>
+                              <span className={clsx("text-fluid-xs", selected ? "text-red-100" : "text-ink-faint")}>
                                 {month}
                               </span>
                               {holidayName && (
@@ -478,7 +478,7 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
                                 <span
                                   className={clsx(
                                     "text-[10px] leading-tight",
-                                    selected ? "text-canvas/75" : "text-ink-faint"
+                                    selected ? "text-red-100" : "text-ink-faint"
                                   )}
                                 >
                                   {period}

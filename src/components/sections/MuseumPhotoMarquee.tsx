@@ -99,7 +99,7 @@ export function MuseumPhotoMarquee({ photos }: { photos: string[] }) {
                   <span className="font-kurdish text-[11px] font-semibold text-white">
                     {BRAND_NAME_KU}
                   </span>
-                  <span className="text-[9px] font-medium uppercase tracking-wider text-white/85">
+                  <span className="text-[9px] font-medium uppercase tracking-wider text-gray-200">
                     {BRAND_NAME_EN}
                   </span>
                 </span>

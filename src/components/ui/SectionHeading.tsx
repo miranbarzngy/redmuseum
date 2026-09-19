@@ -22,7 +22,7 @@ export function SectionHeading({
 }: SectionHeadingProps) {
   const alignClass = align === "center" ? "text-center items-center mx-auto" : "text-start";
   const inkClass = tone === "dark" ? "text-ink" : "text-canvas";
-  const softClass = tone === "dark" ? "text-ink-soft" : "text-canvas/80";
+  const softClass = tone === "dark" ? "text-ink-soft" : "text-gray-300";
   const headingSizeClass = size === "compact" ? "text-lg sm:text-xl lg:text-fluid-lg" : "text-fluid-lg";
   const subheadingSizeClass = size === "compact" ? "text-xs sm:text-sm lg:text-fluid-base" : "text-fluid-base";
 
