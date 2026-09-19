@@ -233,8 +233,15 @@
     }
   },
   "contactPage": {
+    "eyebrow": "تواصل معنا",
+    "heading": "تواصل مع المتحف",
+    "subheading": "هل لديك سؤال أو تريد التخطيط لزيارة؟ يسعدنا التواصل معك.",
     "breadcrumbHome": "الرئيسية",
     "infoHeading": "معلومات التواصل",
+    "guideLabel": "دليل PDF",
+    "guideHeading": "دليل زائر المتحف",
+    "guideDescription": "دليل رقمي يغطي أقسام المتحف ومعروضاته ونصائح الزيارة.",
+    "guideDownload": "تنزيل دليل الزائر",
     "mapHeading": "موقعنا على الخريطة",
     "getDirections": "الحصول على الاتجاهات"
   },

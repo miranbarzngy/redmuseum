@@ -196,6 +196,7 @@ export interface Database {
           social_facebook_url: string | null;
           social_x_url: string | null;
           social_youtube_url: string | null;
+          guide_flyer_url: string | null;
           updated_at: string;
         };
         Insert: {
@@ -242,6 +243,7 @@ export interface Database {
           social_facebook_url?: string | null;
           social_x_url?: string | null;
           social_youtube_url?: string | null;
+          guide_flyer_url?: string | null;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["site_profile"]["Insert"]>;

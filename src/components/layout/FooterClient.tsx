@@ -15,12 +15,12 @@ const FALLBACK_NAME_EN = "National Museum Amnasuraka";
 const FALLBACK_NAME_AR = "متحف أمنة سوركة الوطني";
 
 // Section ids scrollToId looks for on the homepage — "home" maps to the hero
-// itself, matching Header's own logo-click behaviour.
+// itself, matching Header's own logo-click behaviour. Booking and Contact
+// aren't homepage sections (they're their own routes), so they're not here.
 const SECTION_ANCHOR: Record<string, string> = {
   home: "hero",
   biography: "biography",
   media: "media",
-  contact: "contact",
 };
 
 export interface FooterClientProps {
@@ -58,6 +58,7 @@ export function FooterClient({
   const t = useTranslations("footer");
   const tNav = useTranslations("nav");
   const tBooking = useTranslations("booking");
+  const tLegal = useTranslations("legal");
   const pathname = usePathname();
   const router = useRouter();
   const year = new Date().getFullYear();
@@ -86,12 +87,12 @@ export function FooterClient({
     closedLabel: t("hoursClosed"),
   });
 
-  const quickLinks: { id: string; label: string; href?: "/booking" }[] = [
+  const quickLinks: { id: string; label: string; href?: "/booking" | "/contact" }[] = [
     { id: "home", label: tNav("home") },
     { id: "biography", label: tNav("biography") },
     { id: "media", label: tNav("media") },
     { id: "booking", label: tNav("booking"), href: "/booking" },
-    { id: "contact", label: tNav("contact") },
+    { id: "contact", label: tNav("contact"), href: "/contact" },
   ];
 
   return (
@@ -234,10 +235,18 @@ export function FooterClient({
           </div>
         </div>
 
-        <div className="mt-14 border-t border-gray-800 pt-7 text-center">
+        <div className="mt-14 flex flex-col items-center gap-3 border-t border-gray-800 pt-7 text-center sm:flex-row sm:justify-between">
           <span className="text-fluid-xs text-gray-500">
             © {year} {name} - {t("rights")}
           </span>
+          <div className="flex items-center gap-4">
+            <Link href="/privacy" className="text-fluid-xs text-gray-500 transition-colors hover:text-pigment-gold">
+              {tLegal("privacyTitle")}
+            </Link>
+            <Link href="/terms" className="text-fluid-xs text-gray-500 transition-colors hover:text-pigment-gold">
+              {tLegal("termsTitle")}
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

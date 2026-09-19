@@ -23,6 +23,8 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
 import { SocialIcon } from "@/components/ui/SocialIcon";
+import { InfoCard } from "@/components/ui/InfoCard";
+import { GuideFlyerCard } from "./GuideFlyerCard";
 import { scrollToId } from "@/lib/scrollTo";
 import { formatVisitingHours } from "@/lib/visitingHours";
 import { CONTACT_SUBJECTS, type ContactSubject } from "@/lib/contactSubjects";
@@ -44,28 +46,7 @@ export interface ContactPageClientProps {
   openWeekdays: number[];
   /** Bookable start times, "HH:MM", sorted or not. */
   timeSlots: string[];
-}
-
-function InfoCard({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-start gap-4 rounded-2xl border border-ink/10 bg-white p-5 shadow-card">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#850B10]/10 text-[#850B10]">
-        {icon}
-      </span>
-      <div className="min-w-0">
-        <div className="text-fluid-xs uppercase tracking-[0.15em] text-ink-faint">{label}</div>
-        <div className="mt-1 text-fluid-sm font-medium text-ink">{children}</div>
-      </div>
-    </div>
-  );
+  guideFlyerUrl: string | null;
 }
 
 export function ContactPageClient({
@@ -78,6 +59,7 @@ export function ContactPageClient({
   socials,
   openWeekdays,
   timeSlots,
+  guideFlyerUrl,
 }: ContactPageClientProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations("contact");
@@ -153,7 +135,12 @@ export function ContactPageClient({
           <span className="font-medium text-ink">{tNav("contact")}</span>
         </nav>
 
-        <SectionHeading align="center" eyebrow={t("eyebrow")} heading={t("heading")} subheading={t("subheading")} />
+        <SectionHeading
+          align="center"
+          eyebrow={tPage("eyebrow")}
+          heading={tPage("heading")}
+          subheading={tPage("subheading")}
+        />
 
         {/* 2-column: info cards (right in RTL, first in DOM) / form (left, second) */}
         <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr] lg:gap-14">
@@ -181,10 +168,19 @@ export function ContactPageClient({
                 <button
                   type="button"
                   onClick={() => scrollToId(MAP_SECTION_ID)}
-                  className="text-start hover:text-[#850B10]"
+                  className="block text-start hover:text-[#850B10]"
                 >
                   {location}
                 </button>
+                <a
+                  href={directionsUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="mt-1 flex items-center gap-1 text-fluid-xs font-normal text-[#850B10]"
+                >
+                  <Navigation size={12} />
+                  {tPage("getDirections")}
+                </a>
               </InfoCard>
 
               <InfoCard icon={<Clock size={18} />} label={tFooter("hoursHeading")}>
@@ -219,6 +215,8 @@ export function ContactPageClient({
                   )}
                 </div>
               )}
+
+              <GuideFlyerCard href={guideFlyerUrl} className="mt-2" />
             </div>
           </Reveal>
 

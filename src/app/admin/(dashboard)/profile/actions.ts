@@ -6,6 +6,7 @@ import { requireAdminSession } from "@/lib/adminAuth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
+import { resolveUploadedDocumentUrl } from "@/lib/supabase/uploadDocument";
 
 export async function updateProfile(formData: FormData) {
   await requireAdminSession(PERMISSIONS.profileManage);
@@ -14,6 +15,13 @@ export async function updateProfile(formData: FormData) {
   const keptHeroGalleryUrls = formData.getAll("hero_image_urls_kept").map(String);
   const newHeroGalleryUrls = await resolveUploadedImageUrls(supabase, formData, "hero_image_gallery_files");
   const heroImageUrls = [...keptHeroGalleryUrls, ...newHeroGalleryUrls];
+
+  const guideFlyerUrl = await resolveUploadedDocumentUrl(
+    supabase,
+    formData,
+    "guide_flyer_file",
+    "guide_flyer_url"
+  );
 
   const { error } = await supabase.from("site_profile").upsert({
     id: 1,
@@ -59,6 +67,7 @@ export async function updateProfile(formData: FormData) {
     social_youtube_url: String(formData.get("social_youtube_url") ?? "").trim(),
     hero_image_url: heroImageUrls[0] ?? null,
     hero_image_urls: heroImageUrls,
+    guide_flyer_url: guideFlyerUrl,
   });
   if (error) throw new Error(error.message);
 

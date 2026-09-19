@@ -27,6 +27,7 @@ export async function ContactPage() {
       socials={socials}
       openWeekdays={bookingSettings.openWeekdays}
       timeSlots={bookingSettings.timeSlots}
+      guideFlyerUrl={profile?.guide_flyer_url?.trim() || null}
     />
   );
 }

@@ -233,8 +233,15 @@
     }
   },
   "contactPage": {
+    "eyebrow": "Contact Us",
+    "heading": "Contact the Museum",
+    "subheading": "Have a question, or want to plan a visit? We'd love to hear from you.",
     "breadcrumbHome": "Home",
     "infoHeading": "Contact Information",
+    "guideLabel": "Visitor PDF",
+    "guideHeading": "Museum Visitor Guide",
+    "guideDescription": "A digital guide to the museum's sections, exhibits, and visiting tips.",
+    "guideDownload": "Download Visitor Guide",
     "mapHeading": "Find Us on the Map",
     "getDirections": "Get Directions"
   },

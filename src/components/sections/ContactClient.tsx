@@ -5,15 +5,44 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
-import { useTranslations } from "next-intl";
-import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import { Mail, MapPin, Phone, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
+import { InfoCard } from "@/components/ui/InfoCard";
+import { GuideFlyerCard } from "./GuideFlyerCard";
+import type { Locale } from "@/i18n/routing";
 
-export function ContactClient() {
+const FALLBACK_MAP_QUERY = "National Museum Amna Suraka, Sulaymaniyah, Iraq";
+
+export interface ContactClientProps {
+  email: string;
+  phone: string;
+  mapUrl: string | null;
+  locationKu: string;
+  locationEn: string;
+  locationAr: string;
+  guideFlyerUrl: string | null;
+}
+
+export function ContactClient({
+  email,
+  phone,
+  mapUrl,
+  locationKu,
+  locationEn,
+  locationAr,
+  guideFlyerUrl,
+}: ContactClientProps) {
+  const locale = useLocale() as Locale;
   const t = useTranslations("contact");
+  const tFooter = useTranslations("footer");
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
+
+  const location = locale === "en" ? locationEn : locale === "ar" ? locationAr : locationKu;
+  const directionsUrl =
+    mapUrl || `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(FALLBACK_MAP_QUERY)}`;
 
   const schema = z.object({
     name: z.string().min(1, t("form.errors.name")),
@@ -53,10 +82,42 @@ export function ContactClient() {
   return (
     <section id="contact" className="relative py-24 sm:py-32">
       <div className="container-art section-px flex flex-col gap-10">
-        <SectionHeading eyebrow={t("eyebrow")} heading={t("heading")} subheading={t("subheading")} />
+        <SectionHeading eyebrow={t("eyebrow")} heading={t("heading")} />
 
-        <div className="mx-auto w-full max-w-2xl">
-          <Reveal delay={0.1}>
+        {/* 2-column: info cards (right in RTL, first in DOM) / form (left, second) */}
+        <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr] lg:gap-14">
+          <Reveal from="start" delay={0.05}>
+            <div className="flex h-full flex-col gap-5">
+              {phone && (
+                <InfoCard icon={<Phone size={18} />} label={tFooter("phoneLabel")}>
+                  <a href={`tel:${phone}`} dir="ltr" className="hover:text-[#850B10]">
+                    {phone}
+                  </a>
+                </InfoCard>
+              )}
+
+              <InfoCard icon={<MapPin size={18} />} label={t("info.studioLabel")}>
+                <a
+                  href={directionsUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="hover:text-[#850B10]"
+                >
+                  {location}
+                </a>
+              </InfoCard>
+
+              <InfoCard icon={<Mail size={18} />} label={t("info.emailLabel")}>
+                <a href={`mailto:${email}`} dir="ltr" className="hover:text-[#850B10]">
+                  {email}
+                </a>
+              </InfoCard>
+
+              <GuideFlyerCard href={guideFlyerUrl} className="mt-1" />
+            </div>
+          </Reveal>
+
+          <Reveal from="end" delay={0.1}>
             <form
               onSubmit={handleSubmit(onSubmit)}
               noValidate
@@ -85,6 +146,7 @@ export function ContactClient() {
                   <input
                     id="phone"
                     type="tel"
+                    dir="ltr"
                     required
                     {...register("phone")}
                     placeholder={t("form.phonePlaceholder")}

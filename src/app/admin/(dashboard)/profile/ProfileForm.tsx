@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import clsx from "clsx";
+import { Upload, FileText } from "lucide-react";
 import { LanguageProvider, LanguageTabs } from "../../_components/LanguageTabs";
 import { LocalizedField } from "../../_components/LocalizedField";
 import { Field, fieldControlClass } from "../../_components/Field";
@@ -251,11 +252,91 @@ export function ProfileForm({
           <span className="font-kurdish text-fluid-xs text-ink-faint">
             هەر خانەیەک بەتاڵ بکەیتەوە، ئەو دوگمەیە لە ماڵپەڕەکە لادەبرێت.
           </span>
+
+          <PdfField
+            label="فۆڵدەری ڕێنیشاندەر (PDF)"
+            name="guide_flyer_file"
+            urlName="guide_flyer_url"
+            currentUrl={profile?.guide_flyer_url ?? null}
+            hint="ئەو فایلەی کە بە دوگمەی داگرتن لە بەشی پەیوەندیدا پیشان دەدرێت."
+          />
         </Panel>
 
         <SaveBar />
       </form>
     </LanguageProvider>
+  );
+}
+
+/** Single PDF field with two ways in: upload a file, or paste a direct link.
+ * `urlName` is a plain always-rendered text input (like contact_map_url) —
+ * editing or clearing it directly changes the saved value; picking a file
+ * takes priority over it server-side regardless of what's typed there. */
+function PdfField({
+  label,
+  name,
+  urlName,
+  currentUrl,
+  hint,
+}: {
+  label: string;
+  name: string;
+  urlName: string;
+  currentUrl: string | null;
+  hint?: string;
+}) {
+  const [fileName, setFileName] = useState<string | null>(null);
+
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="font-kurdish text-fluid-xs font-medium text-ink-soft">{label}</legend>
+      <div className="flex flex-wrap items-center gap-3">
+        <label className="group flex cursor-pointer items-center gap-2 rounded-xl border border-dashed border-ink/25 bg-canvas-paper/60 px-4 py-2.5 text-fluid-xs text-ink-soft transition hover:border-ink/45 hover:bg-canvas-paper">
+          <Upload size={14} />
+          {fileName ? "گۆڕینی فایل" : "هەڵبژاردنی فایلی PDF"}
+          <input
+            type="file"
+            name={name}
+            accept="application/pdf"
+            className="sr-only"
+            onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+          />
+        </label>
+
+        {fileName && (
+          <span className="flex items-center gap-2 rounded-full border border-ink/10 bg-canvas px-3 py-1.5 text-fluid-xs text-ink-soft">
+            <FileText size={14} className="text-[#850B10]" />
+            <span className="max-w-[220px] truncate">{fileName}</span>
+            <button
+              type="button"
+              onClick={() => setFileName(null)}
+              aria-label="سڕینەوە"
+              className="text-ink-faint transition-colors hover:text-pigment-crimson"
+            >
+              ×
+            </button>
+          </span>
+        )}
+      </div>
+
+      <div className="flex items-center gap-2">
+        <span className="font-kurdish text-fluid-xs text-ink-faint">یان</span>
+        <input
+          type="text"
+          name={urlName}
+          dir="ltr"
+          defaultValue={currentUrl ?? ""}
+          placeholder="https://example.com/guide.pdf"
+          className={fieldControlClass}
+        />
+      </div>
+      {fileName && (
+        <span className="font-kurdish text-fluid-xs text-ink-faint">
+          فایلی هەڵبژێردراو پێشتری وەردەگیرێت — لینکەکەی سەرەوە پشتگوێ دەخرێت.
+        </span>
+      )}
+      {hint && <span className="font-kurdish text-fluid-xs text-ink-faint">{hint}</span>}
+    </fieldset>
   );
 }
 

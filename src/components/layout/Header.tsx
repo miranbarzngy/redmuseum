@@ -12,10 +12,12 @@ import { pickSectionTitle } from "@/lib/museumSectionTitle";
 import type { Locale } from "@/i18n/routing";
 
 // Homepage sections, scrolled to in place.
-const SECTION_IDS = ["biography", "media", "contact"] as const;
-// Booking is its own route (/booking), not a homepage section, so it
-// navigates instead of scrolling — this way clicking it works the same from
-// any page, not just when already on the homepage.
+const SECTION_IDS = ["biography", "media"] as const;
+// Booking and Contact are their own routes (/booking, /contact), not
+// homepage sections, so they navigate instead of scrolling — this way
+// clicking them works the same from any page, not just when already on the
+// homepage. Contact used to scroll to the homepage's #contact section, but
+// that duplicated the richer standalone /contact page with no way to reach it.
 
 export interface HeaderSection {
   id: string;
@@ -237,6 +239,12 @@ export function Header({
               )
             )}
             <Link
+              href="/contact"
+              className="text-fluid-sm font-medium text-[#2E2F33] transition-colors hover:text-[#850B10]"
+            >
+              {t("contact")}
+            </Link>
+            <Link
               href="/booking"
               className="text-fluid-sm font-medium text-[#2E2F33] transition-colors hover:text-[#850B10]"
             >
@@ -344,6 +352,13 @@ export function Header({
                   </button>
                 )
               )}
+              <Link
+                href="/contact"
+                onClick={() => setMenuOpen(false)}
+                className="rounded-lg px-2 py-3 text-start text-fluid-base font-medium text-ink-soft hover:bg-ink/5 hover:text-ink"
+              >
+                {t("contact")}
+              </Link>
               <Link
                 href="/booking"
                 onClick={() => setMenuOpen(false)}
