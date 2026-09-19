@@ -178,7 +178,7 @@ export function BiographyClient({
                     )}
                   </Reveal>
                   <Reveal delay={0.1} className="w-full lg:w-3/5">
-                    <p className="text-xs sm:text-sm lg:text-fluid-base leading-[3] text-ink-soft">{pickBody(block, locale)}</p>
+                    <p className="text-xs sm:text-sm lg:text-fluid-base leading-relaxed text-ink-soft">{pickBody(block, locale)}</p>
                     <span className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
                       <span
                         className="inline-flex items-center gap-1.5 text-fluid-xs font-semibold uppercase tracking-[0.2em]"
@@ -220,7 +220,7 @@ export function BiographyClient({
                     </div>
                   </Reveal>
                   <Reveal delay={0.1} className="w-full lg:w-3/5">
-                    <p className="text-xs sm:text-sm lg:text-fluid-base leading-[2.4] text-ink-soft">{p}</p>
+                    <p className="text-xs sm:text-sm lg:text-fluid-base leading-relaxed text-ink-soft">{p}</p>
                   </Reveal>
                 </div>
               ))}

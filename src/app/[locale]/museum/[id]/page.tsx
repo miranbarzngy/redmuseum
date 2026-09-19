@@ -111,7 +111,7 @@ export default async function MuseumSectionPage({
                     {title || t("sectionLabel", { number })}
                   </h1>
                 </div>
-                <p className="whitespace-pre-line text-xs leading-[2.4] text-ink-soft sm:text-fluid-sm">
+                <p className="whitespace-pre-line text-xs leading-relaxed text-ink-soft sm:text-fluid-sm">
                   {body || t("noContent")}
                 </p>
               </div>

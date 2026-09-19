@@ -7,81 +7,73 @@ interface PaintCanvasProps {
   progress: MotionValue<number>;
 }
 
+interface Ball {
+  color: string;
+  size: number;
+  top: string;
+  left: string;
+  // How far the ball drifts (px) across the full scroll range — different
+  // per ball so the layer reads as having depth rather than moving as one
+  // flat sheet.
+  parallax: number;
+  // Looping travel path in viewport units (vw/vh), relative to its own
+  // anchor position, so each ball genuinely sweeps a large stretch of the
+  // screen instead of jittering in place. First and last points match so
+  // the loop has no visible reset.
+  floatX: string[];
+  floatY: string[];
+  duration: number;
+  delay: number;
+}
+
+// Soft, faint washes in the site's pigment palette (see tailwind.config.ts)
+// — a callback to the "paint" motif this layer is named after, now living
+// as ambient shapes instead of drawn strokes. Kept low-opacity and heavily
+// blurred on purpose: they should read as a slow-moving atmosphere, not as
+// distinct colorful circles. Each one sweeps its own large, looping path
+// at its own speed so the layer never reads as one flat sheet moving in
+// lockstep.
+const BALLS: Ball[] = [
+  { color: "#C1652F", size: 420, top: "2%", left: "6%", parallax: -120, floatX: ["0vw", "55vw", "20vw", "0vw"], floatY: ["0vh", "35vh", "70vh", "0vh"], duration: 26, delay: 0 },
+  { color: "#1F5F5B", size: 320, top: "56%", left: "84%", parallax: 90, floatX: ["0vw", "-60vw", "-25vw", "0vw"], floatY: ["0vh", "-40vh", "-65vh", "0vh"], duration: 22, delay: 2 },
+  { color: "#C9A227", size: 280, top: "26%", left: "60%", parallax: -70, floatX: ["0vw", "-45vw", "35vw", "0vw"], floatY: ["0vh", "45vh", "-30vh", "0vh"], duration: 29, delay: 4 },
+  { color: "#3D0000", size: 360, top: "76%", left: "16%", parallax: 100, floatX: ["0vw", "50vw", "15vw", "0vw"], floatY: ["0vh", "-50vh", "-20vh", "0vh"], duration: 24, delay: 1 },
+  { color: "#9B3B3B", size: 240, top: "10%", left: "44%", parallax: -60, floatX: ["0vw", "-30vw", "40vw", "0vw"], floatY: ["0vh", "55vh", "20vh", "0vh"], duration: 27, delay: 3.5 },
+];
+
+function FloatingBall({ ball, progress }: { ball: Ball; progress: MotionValue<number> }) {
+  // Parallax lives on this outer element (Framer Motion writes straight to
+  // its transform each frame); the wandering loop lives on the inner
+  // element below so the two never fight over the same `transform`.
+  const y = useTransform(progress, [0, 1], [0, ball.parallax]);
+
+  return (
+    <motion.div className="absolute" style={{ top: ball.top, left: ball.left, y }}>
+      <motion.div
+        className="rounded-full blur-3xl"
+        style={{
+          width: ball.size,
+          height: ball.size,
+          backgroundColor: ball.color,
+          opacity: 0.16,
+        }}
+        animate={{ x: ball.floatX, y: ball.floatY }}
+        transition={{ duration: ball.duration, delay: ball.delay, repeat: Infinity, ease: "easeInOut" }}
+      />
+    </motion.div>
+  );
+}
+
 /**
- * A fixed, full-viewport paint layer that reacts to global scroll progress.
- * Each stroke draws itself in as the visitor scrolls through the matching
- * section, morphing its own curvature as it goes (not just fading in a
- * static shape) before receding as the next one takes over — a quiet
- * narrative thread connecting Hero -> Departments -> Media -> Contact.
- * Four strokes for four sections (there is no standalone Gallery section
- * anymore), each a visibly different curve family so the strokes read as
- * distinct brushmarks rather than four copies of the same S-curve.
+ * A fixed, full-viewport paint layer behind the whole page. Soft blurred
+ * orbs in the site's pigment palette wander their own looping paths and
+ * gently parallax at different speeds as the visitor scrolls, giving the
+ * background a slow sense of depth without drawing attention away from the
+ * foreground content.
  */
 export function PaintCanvas({ progress }: PaintCanvasProps) {
   const reduceMotion = useReducedMotion();
   const dir = useDirection();
-
-  // Solid grey, matching the header nav's text color (#2E2F33) — replaces
-  // the brand-red strokes these used to draw in.
-  const STROKE_COLOR = "#2E2F33";
-
-  // Hero — a single, gentle arc.
-  const heroPath = useTransform(progress, [0, 0.06, 0.16, 0.22], [0, 1, 1, 0]);
-  const heroOpacity = useTransform(progress, [0, 0.04, 0.18, 0.24], [0, 0.05, 0.05, 0]);
-  const heroD = useTransform(
-    progress,
-    [0, 0.06, 0.16, 0.22],
-    [
-      "M -50 170 C 220 60, 420 270, 1050 110",
-      "M -50 140 C 260 220, 440 40, 1050 160",
-      "M -50 140 C 260 220, 440 40, 1050 160",
-      "M -50 170 C 220 60, 420 270, 1050 110",
-    ]
-  );
-
-  // Departments (formerly Biography) — a double wave, structurally distinct
-  // from the single-arc strokes elsewhere on the page.
-  const deptPath = useTransform(progress, [0.2, 0.28, 0.42, 0.5], [0, 1, 1, 0]);
-  const deptOpacity = useTransform(progress, [0.2, 0.26, 0.44, 0.52], [0, 0.05, 0.05, 0]);
-  const deptD = useTransform(
-    progress,
-    [0.2, 0.28, 0.42, 0.5],
-    [
-      "M -50 300 C 150 380, 350 220, 550 300 C 750 380, 950 220, 1050 280",
-      "M -50 260 C 180 200, 330 400, 550 300 C 770 200, 920 400, 1050 320",
-      "M -50 260 C 180 200, 330 400, 550 300 C 770 200, 920 400, 1050 320",
-      "M -50 300 C 150 380, 350 220, 550 300 C 750 380, 950 220, 1050 280",
-    ]
-  );
-
-  // Media — a steep diagonal sweep.
-  const mediaPath = useTransform(progress, [0.46, 0.54, 0.7, 0.78], [0, 1, 1, 0]);
-  const mediaOpacity = useTransform(progress, [0.46, 0.52, 0.72, 0.8], [0, 0.05, 0.05, 0]);
-  const mediaD = useTransform(
-    progress,
-    [0.46, 0.54, 0.7, 0.78],
-    [
-      "M 1050 500 C 700 650, 300 350, -50 550",
-      "M 1050 560 C 680 380, 320 680, -50 480",
-      "M 1050 560 C 680 380, 320 680, -50 480",
-      "M 1050 500 C 700 650, 300 350, -50 550",
-    ]
-  );
-
-  // Contact — a low, minimal diagonal (deliberately the calmest shape, last
-  // brushstroke in the sequence). Stays drawn once complete rather than
-  // fading, since there's no section after it.
-  const contactPath = useTransform(progress, [0.74, 0.82, 1], [0, 1, 1]);
-  const contactOpacity = useTransform(progress, [0.74, 0.8, 1], [0, 0.05, 0.05]);
-  const contactD = useTransform(
-    progress,
-    [0.74, 0.82, 1],
-    [
-      "M -50 750 C 300 720, 700 800, 1050 760",
-      "M -50 800 C 320 760, 680 820, 1050 720",
-      "M -50 800 C 320 760, 680 820, 1050 720",
-    ]
-  );
 
   if (reduceMotion) {
     return (
@@ -107,37 +99,9 @@ export function PaintCanvas({ progress }: PaintCanvasProps) {
         className="absolute inset-0"
         style={{ transform: dir === "rtl" ? "scaleX(-1) translateZ(0)" : "translateZ(0)" }}
       >
-        <svg
-          className="absolute inset-0 h-full w-full"
-          viewBox="0 0 1000 1000"
-          preserveAspectRatio="xMidYMid slice"
-          fill="none"
-        >
-          <motion.path
-            stroke={STROKE_COLOR}
-            strokeWidth="4"
-            strokeLinecap="round"
-            style={{ d: heroD, pathLength: heroPath, opacity: heroOpacity }}
-          />
-          <motion.path
-            stroke={STROKE_COLOR}
-            strokeWidth="4"
-            strokeLinecap="round"
-            style={{ d: deptD, pathLength: deptPath, opacity: deptOpacity }}
-          />
-          <motion.path
-            stroke={STROKE_COLOR}
-            strokeWidth="4"
-            strokeLinecap="round"
-            style={{ d: mediaD, pathLength: mediaPath, opacity: mediaOpacity }}
-          />
-          <motion.path
-            stroke={STROKE_COLOR}
-            strokeWidth="3"
-            strokeLinecap="round"
-            style={{ d: contactD, pathLength: contactPath, opacity: contactOpacity }}
-          />
-        </svg>
+        {BALLS.map((ball, i) => (
+          <FloatingBall key={i} ball={ball} progress={progress} />
+        ))}
       </div>
     </div>
   );

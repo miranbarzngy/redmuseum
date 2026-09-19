@@ -58,7 +58,6 @@ export function FooterClient({
   const t = useTranslations("footer");
   const tNav = useTranslations("nav");
   const tBooking = useTranslations("booking");
-  const tLegal = useTranslations("legal");
   const pathname = usePathname();
   const router = useRouter();
   const year = new Date().getFullYear();
@@ -235,18 +234,10 @@ export function FooterClient({
           </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-center gap-3 border-t border-gray-800 pt-7 text-center sm:flex-row sm:justify-between">
+        <div className="mt-14 flex flex-col items-center gap-3 border-t border-gray-800 pt-7 text-center">
           <span className="text-fluid-xs text-gray-500">
             © {year} {name} - {t("rights")}
           </span>
-          <div className="flex items-center gap-4">
-            <Link href="/privacy" className="text-fluid-xs text-gray-500 transition-colors hover:text-pigment-gold">
-              {tLegal("privacyTitle")}
-            </Link>
-            <Link href="/terms" className="text-fluid-xs text-gray-500 transition-colors hover:text-pigment-gold">
-              {tLegal("termsTitle")}
-            </Link>
-          </div>
         </div>
       </div>
     </footer>
