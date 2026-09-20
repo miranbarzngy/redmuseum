@@ -19,7 +19,6 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
 import { SocialIcon } from "@/components/ui/SocialIcon";
@@ -124,23 +123,29 @@ export function ContactPageClient({
   }
 
   return (
-    <div className="relative py-24 sm:py-28">
+    <div className="relative pb-24 pt-20 sm:pb-28 sm:pt-24">
       <div className="container-art section-px flex flex-col gap-14">
-        {/* Breadcrumbs */}
-        <nav aria-label="breadcrumb" className="flex items-center gap-2 text-fluid-xs text-ink-faint">
-          <Link href="/" className="transition-colors hover:text-[#850B10]">
-            {tPage("breadcrumbHome")}
-          </Link>
-          <span>/</span>
-          <span className="font-medium text-ink">{tNav("contact")}</span>
-        </nav>
+        <div className="flex flex-col gap-4">
+          {/* Breadcrumbs */}
+          <nav aria-label="breadcrumb" className="flex items-center gap-2 text-fluid-xs text-ink-faint">
+            <Link href="/" className="transition-colors hover:text-[#850B10]">
+              {tPage("breadcrumbHome")}
+            </Link>
+            <span>/</span>
+            <span className="font-medium text-ink">{tNav("contact")}</span>
+          </nav>
 
-        <SectionHeading
-          align="center"
-          eyebrow={tPage("eyebrow")}
-          heading={tPage("heading")}
-          subheading={tPage("subheading")}
-        />
+          <div className="flex flex-col items-center gap-3">
+            <div className="flex items-center justify-center gap-4">
+              <span className="h-px w-12 bg-[#850B10] sm:w-24" />
+              <h1 className="font-display text-fluid-xl font-semibold text-ink">{tPage("heading")}</h1>
+              <span className="h-px w-12 bg-[#850B10] sm:w-24" />
+            </div>
+            <p className="max-w-2xl text-center text-fluid-base leading-relaxed text-ink-soft">
+              {tPage("subheading")}
+            </p>
+          </div>
+        </div>
 
         {/* 2-column: info cards (right in RTL, first in DOM) / form (left, second) */}
         <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr] lg:gap-14">

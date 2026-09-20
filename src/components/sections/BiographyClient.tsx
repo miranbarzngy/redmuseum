@@ -60,12 +60,12 @@ export function BiographyClient({
         onClick={() => setShowList((open) => !open)}
         aria-expanded={showList}
         aria-controls="museum-sections-list"
-        className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-fluid-sm font-semibold uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-90"
+        className="inline-flex items-center gap-2.5 rounded-full px-6 py-3 text-fluid-base font-semibold uppercase tracking-[0.15em] text-white transition-opacity hover:opacity-90"
         style={{ backgroundColor: ACCENT }}
       >
         {t("sectionsToggle")}
         <span
-          className="grid h-5 min-w-[1.25rem] place-items-center rounded-full px-1 text-[0.7rem] leading-none tabular-nums"
+          className="grid h-7 min-w-[1.75rem] place-items-center rounded-full px-1.5 text-sm leading-none tabular-nums"
           style={{
             backgroundColor: "#AAABAF",
             // Force a Latin-digit font: the Kurdish/Arabic body faces render
@@ -79,7 +79,7 @@ export function BiographyClient({
           <span className="block translate-x-[1px] translate-y-[1.5px]">{blocks.length}</span>
         </span>
         <ChevronDown
-          size={15}
+          size={19}
           className={`transition-transform duration-300 ${showList ? "rotate-180" : ""}`}
         />
       </button>

@@ -137,9 +137,9 @@ export function GalleryClient({ groups }: { groups: GalleryGroup[] }) {
   return (
     <section id="media" className="relative flex flex-col overflow-hidden py-8">
       <div className="flex shrink-0 items-center justify-center gap-4 px-6 pb-6">
-        <span className="h-px w-12 bg-[#c8a96e] sm:w-24" />
+        <span className="h-px w-12 bg-[#850B10] sm:w-24" />
         <h2 className="font-display text-fluid-xl font-semibold text-ink">{t("heading")}</h2>
-        <span className="h-px w-12 bg-[#c8a96e] sm:w-24" />
+        <span className="h-px w-12 bg-[#850B10] sm:w-24" />
       </div>
 
       {groups.length === 0 ? (

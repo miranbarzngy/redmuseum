@@ -7,7 +7,6 @@ import { z } from "zod";
 import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { Mail, MapPin, Phone, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
 import { InfoCard } from "@/components/ui/InfoCard";
@@ -80,9 +79,13 @@ export function ContactClient({
   }
 
   return (
-    <section id="contact" className="relative py-24 sm:py-32">
+    <section id="contact" className="relative pb-24 pt-8 sm:pb-32 sm:pt-10">
       <div className="container-art section-px flex flex-col gap-10">
-        <SectionHeading eyebrow={t("eyebrow")} heading={t("heading")} />
+        <div className="flex items-center justify-center gap-4">
+          <span className="h-px w-12 bg-[#850B10] sm:w-24" />
+          <h2 className="font-display text-fluid-xl font-semibold text-ink">{t("heading")}</h2>
+          <span className="h-px w-12 bg-[#850B10] sm:w-24" />
+        </div>
 
         {/* 2-column: info cards (right in RTL, first in DOM) / form (left, second) */}
         <div className="grid gap-10 lg:grid-cols-[1fr_1.3fr] lg:gap-14">

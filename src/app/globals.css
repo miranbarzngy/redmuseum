@@ -170,6 +170,53 @@ html[lang="ar"] .tracking-tightest2 {
   }
 }
 
+/* PaintCanvas background lines (src/components/background/PaintCanvas.tsx)
+   — thin diagonal SVG paths that flow continuously from the bottom-left
+   corner toward the top-right corner (each path's own `d` starts at its
+   bottom-left end, and stroke-dashoffset counts down in a straight line,
+   which travels the dash pattern in that same start->end direction).
+   -240 is a multiple of the 24+16 dash period, so the loop has no visible
+   seam — it runs forever (animation-iteration-count: infinite), just never
+   snaps back to a "start" position. Linear/constant speed, each line on its
+   own duration so they don't flow in lockstep. Plain CSS animation, so the
+   global prefers-reduced-motion rule below already freezes it like every
+   other animation on the site. */
+@keyframes paint-line-flow {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: -240;
+  }
+}
+
+.paint-line {
+  stroke-dasharray: 24 16;
+  animation-name: paint-line-flow;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.paint-line--a {
+  animation-duration: 9s;
+}
+
+.paint-line--b {
+  animation-duration: 12s;
+}
+
+.paint-line--c {
+  animation-duration: 10s;
+}
+
+.paint-line--d {
+  animation-duration: 14s;
+}
+
+.paint-line--e {
+  animation-duration: 7s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
