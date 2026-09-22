@@ -38,7 +38,17 @@ export async function updateProfile(formData: FormData) {
       .getAll("statement_words_ku")
       .map((word) => String(word).trim())
       .filter(Boolean),
+    statement_words_en: formData
+      .getAll("statement_words_en")
+      .map((word) => String(word).trim())
+      .filter(Boolean),
+    statement_words_ar: formData
+      .getAll("statement_words_ar")
+      .map((word) => String(word).trim())
+      .filter(Boolean),
     statement_suffix_ku: String(formData.get("statement_suffix_ku") ?? "").trim(),
+    statement_suffix_en: String(formData.get("statement_suffix_en") ?? "").trim(),
+    statement_suffix_ar: String(formData.get("statement_suffix_ar") ?? "").trim(),
     stat_museums_value: String(formData.get("stat_museums_value") ?? "").trim(),
     stat_museums_label_ku: String(formData.get("stat_museums_label_ku") ?? "").trim(),
     stat_museums_label_en: String(formData.get("stat_museums_label_en") ?? "").trim(),

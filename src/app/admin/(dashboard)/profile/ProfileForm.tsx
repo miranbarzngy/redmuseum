@@ -3,7 +3,7 @@
 import { useState } from "react";
 import clsx from "clsx";
 import { Upload, FileText } from "lucide-react";
-import { LanguageProvider, LanguageTabs } from "../../_components/LanguageTabs";
+import { ADMIN_LANGS, LanguageProvider, LanguageTabs, useLanguage } from "../../_components/LanguageTabs";
 import { LocalizedField } from "../../_components/LocalizedField";
 import { Field, fieldControlClass } from "../../_components/Field";
 import { ImageGalleryField } from "../../_components/ImageGalleryField";
@@ -97,23 +97,35 @@ export function ProfileForm({
             />
           </NumberedField>
           <NumberedField number={2}>
-            <WordsGridField
-              name="statement_words_ku"
+            <LocalizedWordsGridField
+              name="statement_words"
               label="وشە جێگۆڕەکان"
-              defaultWords={
-                profile?.statement_words_ku && profile.statement_words_ku.length > 0
-                  ? profile.statement_words_ku
-                  : homepageDefaults.statementWords
-              }
-              hint="لە دوای 'دەربارە / دەربڕین' پیشان دەدرێت"
+              defaultWords={{
+                ku:
+                  profile?.statement_words_ku && profile.statement_words_ku.length > 0
+                    ? profile.statement_words_ku
+                    : homepageDefaults.statementWords.ku,
+                en:
+                  profile?.statement_words_en && profile.statement_words_en.length > 0
+                    ? profile.statement_words_en
+                    : homepageDefaults.statementWords.en,
+                ar:
+                  profile?.statement_words_ar && profile.statement_words_ar.length > 0
+                    ? profile.statement_words_ar
+                    : homepageDefaults.statementWords.ar,
+              }}
+              hint="لە دوای 'دەربارە / دەربڕین' پیشان دەدرێت. بەتاڵی بهێڵەرەوە ئەگەر ناتەوێت وشەی گۆڕاو بۆ ئەم زمانە پیشان بدرێت."
             />
           </NumberedField>
           <NumberedField number={3}>
-            <Field
-              name="statement_suffix_ku"
+            <LocalizedField
+              name="statement_suffix"
               label="تەواوکەری ڕستە"
-              dir="rtl"
-              defaultValue={savedOrFallback(profile?.statement_suffix_ku, homepageDefaults.statementSuffix)}
+              defaults={{
+                ku: savedOrFallback(profile?.statement_suffix_ku, homepageDefaults.statementSuffix.ku),
+                en: savedOrFallback(profile?.statement_suffix_en, homepageDefaults.statementSuffix.en),
+                ar: savedOrFallback(profile?.statement_suffix_ar, homepageDefaults.statementSuffix.ar),
+              }}
               hint="دەقی کۆتای"
             />
           </NumberedField>
@@ -358,7 +370,64 @@ function NumberedField({ number, children }: { number: number; children: React.R
  * repeated FormData entries and collected server-side with `getAll()`.
  * Used for the hero rotator's word list, where a stacked textarea made each
  * word harder to scan than a short grid. */
-function WordsGridField({
+function WordsGrid({
+  name,
+  dir,
+  defaultWords,
+}: {
+  name: string;
+  dir: "rtl" | "ltr";
+  defaultWords: string[];
+}) {
+  const [words, setWords] = useState<string[]>(defaultWords.length > 0 ? defaultWords : [""]);
+
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {words.map((word, i) => (
+        <div key={i} className="relative">
+          <span className="pointer-events-none absolute start-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-ink/5 text-fluid-xs font-medium text-ink-faint">
+            {i + 1}
+          </span>
+          <input
+            name={name}
+            dir={dir}
+            value={word}
+            onChange={(e) =>
+              setWords((prev) => prev.map((w, idx) => (idx === i ? e.target.value : w)))
+            }
+            className={clsx(fieldControlClass, "pe-8 ps-8")}
+          />
+          <button
+            type="button"
+            onClick={() => setWords((prev) => prev.filter((_, idx) => idx !== i))}
+            disabled={words.length <= 1}
+            aria-label="سڕینەوە"
+            className="absolute end-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-pigment-crimson/10 hover:text-pigment-crimson disabled:pointer-events-none disabled:opacity-30"
+          >
+            ×
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => setWords((prev) => [...prev, ""])}
+        className={clsx(
+          fieldControlClass,
+          "flex items-center justify-center border-dashed text-ink-faint transition-colors hover:border-pigment-terracotta hover:text-pigment-terracotta"
+        )}
+      >
+        + وشە
+      </button>
+    </div>
+  );
+}
+
+/** Three <WordsGrid>s (ku/en/ar) sharing one `name` prefix — submitted as
+ * `${name}_ku`/`${name}_en`/`${name}_ar`, same convention as
+ * <LocalizedField>. Mirrors its hidden-not-unmounted tab switching so all
+ * three languages' word lists submit together regardless of which tab is
+ * active when the form is saved. */
+function LocalizedWordsGridField({
   name,
   label,
   hint,
@@ -367,50 +436,25 @@ function WordsGridField({
   name: string;
   label: string;
   hint?: string;
-  defaultWords: string[];
+  defaultWords: { ku: string[]; en: string[]; ar: string[] };
 }) {
-  const [words, setWords] = useState<string[]>(defaultWords.length > 0 ? defaultWords : [""]);
+  const ctx = useLanguage();
 
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="font-kurdish text-fluid-sm font-medium text-ink-soft">{label}</legend>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-        {words.map((word, i) => (
-          <div key={i} className="relative">
-            <span className="pointer-events-none absolute start-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full bg-ink/5 text-fluid-xs font-medium text-ink-faint">
-              {i + 1}
-            </span>
-            <input
-              name={name}
-              dir="rtl"
-              value={word}
-              onChange={(e) =>
-                setWords((prev) => prev.map((w, idx) => (idx === i ? e.target.value : w)))
-              }
-              className={clsx(fieldControlClass, "pe-8 ps-8")}
+      {ADMIN_LANGS.map((lang) => {
+        const hidden = ctx ? ctx.active !== lang.code : false;
+        return (
+          <div key={lang.code} className={hidden ? "hidden" : undefined}>
+            <WordsGrid
+              name={`${name}_${lang.code}`}
+              dir={lang.dir}
+              defaultWords={defaultWords[lang.code]}
             />
-            <button
-              type="button"
-              onClick={() => setWords((prev) => prev.filter((_, idx) => idx !== i))}
-              disabled={words.length <= 1}
-              aria-label="سڕینەوە"
-              className="absolute end-1.5 top-1/2 flex h-5 w-5 -translate-y-1/2 items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-pigment-crimson/10 hover:text-pigment-crimson disabled:pointer-events-none disabled:opacity-30"
-            >
-              ×
-            </button>
           </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => setWords((prev) => [...prev, ""])}
-          className={clsx(
-            fieldControlClass,
-            "flex items-center justify-center border-dashed text-ink-faint transition-colors hover:border-pigment-terracotta hover:text-pigment-terracotta"
-          )}
-        >
-          + وشە
-        </button>
-      </div>
+        );
+      })}
       {hint && <span className="font-kurdish text-fluid-xs text-ink-faint">{hint}</span>}
     </fieldset>
   );

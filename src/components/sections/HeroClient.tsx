@@ -36,20 +36,31 @@ export function HeroClient({ profile }: { profile: SiteProfileRow | null }) {
   const eyebrow = pick(profile, "eyebrow", locale) ?? t("eyebrow");
   const name = pick(profile, "name", locale) ?? t("name");
   const statement = pick(profile, "statement", locale) ?? t("statement");
-  // The Kurdish statement is written to end right before the historical term
-  // ("...مێژووی") — the rotator below supplies that term plus its suffix, so
-  // it only applies to `ku`; en/ar keep the full static sentence as-is.
-  // The word list is admin-editable (site_profile.statement_words_ku); the
-  // translation file's list is only the shipped fallback.
+  // Each locale's statement can optionally end with a "blank" for a rotating
+  // historical term (e.g. ku's shipped statement ends at "...مێژووی", with
+  // the rotator supplying the term plus its suffix). en/ar ship with empty
+  // word lists, so by default they render as plain, complete sentences —
+  // the admin opts a locale into the rotator by filling in its word list
+  // (site_profile.statement_words_{locale}) and, if needed, rewriting that
+  // locale's statement to end at the matching blank.
+  const localizedWords: Record<Locale, string[] | null | undefined> = {
+    ku: profile?.statement_words_ku,
+    en: profile?.statement_words_en,
+    ar: profile?.statement_words_ar,
+  };
+  const localizedSuffix: Record<Locale, string | null | undefined> = {
+    ku: profile?.statement_suffix_ku,
+    en: profile?.statement_suffix_en,
+    ar: profile?.statement_suffix_ar,
+  };
+  const savedWords = localizedWords[locale];
   const dynamicWords =
-    locale === "ku"
-      ? profile?.statement_words_ku && profile.statement_words_ku.length > 0
-        ? profile.statement_words_ku
-        : (t.raw("statementWords") as string[])
-      : [];
+    savedWords && savedWords.length > 0
+      ? savedWords
+      : ((t.raw("statementWords") as string[] | undefined) ?? []);
   // Nullish, not `||` — an explicitly-cleared suffix (saved as "") should stay
   // blank instead of reverting to the shipped default every time.
-  const dynamicSuffix = locale === "ku" ? (profile?.statement_suffix_ku ?? t("statementSuffix")) : "";
+  const dynamicSuffix = localizedSuffix[locale] ?? t("statementSuffix");
   const [dynamicWordIndex, setDynamicWordIndex] = useState(0);
 
   useEffect(() => {
@@ -127,11 +138,11 @@ export function HeroClient({ profile }: { profile: SiteProfileRow | null }) {
 
           {/* Word-by-word stagger instead of the shared Reveal wrapper — the
               museum name is the one line on the page that should feel like
-              an entrance, not just another fade-up block. whitespace-nowrap
-              only kicks in from sm: up so it can still wrap on narrow phones
-              instead of overflowing. */}
+              an entrance, not just another fade-up block. Left to wrap
+              normally (no forced nowrap) so longer admin-edited/translated
+              names don't overflow the viewport. */}
           <motion.h1
-            className="font-display text-lg font-semibold leading-[1.05] tracking-tightest2 text-canvas sm:text-xl sm:whitespace-nowrap lg:text-2xl"
+            className="font-display text-lg font-semibold leading-[1.05] tracking-tightest2 text-canvas sm:text-xl lg:text-2xl"
             initial={reduceMotion ? undefined : "hidden"}
             whileInView={reduceMotion ? undefined : "visible"}
             viewport={{ once: true, amount: 0.6 }}
@@ -157,7 +168,7 @@ export function HeroClient({ profile }: { profile: SiteProfileRow | null }) {
 
           <div className="flex flex-col gap-6">
             <Reveal delay={0.2}>
-              <p className="whitespace-pre-line text-lg leading-relaxed text-gray-200 sm:whitespace-nowrap sm:text-xl lg:text-2xl">
+              <p className="whitespace-pre-line text-lg leading-relaxed text-gray-200 sm:text-xl lg:text-2xl">
                 {statement}
                 {dynamicWords.length > 1 && (
                   <>

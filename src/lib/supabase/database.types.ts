@@ -163,6 +163,10 @@ export interface Database {
           statement_ar: string | null;
           statement_words_ku: string[] | null;
           statement_suffix_ku: string | null;
+          statement_words_en: string[] | null;
+          statement_suffix_en: string | null;
+          statement_words_ar: string[] | null;
+          statement_suffix_ar: string | null;
           history_ku: string | null;
           history_en: string | null;
           history_ar: string | null;
@@ -210,6 +214,10 @@ export interface Database {
           statement_ar?: string | null;
           statement_words_ku?: string[] | null;
           statement_suffix_ku?: string | null;
+          statement_words_en?: string[] | null;
+          statement_suffix_en?: string | null;
+          statement_words_ar?: string[] | null;
+          statement_suffix_ar?: string | null;
           history_ku?: string | null;
           history_en?: string | null;
           history_ar?: string | null;
