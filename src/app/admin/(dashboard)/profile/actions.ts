@@ -6,7 +6,6 @@ import { requireAdminSession } from "@/lib/adminAuth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
-import { resolveUploadedDocumentUrl } from "@/lib/supabase/uploadDocument";
 
 export async function updateProfile(formData: FormData) {
   await requireAdminSession(PERMISSIONS.profileManage);
@@ -16,12 +15,7 @@ export async function updateProfile(formData: FormData) {
   const newHeroGalleryUrls = await resolveUploadedImageUrls(supabase, formData, "hero_image_gallery_files");
   const heroImageUrls = [...keptHeroGalleryUrls, ...newHeroGalleryUrls];
 
-  const guideFlyerUrl = await resolveUploadedDocumentUrl(
-    supabase,
-    formData,
-    "guide_flyer_file",
-    "guide_flyer_url"
-  );
+  const guideFlyerUrl = String(formData.get("guide_flyer_url") ?? "").trim() || null;
 
   const { error } = await supabase.from("site_profile").upsert({
     id: 1,

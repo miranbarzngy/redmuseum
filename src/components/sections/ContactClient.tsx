@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { motion } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
-import { Mail, MapPin, Phone, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Mail, MapPin, Navigation, Phone, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
 import { InfoCard } from "@/components/ui/InfoCard";
@@ -100,13 +100,15 @@ export function ContactClient({
               )}
 
               <InfoCard icon={<MapPin size={18} />} label={t("info.studioLabel")}>
+                <span className="block">{location}</span>
                 <a
                   href={directionsUrl}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="hover:text-[#850B10]"
+                  className="mt-1 flex items-center gap-1 text-fluid-xs font-normal text-[#850B10] hover:underline"
                 >
-                  {location}
+                  <Navigation size={12} />
+                  {t("info.viewOnMap")}
                 </a>
               </InfoCard>
 
