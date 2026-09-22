@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "cap:sync": "cap sync android",
     "cap:open": "cap open android",
-    "android:release": "cd android && gradlew.bat assembleRelease"
+    "android:release": "cd android && gradlew.bat assembleRelease",
+    "electron:dev": "cd electron && npm start",
+    "windows:release": "cd electron && npm run dist"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.2",

@@ -9,8 +9,9 @@ import type { CapacitorConfig } from "@capacitor/cli";
 // native plugins like push notifications) around the live admin panel,
 // not an offline bundle of it.
 //
-// Update this if/when a custom domain replaces the vercel.app one — it's the
-// only place that needs to change (then run `npm run cap:sync`).
+// Update this if/when a custom domain replaces the vercel.app one, then run
+// `npm run cap:sync`. The Windows desktop shell (electron/main.js) points at
+// the same URL and needs updating too.
 const PRODUCTION_ADMIN_URL = "https://redmuseum.vercel.app/admin";
 
 const config: CapacitorConfig = {

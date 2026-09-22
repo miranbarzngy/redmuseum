@@ -1,5 +1,6 @@
 import { ScanFace } from "lucide-react";
 import { getSystemSettings, updateFaceScanSetting } from "./actions";
+import { AppDownloadsPanel } from "./AppDownloadsPanel";
 import { AppUpdatePanel } from "./AppUpdatePanel";
 import { PageHeader } from "../../_components/PageHeader";
 import { Panel } from "../../_components/Panel";
@@ -51,6 +52,8 @@ export default async function AdminSettingsPage() {
           </div>
         </form>
       </Panel>
+
+      <AppDownloadsPanel />
 
       <AppUpdatePanel />
 
