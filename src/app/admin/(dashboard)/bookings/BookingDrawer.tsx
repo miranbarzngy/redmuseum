@@ -21,7 +21,6 @@ import { openBookingPrint } from "./bookingPrint";
 import { formatVisitDate, formatSubmittedAt } from "./formatBookingDate";
 import { StatusSelect } from "./StatusSelect";
 import { BookingAvatar } from "./BookingAvatar";
-import { VISITOR_TYPE_LABELS } from "./visitorType";
 import { ConfirmDialog } from "../../_components/ConfirmDialog";
 import { useToast } from "../../_components/Toast";
 import { toWhatsAppLink } from "../../_components/whatsapp";
@@ -58,12 +57,30 @@ function InfoRow({
  * the inner panel so switching straight from one open booking to another
  * remounts fresh state (face photo, confirm dialog) instead of needing a
  * manual reset inside an effect. */
-export function BookingDrawer({ booking, onClose }: { booking: BookingRow | null; onClose: () => void }) {
+export function BookingDrawer({
+  booking,
+  visitorTypeLabel,
+  onClose,
+}: {
+  booking: BookingRow | null;
+  visitorTypeLabel: string;
+  onClose: () => void;
+}) {
   if (!booking) return null;
-  return <BookingDrawerPanel key={booking.id} booking={booking} onClose={onClose} />;
+  return (
+    <BookingDrawerPanel key={booking.id} booking={booking} visitorTypeLabel={visitorTypeLabel} onClose={onClose} />
+  );
 }
 
-function BookingDrawerPanel({ booking, onClose }: { booking: BookingRow; onClose: () => void }) {
+function BookingDrawerPanel({
+  booking,
+  visitorTypeLabel,
+  onClose,
+}: {
+  booking: BookingRow;
+  visitorTypeLabel: string;
+  onClose: () => void;
+}) {
   const [facePhotoUrl, setFacePhotoUrl] = useState<string | null>(null);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, startDelete] = useTransition();
@@ -159,7 +176,7 @@ function BookingDrawerPanel({ booking, onClose }: { booking: BookingRow; onClose
                   ltr
                 />
                 <InfoRow icon={Users} label="ژمارەی میوان" value={booking.guest_count} />
-                <InfoRow icon={Tag} label="جۆری سەردان" value={VISITOR_TYPE_LABELS[booking.visitor_type]} />
+                <InfoRow icon={Tag} label="جۆری سەردان" value={visitorTypeLabel} />
                 <InfoRow
                   icon={CalendarDays}
                   label="بەرواری سەردان"
@@ -268,7 +285,7 @@ function BookingDrawerPanel({ booking, onClose }: { booking: BookingRow; onClose
               <button
                 type="button"
                 onClick={() => {
-                  openBookingPrint(booking, facePhotoUrl);
+                  openBookingPrint(booking, visitorTypeLabel, facePhotoUrl);
                   logBookingPrinted(booking.id).catch(() => {});
                 }}
                 className="font-kurdish inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-4 py-2.5 text-fluid-sm font-medium text-ink-soft transition-colors hover:border-[#850B10] hover:text-[#850B10]"

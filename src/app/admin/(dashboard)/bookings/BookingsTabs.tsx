@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Ticket, CalendarCog } from "lucide-react";
+import { Ticket, CalendarCog, Tags } from "lucide-react";
 import clsx from "clsx";
 
 const TABS = [
   { href: "/admin/bookings", label: "سەردانەکان", icon: Ticket, exact: true },
   { href: "/admin/bookings/schedule", label: "خشتەی سەردان", icon: CalendarCog, exact: false },
+  { href: "/admin/bookings/categories", label: "جۆرەکانی سەردان", icon: Tags, exact: false },
 ];
 
 export function BookingsTabs() {

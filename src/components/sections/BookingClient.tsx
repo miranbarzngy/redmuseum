@@ -17,6 +17,8 @@ import { localizeDigits, holidayKeyFor } from "@/lib/kurdishCalendar";
 import { BookingSuccess, type BookingConfirmation } from "./BookingSuccess";
 import { BookingStatusLookup } from "./BookingStatusLookup";
 import type { BookingSettings } from "@/lib/data/bookingSettings";
+import type { BookingVisitorTypeOption } from "@/lib/data/bookingVisitorTypes";
+import type { Locale } from "@/i18n/routing";
 
 // The camera touches `window`/getUserMedia, so it can only ever render on
 // the client — dynamic + ssr:false keeps it out of the server bundle.
@@ -28,7 +30,6 @@ const PhotoCapture = dynamic(() => import("./PhotoCapture").then((m) => m.PhotoC
 // the slot grid (booking.form.openingTimeValue etc.), independent of these.
 const STEP_COUNT = 4;
 const MAX_GUESTS = 200;
-const VISITOR_TYPES = ["school", "university", "delegation", "personal", "press", "other"] as const;
 
 /** "13:00" -> { time: "1:00", period: "PM" } (digits and meridiem localized for ku/ar). */
 function formatSlot(slot: string, locale: string, meridiem: { am: string; pm: string }): { time: string; period: string } {
@@ -52,9 +53,15 @@ function upcomingDays(count: number): Date[] {
   });
 }
 
-export function BookingClient({ settings }: { settings: BookingSettings }) {
+export function BookingClient({
+  settings,
+  visitorTypes,
+}: {
+  settings: BookingSettings;
+  visitorTypes: BookingVisitorTypeOption[];
+}) {
   const t = useTranslations("booking");
-  const locale = useLocale();
+  const locale = useLocale() as Locale;
   const dir = useDirection();
 
   const [mode, setMode] = useState<"book" | "status">("book");
@@ -79,7 +86,7 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
       .string()
       .regex(/^\d+$/, t("form.errors.guestCount"))
       .refine((v) => Number(v) >= 1 && Number(v) <= MAX_GUESTS, t("form.errors.guestCount")),
-    visitorType: z.enum(VISITOR_TYPES, { error: t("form.errors.visitorType") }),
+    visitorTypeId: z.string().min(1, t("form.errors.visitorType")),
     note: z.string().optional(),
   });
   type FormValues = z.infer<typeof schema>;
@@ -92,7 +99,7 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
     formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", phone: "", guestCount: "0", visitorType: undefined, note: "" },
+    defaultValues: { name: "", phone: "", guestCount: "", visitorTypeId: "", note: "" },
   });
 
   const days = useMemo(
@@ -120,17 +127,17 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
     setVisitTime(null);
     setStep(0);
     setDirection(1);
-    reset({ name: "", phone: "", guestCount: "0", visitorType: undefined, note: "" });
+    reset({ name: "", phone: "", guestCount: "", visitorTypeId: "", note: "" });
   }
 
   async function handleNextFromInfo() {
-    const valid = await trigger(["name", "phone", "guestCount", "visitorType"]);
+    const valid = await trigger(["name", "phone", "guestCount", "visitorTypeId"]);
     if (valid) goTo(1);
   }
 
   async function handleSubmitBooking() {
     if (!visitDate || !visitTime) return;
-    const valid = await trigger(["name", "phone", "guestCount", "visitorType"]);
+    const valid = await trigger(["name", "phone", "guestCount", "visitorTypeId"]);
     if (!valid) {
       goTo(0);
       return;
@@ -154,7 +161,7 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
           phone: values.phone,
           visitDate,
           guestCount: Number(values.guestCount),
-          visitorType: values.visitorType,
+          visitorTypeId: values.visitorTypeId,
           note,
           faceImagePath,
         }),
@@ -181,7 +188,7 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
         name: values.name,
         phone: values.phone,
         guests: Number(values.guestCount),
-        visitorTypeLabel: t(`form.visitorTypes.${values.visitorType}`),
+        visitorTypeLabel: visitorTypes.find((v) => v.id === values.visitorTypeId)?.label[locale] ?? "",
         visitWeekday,
         visitDayMonth,
         timeLabel: `${slot.time} ${slot.period}`,
@@ -355,27 +362,27 @@ export function BookingClient({ settings }: { settings: BookingSettings }) {
                           )}
                         </div>
                         <div className="flex flex-col gap-1.5">
-                          <label htmlFor="visitorType" className="text-fluid-xs font-medium text-ink-soft">
+                          <label htmlFor="visitorTypeId" className="text-fluid-xs font-medium text-ink-soft">
                             {t("form.visitorType")}
                           </label>
                           <select
-                            id="visitorType"
+                            id="visitorTypeId"
                             required
                             defaultValue=""
-                            {...register("visitorType")}
+                            {...register("visitorTypeId")}
                             className="rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-[#850B10]"
                           >
                             <option value="" disabled>
                               {t("form.visitorTypePlaceholder")}
                             </option>
-                            {VISITOR_TYPES.map((key) => (
-                              <option key={key} value={key}>
-                                {t(`form.visitorTypes.${key}`)}
+                            {visitorTypes.map((vt) => (
+                              <option key={vt.id} value={vt.id}>
+                                {vt.label[locale]}
                               </option>
                             ))}
                           </select>
-                          {errors.visitorType && (
-                            <span className="text-fluid-xs text-pigment-crimson">{errors.visitorType.message}</span>
+                          {errors.visitorTypeId && (
+                            <span className="text-fluid-xs text-pigment-crimson">{errors.visitorTypeId.message}</span>
                           )}
                         </div>
                       </div>

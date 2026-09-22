@@ -1,6 +1,5 @@
 import QRCode from "qrcode";
 import { STATUS_LABELS } from "./status";
-import { VISITOR_TYPE_LABELS } from "./visitorType";
 import { formatVisitDate, formatSubmittedAt } from "./formatBookingDate";
 import type { BookingRow, BookingStatus } from "@/lib/supabase/database.types";
 
@@ -30,6 +29,7 @@ const esc = (s: string) => String(s).replace(/[&<>"']/g, (c) => ESC[c]);
  */
 export async function openBookingPrint(
   booking: BookingRow,
+  visitorTypeLabel: string,
   /** A resolved signed URL, or a promise for one (started by the caller so
    * the window can still open inside the click's user-gesture). */
   facePhoto: string | null | Promise<string | null>
@@ -67,7 +67,7 @@ export async function openBookingPrint(
     ["ناو", booking.name],
     ["ژمارەی مۆبایل", booking.phone, true],
     ["ژمارەی میوان", String(booking.guest_count)],
-    ["جۆری سەردان", VISITOR_TYPE_LABELS[booking.visitor_type]],
+    ["جۆری سەردان", visitorTypeLabel],
     ["بەرواری سەردان", formatVisitDate(booking.visit_date), true],
     ["نێردراوە لە", formatSubmittedAt(booking.created_at), true],
   ];

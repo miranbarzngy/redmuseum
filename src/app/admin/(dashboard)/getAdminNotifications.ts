@@ -1,7 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatVisitDate, formatSubmittedAt } from "./bookings/formatBookingDate";
-import { VISITOR_TYPE_LABELS } from "./bookings/visitorType";
-import type { BookingVisitorType } from "@/lib/supabase/database.types";
 import {
   EMPTY_ADMIN_NOTIFICATIONS,
   type AdminNotificationItem,
@@ -32,9 +30,10 @@ export async function getAdminNotifications(): Promise<AdminNotifications> {
   const [bookingsRes, messagesRes] = await Promise.all([
     supabase
       .from("bookings")
-      .select("id, name, phone, guest_count, visitor_type, visit_date, created_at", {
-        count: "exact",
-      })
+      .select(
+        "id, name, phone, guest_count, visit_date, created_at, visitor_type:booking_visitor_types(label_ku)",
+        { count: "exact" },
+      )
       .eq("status", "pending")
       .order("created_at", { ascending: false })
       .limit(LIST_LIMIT),
@@ -54,10 +53,23 @@ export async function getAdminNotifications(): Promise<AdminNotifications> {
     return EMPTY_ADMIN_NOTIFICATIONS;
   }
 
+  // database.types.ts is hand-written and has no Relationships metadata, so
+  // the joined select's shape above must be described locally (same pattern
+  // as src/lib/data/gallery.ts).
+  const bookingRows = (bookingsRes.data ?? []) as unknown as {
+    id: string;
+    name: string;
+    phone: string;
+    guest_count: number;
+    visit_date: string;
+    created_at: string;
+    visitor_type: { label_ku: string } | null;
+  }[];
+
   // Carry the raw `created_at` alongside each formatted item so the merged
   // list can be sorted chronologically, then dropped — the UI only ever
   // sees the pre-formatted `submittedAt`.
-  const bookingItems = (bookingsRes.data ?? []).map((b) => ({
+  const bookingItems = bookingRows.map((b) => ({
     at: b.created_at,
     item: {
       kind: "booking",
@@ -65,7 +77,7 @@ export async function getAdminNotifications(): Promise<AdminNotifications> {
       name: b.name,
       phone: b.phone,
       guestCount: b.guest_count,
-      visitorType: VISITOR_TYPE_LABELS[b.visitor_type as BookingVisitorType],
+      visitorType: b.visitor_type?.label_ku ?? "—",
       visitDate: formatVisitDate(b.visit_date),
       submittedAt: formatSubmittedAt(b.created_at),
       href: `/admin/bookings?view=${b.id}`,

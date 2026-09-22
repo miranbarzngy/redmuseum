@@ -1,7 +1,5 @@
 export type BookingStatus = "pending" | "confirmed" | "checked_in" | "cancelled" | "no_show";
 
-export type BookingVisitorType = "school" | "university" | "delegation" | "personal" | "press" | "other";
-
 export interface Database {
   public: {
     Tables: {
@@ -416,7 +414,7 @@ export interface Database {
           phone: string;
           visit_date: string;
           guest_count: number;
-          visitor_type: BookingVisitorType;
+          visitor_type_id: string;
           note: string | null;
           face_image_path: string | null;
           face_scan_consent: boolean;
@@ -431,7 +429,7 @@ export interface Database {
           phone: string;
           visit_date: string;
           guest_count?: number;
-          visitor_type?: BookingVisitorType;
+          visitor_type_id: string;
           note?: string | null;
           face_image_path?: string | null;
           face_scan_consent?: boolean;
@@ -441,6 +439,30 @@ export interface Database {
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["bookings"]["Insert"]>;
+        Relationships: [];
+      };
+      booking_visitor_types: {
+        Row: {
+          id: string;
+          slug: string;
+          label_ku: string;
+          label_en: string;
+          label_ar: string;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          slug: string;
+          label_ku: string;
+          label_en: string;
+          label_ar: string;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["booking_visitor_types"]["Insert"]>;
         Relationships: [];
       };
       page_visits: {
@@ -587,6 +609,8 @@ export type AdminPushTokenInsert = Database["public"]["Tables"]["admin_push_toke
 export type SystemSettingsRow = Database["public"]["Tables"]["system_settings"]["Row"];
 export type BookingSettingsRow = Database["public"]["Tables"]["booking_settings"]["Row"];
 export type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
+export type BookingVisitorTypeRow = Database["public"]["Tables"]["booking_visitor_types"]["Row"];
+export type BookingVisitorTypeInsert = Database["public"]["Tables"]["booking_visitor_types"]["Insert"];
 export type AdminRoleRow = Database["public"]["Tables"]["admin_roles"]["Row"];
 export type AdminRoleInsert = Database["public"]["Tables"]["admin_roles"]["Insert"];
 export type AdminUserRow = Database["public"]["Tables"]["admin_users"]["Row"];

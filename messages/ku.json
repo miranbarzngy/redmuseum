@@ -71,14 +71,6 @@
       "guestCount": "ژمارەی میوان",
       "visitorType": "جۆری سەردان",
       "visitorTypePlaceholder": "هەڵبژێرە",
-      "visitorTypes": {
-        "school": "خوێندنگە",
-        "university": "زانکۆ",
-        "delegation": "سەردانی وەفدی فەرمی",
-        "personal": "سەردانی کەسی",
-        "press": "ڕۆژنامەوانی",
-        "other": "هیتر"
-      },
       "visitDate": "بەرواری سەردان",
       "visitTime": "هەڵبژاردنی کاتی سەردانیکردن",
       "openingTime": "کاتی کردنەوەی مۆزەخانە",

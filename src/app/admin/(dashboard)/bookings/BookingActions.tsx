@@ -16,9 +16,7 @@ function ActionIcon({
   onClick: () => void;
   disabled?: boolean;
   tone?: "ghost" | "emerald" | "rose";
-  /** Prints `label` underneath the circle — used for the pending row's
-   * approve/reject buttons, which stay prominent enough to need a caption;
-   * the secondary hover-group icons rely on the title tooltip instead. */
+  /** Prints `label` underneath the circle. */
   showLabel?: boolean;
   children: React.ReactNode;
 }) {
@@ -54,10 +52,10 @@ function ActionIcon({
 }
 
 /**
- * Row/card action cluster shared by the table and the mobile card.
- * `pending` bookings get prominent, captioned approve/reject buttons.
- * Everything else (mark visited/no-show, print, view) lives in a smaller
- * secondary icon group, always visible on both the table row and the card.
+ * Booking card's action cluster. `pending` bookings get prominent
+ * emerald/rose approve/reject buttons on the trailing (right, RTL) edge;
+ * the secondary group (mark visited/no-show, print, view) is pinned to the
+ * opposite (left) edge via `ms-auto`, always visible on the card.
  */
 export function BookingActions({
   booking,
@@ -100,21 +98,31 @@ export function BookingActions({
         </>
       )}
 
-      <div className="flex items-center gap-1.5 pt-1">
+      <div className="ms-auto flex items-start gap-1.5">
         {isConfirmed && (
           <>
-            <ActionIcon label="دیاریکردن وەک هاتوو" disabled={busy} onClick={() => onRequestStatus("checked_in")}>
+            <ActionIcon
+              label="دیاریکردن وەک هاتوو"
+              showLabel
+              disabled={busy}
+              onClick={() => onRequestStatus("checked_in")}
+            >
               {busy ? <Loader2 size={13} className="animate-spin" /> : <LogIn size={13} />}
             </ActionIcon>
-            <ActionIcon label="دیاریکردن وەک نەهاتوو" disabled={busy} onClick={() => onRequestStatus("no_show")}>
+            <ActionIcon
+              label="دیاریکردن وەک نەهاتوو"
+              showLabel
+              disabled={busy}
+              onClick={() => onRequestStatus("no_show")}
+            >
               {busy ? <Loader2 size={13} className="animate-spin" /> : <CircleSlash size={13} />}
             </ActionIcon>
           </>
         )}
-        <ActionIcon label="چاپکردن" onClick={onPrint}>
+        <ActionIcon label="چاپکردن" showLabel onClick={onPrint}>
           <Printer size={13} />
         </ActionIcon>
-        <ActionIcon label="بینین" onClick={onView}>
+        <ActionIcon label="بینین" showLabel onClick={onView}>
           <Eye size={13} />
         </ActionIcon>
       </div>

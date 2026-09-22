@@ -23,17 +23,11 @@ interface BookingRecord {
   phone: string;
   visit_date: string;
   guest_count?: number;
-  visitor_type?: "school" | "university" | "delegation" | "personal" | "press" | "other";
+  // Resolved server-side (see notify_new_booking() in
+  // 0051_booking_visitor_types.sql) since visitor_type_id is now a uuid FK
+  // this route has no DB access to look up on its own.
+  visitor_type_label?: string;
 }
-
-const VISITOR_TYPE_LABELS: Record<NonNullable<BookingRecord["visitor_type"]>, string> = {
-  school: "خوێندنگە",
-  university: "زانکۆ",
-  delegation: "سەردانی وەفدی فەرمی",
-  personal: "سەردانی کەسی",
-  press: "ڕۆژنامەوانی",
-  other: "هیتر",
-};
 
 // The 0014/0018 contact_messages trigger predates this "table" field and
 // never sends it — so its absence means "contact_messages" for backward
@@ -46,9 +40,9 @@ type NotifyBody =
 function buildNotification(body: NotifyBody): { title: string; body: string; url: string } {
   if (body.table === "bookings") {
     const parts = [`بەرواری سەردان: ${body.record.visit_date}`];
-    if (body.record.visitor_type) {
+    if (body.record.visitor_type_label) {
       const guests = body.record.guest_count ?? 1;
-      parts.push(`${VISITOR_TYPE_LABELS[body.record.visitor_type]} · ${guests} کەس`);
+      parts.push(`${body.record.visitor_type_label} · ${guests} کەس`);
     }
     return {
       title: `داواکاری سەردانی نوێ لە ${body.record.name}`,

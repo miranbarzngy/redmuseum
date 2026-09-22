@@ -10,7 +10,7 @@ const schema = z.object({
     .regex(/^[0-9+\-\s()]+$/),
   visitDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   guestCount: z.coerce.number().int().min(1).max(200),
-  visitorType: z.enum(["school", "university", "delegation", "personal", "press", "other"]),
+  visitorTypeId: z.string().min(1),
   note: z.string().optional(),
   // The wizard's photo step is optional (camera access can be denied, or
   // the visitor can skip it) — so this is never required server-side.
@@ -37,6 +37,19 @@ export async function POST(request: Request) {
 
   const supabase = createClient();
 
+  // visitor_type_id is an FK (see 0051) — check it against a live category
+  // before inserting so a stale/tampered id comes back as a normal
+  // invalid_input 400 instead of surfacing as a generic save_failed once it
+  // trips the FK constraint at insert time.
+  const { data: visitorType } = await supabase
+    .from("booking_visitor_types")
+    .select("id")
+    .eq("id", parsed.data.visitorTypeId)
+    .maybeSingle();
+  if (!visitorType) {
+    return NextResponse.json({ ok: false, error: "invalid_input" }, { status: 400 });
+  }
+
   // Generated here rather than read back from the insert: the public
   // booking flow uses the anon client, and bookings has an INSERT-only RLS
   // policy (no SELECT for anon), so `.insert().select()` would come back
@@ -50,7 +63,7 @@ export async function POST(request: Request) {
     phone: parsed.data.phone,
     visit_date: parsed.data.visitDate,
     guest_count: parsed.data.guestCount,
-    visitor_type: parsed.data.visitorType,
+    visitor_type_id: parsed.data.visitorTypeId,
     note: parsed.data.note || null,
     face_image_path: parsed.data.faceImagePath ?? null,
     face_scan_consent: Boolean(parsed.data.faceImagePath),

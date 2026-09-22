@@ -69,14 +69,6 @@
       "guestCount": "Number of guests",
       "visitorType": "Visit type",
       "visitorTypePlaceholder": "Select…",
-      "visitorTypes": {
-        "school": "School",
-        "university": "University",
-        "delegation": "Official delegation",
-        "personal": "Personal",
-        "press": "Press",
-        "other": "Other"
-      },
       "visitDate": "Visit date",
       "visitTime": "Visit time",
       "openingTime": "Museum opening time",

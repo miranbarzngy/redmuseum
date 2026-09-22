@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CheckCircle2, Clock, LogIn, XCircle, CircleSlash, ArrowLeft, ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { getDirection } from "@/i18n/routing";
+import { getDirection, type Locale } from "@/i18n/routing";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { localizeDigits } from "@/lib/kurdishCalendar";
 import { BrandLockup } from "@/components/BrandLockup";
@@ -56,11 +56,27 @@ export default async function BookingStatusPage({
   const BackArrow = dir === "rtl" ? ArrowRight : ArrowLeft;
 
   const supabase = createAdminClient();
-  const { data: booking } = await supabase
+  // database.types.ts is hand-written and has no Relationships metadata, so
+  // the joined select's shape below must be described locally (same pattern
+  // as src/lib/data/gallery.ts).
+  const { data: booking } = (await supabase
     .from("bookings")
-    .select("name, phone, guest_count, visitor_type, visit_date, note, status, created_at")
+    .select(
+      "name, phone, guest_count, visit_date, note, status, created_at, visitor_type:booking_visitor_types(label_ku, label_en, label_ar)"
+    )
     .eq("public_token", token)
-    .maybeSingle();
+    .maybeSingle()) as unknown as {
+    data: {
+      name: string;
+      phone: string;
+      guest_count: number;
+      visit_date: string;
+      note: string | null;
+      status: BookingStatus;
+      created_at: string;
+      visitor_type: { label_ku: string; label_en: string; label_ar: string } | null;
+    } | null;
+  };
 
   if (!booking) {
     return (
@@ -113,7 +129,11 @@ export default async function BookingStatusPage({
           <Row label={t("confirmation.guests")} value={localizeDigits(booking.guest_count, locale)} />
           <Row
             label={t("confirmation.visitorType")}
-            value={t(`form.visitorTypes.${booking.visitor_type}`)}
+            value={
+              booking.visitor_type
+                ? booking.visitor_type[`label_${locale as Locale}`]
+                : ""
+            }
           />
           <Row label={t("confirmation.date")} value={dateLabel} />
           {booking.note && (

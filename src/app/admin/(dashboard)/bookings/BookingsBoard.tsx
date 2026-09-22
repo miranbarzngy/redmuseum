@@ -1,12 +1,11 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { AlertTriangle, Ticket } from "lucide-react";
+import { AlertTriangle, Ticket, Phone, CalendarDays, Users } from "lucide-react";
 import clsx from "clsx";
 import { updateBookingStatus, getFacePhotoUrl, logBookingPrinted } from "./actions";
 import { openBookingPrint } from "./bookingPrint";
 import { formatVisitDate } from "./formatBookingDate";
-import { VISITOR_TYPE_LABELS } from "./visitorType";
 import { StatusPill } from "./StatusPill";
 import { BookingAvatar } from "./BookingAvatar";
 import { BookingActions, type TargetStatus } from "./BookingActions";
@@ -15,8 +14,7 @@ import { BookingToolbar, type DateRange } from "./BookingToolbar";
 import { BookingDrawer } from "./BookingDrawer";
 import { ConfirmDialog } from "../../_components/ConfirmDialog";
 import { EmptyState } from "../../_components/EmptyState";
-import { DataList, type Column } from "../../_components/DataList";
-import type { BookingRow, BookingStatus } from "@/lib/supabase/database.types";
+import type { BookingRow, BookingStatus, BookingVisitorTypeRow } from "@/lib/supabase/database.types";
 
 const CONFIRM_MESSAGE: Record<TargetStatus, string> = {
   confirmed: "ئەم داواکاریی سەردانە پەسەند بکرێت؟",
@@ -59,18 +57,20 @@ function matchesQuery(b: BookingRow, needle: string): boolean {
   return digits.length > 0 && b.phone.replace(/\D/g, "").includes(digits);
 }
 
-function printBooking(b: BookingRow) {
+function printBooking(b: BookingRow, visitorTypeLabel: string) {
   // Kick off the signed-URL fetch here (sync) and hand the promise to
   // openBookingPrint, which opens its window before awaiting it.
-  openBookingPrint(b, b.face_image_path ? getFacePhotoUrl(b.face_image_path) : null);
+  openBookingPrint(b, visitorTypeLabel, b.face_image_path ? getFacePhotoUrl(b.face_image_path) : null);
   logBookingPrinted(b.id).catch(() => {});
 }
 
 export function BookingsBoard({
   bookings,
+  visitorTypes,
   initialViewId = null,
 }: {
   bookings: BookingRow[];
+  visitorTypes: BookingVisitorTypeRow[];
   initialViewId?: string | null;
 }) {
   const [filter, setFilter] = useState<BookingFilter>("all");
@@ -151,70 +151,11 @@ export function BookingsBoard({
 
   const openBooking = openId ? bookings.find((b) => b.id === openId) ?? null : null;
 
-  const columns: Column<BookingRow>[] = [
-    {
-      key: "name",
-      header: "میوان",
-      cell: (b) => (
-        <button type="button" onClick={() => setOpenId(b.id)} className="flex items-center gap-3 text-start">
-          <BookingAvatar name={b.name} pending={b.status === "pending"} />
-          <span className="min-w-0">
-            <span className="block truncate font-medium text-ink transition-colors hover:text-pigment-terracotta">
-              {b.name}
-            </span>
-            <span dir="ltr" className="block truncate text-fluid-xs font-normal text-ink-faint">
-              {b.phone}
-            </span>
-          </span>
-        </button>
-      ),
-    },
-    {
-      key: "type",
-      header: "جۆر",
-      className: "w-40",
-      cell: (b) => <span className="text-fluid-xs text-ink-soft">{VISITOR_TYPE_LABELS[b.visitor_type]}</span>,
-    },
-    {
-      key: "guests",
-      header: "میوانان",
-      className: "w-24",
-      cell: (b) => <span className="text-fluid-xs text-ink-soft">{b.guest_count} کەس</span>,
-    },
-    {
-      key: "date",
-      header: "بەرواری سەردان",
-      className: "w-32",
-      cell: (b) => (
-        <span dir="ltr" className="text-fluid-xs text-ink-soft">
-          {formatVisitDate(b.visit_date)}
-        </span>
-      ),
-    },
-    {
-      key: "status",
-      header: "دۆخ",
-      className: "w-32",
-      cell: (b) => <StatusPill status={b.status} />,
-    },
-    {
-      key: "actions",
-      header: "",
-      align: "end",
-      className: "w-40",
-      cell: (b) => (
-        <div className="flex items-center justify-end">
-          <BookingActions
-            booking={b}
-            busy={busyId === b.id}
-            onRequestStatus={(status) => setConfirmTask({ id: b.id, name: b.name, status })}
-            onView={() => setOpenId(b.id)}
-            onPrint={() => printBooking(b)}
-          />
-        </div>
-      ),
-    },
-  ];
+  const labelById = useMemo(
+    () => new Map(visitorTypes.map((vt) => [vt.id, vt.label_ku])),
+    [visitorTypes]
+  );
+  const visitorTypeLabel = (b: BookingRow) => labelById.get(b.visitor_type_id) ?? "—";
 
   return (
     <div className="flex flex-col gap-5">
@@ -271,17 +212,14 @@ export function BookingsBoard({
           title={bookings.length === 0 ? "هێشتا هیچ سەردانێک نییە" : "هیچ سەردانێک بەم فلتەرە نییە"}
         />
       ) : (
-        <DataList
-          rows={visible}
-          columns={columns}
-          rowKey={(b) => b.id}
-          rowClassName={(b) => (b.status === "pending" ? "bg-[#850B10]/[0.04]" : undefined)}
-          renderCard={(b) => (
+        <div className="grid grid-cols-1 gap-4">
+          {visible.map((b) => (
             <div
+              key={b.id}
               className={clsx(
                 "flex flex-col rounded-2xl border bg-white p-4 shadow-card",
                 b.status === "pending"
-                  ? "border-[#850B10] shadow-[0_0_16px_-2px_rgba(133,11,16,0.45)]"
+                  ? "border-[#850B10] shadow-[0_0_16px_-2px_rgba(133,11,16,0.45)] bg-[#850B10]/[0.04]"
                   : "border-ink/10"
               )}
             >
@@ -294,7 +232,11 @@ export function BookingsBoard({
                   <BookingAvatar name={b.name} pending={b.status === "pending"} size="lg" />
                   <span className="min-w-0">
                     <span className="block truncate font-semibold text-ink">{b.name}</span>
-                    <span dir="ltr" className="block truncate text-fluid-xs text-ink-faint">
+                    <span
+                      dir="ltr"
+                      className="flex items-center gap-1 truncate text-fluid-xs font-bold text-ink-faint"
+                    >
+                      <Phone size={12} className="shrink-0" />
                       {b.phone}
                     </span>
                   </span>
@@ -303,9 +245,15 @@ export function BookingsBoard({
               </div>
 
               <div className="my-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-ink/5 py-2.5 text-fluid-xs text-ink-soft">
-                <span dir="ltr">{formatVisitDate(b.visit_date)}</span>
-                <span>{VISITOR_TYPE_LABELS[b.visitor_type]}</span>
-                <span className="text-ink-faint">{b.guest_count} کەس</span>
+                <span dir="ltr" className="flex items-center gap-1 font-bold">
+                  <CalendarDays size={13} className="shrink-0" />
+                  {formatVisitDate(b.visit_date)}
+                </span>
+                <span>{visitorTypeLabel(b)}</span>
+                <span className="flex items-center gap-1 text-ink-faint">
+                  <Users size={13} className="shrink-0" />
+                  {b.guest_count} کەس
+                </span>
               </div>
 
               <BookingActions
@@ -313,14 +261,18 @@ export function BookingsBoard({
                 busy={busyId === b.id}
                 onRequestStatus={(status) => setConfirmTask({ id: b.id, name: b.name, status })}
                 onView={() => setOpenId(b.id)}
-                onPrint={() => printBooking(b)}
+                onPrint={() => printBooking(b, visitorTypeLabel(b))}
               />
             </div>
-          )}
-        />
+          ))}
+        </div>
       )}
 
-      <BookingDrawer booking={openBooking} onClose={() => setOpenId(null)} />
+      <BookingDrawer
+        booking={openBooking}
+        visitorTypeLabel={openBooking ? visitorTypeLabel(openBooking) : ""}
+        onClose={() => setOpenId(null)}
+      />
 
       <ConfirmDialog
         open={!!confirmTask}

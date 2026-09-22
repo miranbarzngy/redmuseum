@@ -2,6 +2,7 @@ import { getBookings } from "./actions";
 import { BookingsTabs } from "./BookingsTabs";
 import { BookingsBoard } from "./BookingsBoard";
 import { PageHeader } from "../../_components/PageHeader";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminBookingsPage({
   searchParams,
@@ -9,7 +10,11 @@ export default async function AdminBookingsPage({
   searchParams: Promise<{ view?: string }>;
 }) {
   const { view } = await searchParams;
-  const bookings = await getBookings();
+  const supabase = createClient();
+  const [bookings, { data: visitorTypes }] = await Promise.all([
+    getBookings(),
+    supabase.from("booking_visitor_types").select("*").order("sort_order", { ascending: true }),
+  ]);
 
   return (
     <div className="flex flex-col gap-8 mb-24 lg:mb-0">
@@ -20,7 +25,7 @@ export default async function AdminBookingsPage({
 
       <BookingsTabs />
 
-      <BookingsBoard bookings={bookings} initialViewId={view ?? null} />
+      <BookingsBoard bookings={bookings} visitorTypes={visitorTypes ?? []} initialViewId={view ?? null} />
     </div>
   );
 }
