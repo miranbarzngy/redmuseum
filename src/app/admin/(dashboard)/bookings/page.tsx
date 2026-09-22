@@ -1,4 +1,4 @@
-import { getBookings } from "./actions";
+import { getBookings, getFacePhotoUrls } from "./actions";
 import { BookingsTabs } from "./BookingsTabs";
 import { BookingsBoard } from "./BookingsBoard";
 import { PageHeader } from "../../_components/PageHeader";
@@ -16,6 +16,11 @@ export default async function AdminBookingsPage({
     supabase.from("booking_visitor_types").select("*").order("sort_order", { ascending: true }),
   ]);
 
+  const facePhotoPaths = bookings
+    .map((b) => b.face_image_path)
+    .filter((path): path is string => Boolean(path));
+  const facePhotoUrls = await getFacePhotoUrls(facePhotoPaths);
+
   return (
     <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader
@@ -25,7 +30,12 @@ export default async function AdminBookingsPage({
 
       <BookingsTabs />
 
-      <BookingsBoard bookings={bookings} visitorTypes={visitorTypes ?? []} initialViewId={view ?? null} />
+      <BookingsBoard
+        bookings={bookings}
+        visitorTypes={visitorTypes ?? []}
+        facePhotoUrls={facePhotoUrls}
+        initialViewId={view ?? null}
+      />
     </div>
   );
 }

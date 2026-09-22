@@ -31,7 +31,7 @@ export async function getAdminNotifications(): Promise<AdminNotifications> {
     supabase
       .from("bookings")
       .select(
-        "id, name, phone, guest_count, visit_date, created_at, visitor_type:booking_visitor_types(label_ku)",
+        "id, name, phone, guest_count, visit_date, created_at, face_image_path, visitor_type:booking_visitor_types(label_ku)",
         { count: "exact" },
       )
       .eq("status", "pending")
@@ -63,8 +63,28 @@ export async function getAdminNotifications(): Promise<AdminNotifications> {
     guest_count: number;
     visit_date: string;
     created_at: string;
+    face_image_path: string | null;
     visitor_type: { label_ku: string } | null;
   }[];
+
+  // One signed-url batch call for every notification's photo instead of N —
+  // same face-scans bucket rules as bookings/actions.ts's getFacePhotoUrls.
+  const facePhotoPaths = bookingRows
+    .map((b) => b.face_image_path)
+    .filter((path): path is string => Boolean(path));
+  const facePhotoUrls: Record<string, string> = {};
+  if (facePhotoPaths.length > 0) {
+    const { data: signed, error: signError } = await supabase.storage
+      .from("face-scans")
+      .createSignedUrls(facePhotoPaths, 300);
+    if (signError) {
+      console.error("[getAdminNotifications] failed to sign face photo urls", signError.message);
+    } else {
+      for (const entry of signed) {
+        if (entry.signedUrl && !entry.error) facePhotoUrls[entry.path ?? ""] = entry.signedUrl;
+      }
+    }
+  }
 
   // Carry the raw `created_at` alongside each formatted item so the merged
   // list can be sorted chronologically, then dropped — the UI only ever
@@ -80,6 +100,7 @@ export async function getAdminNotifications(): Promise<AdminNotifications> {
       visitorType: b.visitor_type?.label_ku ?? "—",
       visitDate: formatVisitDate(b.visit_date),
       submittedAt: formatSubmittedAt(b.created_at),
+      facePhotoUrl: b.face_image_path ? (facePhotoUrls[b.face_image_path] ?? null) : null,
       href: `/admin/bookings?view=${b.id}`,
     } satisfies AdminNotificationItem,
   }));

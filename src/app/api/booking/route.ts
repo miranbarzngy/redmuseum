@@ -9,6 +9,7 @@ const schema = z.object({
     .min(7)
     .regex(/^[0-9+\-\s()]+$/),
   visitDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  visitTime: z.string().regex(/^\d{2}:\d{2}$/),
   guestCount: z.coerce.number().int().min(1).max(200),
   visitorTypeId: z.string().min(1),
   note: z.string().optional(),
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
     name: parsed.data.name,
     phone: parsed.data.phone,
     visit_date: parsed.data.visitDate,
+    visit_time: parsed.data.visitTime,
     guest_count: parsed.data.guestCount,
     visitor_type_id: parsed.data.visitorTypeId,
     note: parsed.data.note || null,

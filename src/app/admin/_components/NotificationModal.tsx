@@ -19,6 +19,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { AdminNotificationItem, AdminNotifications } from "./adminNotificationsShape";
 import { markAllMessagesRead } from "../(dashboard)/messages/actions";
+import { bookingInitials } from "../(dashboard)/bookings/BookingAvatar";
 
 /**
  * Centered notification modal opened from the bell (NotificationsBell.tsx).
@@ -203,52 +204,67 @@ function NotificationCard({
       href={item.href}
       onClick={onNavigate}
       className={clsx(
-        "group flex flex-col gap-2.5 rounded-2xl border bg-gradient-to-br p-3.5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
+        "group flex overflow-hidden rounded-2xl border bg-gradient-to-br shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md",
         isBooking
           ? "border-amber-500/25 from-amber-50 to-white"
           : "border-emerald-500/20 from-emerald-50 to-white",
       )}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span
-          className={clsx(
-            "font-kurdish inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold",
-            isBooking ? "bg-amber-500/15 text-amber-700" : "bg-emerald-500/15 text-emerald-700",
-          )}
-        >
-          {isBooking ? (
-            <Ticket size={12} strokeWidth={2.5} aria-hidden />
+      {item.kind === "booking" && (
+        <span className="w-16 shrink-0 self-stretch bg-white/70">
+          {item.facePhotoUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.facePhotoUrl} alt="" className="h-full w-full object-cover" />
           ) : (
-            <Inbox size={12} strokeWidth={2.5} aria-hidden />
+            <span className="flex h-full w-full items-center justify-center text-fluid-base font-semibold text-ink-soft">
+              {bookingInitials(item.name)}
+            </span>
           )}
-          {isBooking ? "سەردانی نوێ" : "پەیامی نوێ"}
         </span>
-        <span dir="ltr" className="shrink-0 text-[11px] font-bold text-ink-soft">
-          {item.submittedAt}
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between gap-3">
-        <span className="font-kurdish truncate text-fluid-sm font-semibold text-ink">{item.name}</span>
-        <span dir="ltr" className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-ink-soft">
-          <Phone size={11} className="text-ink-faint" aria-hidden />
-          {item.phone}
-        </span>
-      </div>
-
-      {item.kind === "booking" ? (
-        <div className="flex flex-wrap items-center gap-1.5">
-          <Chip icon={Tag}>{item.visitorType}</Chip>
-          <Chip icon={Users}>{item.guestCount} کەس</Chip>
-          <Chip icon={CalendarDays} dir="ltr" bold>
-            {item.visitDate}
-          </Chip>
-        </div>
-      ) : (
-        <p className="font-kurdish line-clamp-2 rounded-xl bg-white/70 px-2.5 py-2 text-fluid-xs text-ink-soft">
-          {item.preview}
-        </p>
       )}
+
+      <div className="flex min-w-0 flex-1 flex-col gap-2.5 p-3.5">
+        <div className="flex items-center justify-between gap-2">
+          <span
+            className={clsx(
+              "font-kurdish inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold",
+              isBooking ? "bg-amber-500/15 text-amber-700" : "bg-emerald-500/15 text-emerald-700",
+            )}
+          >
+            {isBooking ? (
+              <Ticket size={12} strokeWidth={2.5} aria-hidden />
+            ) : (
+              <Inbox size={12} strokeWidth={2.5} aria-hidden />
+            )}
+            {isBooking ? "سەردانی نوێ" : "پەیامی نوێ"}
+          </span>
+          <span dir="ltr" className="shrink-0 text-[11px] font-bold text-ink-soft">
+            {item.submittedAt}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <span className="font-kurdish truncate text-fluid-sm font-semibold text-ink">{item.name}</span>
+          <span dir="ltr" className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-ink-soft">
+            <Phone size={11} className="text-ink-faint" aria-hidden />
+            {item.phone}
+          </span>
+        </div>
+
+        {item.kind === "booking" ? (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Chip icon={Tag}>{item.visitorType}</Chip>
+            <Chip icon={Users}>{item.guestCount} کەس</Chip>
+            <Chip icon={CalendarDays} dir="ltr" bold>
+              {item.visitDate}
+            </Chip>
+          </div>
+        ) : (
+          <p className="font-kurdish line-clamp-2 rounded-xl bg-white/70 px-2.5 py-2 text-fluid-xs text-ink-soft">
+            {item.preview}
+          </p>
+        )}
+      </div>
     </Link>
   );
 }

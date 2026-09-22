@@ -142,7 +142,12 @@ function BookingDrawerPanel({
               header's colour-coded badge for a one-click status change. */}
           <div className="flex items-start justify-between gap-3 border-b border-ink/10 px-5 py-4">
             <div className="flex min-w-0 items-center gap-3">
-              <BookingAvatar name={booking.name} pending={booking.status === "pending"} size="lg" />
+              <BookingAvatar
+                name={booking.name}
+                pending={booking.status === "pending"}
+                photoUrl={facePhotoUrl}
+                size="lg"
+              />
               <div className="min-w-0">
                 <p className="font-kurdish truncate text-fluid-base font-semibold text-ink">{booking.name}</p>
                 <div className="mt-1.5">
@@ -181,6 +186,11 @@ function BookingDrawerPanel({
                   icon={CalendarDays}
                   label="بەرواری سەردان"
                   value={<span dir="ltr">{formatVisitDate(booking.visit_date)}</span>}
+                />
+                <InfoRow
+                  icon={Clock3}
+                  label="کاتژمێری سەردان"
+                  value={<span dir="ltr">{booking.visit_time ?? "—"}</span>}
                 />
                 <InfoRow
                   icon={Hash}

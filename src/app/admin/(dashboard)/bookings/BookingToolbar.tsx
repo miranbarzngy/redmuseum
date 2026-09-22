@@ -51,24 +51,26 @@ export function BookingToolbar({
         <Search size={14} className="absolute start-3 top-1/2 -translate-y-1/2 text-ink-faint" />
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative">
-          <select
-            value={dateRange}
-            onChange={(e) => onDateRangeChange(e.target.value as DateRange)}
-            className={clsx(compactFieldClass, "font-kurdish appearance-none ps-8 pe-3")}
-          >
-            {(Object.keys(DATE_RANGE_LABELS) as DateRange[]).map((key) => (
-              <option key={key} value={key}>
-                {DATE_RANGE_LABELS[key]}
-              </option>
-            ))}
-          </select>
-          <CalendarRange
-            size={13}
-            className="pointer-events-none absolute start-2.5 top-1/2 -translate-y-1/2 text-ink-faint"
-          />
-        </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {(Object.keys(DATE_RANGE_LABELS) as DateRange[]).map((key) => {
+          const active = dateRange === key;
+          return (
+            <button
+              key={key}
+              type="button"
+              onClick={() => onDateRangeChange(key)}
+              className={clsx(
+                "font-kurdish inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-fluid-xs font-medium transition-colors",
+                active
+                  ? "bg-[#850B10] text-canvas"
+                  : "border border-ink/15 text-ink-soft hover:border-pigment-terracotta hover:text-pigment-terracotta"
+              )}
+            >
+              {key === "custom" && <CalendarRange size={13} />}
+              {DATE_RANGE_LABELS[key]}
+            </button>
+          );
+        })}
 
         {dateRange === "custom" && (
           <div className="flex items-center gap-1.5">

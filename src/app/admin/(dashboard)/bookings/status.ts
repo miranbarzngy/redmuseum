@@ -6,7 +6,7 @@ import type { BookingStatus } from "@/lib/supabase/database.types";
 
 export const STATUS_LABELS: Record<BookingStatus, string> = {
   pending: "چاوەڕوان",
-  confirmed: "پشتڕاستکراوە",
+  confirmed: "پەسندکراو",
   checked_in: "هاتوو",
   cancelled: "هەڵوەشێنراوەتەوە",
   no_show: "نەهاتووە",

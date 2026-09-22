@@ -114,7 +114,6 @@
       "back": "Back",
       "next": "Next"
     },
-    "timePrefix": "Visit time: {time}",
     "meridiem": { "am": "AM", "pm": "PM" },
     "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     "monthLabel": "Month {month}",

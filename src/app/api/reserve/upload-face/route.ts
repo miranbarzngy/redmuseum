@@ -11,7 +11,10 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // so even though this route *writes* without a session, nothing can *read*
 // the result back except the service-role client via a short-lived signed
 // URL, which only admins ever request.
-const MAX_BYTES = 3 * 1024 * 1024;
+// PhotoCapture.tsx compresses toward ~150 KB before this ever gets hit;
+// this is just the hard ceiling for a request that skips that client-side
+// path entirely (this route has no auth — a direct POST is possible).
+const MAX_BYTES = 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg"]);
 const SIGNED_URL_TTL_SECONDS = 60 * 60;
 

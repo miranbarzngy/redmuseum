@@ -28,7 +28,7 @@ export async function getBookings(): Promise<BookingRow[]> {
   const { data, error } = await supabase
     .from("bookings")
     .select("*")
-    .order("visit_date", { ascending: true });
+    .order("visit_date", { ascending: false });
 
   if (error) throw new Error(error.message);
   return data ?? [];
@@ -69,6 +69,27 @@ export async function getFacePhotoUrl(path: string): Promise<string | null> {
     return null;
   }
   return data.signedUrl;
+}
+
+/** Batch version of getFacePhotoUrl for the bookings grid — one signed-url
+ * call for every visible card's photo instead of N, keyed by path so
+ * BookingsBoard can look each one up by `booking.face_image_path`. */
+export async function getFacePhotoUrls(paths: string[]): Promise<Record<string, string>> {
+  if (paths.length === 0) return {};
+  await requireAdminSession(PERMISSIONS.bookingsManage);
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.storage.from("face-scans").createSignedUrls(paths, 300);
+
+  if (error) {
+    console.error("[bookings] failed to sign face photo urls", error.message);
+    return {};
+  }
+
+  const urls: Record<string, string> = {};
+  for (const entry of data) {
+    if (entry.signedUrl && !entry.error) urls[entry.path ?? ""] = entry.signedUrl;
+  }
+  return urls;
 }
 
 export async function updateBookingStatus(id: string, status: BookingStatus) {

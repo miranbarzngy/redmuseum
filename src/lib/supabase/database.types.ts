@@ -413,6 +413,7 @@ export interface Database {
           name: string;
           phone: string;
           visit_date: string;
+          visit_time: string | null;
           guest_count: number;
           visitor_type_id: string;
           note: string | null;
@@ -428,6 +429,7 @@ export interface Database {
           name: string;
           phone: string;
           visit_date: string;
+          visit_time?: string | null;
           guest_count?: number;
           visitor_type_id: string;
           note?: string | null;

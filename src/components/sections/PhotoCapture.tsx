@@ -13,22 +13,57 @@ import { easeArt } from "@/lib/motionVariants";
 
 const MAX_DIMENSION = 640;
 const JPEG_QUALITY = 0.82;
+const MIN_QUALITY = 0.5;
+// A plain-background face photo usually clears this on the first pass; busy
+// frames fall through the quality/dimension retries below until they do.
+const TARGET_BYTES = 150 * 1024;
 
-type CamState = "prestart" | "opening" | "live" | "preview" | "uploading" | "done" | "camera-error" | "upload-error";
+function toJpegBlob(canvas: HTMLCanvasElement, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/jpeg", quality));
+}
 
-/** Downscales to MAX_DIMENSION on the long edge and re-encodes as JPEG. */
-function compressFrame(video: HTMLVideoElement): Promise<Blob | null> {
-  const scale = Math.min(1, MAX_DIMENSION / Math.max(video.videoWidth, video.videoHeight));
+/** Downscales to `dimension` on the long edge and draws the current video
+ * frame into a fresh canvas at that size. */
+function drawFrame(video: HTMLVideoElement, dimension: number): HTMLCanvasElement | null {
+  const scale = Math.min(1, dimension / Math.max(video.videoWidth, video.videoHeight));
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(video.videoWidth * scale);
   canvas.height = Math.round(video.videoHeight * scale);
 
   const ctx = canvas.getContext("2d");
-  if (!ctx) return Promise.resolve(null);
+  if (!ctx) return null;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-  return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/jpeg", JPEG_QUALITY));
+  return canvas;
 }
+
+/** Re-encodes the captured frame as JPEG, aiming for TARGET_BYTES. Quality
+ * is stepped down first (cheaper on perceived quality than losing
+ * resolution); only once it hits MIN_QUALITY and is still too big does the
+ * frame get redrawn smaller and the quality sweep retried. Three dimension
+ * passes is a hard ceiling so a pathological frame can't loop forever —
+ * whatever the last attempt produced is returned as a best effort. */
+async function compressFrame(video: HTMLVideoElement): Promise<Blob | null> {
+  let dimension = MAX_DIMENSION;
+  let best: Blob | null = null;
+
+  for (let pass = 0; pass < 3; pass++) {
+    const canvas = drawFrame(video, dimension);
+    if (!canvas) return null;
+
+    for (let quality = JPEG_QUALITY; quality >= MIN_QUALITY - 1e-9; quality -= 0.08) {
+      const blob = await toJpegBlob(canvas, quality);
+      if (!blob) return best;
+      best = blob;
+      if (blob.size <= TARGET_BYTES) return blob;
+    }
+
+    dimension = Math.round(dimension * 0.75);
+  }
+
+  return best;
+}
+
+type CamState = "prestart" | "opening" | "live" | "preview" | "uploading" | "done" | "camera-error" | "upload-error";
 
 export function PhotoCapture({
   imageUrl,

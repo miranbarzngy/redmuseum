@@ -1,17 +1,18 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { AlertTriangle, Ticket, Phone, CalendarDays, Users } from "lucide-react";
+import { AlertTriangle, Ticket, Phone, CalendarDays, Clock3, Users } from "lucide-react";
 import clsx from "clsx";
 import { updateBookingStatus, getFacePhotoUrl, logBookingPrinted } from "./actions";
 import { openBookingPrint } from "./bookingPrint";
-import { formatVisitDate } from "./formatBookingDate";
+import { formatVisitDate, formatVisitWeekdayAndTime } from "./formatBookingDate";
 import { StatusPill } from "./StatusPill";
 import { BookingAvatar } from "./BookingAvatar";
 import { BookingActions, type TargetStatus } from "./BookingActions";
 import { BookingStatCards, type BookingFilter } from "./BookingStatCards";
 import { BookingToolbar, type DateRange } from "./BookingToolbar";
 import { BookingDrawer } from "./BookingDrawer";
+import { BookingPhotoLightbox } from "./BookingPhotoLightbox";
 import { ConfirmDialog } from "../../_components/ConfirmDialog";
 import { EmptyState } from "../../_components/EmptyState";
 import type { BookingRow, BookingStatus, BookingVisitorTypeRow } from "@/lib/supabase/database.types";
@@ -67,10 +68,12 @@ function printBooking(b: BookingRow, visitorTypeLabel: string) {
 export function BookingsBoard({
   bookings,
   visitorTypes,
+  facePhotoUrls,
   initialViewId = null,
 }: {
   bookings: BookingRow[];
   visitorTypes: BookingVisitorTypeRow[];
+  facePhotoUrls: Record<string, string>;
   initialViewId?: string | null;
 }) {
   const [filter, setFilter] = useState<BookingFilter>("all");
@@ -84,6 +87,7 @@ export function BookingsBoard({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
   const [confirmTask, setConfirmTask] = useState<{ id: string; name: string; status: TargetStatus } | null>(null);
+  const [lightboxPhoto, setLightboxPhoto] = useState<{ url: string; name: string } | null>(null);
   const [, startStatusChange] = useTransition();
 
   const todayISO = new Date().toISOString().split("T")[0];
@@ -217,52 +221,82 @@ export function BookingsBoard({
             <div
               key={b.id}
               className={clsx(
-                "flex flex-col rounded-2xl border bg-white p-4 shadow-card",
+                "flex overflow-hidden rounded-2xl border-2 bg-white shadow-card",
                 b.status === "pending"
                   ? "border-[#850B10] shadow-[0_0_16px_-2px_rgba(133,11,16,0.45)] bg-[#850B10]/[0.04]"
                   : "border-ink/10"
               )}
             >
-              <div className="flex items-start justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => setOpenId(b.id)}
-                  className="flex min-w-0 items-center gap-3 text-start"
-                >
-                  <BookingAvatar name={b.name} pending={b.status === "pending"} size="lg" />
-                  <span className="min-w-0">
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => setOpenId(b.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setOpenId(b.id);
+                  }
+                }}
+                aria-label={b.name}
+                className="ms-3 mt-3 h-40 w-40 shrink-0 cursor-pointer"
+              >
+                <BookingAvatar
+                  name={b.name}
+                  pending={b.status === "pending"}
+                  photoUrl={b.face_image_path ? facePhotoUrls[b.face_image_path] : null}
+                  shape="square"
+                  onViewPhoto={
+                    b.face_image_path && facePhotoUrls[b.face_image_path]
+                      ? () => setLightboxPhoto({ url: facePhotoUrls[b.face_image_path!], name: b.name })
+                      : undefined
+                  }
+                />
+              </div>
+
+              <div className="flex min-w-0 flex-1 flex-col p-4">
+                <div className="flex items-start gap-3">
+                  <button type="button" onClick={() => setOpenId(b.id)} className="flex-1 min-w-0 text-start">
                     <span className="block truncate font-semibold text-ink">{b.name}</span>
-                    <span
-                      dir="ltr"
-                      className="flex items-center gap-1 truncate text-fluid-xs font-bold text-ink-faint"
-                    >
-                      <Phone size={12} className="shrink-0" />
-                      {b.phone}
+                    <span className="block truncate text-fluid-xs font-bold text-ink-faint">
+                      <span dir="ltr" className="inline-flex items-center gap-1">
+                        <Phone size={12} className="shrink-0" />
+                        {b.phone}
+                      </span>
                     </span>
+                  </button>
+
+                  <div className="flex shrink-0 flex-col items-center gap-0.5 text-center">
+                    <span className="flex items-center gap-1.5 text-fluid-sm font-bold text-ink">
+                      <Clock3 size={14} className="shrink-0" />
+                      {formatVisitWeekdayAndTime(b.visit_date, b.visit_time)}
+                    </span>
+                    <span dir="ltr" className="inline-flex items-center gap-1 text-[11px] text-ink-faint">
+                      <CalendarDays size={11} className="shrink-0" />
+                      {formatVisitDate(b.visit_date)}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-1 justify-end">
+                    <StatusPill status={b.status} />
+                  </div>
+                </div>
+
+                <div className="my-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-ink/5 py-2.5 text-fluid-xs text-ink-soft">
+                  <span>{visitorTypeLabel(b)}</span>
+                  <span className="flex items-center gap-1 text-ink-faint">
+                    <Users size={13} className="shrink-0" />
+                    {b.guest_count} کەس
                   </span>
-                </button>
-                <StatusPill status={b.status} />
-              </div>
+                </div>
 
-              <div className="my-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-ink/5 py-2.5 text-fluid-xs text-ink-soft">
-                <span dir="ltr" className="flex items-center gap-1 font-bold">
-                  <CalendarDays size={13} className="shrink-0" />
-                  {formatVisitDate(b.visit_date)}
-                </span>
-                <span>{visitorTypeLabel(b)}</span>
-                <span className="flex items-center gap-1 text-ink-faint">
-                  <Users size={13} className="shrink-0" />
-                  {b.guest_count} کەس
-                </span>
+                <BookingActions
+                  booking={b}
+                  busy={busyId === b.id}
+                  onRequestStatus={(status) => setConfirmTask({ id: b.id, name: b.name, status })}
+                  onView={() => setOpenId(b.id)}
+                  onPrint={() => printBooking(b, visitorTypeLabel(b))}
+                />
               </div>
-
-              <BookingActions
-                booking={b}
-                busy={busyId === b.id}
-                onRequestStatus={(status) => setConfirmTask({ id: b.id, name: b.name, status })}
-                onView={() => setOpenId(b.id)}
-                onPrint={() => printBooking(b, visitorTypeLabel(b))}
-              />
             </div>
           ))}
         </div>
@@ -273,6 +307,14 @@ export function BookingsBoard({
         visitorTypeLabel={openBooking ? visitorTypeLabel(openBooking) : ""}
         onClose={() => setOpenId(null)}
       />
+
+      {lightboxPhoto && (
+        <BookingPhotoLightbox
+          url={lightboxPhoto.url}
+          name={lightboxPhoto.name}
+          onClose={() => setLightboxPhoto(null)}
+        />
+      )}
 
       <ConfirmDialog
         open={!!confirmTask}

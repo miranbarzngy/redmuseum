@@ -69,6 +69,7 @@ export async function openBookingPrint(
     ["ژمارەی میوان", String(booking.guest_count)],
     ["جۆری سەردان", visitorTypeLabel],
     ["بەرواری سەردان", formatVisitDate(booking.visit_date), true],
+    ["کاتژمێری سەردان", booking.visit_time ?? "—", true],
     ["نێردراوە لە", formatSubmittedAt(booking.created_at), true],
   ];
 

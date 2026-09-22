@@ -21,6 +21,9 @@ export type AdminBookingNotification = {
   visitDate: string;
   /** Pre-formatted submission timestamp, LTR. */
   submittedAt: string;
+  /** Short-lived signed URL for the captured face photo, or null when none
+   * was taken (or the signed-url batch failed) — see getAdminNotifications. */
+  facePhotoUrl: string | null;
   href: string;
 };
 

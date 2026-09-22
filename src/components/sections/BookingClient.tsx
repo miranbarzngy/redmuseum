@@ -148,9 +148,7 @@ export function BookingClient({
     setStatus("idle");
 
     const slot = formatSlot(visitTime, locale, meridiem);
-    const timeLabel = t("timePrefix", { time: `${slot.time} ${slot.period}` });
     const userNote = values.note?.trim() ?? "";
-    const note = [timeLabel, userNote].filter(Boolean).join("\n");
 
     try {
       const res = await fetch("/api/booking", {
@@ -160,9 +158,10 @@ export function BookingClient({
           name: values.name,
           phone: values.phone,
           visitDate,
+          visitTime,
           guestCount: Number(values.guestCount),
           visitorTypeId: values.visitorTypeId,
-          note,
+          note: userNote,
           faceImagePath,
         }),
       });
