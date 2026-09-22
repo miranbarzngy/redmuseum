@@ -2,10 +2,9 @@
 
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
-import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { scrollToId } from "@/lib/scrollTo";
-import { formatVisitingHours } from "@/lib/visitingHours";
 import { SocialIcon } from "@/components/ui/SocialIcon";
 import type { Locale } from "@/i18n/routing";
 import type { SocialLink } from "@/data/socials";
@@ -34,10 +33,6 @@ export interface FooterClientProps {
   locationEn: string;
   locationAr: string;
   socials: SocialLink[];
-  /** JS Date.getDay() numbers, 0 = Sunday … 6 = Saturday (booking_settings). */
-  openWeekdays: number[];
-  /** Bookable start times, "HH:MM", sorted or not. */
-  timeSlots: string[];
 }
 
 export function FooterClient({
@@ -51,13 +46,10 @@ export function FooterClient({
   locationEn,
   locationAr,
   socials,
-  openWeekdays,
-  timeSlots,
 }: FooterClientProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations("footer");
   const tNav = useTranslations("nav");
-  const tBooking = useTranslations("booking");
   const pathname = usePathname();
   const router = useRouter();
   const year = new Date().getFullYear();
@@ -75,17 +67,6 @@ export function FooterClient({
     }
   }
 
-  const weekdayLabels = tBooking.raw("weekdays") as string[];
-  const meridiem = tBooking.raw("meridiem") as { am: string; pm: string };
-  const { daysText, hoursText } = formatVisitingHours({
-    openWeekdays,
-    timeSlots,
-    locale,
-    weekdayLabels,
-    meridiem,
-    closedLabel: t("hoursClosed"),
-  });
-
   const quickLinks: { id: string; label: string; href?: "/booking" | "/contact" }[] = [
     { id: "home", label: tNav("home") },
     { id: "biography", label: tNav("biography") },
@@ -99,7 +80,7 @@ export function FooterClient({
       <div aria-hidden className="h-[3px] w-full bg-[#850B10]" />
 
       <div className="container-art section-px py-5 sm:py-6">
-        <div className="grid gap-5 sm:grid-cols-2 sm:gap-5 lg:grid-cols-[1.3fr_0.9fr_1fr_1.1fr] lg:gap-5">
+        <div className="grid gap-5 sm:grid-cols-2 sm:gap-5 lg:grid-cols-[1.3fr_0.9fr_1.1fr] lg:gap-5">
           {/* Col 1 — About & branding */}
           <div className="flex flex-col gap-1.5">
             <Link href="/" className="flex items-center gap-2">
@@ -147,19 +128,7 @@ export function FooterClient({
             </ul>
           </div>
 
-          {/* Col 3 — Visiting hours */}
-          <div className="flex flex-col gap-1.5">
-            <h3 className="flex items-center gap-2 text-fluid-xs font-semibold uppercase tracking-[0.18em] text-gray-300">
-              <Clock size={12} className="text-pigment-gold" />
-              {t("hoursHeading")}
-            </h3>
-            <div className="flex flex-col items-center gap-0.5 rounded-lg border border-gray-800 bg-white/[0.03] px-3 py-2 text-center">
-              <span className="text-fluid-xs font-medium text-white">{daysText}</span>
-              <span className="text-fluid-xs text-gray-400">{hoursText}</span>
-            </div>
-          </div>
-
-          {/* Col 4 — Contact & location */}
+          {/* Col 3 — Contact & location */}
           <div className="flex flex-col gap-1.5">
             <h3 className="text-fluid-xs font-semibold uppercase tracking-[0.18em] text-gray-300">
               {t("contactHeading")}

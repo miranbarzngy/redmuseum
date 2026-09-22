@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { AnimatePresence, motion, useMotionValueEvent, useScroll } from "framer-motion";
+import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScroll } from "framer-motion";
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { scrollToId } from "@/lib/scrollTo";
 import { pickSectionTitle } from "@/lib/museumSectionTitle";
+import { formatVisitingHours } from "@/lib/visitingHours";
 import type { Locale } from "@/i18n/routing";
 
 // Homepage sections, scrolled to in place.
@@ -37,6 +38,11 @@ interface HeaderProps {
   /** Museum sections (biography_blocks) for the "Museum sections" nav
    * dropdown — each links to its own /museum/[id] detail page. */
   sections?: HeaderSection[];
+  /** JS Date.getDay() numbers, 0 = Sunday … 6 = Saturday (booking_settings),
+   * for the visiting-hours bar above the nav row. */
+  openWeekdays?: number[];
+  /** Bookable start times, "HH:MM", for the same hours bar. */
+  timeSlots?: string[];
 }
 
 const FALLBACK_NAME_KU = "مۆزەخانەی نیشتیمانی ئەمنە سورەکە";
@@ -49,12 +55,17 @@ export function Header({
   nameKu = null,
   nameEn = null,
   sections = [],
+  openWeekdays = [],
+  timeSlots = [],
 }: HeaderProps = {}) {
   const t = useTranslations("nav");
   const tMuseum = useTranslations("museum");
+  const tBooking = useTranslations("booking");
+  const tFooter = useTranslations("footer");
   const locale = useLocale() as Locale;
   const pathname = usePathname();
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const { scrollY } = useScroll();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -115,8 +126,33 @@ export function Header({
   const showBackdrop = solid || scrolled;
   const hasSections = sections.length > 0;
 
+  const weekdayLabels = tBooking.raw("weekdays") as string[];
+  const meridiem = tBooking.raw("meridiem") as { am: string; pm: string };
+  const { daysText, hoursText } = formatVisitingHours({
+    openWeekdays,
+    timeSlots,
+    locale,
+    weekdayLabels,
+    meridiem,
+    closedLabel: tFooter("hoursClosed"),
+  });
+
   return (
     <header className="fixed inset-x-0 top-0 z-50">
+      <div className="hidden items-center justify-center gap-2 bg-ink py-1.5 text-[11px] font-medium text-gray-300 sm:flex">
+        <span className="flex h-4 w-4 items-center justify-center">
+          <motion.span
+            animate={reduceMotion ? undefined : { scale: [1, 1.3, 1] }}
+            transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+            className="h-1.5 w-1.5 rounded-full bg-pigment-gold"
+          />
+        </span>
+        <span>{daysText}</span>
+        <span aria-hidden className="text-gray-500">
+          ·
+        </span>
+        <span>{hoursText}</span>
+      </div>
       <div
         className={`transition-all duration-500 ${
           showBackdrop

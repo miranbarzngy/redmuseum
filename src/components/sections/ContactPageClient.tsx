@@ -123,7 +123,7 @@ export function ContactPageClient({
   }
 
   return (
-    <div className="relative pb-24 pt-20 sm:pb-28 sm:pt-24">
+    <div className="relative pb-24 pt-20 sm:pb-28 sm:pt-32">
       <div className="container-art section-px flex flex-col gap-14">
         <div className="flex flex-col gap-4">
           {/* Breadcrumbs */}

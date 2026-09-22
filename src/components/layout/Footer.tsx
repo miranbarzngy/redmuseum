@@ -1,15 +1,14 @@
 import { getSiteProfile } from "@/lib/data/profile";
-import { getBookingSettings } from "@/lib/data/bookingSettings";
 import { resolveSocials } from "@/data/socials";
 import { contactDefaults } from "@/lib/contactDefaults";
 import { FooterClient } from "./FooterClient";
 
 // FooterClient itself is a client component (locale-aware formatting, nav
 // clicks), so it can't read Supabase directly — this thin server wrapper
-// fetches the admin-entered profile plus the live booking schedule and hands
-// the resolved values down as plain props, the same split HeaderServer uses.
+// fetches the admin-entered profile and hands the resolved values down as
+// plain props, the same split HeaderServer uses.
 export async function Footer() {
-  const [profile, bookingSettings] = await Promise.all([getSiteProfile(), getBookingSettings()]);
+  const profile = await getSiteProfile();
 
   const email = profile?.contact_email?.trim() || contactDefaults.email;
   const phone = profile?.contact_phone?.trim() || contactDefaults.phone;
@@ -30,8 +29,6 @@ export async function Footer() {
       locationEn={profile?.contact_location_en?.trim() || contactDefaults.location.en}
       locationAr={profile?.contact_location_ar?.trim() || contactDefaults.location.ar}
       socials={socials}
-      openWeekdays={bookingSettings.openWeekdays}
-      timeSlots={bookingSettings.timeSlots}
     />
   );
 }
