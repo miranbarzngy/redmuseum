@@ -2,7 +2,6 @@
 
 import { LanguageProvider, LanguageTabs } from "../../_components/LanguageTabs";
 import { LocalizedField } from "../../_components/LocalizedField";
-import { Field } from "../../_components/Field";
 import { Panel } from "../../_components/Panel";
 import { SaveBar } from "../../_components/SaveBar";
 import type { ExhibitionRow } from "@/lib/supabase/database.types";
@@ -18,20 +17,18 @@ export function ExhibitionForm({
     <LanguageProvider>
       <form action={action} className="flex flex-col gap-5">
         <Panel bodyClassName="flex flex-col gap-8">
-          <Field
-            label="ساڵ"
-            name="year"
-            required
-            defaultValue={exhibition?.year ?? ""}
-            placeholder="بۆ نموونە: ٢٠١٩ یان ٢٠١٩-٢٠٢٠"
-            dir="rtl"
-            className="max-w-xs"
-          />
-
-          <div className="flex items-center justify-between gap-3 border-t border-ink/10 pt-6">
+          <div className="flex items-center justify-between gap-3">
             <span className="font-kurdish text-fluid-xs font-medium text-ink-faint">زمانی دەق</span>
             <LanguageTabs />
           </div>
+
+          <LocalizedField
+            name="year"
+            label="ساڵ"
+            required
+            hint="بۆ نموونە: ٢٠١٩ یان ٢٠١٩-٢٠٢٠ — هەر سێ زمانەکە پێویستن."
+            defaults={{ ku: exhibition?.year_ku, en: exhibition?.year_en, ar: exhibition?.year_ar }}
+          />
 
           <LocalizedField
             name="title"

@@ -1,7 +1,7 @@
 import type { SiteProfileRow } from "@/lib/supabase/database.types";
 
 export interface SocialLink {
-  type: "instagram" | "facebook" | "x" | "youtube";
+  type: "instagram" | "facebook" | "x" | "youtube" | "tiktok" | "whatsapp";
   label: string;
   href: string;
 }
@@ -13,6 +13,9 @@ export const socials: SocialLink[] = [
   { type: "facebook", label: "Facebook", href: "https://facebook.com/amnasuraka" },
   { type: "x", label: "X / Twitter", href: "https://x.com/amnasuraka" },
   { type: "youtube", label: "YouTube", href: "https://youtube.com/@amnasuraka" },
+  // No shipped URLs below — each is hidden until an admin saves one.
+  { type: "tiktok", label: "TikTok", href: "" },
+  { type: "whatsapp", label: "WhatsApp", href: "" },
 ];
 
 const SOCIAL_COLUMN: Record<SocialLink["type"], keyof SiteProfileRow> = {
@@ -20,6 +23,8 @@ const SOCIAL_COLUMN: Record<SocialLink["type"], keyof SiteProfileRow> = {
   facebook: "social_facebook_url",
   x: "social_x_url",
   youtube: "social_youtube_url",
+  tiktok: "social_tiktok_url",
+  whatsapp: "social_whatsapp_url",
 };
 
 /**
@@ -32,7 +37,7 @@ export function resolveSocials(profile: SiteProfileRow | null): SocialLink[] {
   return socials
     .map((s) => {
       const saved = profile?.[SOCIAL_COLUMN[s.type]] as string | null | undefined;
-      if (saved == null) return s;
+      if (saved == null) return s.href ? s : null;
       const href = saved.trim();
       return href ? { ...s, href } : null;
     })

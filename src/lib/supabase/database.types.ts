@@ -122,7 +122,9 @@ export interface Database {
           details_ku: string;
           details_en: string;
           details_ar: string;
-          year: string;
+          year_ku: string;
+          year_en: string;
+          year_ar: string;
           sort_order: number;
           created_at: string;
           updated_at: string;
@@ -135,7 +137,9 @@ export interface Database {
           details_ku?: string;
           details_en?: string;
           details_ar?: string;
-          year: string;
+          year_ku: string;
+          year_en: string;
+          year_ar: string;
           sort_order?: number;
           created_at?: string;
           updated_at?: string;
@@ -198,6 +202,8 @@ export interface Database {
           social_facebook_url: string | null;
           social_x_url: string | null;
           social_youtube_url: string | null;
+          social_tiktok_url: string | null;
+          social_whatsapp_url: string | null;
           guide_flyer_url: string | null;
           updated_at: string;
         };
@@ -249,6 +255,8 @@ export interface Database {
           social_facebook_url?: string | null;
           social_x_url?: string | null;
           social_youtube_url?: string | null;
+          social_tiktok_url?: string | null;
+          social_whatsapp_url?: string | null;
           guide_flyer_url?: string | null;
           updated_at?: string;
         };

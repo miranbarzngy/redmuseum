@@ -1,4 +1,4 @@
-type SocialType = "instagram" | "facebook" | "x" | "youtube";
+type SocialType = "instagram" | "facebook" | "x" | "youtube" | "tiktok" | "whatsapp";
 
 const commonProps = {
   fill: "none",
@@ -40,6 +40,19 @@ export function SocialIcon({ type, className }: { type: SocialType; className?: 
         <svg viewBox="0 0 24 24" className={className} {...commonProps}>
           <rect x="3" y="6" width="18" height="12" rx="4" />
           <path d="M10.5 9.8l4.3 2.2-4.3 2.2z" fill="currentColor" stroke="none" />
+        </svg>
+      );
+    case "tiktok":
+      return (
+        <svg viewBox="0 0 24 24" className={className} {...commonProps}>
+          <path d="M14 4v10.5a3.5 3.5 0 1 1-3.5-3.5M14 4c.4 2.3 2 3.9 4.5 4.2" />
+        </svg>
+      );
+    case "whatsapp":
+      return (
+        <svg viewBox="0 0 24 24" className={className} {...commonProps}>
+          <path d="M4.5 19.5l1.2-3.6A8 8 0 1 1 8.4 18.6z" />
+          <path d="M9.3 8.8c.2 2.9 2.9 5.6 5.9 5.9l.9-1.3-1.7-.9-.8.7c-1-.4-2.2-1.6-2.6-2.6l.7-.8-.9-1.7z" fill="currentColor" stroke="none" />
         </svg>
       );
     default:

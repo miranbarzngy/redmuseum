@@ -259,6 +259,21 @@ export function ProfileForm({
                 contactDefaults.socials.youtube
               )}
             />
+            <Field
+              label="تیکتۆک"
+              name="social_tiktok_url"
+              type="text"
+              dir="ltr"
+              defaultValue={savedOrFallback(profile?.social_tiktok_url, contactDefaults.socials.tiktok)}
+            />
+            <Field
+              label="واتسئاپ"
+              name="social_whatsapp_url"
+              type="text"
+              dir="ltr"
+              placeholder="https://wa.me/9647500000000"
+              defaultValue={savedOrFallback(profile?.social_whatsapp_url, contactDefaults.socials.whatsapp)}
+            />
           </div>
           <span className="font-kurdish text-fluid-xs text-ink-faint">
             هەر خانەیەک بەتاڵ بکەیتەوە، ئەو دوگمەیە لە ماڵپەڕەکە لادەبرێت.

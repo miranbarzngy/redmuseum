@@ -9,19 +9,23 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // Ordering is owned by the drag-and-drop list on /admin/museumhistory (see
 // reorderExhibitions) — not the form. The public timeline
 // (ExhibitionsTimeline) renders title[locale] with no fallback, so all
-// three title languages stay required.
+// three title and year languages stay required.
 function parseExhibitionFields(formData: FormData) {
-  const year = String(formData.get("year") ?? "").trim();
+  const year_ku = String(formData.get("year_ku") ?? "").trim();
+  const year_en = String(formData.get("year_en") ?? "").trim();
+  const year_ar = String(formData.get("year_ar") ?? "").trim();
   const title_ku = String(formData.get("title_ku") ?? "").trim();
   const title_en = String(formData.get("title_en") ?? "").trim();
   const title_ar = String(formData.get("title_ar") ?? "").trim();
 
-  if (!year || !title_ku || !title_en || !title_ar) {
-    throw new Error("ساڵ و ناونیشان (بە هەر سێ زمانەکە) پێویستن.");
+  if (!year_ku || !year_en || !year_ar || !title_ku || !title_en || !title_ar) {
+    throw new Error("ساڵ و ناونیشان بە هەر سێ زمانەکە پێویستن.");
   }
 
   return {
-    year,
+    year_ku,
+    year_en,
+    year_ar,
     title_ku,
     title_en,
     title_ar,

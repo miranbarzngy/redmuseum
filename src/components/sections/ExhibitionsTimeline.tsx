@@ -62,7 +62,7 @@ export function ExhibitionsTimeline({
             <span className="h-3.5 w-3.5 rounded-full ring-4 ring-canvas" style={{ backgroundColor: ACCENT }} />
           </div>
           <span className="font-display text-fluid-lg font-bold tracking-[0.05em]" style={{ color: ACCENT }}>
-            {e.year}
+            {e.year[locale]}
           </span>
           <h4 className="mt-1 font-display text-fluid-lg font-semibold text-ink">{e.title[locale]}</h4>
           <p className="mt-2 max-w-xl text-fluid-sm leading-relaxed text-ink-soft">{e.description[locale]}</p>

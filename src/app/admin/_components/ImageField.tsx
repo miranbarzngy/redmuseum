@@ -3,6 +3,7 @@
 import { useState } from "react";
 import clsx from "clsx";
 import { Plus } from "lucide-react";
+import { shrinkInputFiles } from "./shrinkImage";
 
 /** A dashed "+" tile that opens the file picker — the visible stand-in for a
  * raw <input type="file">. The real input stays mounted (screen-reader-only)
@@ -63,7 +64,10 @@ export function AddPhotoTile({
         accept="image/*"
         multiple={multiple}
         required={required}
-        onChange={onChange}
+        onChange={(e) => {
+          onChange(e);
+          void shrinkInputFiles(e.currentTarget);
+        }}
         className="sr-only"
       />
     </label>

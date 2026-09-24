@@ -29,5 +29,7 @@ export const contactDefaults = {
     facebook: href("facebook"),
     x: href("x"),
     youtube: href("youtube"),
+    tiktok: href("tiktok"),
+    whatsapp: href("whatsapp"),
   },
 };

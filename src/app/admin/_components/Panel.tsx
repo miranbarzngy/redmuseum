@@ -70,9 +70,14 @@ export function Panel({
           {action && <div className="flex items-center gap-2">{action}</div>}
         </div>
       )}
-      {(!collapsible || open) && (
-        <div className={clsx("p-5 sm:p-6", bodyClassName)}>{children}</div>
-      )}
+      {/* Collapsed bodies are hidden, not unmounted: a collapsed panel inside
+          a <form> must still submit its fields (and keep unsaved edits),
+          otherwise saving wipes every field in a closed panel to "". */}
+      <div
+        className={clsx("p-5 sm:p-6", bodyClassName, collapsible && !open && "hidden")}
+      >
+        {children}
+      </div>
     </section>
   );
 }

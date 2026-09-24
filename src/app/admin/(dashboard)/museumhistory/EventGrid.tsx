@@ -76,7 +76,7 @@ function EventCard({ exhibition }: { exhibition: ExhibitionRow }) {
       </button>
 
       <span dir="rtl" className="rounded-full bg-canvas-paper px-3 py-1 text-fluid-xs font-medium text-ink-soft">
-        {exhibition.year}
+        {exhibition.year_ku}
       </span>
 
       <Link

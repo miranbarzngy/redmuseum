@@ -32,6 +32,10 @@ function assertAllowedImage(file: File): string {
 // room to spare. Quality 90 sits at the "visually lossless" end of WEBP —
 // museum/artifact photos and cover cards with fine text keep their detail —
 // while `effort: 6` (max) squeezes the file further at that same quality.
+// `smartSubsample` keeps sharp colour edges (red text, fine painted lines)
+// from bleeding the way default 4:2:0 chroma subsampling does.
+// The admin forms pre-shrink big photos in the browser (shrinkImage.ts)
+// before they get here, only to keep the request under the body limit.
 // Animated GIFs are passed through as-is: sharp's default pipeline only
 // keeps the first frame, which would silently kill the animation.
 const MAX_DIMENSION = 2000;
@@ -46,7 +50,7 @@ async function optimizeImage(file: File): Promise<{ buffer: Buffer; contentType:
   const buffer = await sharp(input)
     .rotate()
     .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: "inside", withoutEnlargement: true })
-    .webp({ quality: WEBP_QUALITY, effort: 6 })
+    .webp({ quality: WEBP_QUALITY, effort: 6, smartSubsample: true })
     .toBuffer();
 
   return { buffer, contentType: "image/webp", ext: "webp" };

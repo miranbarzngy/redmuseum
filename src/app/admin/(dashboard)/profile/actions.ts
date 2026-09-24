@@ -69,6 +69,8 @@ export async function updateProfile(formData: FormData) {
     social_facebook_url: String(formData.get("social_facebook_url") ?? "").trim(),
     social_x_url: String(formData.get("social_x_url") ?? "").trim(),
     social_youtube_url: String(formData.get("social_youtube_url") ?? "").trim(),
+    social_tiktok_url: String(formData.get("social_tiktok_url") ?? "").trim(),
+    social_whatsapp_url: String(formData.get("social_whatsapp_url") ?? "").trim(),
     hero_image_url: heroImageUrls[0] ?? null,
     hero_image_urls: heroImageUrls,
     guide_flyer_url: guideFlyerUrl,
