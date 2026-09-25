@@ -2,10 +2,11 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { ADMIN_COOKIE_NAME, requireAdminSession } from "@/lib/adminAuth";
+import { ADMIN_COOKIE_NAME, requireAdminSession, revokeCurrentSession } from "@/lib/adminAuth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function signOut() {
+  await revokeCurrentSession();
   (await cookies()).delete(ADMIN_COOKIE_NAME);
   redirect("/admin/login");
 }

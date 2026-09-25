@@ -19,7 +19,9 @@ function getJwtSecret(): Uint8Array {
   return new TextEncoder().encode(secret);
 }
 
-type SessionClaims = { userId: string; email: string; roleId: string };
+/** `sid` is the admin_sessions row this token belongs to (0061) — what
+ * makes a token revocable before it expires. */
+type SessionClaims = { sid: string; userId: string; email: string; roleId: string };
 
 export type AdminSession = {
   id: string;
@@ -35,14 +37,33 @@ export type AdminSession = {
 // a to-one FK against admin_roles (see 0041_admin_rbac_and_audit_log.sql).
 type AdminUserWithRole = AdminUserRow & { role: AdminRoleRow | null };
 
-/** Signed, expiring session token — stateless, no session store required.
- * Uses Web Crypto (via jose) rather than node:crypto so the same code works
- * in both the Edge proxy.ts runtime and Node Server Actions. */
-export async function createSessionToken(claims: SessionClaims): Promise<string> {
+/** Records a new admin_sessions row and returns a signed, expiring token
+ * for it. Uses Web Crypto (via jose) rather than node:crypto so the same
+ * verification code works in both the proxy.ts runtime and Node Server
+ * Actions. Also prunes this user's expired/revoked rows. */
+export async function createSession(user: { id: string; email: string; role_id: string }): Promise<string> {
+  const supabase = createAdminClient();
+  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS;
+
+  const nowIso = new Date().toISOString();
+  await supabase
+    .from("admin_sessions")
+    .delete()
+    .eq("user_id", user.id)
+    .or(`expires_at.lt.${nowIso},revoked_at.not.is.null`);
+
+  const { data, error } = await supabase
+    .from("admin_sessions")
+    .insert({ user_id: user.id, expires_at: new Date(expiresAt * 1000).toISOString() })
+    .select("id")
+    .single();
+  if (error || !data) throw new Error(`Could not create session: ${error?.message}`);
+
+  const claims: SessionClaims = { sid: data.id, userId: user.id, email: user.email, roleId: user.role_id };
   return new SignJWT(claims)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(Math.floor(Date.now() / 1000) + SESSION_MAX_AGE_SECONDS)
+    .setExpirationTime(expiresAt)
     .sign(getJwtSecret());
 }
 
@@ -53,13 +74,14 @@ async function decodeSessionToken(
   try {
     const { payload } = await jwtVerify(token, getJwtSecret());
     if (
+      typeof payload.sid !== "string" ||
       typeof payload.userId !== "string" ||
       typeof payload.email !== "string" ||
       typeof payload.roleId !== "string"
     ) {
       return null;
     }
-    return { userId: payload.userId, email: payload.email, roleId: payload.roleId };
+    return { sid: payload.sid, userId: payload.userId, email: payload.email, roleId: payload.roleId };
   } catch {
     return null;
   }
@@ -70,30 +92,45 @@ async function decodeSessionToken(
  * (Edge middleware) calls to gate page navigation — it only needs "is this
  * a structurally valid, unexpired session" to decide whether to redirect to
  * /admin/login, not up-to-the-second permission data, so it never touches
- * the database.
+ * the database. Revocation is enforced by getAdminSession() instead, which
+ * every dashboard render and admin Server Action goes through.
  */
 export async function isValidSessionToken(token: string | undefined | null): Promise<boolean> {
   return (await decodeSessionToken(token)) !== null;
 }
 
 /**
- * Authoritative session lookup: verifies the token, then re-fetches the
- * user + role fresh from the database rather than trusting the JWT's
- * claims beyond "which user is this". Fresh-fetching means deactivating a
- * user or editing a role's permissions takes effect on their very next
- * action, not at token expiry. Returns null (rather than throwing) so
- * Server Components can redirect instead of erroring.
+ * Authoritative session lookup: verifies the token, checks its
+ * admin_sessions row is still live (not signed out / revoked / expired),
+ * then re-fetches the user + role fresh from the database rather than
+ * trusting the JWT's claims beyond "which user is this". Fresh-fetching
+ * means signing out, resetting a password, deactivating a user or editing
+ * a role's permissions takes effect on their very next action, not at
+ * token expiry. Returns null (rather than throwing) so Server Components
+ * can redirect instead of erroring.
  */
 export async function getAdminSession(): Promise<AdminSession | null> {
   const claims = await decodeSessionToken((await cookies()).get(ADMIN_COOKIE_NAME)?.value);
   if (!claims) return null;
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase
-    .from("admin_users")
-    .select("id, email, full_name, is_active, role:admin_roles(id, name, permissions)")
-    .eq("id", claims.userId)
-    .maybeSingle();
+  const [{ data: liveSession, error: sessionError }, { data, error }] = await Promise.all([
+    supabase
+      .from("admin_sessions")
+      .select("id")
+      .eq("id", claims.sid)
+      .eq("user_id", claims.userId)
+      .is("revoked_at", null)
+      .gt("expires_at", new Date().toISOString())
+      .maybeSingle(),
+    supabase
+      .from("admin_users")
+      .select("id, email, full_name, is_active, role:admin_roles(id, name, permissions)")
+      .eq("id", claims.userId)
+      .maybeSingle(),
+  ]);
+
+  if (sessionError || !liveSession) return null;
 
   const user = data as AdminUserWithRole | null;
   if (error || !user || !user.is_active || !user.role) return null;
@@ -125,6 +162,29 @@ export async function requireAdminSession(requiredPermission?: string): Promise<
     throw new Error("ڕێگەت پێنەدراوە بۆ ئەم کردارە.");
   }
   return session;
+}
+
+/** Signs out the current request's session server-side (not just its
+ * cookie), so a copy of the token stops working too. */
+export async function revokeCurrentSession(): Promise<void> {
+  const claims = await decodeSessionToken((await cookies()).get(ADMIN_COOKIE_NAME)?.value);
+  if (!claims) return;
+  await createAdminClient()
+    .from("admin_sessions")
+    .update({ revoked_at: new Date().toISOString() })
+    .eq("id", claims.sid)
+    .is("revoked_at", null);
+}
+
+/** Signs a user out everywhere — used when their password changes or their
+ * account is deactivated. */
+export async function revokeUserSessions(userId: string): Promise<void> {
+  const { error } = await createAdminClient()
+    .from("admin_sessions")
+    .update({ revoked_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .is("revoked_at", null);
+  if (error) throw new Error(error.message);
 }
 
 export async function hashPassword(password: string): Promise<string> {

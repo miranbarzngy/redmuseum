@@ -1,8 +1,9 @@
 import { headers } from "next/headers";
 import { createHmac } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { clientIp } from "@/lib/clientIp";
+import { withinRateLimit } from "@/lib/rateLimit";
 
 // Best-effort visitor beacon fired by src/components/VisitTracker.tsx on
 // every public-site page view (including client-side route changes, which
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => null);
     const path = typeof body?.path === "string" ? body.path.slice(0, 500) : null;
-    if (!path) {
+    if (!path || !(await withinRateLimit("trackVisit"))) {
       return new NextResponse(null, { status: 204 });
     }
 
@@ -37,7 +38,10 @@ export async function POST(request: NextRequest) {
     const city = decodeGeoHeader(requestHeaders.get("x-vercel-ip-city"));
     const ipHash = hashIp(await clientIp());
 
-    const { error } = await createClient().rpc("record_page_visit", {
+    // Service-role call: record_page_visit isn't executable with the public
+    // anon key (0063), so analytics can only be written through this
+    // rate-limited route.
+    const { error } = await createAdminClient().rpc("record_page_visit", {
       p_path: path,
       p_country: country,
       p_city: city,

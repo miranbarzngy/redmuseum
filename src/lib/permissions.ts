@@ -19,3 +19,18 @@ export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];
 export function hasPermission(granted: string[], required: string): boolean {
   return granted.includes("*") || granted.includes(required);
 }
+
+/** Whether a holder of `granted` may hand out every permission in
+ * `requested` — i.e. `requested` is a subset of what they already hold.
+ * Only a `"*"` holder can grant `"*"`. Used by the users/roles actions so
+ * `users:manage` can never be leveraged into more access than its holder
+ * already has. */
+export function canGrant(granted: string[], requested: string[]): boolean {
+  return requested.every((p) => hasPermission(granted, p));
+}
+
+const KNOWN_PERMISSIONS = new Set<string>(Object.values(PERMISSIONS));
+
+export function isKnownPermission(value: string): value is Permission {
+  return KNOWN_PERMISSIONS.has(value);
+}

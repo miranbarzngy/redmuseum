@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { rateLimitedResponse, withinRateLimit } from "@/lib/rateLimit";
 import { CONTACT_SUBJECTS } from "@/lib/contactSubjects";
 
 const schema = z.object({
-  name: z.string().min(1),
-  phone: z.string().min(7).regex(/^[0-9+\-\s()]+$/),
-  message: z.string().min(10),
+  name: z.string().trim().min(1).max(120),
+  phone: z.string().min(7).max(30).regex(/^[0-9+\-\s()]+$/),
+  message: z.string().trim().min(10).max(5000),
   // Optional so the homepage's simpler contact form (which doesn't collect a
   // subject) keeps working unchanged — defaults to "general" when omitted.
   subject: z.enum(CONTACT_SUBJECTS).default("general"),
@@ -23,8 +24,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "invalid_input" }, { status: 400 });
   }
 
-  const supabase = createClient();
-  const { error } = await supabase.from("contact_messages").insert(parsed.data);
+  if (!(await withinRateLimit("contact"))) {
+    return rateLimitedResponse();
+  }
+
+  // Service-role insert: contact_messages has no anon INSERT policy (see
+  // 0063_lock_down_anon_writes.sql), so this route — with its validation —
+  // is the only way in. Only the validated fields are written; is_read and
+  // created_at always take their column defaults.
+  const supabase = createAdminClient();
+  const { error } = await supabase.from("contact_messages").insert({
+    name: parsed.data.name,
+    phone: parsed.data.phone,
+    message: parsed.data.message,
+    subject: parsed.data.subject,
+  });
 
   if (error) {
     console.error("[contact] failed to save inquiry", error.message);

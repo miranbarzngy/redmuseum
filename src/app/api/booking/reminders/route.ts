@@ -1,6 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isAuthorizedCron } from "@/lib/webhookAuth";
 import { sendAdminPush } from "@/lib/adminPush";
 
 // Daily nudge: a booking that was confirmed but whose visit date has
@@ -16,18 +17,8 @@ import { sendAdminPush } from "@/lib/adminPush";
 // header), OR a Bearer CRON_SECRET (what Vercel Cron sends when CRON_SECRET
 // is set). Accepts GET and POST so both schedulers work.
 
-function authorized(request: Request): boolean {
-  const secret = request.headers.get("x-webhook-secret");
-  if (secret && secret === process.env.WEBHOOK_SECRET) return true;
-
-  const auth = request.headers.get("authorization");
-  if (auth && process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`) return true;
-
-  return false;
-}
-
 async function handle(request: Request) {
-  if (!authorized(request)) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 

@@ -28,7 +28,7 @@ export default async function AdminLoginPage(
         )}
         {hasRateLimitError && (
           <p className="mt-4 rounded-lg bg-pigment-crimson/10 px-3 py-2 text-fluid-xs text-pigment-crimson">
-            تکایە کەمێک چاوەڕێ بکە و دووبارە هەوڵ بدەوە (تەنها هەوڵێک لە خولەکێکدا).
+            تکایە کەمێک چاوەڕێ بکە و دووبارە هەوڵ بدەوە (هەوڵێک لە خولەکێکدا، و دوای 5 هەوڵی هەڵە بۆ 15 خولەک ڕادەگیرێت).
           </p>
         )}
 

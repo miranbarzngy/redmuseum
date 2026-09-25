@@ -1,6 +1,6 @@
 import { Users } from "lucide-react";
 import { requireAdminSession } from "@/lib/adminAuth";
-import { PERMISSIONS } from "@/lib/permissions";
+import { PERMISSIONS, canGrant } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PageHeader } from "../../_components/PageHeader";
 import { Panel } from "../../_components/Panel";
@@ -30,6 +30,9 @@ export default async function AdminUsersPage() {
 
   const userRows = (users as UserRowWithRole[] | null) ?? [];
   const roleRows = roles ?? [];
+  // The user form only offers roles within the caller's own permissions —
+  // the same subset rule users/actions.ts enforces server-side.
+  const assignableRoles = roleRows.filter((r) => canGrant(session.role.permissions, r.permissions));
 
   return (
     <div className="flex flex-col gap-8 mb-24 lg:mb-0">
@@ -40,12 +43,12 @@ export default async function AdminUsersPage() {
 
       <Panel
         title="بەکارهێنەرانی بەڕێوەبردن"
-        action={<UserFormModal roles={roleRows} />}
+        action={<UserFormModal roles={assignableRoles} />}
       >
         {userRows.length === 0 ? (
           <EmptyState icon={Users} title="هێشتا هیچ بەکارهێنەرێک نییە" />
         ) : (
-          <UserGrid users={userRows} roles={roleRows} currentUserId={session.id} />
+          <UserGrid users={userRows} roles={assignableRoles} currentUserId={session.id} />
         )}
       </Panel>
 

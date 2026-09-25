@@ -1,6 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { sendAdminPush } from "@/lib/adminPush";
+import { hasWebhookSecret } from "@/lib/webhookAuth";
 
 // Called by the Supabase DB triggers in
 // supabase/migrations/0014_notify_new_message_trigger.sql (contact_messages)
@@ -61,7 +62,7 @@ function buildNotification(body: NotifyBody): { title: string; body: string; url
 }
 
 export async function POST(request: Request) {
-  if (request.headers.get("x-webhook-secret") !== process.env.WEBHOOK_SECRET) {
+  if (!hasWebhookSecret(request)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 

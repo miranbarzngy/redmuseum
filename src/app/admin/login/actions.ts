@@ -2,13 +2,12 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { clientIp } from "@/lib/clientIp";
 import {
   ADMIN_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
-  createSessionToken,
+  createSession,
   verifyPassword,
 } from "@/lib/adminAuth";
 
@@ -18,14 +17,17 @@ export async function signIn(formData: FormData) {
   const rawNext = String(formData.get("next") ?? "/admin");
   const next = rawNext.startsWith("/admin") ? rawNext : "/admin";
 
-  // Two independent throttles: per-IP (0016) and per-email (0043). The IP
-  // one is keyed on a client-influenceable header (see clientIp.ts) and can
-  // be bypassed by spoofing a fresh value on every request; the per-email
-  // one can't be dodged that way since the attacker can't change which
-  // account they're guessing. Both must allow the attempt.
-  const throttleClient = createClient();
-  const { data: ipAllowed, error: ipError } = await throttleClient.rpc("check_admin_login_attempt", {
-    client_ip: await clientIp(),
+  // Two independent throttles, both called through the service-role client
+  // (neither function is executable with the public anon key):
+  //   - per-IP cooldown (0016): at most one attempt a minute from one IP;
+  //   - per-(email, IP) failure count (0059): 5 wrong passwords in 15
+  //     minutes blocks that pair, 100 in an hour blocks the email outright.
+  //     Only failures count, so someone hammering an admin's email from
+  //     their own IP can't lock the real admin out of theirs.
+  const supabase = createAdminClient();
+  const ip = await clientIp();
+  const { data: ipAllowed, error: ipError } = await supabase.rpc("check_admin_login_attempt", {
+    client_ip: ip,
   });
   if (ipError) throw ipError;
   if (!ipAllowed) {
@@ -33,17 +35,16 @@ export async function signIn(formData: FormData) {
   }
 
   if (email) {
-    const { data: emailAllowed, error: emailError } = await throttleClient.rpc(
-      "check_admin_login_attempt_by_email",
-      { p_email: email }
-    );
+    const { data: emailAllowed, error: emailError } = await supabase.rpc("admin_login_attempt", {
+      p_email: email,
+      p_ip: ip,
+    });
     if (emailError) throw emailError;
     if (!emailAllowed) {
       redirect(`/admin/login?error=2&next=${encodeURIComponent(next)}`);
     }
   }
 
-  const supabase = createAdminClient();
   const { data: user } = await supabase
     .from("admin_users")
     .select("id, email, role_id, password_hash, is_active")
@@ -57,9 +58,12 @@ export async function signIn(formData: FormData) {
     redirect(`/admin/login?error=1&next=${encodeURIComponent(next)}`);
   }
 
-  await supabase.from("admin_users").update({ last_login: new Date().toISOString() }).eq("id", user.id);
+  await Promise.all([
+    supabase.rpc("admin_login_succeeded", { p_email: email, p_ip: ip }),
+    supabase.from("admin_users").update({ last_login: new Date().toISOString() }).eq("id", user.id),
+  ]);
 
-  const token = await createSessionToken({ userId: user.id, email: user.email, roleId: user.role_id });
+  const token = await createSession(user);
   (await cookies()).set(ADMIN_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

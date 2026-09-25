@@ -1,6 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isAuthorizedCron } from "@/lib/webhookAuth";
 
 // Face photos exist only to verify identity at check-in, so there's no
 // reason to keep paying storage for them once a visit is long past. This
@@ -23,18 +24,8 @@ const RETENTION_DAYS = 10;
 // Bounds each run; any remainder just gets picked up by tomorrow's run.
 const BATCH_SIZE = 500;
 
-function authorized(request: Request): boolean {
-  const secret = request.headers.get("x-webhook-secret");
-  if (secret && secret === process.env.WEBHOOK_SECRET) return true;
-
-  const auth = request.headers.get("authorization");
-  if (auth && process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`) return true;
-
-  return false;
-}
-
 async function handle(request: Request) {
-  if (!authorized(request)) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 

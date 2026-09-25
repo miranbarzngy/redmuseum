@@ -28,7 +28,6 @@ const PhotoCapture = dynamic(() => import("./PhotoCapture").then((m) => m.PhotoC
 // booking_settings (0036), editable at /admin/bookings/schedule. The
 // opening / staff-break / closing hours still show as a plain caption above
 // the slot grid (booking.form.openingTimeValue etc.), independent of these.
-const STEP_COUNT = 4;
 const MAX_GUESTS = 200;
 
 /** "13:00" -> { time: "1:00", period: "PM" } (digits and meridiem localized for ku/ar). */
@@ -56,9 +55,14 @@ function upcomingDays(count: number): Date[] {
 export function BookingClient({
   settings,
   visitorTypes,
+  faceScanEnabled,
 }: {
   settings: BookingSettings;
   visitorTypes: BookingVisitorTypeOption[];
+  /** system_settings.enable_face_scan (admin Settings). Off means the photo
+   * step isn't shown at all — /api/reserve/upload-face refuses uploads and
+   * /api/booking drops any photo path too, so this is display-only. */
+  faceScanEnabled: boolean;
 }) {
   const t = useTranslations("booking");
   const locale = useLocale() as Locale;
@@ -162,7 +166,7 @@ export function BookingClient({
           guestCount: Number(values.guestCount),
           visitorTypeId: values.visitorTypeId,
           note: userNote,
-          faceImagePath,
+          faceImagePath: faceScanEnabled ? faceImagePath : null,
         }),
       });
       if (!res.ok) throw new Error("Request failed");
@@ -201,7 +205,13 @@ export function BookingClient({
     }
   }
 
-  const stepLabels = [t("steps.info"), t("steps.day"), t("steps.time"), t("steps.photo")];
+  const stepLabels = [
+    t("steps.info"),
+    t("steps.day"),
+    t("steps.time"),
+    ...(faceScanEnabled ? [t("steps.photo")] : []),
+  ];
+  const lastStep = stepLabels.length - 1;
 
   // `direction` is +1 moving forward / -1 moving back. RTL layouts read
   // right-to-left, so "forward" should slide from the visually-opposite
@@ -263,7 +273,7 @@ export function BookingClient({
                 <motion.div
                   className="absolute top-4 h-[2px] bg-[#850B10]"
                   style={dir === "rtl" ? { right: 0 } : { left: 0 }}
-                  animate={{ width: `${(step / (STEP_COUNT - 1)) * 100}%` }}
+                  animate={{ width: `${(step / lastStep) * 100}%` }}
                   transition={{ duration: 0.5, ease: easeArt }}
                 />
                 {stepLabels.map((label, i) => {
@@ -321,6 +331,7 @@ export function BookingClient({
                         <input
                           id="name"
                           required
+                          maxLength={120}
                           {...register("name")}
                           placeholder={t("form.namePlaceholder")}
                           className="rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-[#850B10]"
@@ -335,6 +346,7 @@ export function BookingClient({
                           id="phone"
                           type="tel"
                           required
+                          maxLength={30}
                           {...register("phone")}
                           placeholder={t("form.phonePlaceholder")}
                           className="rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-[#850B10]"
@@ -502,6 +514,7 @@ export function BookingClient({
                         <textarea
                           id="note"
                           rows={3}
+                          maxLength={1000}
                           {...register("note")}
                           placeholder={t("form.notePlaceholder")}
                           className="resize-none rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-[#850B10]"
@@ -510,7 +523,7 @@ export function BookingClient({
                     </div>
                   )}
 
-                  {step === 3 && (
+                  {step === 3 && faceScanEnabled && (
                     <div className="flex flex-col items-center gap-1 text-center">
                       <h3 className="mb-6 text-fluid-lg font-semibold text-ink">{t("photoStep.title")}</h3>
                       <PhotoCapture
@@ -565,7 +578,7 @@ export function BookingClient({
                 </button>
               )}
 
-              {step === 2 && (
+              {step === 2 && step < lastStep && (
                 <button
                   type="button"
                   onClick={() => goTo(3)}
@@ -577,7 +590,7 @@ export function BookingClient({
                 </button>
               )}
 
-              {step === 3 && (
+              {step === lastStep && (
                 <button
                   type="button"
                   onClick={handleSubmitBooking}

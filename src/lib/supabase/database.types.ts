@@ -437,6 +437,8 @@ export interface Database {
           face_scan_consent: boolean;
           status: BookingStatus;
           public_token: string;
+          /** Generated column (0062) — never written directly. */
+          phone_key: string;
           created_at: string;
           updated_at: string;
         };
@@ -547,6 +549,24 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["admin_users"]["Insert"]>;
         Relationships: [];
       };
+      admin_sessions: {
+        Row: {
+          id: string;
+          user_id: string;
+          created_at: string;
+          expires_at: string;
+          revoked_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          created_at?: string;
+          expires_at: string;
+          revoked_at?: string | null;
+        };
+        Update: Partial<Database["public"]["Tables"]["admin_sessions"]["Insert"]>;
+        Relationships: [];
+      };
       admin_audit_logs: {
         Row: {
           id: string;
@@ -580,8 +600,16 @@ export interface Database {
         Args: { client_ip: string };
         Returns: boolean;
       };
-      check_admin_login_attempt_by_email: {
-        Args: { p_email: string };
+      admin_login_attempt: {
+        Args: { p_email: string; p_ip: string };
+        Returns: boolean;
+      };
+      admin_login_succeeded: {
+        Args: { p_email: string; p_ip: string };
+        Returns: undefined;
+      };
+      check_rate_limit: {
+        Args: { p_bucket: string; p_key: string; p_limit: number; p_window_seconds: number };
         Returns: boolean;
       };
       check_booking_lookup_attempt: {

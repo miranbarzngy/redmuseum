@@ -23,20 +23,28 @@ function secretKey(): string {
  * client is how the already-session-gated Server Actions actually perform
  * those writes.
  *
- * Only three kinds of call sites are allowed to import this:
+ * Only these kinds of call sites are allowed to import this:
  *   1. src/app/admin/**\/actions.ts — gated by requireAdminSession() (an
  *      admin's signed JWT session cookie, re-verified against admin_users
- *      on every call).
- *   2. src/app/api/notify-admin/route.ts — gated instead by a shared
- *      x-webhook-secret header, since it's called server-to-server by a
- *      Supabase DB trigger (no browser session exists to check there).
+ *      and admin_sessions on every call).
+ *   2. Webhook / cron routes (api/notify-admin, api/booking/reminders,
+ *      api/booking/cleanup-photos) — gated instead by a shared secret
+ *      (src/lib/webhookAuth.ts), since they're called server-to-server.
  *   3. Server Components rendered under src/app/admin/(dashboard)/** —
  *      that route group's own layout re-checks getAdminSession() directly
  *      (see (dashboard)/layout.tsx), the same guarantee gated Server
  *      Actions have, so reads of admin-only data (e.g. visitor analytics)
  *      there are equally safe.
- * All three gates exist specifically so this client is never reachable from
- * an unauthenticated request. Never let SUPABASE_SECRET_KEY reach the browser.
+ *   4. The public API routes (api/booking, api/contact, api/booking/lookup,
+ *      api/reserve/upload-face, api/track-visit), the login action and
+ *      src/lib/rateLimit.ts — unauthenticated by nature, so each one writes
+ *      only fixed, validated fields behind a rate limit and never returns
+ *      anything beyond what it was built to expose. The anon key has no
+ *      write access at all (0063_lock_down_anon_writes.sql), which is what
+ *      makes these routes the only way in.
+ *   5. The public QR status page (src/app/[locale]/booking/[token]) — reads
+ *      one booking by its unguessable public_token.
+ * Never let SUPABASE_SECRET_KEY reach the browser.
  */
 export function createAdminClient() {
   return createSupabaseClient<Database>(supabaseUrl(), secretKey(), {

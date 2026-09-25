@@ -136,6 +136,7 @@ export function ContactClient({
                   <input
                     id="name"
                     required
+                    maxLength={120}
                     {...register("name")}
                     placeholder={t("form.namePlaceholder")}
                     className="rounded-xl border border-ink/30 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
@@ -153,6 +154,7 @@ export function ContactClient({
                     type="tel"
                     dir="ltr"
                     required
+                    maxLength={30}
                     {...register("phone")}
                     placeholder={t("form.phonePlaceholder")}
                     className="rounded-xl border border-ink/30 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
@@ -171,6 +173,7 @@ export function ContactClient({
                   id="message"
                   rows={5}
                   required
+                  maxLength={5000}
                   {...register("message")}
                   placeholder={t("form.messagePlaceholder")}
                   className="resize-y rounded-xl border border-ink/30 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
