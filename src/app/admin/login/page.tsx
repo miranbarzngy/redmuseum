@@ -2,17 +2,30 @@ import { signIn } from "./actions";
 import { PasswordField } from "./PasswordField";
 import { Field } from "../_components/Field";
 import { BrandLockup } from "@/components/BrandLockup";
+import { CooldownNotice, LoginSubmitButton } from "./Cooldown";
 
 export const metadata = { title: "چوونەژوورەوەی بەڕێوەبردن — ئەمنە سورەکە" };
 
+/**
+ * Seconds from now until `until` (unix seconds, set by signIn when a login
+ * is throttled). Display only — capped at the longest throttle (an hour)
+ * so a hand-edited URL can't show a silly countdown; null if absent.
+ */
+function secondsUntil(until: string | undefined): number | null {
+  const target = Number(until);
+  if (!until || !Number.isFinite(target)) return null;
+  return Math.min(3600, Math.max(0, Math.ceil(target - Date.now() / 1000)));
+}
+
 export default async function AdminLoginPage(
   props: {
-    searchParams: Promise<{ error?: string; next?: string }>;
+    searchParams: Promise<{ error?: string; next?: string; until?: string }>;
   }
 ) {
   const searchParams = await props.searchParams;
   const hasWrongPasswordError = searchParams.error === "1";
   const hasRateLimitError = searchParams.error === "2";
+  const cooldownSeconds = hasRateLimitError ? secondsUntil(searchParams.until) : null;
   const next = searchParams.next ?? "/admin";
 
   return (
@@ -26,11 +39,7 @@ export default async function AdminLoginPage(
             ئیمەیل یان وشەی نهێنی هەڵەیە.
           </p>
         )}
-        {hasRateLimitError && (
-          <p className="mt-4 rounded-lg bg-pigment-crimson/10 px-3 py-2 text-fluid-xs text-pigment-crimson">
-            تکایە کەمێک چاوەڕێ بکە و دووبارە هەوڵ بدەوە (هەوڵێک لە خولەکێکدا، و دوای 5 هەوڵی هەڵە بۆ 15 خولەک ڕادەگیرێت).
-          </p>
-        )}
+        {hasRateLimitError && <CooldownNotice key={searchParams.until} seconds={cooldownSeconds} />}
 
         <form action={signIn} className="mt-8 flex flex-col gap-5">
           <input type="hidden" name="next" value={next} />
@@ -39,12 +48,7 @@ export default async function AdminLoginPage(
             <span className="text-fluid-xs font-medium text-ink-soft">وشەی نهێنی</span>
             <PasswordField />
           </label>
-          <button
-            type="submit"
-            className="mt-2 rounded-full bg-[#850B10] px-4 py-3.5 text-fluid-base font-medium text-canvas transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#6a090d] hover:shadow-soft active:translate-y-0 active:scale-95"
-          >
-            چوونەژوورەوە
-          </button>
+          <LoginSubmitButton key={searchParams.until} cooldownSeconds={cooldownSeconds ?? 0} />
         </form>
       </div>
     </div>

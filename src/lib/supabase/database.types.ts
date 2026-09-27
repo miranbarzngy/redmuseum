@@ -593,6 +593,33 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["admin_audit_logs"]["Insert"]>;
         Relationships: [];
       };
+      admin_login_attempts: {
+        Row: {
+          ip: string;
+          last_attempt_at: string;
+        };
+        Insert: {
+          ip: string;
+          last_attempt_at: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["admin_login_attempts"]["Insert"]>;
+        Relationships: [];
+      };
+      admin_login_failures: {
+        Row: {
+          id: number;
+          email: string;
+          ip: string;
+          attempted_at: string;
+        };
+        Insert: {
+          email: string;
+          ip: string;
+          attempted_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["admin_login_failures"]["Insert"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

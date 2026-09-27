@@ -11,6 +11,61 @@ import {
   verifyPassword,
 } from "@/lib/adminAuth";
 
+// Throttle windows — must match 0016_admin_login_throttle.sql and
+// 0059_admin_login_failure_throttle.sql. Only used to tell the user how
+// long to wait; the database functions are what actually enforce them.
+const IP_COOLDOWN_MS = 60_000;
+const PAIR_FAILURE_LIMIT = 5;
+const PAIR_WINDOW_MS = 15 * 60_000;
+const EMAIL_FAILURE_LIMIT = 100;
+const EMAIL_WINDOW_MS = 60 * 60_000;
+
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+/** When the per-IP one-attempt-a-minute cooldown ends, or null if unknown. */
+async function ipRetryAt(supabase: AdminClient, ip: string): Promise<number | null> {
+  const { data } = await supabase
+    .from("admin_login_attempts")
+    .select("last_attempt_at")
+    .eq("ip", ip)
+    .maybeSingle();
+  return data ? Date.parse(data.last_attempt_at) + IP_COOLDOWN_MS : null;
+}
+
+/**
+ * When enough of this email's failures age out of their windows for
+ * admin_login_attempt() to let it through again, or null if unknown.
+ * A limit of N in a window is lifted once the Nth-newest failure expires.
+ */
+async function emailRetryAt(supabase: AdminClient, email: string, ip: string): Promise<number | null> {
+  const { data } = await supabase
+    .from("admin_login_failures")
+    .select("ip, attempted_at")
+    .eq("email", email)
+    .gt("attempted_at", new Date(Date.now() - EMAIL_WINDOW_MS).toISOString())
+    .order("attempted_at", { ascending: false });
+  if (!data) return null;
+
+  const pairCutoff = Date.now() - PAIR_WINDOW_MS;
+  const pairTimes = data
+    .filter((row) => row.ip === ip)
+    .map((row) => Date.parse(row.attempted_at))
+    .filter((t) => t > pairCutoff);
+  const retryTimes = [
+    pairTimes.length >= PAIR_FAILURE_LIMIT ? pairTimes[PAIR_FAILURE_LIMIT - 1] + PAIR_WINDOW_MS : 0,
+    data.length >= EMAIL_FAILURE_LIMIT
+      ? Date.parse(data[EMAIL_FAILURE_LIMIT - 1].attempted_at) + EMAIL_WINDOW_MS
+      : 0,
+  ];
+  const retryAt = Math.max(...retryTimes);
+  return retryAt > 0 ? retryAt : null;
+}
+
+function redirectRateLimited(next: string, retryAt: number | null): never {
+  const until = retryAt ? `&until=${Math.ceil(retryAt / 1000)}` : "";
+  redirect(`/admin/login?error=2${until}&next=${encodeURIComponent(next)}`);
+}
+
 export async function signIn(formData: FormData) {
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");
@@ -31,7 +86,7 @@ export async function signIn(formData: FormData) {
   });
   if (ipError) throw ipError;
   if (!ipAllowed) {
-    redirect(`/admin/login?error=2&next=${encodeURIComponent(next)}`);
+    redirectRateLimited(next, await ipRetryAt(supabase, ip));
   }
 
   if (email) {
@@ -41,7 +96,7 @@ export async function signIn(formData: FormData) {
     });
     if (emailError) throw emailError;
     if (!emailAllowed) {
-      redirect(`/admin/login?error=2&next=${encodeURIComponent(next)}`);
+      redirectRateLimited(next, await emailRetryAt(supabase, email, ip));
     }
   }
 
