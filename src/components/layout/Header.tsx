@@ -139,19 +139,22 @@ export function Header({
 
   return (
     <header className="fixed inset-x-0 top-0 z-50">
-      <div className="hidden items-center justify-center gap-2 bg-ink py-1.5 text-[11px] font-medium text-gray-300 sm:flex">
-        <span className="flex h-4 w-4 items-center justify-center">
+      {/* Kept to one line so the header stays about 108px tall — the page
+          top paddings (hero, booking, contact, museum item) are sized to it.
+          An unusual open-days list gets cut off with "…" instead of wrapping. */}
+      <div className="flex items-center justify-center gap-2 whitespace-nowrap bg-ink px-4 py-1.5 text-[11px] font-medium text-gray-300">
+        <span className="flex h-4 w-4 shrink-0 items-center justify-center">
           <motion.span
             animate={reduceMotion ? undefined : { scale: [1, 1.3, 1] }}
             transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
-            className="h-1.5 w-1.5 rounded-full bg-pigment-gold"
+            className="h-1.5 w-1.5 rounded-full bg-emerald-500"
           />
         </span>
-        <span>{daysText}</span>
-        <span aria-hidden className="text-gray-500">
+        <span className="min-w-0 truncate">{daysText}</span>
+        <span aria-hidden className="shrink-0 text-gray-500">
           ·
         </span>
-        <span>{hoursText}</span>
+        <span className="shrink-0">{hoursText}</span>
       </div>
       <div
         className={`transition-all duration-500 ${

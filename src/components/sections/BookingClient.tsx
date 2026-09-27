@@ -225,7 +225,7 @@ export function BookingClient({
   };
 
   return (
-    <section id="booking" className="relative py-24 sm:py-32">
+    <section id="booking" className="relative pb-24 pt-32 sm:py-32">
       <div className="container-art section-px">
         <SectionHeading eyebrow={t("eyebrow")} heading={t("heading")} subheading={t("subheading")} />
 

@@ -96,7 +96,7 @@ export default async function MuseumSectionPage({
     <>
       <HeaderServer solid />
       <ScrollExperience>
-        <main className="min-h-screen pb-24 pt-28 sm:pt-32">
+        <main className="min-h-screen pb-24 pt-32">
           <div className="container-art section-px flex flex-col gap-12">
             <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-16">
               <div className="flex w-full flex-col items-center gap-3 text-center">

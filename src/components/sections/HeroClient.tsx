@@ -92,9 +92,9 @@ export function HeroClient({ profile }: { profile: SiteProfileRow | null }) {
     <section
       id="hero"
       ref={ref}
-      // Top padding = the fixed header's height (h-20, plus the hours bar
-      // on sm+), so the photo starts below the header instead of behind it.
-      className="relative overflow-hidden bg-pigment-maroon pt-20 sm:pt-[108px]"
+      // Top padding = the fixed header's height (h-20 plus the hours bar),
+      // so the photo starts below the header instead of behind it.
+      className="relative overflow-hidden bg-pigment-maroon pt-[108px]"
     >
       {/* Photo and text share one grid cell, so the hero is as tall as
           whichever is taller. The photo box is always full width at 16:9
