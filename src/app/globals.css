@@ -52,6 +52,17 @@
   --ink: #1c1b19;
 }
 
+/* Reveal's from="start"/"end" slides blocks in from 36px to the side, so a
+   full-width block still waiting below the fold sticks out past the screen
+   edge. On phones that made the whole page ~13px wider than the screen — in
+   RTL the extra width showed as a white strip down the left side of the
+   hero. `clip` (not `hidden`) trims it without turning html/body into a
+   scroll container, so position: sticky and Lenis keep working. */
+html,
+body {
+  overflow-x: clip;
+}
+
 html.lenis {
   height: auto;
 }
