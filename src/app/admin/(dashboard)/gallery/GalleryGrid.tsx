@@ -32,11 +32,30 @@ type Row = GalleryRow & { category: GalleryCategoryRow | null };
 const HANDLE_LABEL = "گواستنەوە";
 const CONFIRM = "سڕینەوەی ئەم وێنەیە؟ ناتوانرێت هەڵبوەشێندرێتەوە.";
 
+// Active / inactive is a glowing status dot instead of a text pill — green
+// (the same emerald as the public site's open-now dot) when the image is
+// live, red when it's hidden. The word stays on as the dot's tooltip and
+// accessible name.
+const STATE_DOT = {
+  active: {
+    label: "چالاک",
+    halo: "bg-emerald-400",
+    dot: "bg-emerald-500 shadow-[0_0_8px_2px_rgba(16,185,129,0.55)]",
+  },
+  inactive: {
+    label: "ناچالاک",
+    halo: "bg-red-400",
+    dot: "bg-red-500 shadow-[0_0_8px_2px_rgba(239,68,68,0.55)]",
+  },
+};
+
 function stateBadge(g: Row) {
-  return g.is_active ? (
-    <StatusBadge tone="positive">چالاک</StatusBadge>
-  ) : (
-    <StatusBadge tone="muted">ناچالاک</StatusBadge>
+  const { label, halo, dot } = g.is_active ? STATE_DOT.active : STATE_DOT.inactive;
+  return (
+    <span role="img" aria-label={label} title={label} className="relative flex h-3 w-3">
+      <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 motion-safe:animate-ping ${halo}`} />
+      <span className={`relative inline-flex h-3 w-3 rounded-full ${dot}`} />
+    </span>
   );
 }
 
