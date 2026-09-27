@@ -1,5 +1,6 @@
 "use client";
 
+import { flushSync } from "react-dom";
 import clsx from "clsx";
 import { fieldControlClass } from "./Field";
 import { ADMIN_LANGS, useLanguage } from "./LanguageTabs";
@@ -26,8 +27,7 @@ interface LocalizedFieldProps {
  * layout with per-language labels.
  *
  * `required` applies to Kurdish only — en/ar are optional overrides
- * everywhere (blank falls back to the site default), and a `required` +
- * `hidden` control would also make the form unsubmittable.
+ * everywhere (blank falls back to the site default).
  */
 export function LocalizedField({
   name,
@@ -47,11 +47,15 @@ export function LocalizedField({
         const fieldName = `${name}_${lang.code}`;
         const defaultValue = defaults?.[lang.code] ?? "";
         const hidden = ctx ? ctx.active !== lang.code : false;
-        // `required` only ever applies to the *visible* Kurdish field — a
-        // `required` + `display:none` control makes the whole form silently
-        // unsubmittable ("not focusable"). Empty Kurdish is caught
-        // server-side instead when the active tab isn't ku.
-        const isRequired = Boolean(required) && lang.code === "ku" && !hidden;
+        const isRequired = Boolean(required) && lang.code === "ku";
+        // A `required` + `display:none` control can't be focused, so the
+        // browser would block the submit with no visible message. When the
+        // empty Kurdish field is hidden behind the en/ar tab, switch back to
+        // ku synchronously inside the `invalid` event — browsers re-check
+        // focusability after invalid listeners run, so the native "fill out
+        // this field" bubble then shows on it.
+        const onInvalid =
+          isRequired && hidden && ctx ? () => flushSync(() => ctx.setActive("ku")) : undefined;
         return (
           <label
             key={lang.code}
@@ -63,6 +67,7 @@ export function LocalizedField({
                 name={fieldName}
                 dir={lang.dir}
                 required={isRequired}
+                onInvalid={onInvalid}
                 defaultValue={defaultValue}
                 rows={3}
                 className={clsx(fieldControlClass, resizable ? "resize-y" : "resize-none")}
@@ -72,6 +77,7 @@ export function LocalizedField({
                 name={fieldName}
                 dir={lang.dir}
                 required={isRequired}
+                onInvalid={onInvalid}
                 defaultValue={defaultValue}
                 className={fieldControlClass}
               />
