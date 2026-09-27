@@ -49,7 +49,6 @@ export function FooterClient({
 }: FooterClientProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations("footer");
-  const tNav = useTranslations("nav");
   const pathname = usePathname();
   const router = useRouter();
   const year = new Date().getFullYear();
@@ -68,11 +67,11 @@ export function FooterClient({
   }
 
   const quickLinks: { id: string; label: string; href?: "/booking" | "/contact" }[] = [
-    { id: "home", label: tNav("home") },
-    { id: "biography", label: tNav("biography") },
-    { id: "media", label: tNav("media") },
-    { id: "booking", label: tNav("booking"), href: "/booking" },
-    { id: "contact", label: tNav("contact"), href: "/contact" },
+    { id: "home", label: t("quickLinks.home") },
+    { id: "biography", label: t("quickLinks.biography") },
+    { id: "media", label: t("quickLinks.media") },
+    { id: "booking", label: t("quickLinks.booking"), href: "/booking" },
+    { id: "contact", label: t("quickLinks.contact"), href: "/contact" },
   ];
 
   return (
