@@ -66,25 +66,33 @@ function RankedList({
 
 function DailyTrendChart({ dailyCounts }: { dailyCounts: { date: string; count: number }[] }) {
   const max = Math.max(1, ...dailyCounts.map((d) => d.count));
+  const hasVisits = dailyCounts.some((d) => d.count > 0);
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-ink/10 bg-white p-6 shadow-card">
       <h3 className="font-kurdish text-fluid-sm font-semibold text-ink">ڕەوتی ڕۆژانە</h3>
-      <div className="flex h-32 items-end gap-1.5">
-        {dailyCounts.map(({ date, count }) => (
-          <div key={date} className="flex flex-1 flex-col items-center gap-1.5" title={`${date}: ${count}`}>
-            <div className="flex w-full flex-1 items-end">
-              <div
-                className="w-full rounded-t-sm bg-[#850B10]"
-                style={{ height: `${Math.max(4, (count / max) * 100)}%` }}
-              />
+      {!hasVisits ? (
+        <p className="font-kurdish text-fluid-xs text-ink-faint">هێشتا هیچ سەردانێک تۆمار نەکراوە.</p>
+      ) : (
+        // Day columns must stretch (no items-end here) — a percentage bar
+        // height only resolves inside a definite-height parent, otherwise
+        // every bar collapses to 0px.
+        <div className="flex min-h-40 flex-1 gap-1.5">
+          {dailyCounts.map(({ date, count }) => (
+            <div key={date} className="flex min-w-0 flex-1 flex-col items-center gap-1.5" title={`${date}: ${count}`}>
+              <div className="flex w-full flex-1 flex-col items-center justify-end gap-1">
+                {count > 0 && <span className="text-[10px] leading-none text-ink-soft">{count}</span>}
+                <div
+                  className={clsx("w-full rounded-t-sm", count > 0 ? "bg-[#850B10]" : "bg-ink/10")}
+                  // 14px = the count label (10px) + gap (4px) sitting above the bar.
+                  style={{ height: count > 0 ? `max(2px, calc((100% - 14px) * ${count / max}))` : "2px" }}
+                />
+              </div>
+              <span className="text-[10px] leading-none text-ink-faint">{Number(date.slice(8))}</span>
             </div>
-            <span className="text-[10px] text-ink-faint" dir="ltr">
-              {date.slice(5)}
-            </span>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
