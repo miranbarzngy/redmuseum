@@ -218,10 +218,14 @@ export function BookingsBoard({
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {visible.map((b) => (
+            // A grid, so the same markup reflows per width: on phones the
+            // photo is a thumbnail beside the name/status/time, and the
+            // details + actions run the full card width below it; from `sm`
+            // up the photo becomes the tall cover panel down the side.
             <div
               key={b.id}
               className={clsx(
-                "flex overflow-hidden rounded-2xl border-2 bg-white shadow-card",
+                "grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-3 overflow-hidden rounded-2xl border-2 bg-white p-3 shadow-card sm:gap-x-4 sm:p-4",
                 b.status === "pending"
                   ? "border-[#850B10] shadow-[0_0_16px_-2px_rgba(133,11,16,0.45)] bg-[#850B10]/[0.04]"
                   : "border-ink/10"
@@ -238,7 +242,7 @@ export function BookingsBoard({
                   }
                 }}
                 aria-label={b.name}
-                className="ms-3 mt-3 h-40 w-40 shrink-0 cursor-pointer"
+                className="h-20 w-20 shrink-0 cursor-pointer sm:row-span-3 sm:h-40 sm:w-40"
               >
                 <BookingAvatar
                   name={b.name}
@@ -253,9 +257,12 @@ export function BookingsBoard({
                 />
               </div>
 
-              <div className="flex min-w-0 flex-1 flex-col p-4">
-                <div className="flex items-start gap-3">
-                  <button type="button" onClick={() => setOpenId(b.id)} className="flex-1 min-w-0 text-start">
+              {/* Header. Below `md`: name + status on one row, the visit
+                  time on its own line underneath (free to wrap). From `md`:
+                  name | time | status side by side. */}
+              <div className="flex min-w-0 flex-col gap-2 md:flex-row md:items-start md:gap-3">
+                <div className="flex min-w-0 items-start justify-between gap-2 md:flex-1">
+                  <button type="button" onClick={() => setOpenId(b.id)} className="min-w-0 flex-1 text-start">
                     <span className="block truncate font-semibold text-ink">{b.name}</span>
                     <span className="block truncate text-fluid-xs font-bold text-ink-faint">
                       <span dir="ltr" className="inline-flex items-center gap-1">
@@ -264,31 +271,34 @@ export function BookingsBoard({
                       </span>
                     </span>
                   </button>
-
-                  <div className="flex shrink-0 flex-col items-center gap-0.5 text-center">
-                    <span className="flex items-center gap-1.5 text-fluid-sm font-bold text-ink">
-                      <Clock3 size={14} className="shrink-0" />
-                      {formatVisitWeekdayAndTime(b.visit_date, b.visit_time)}
-                    </span>
-                    <span dir="ltr" className="inline-flex items-center gap-1 text-[11px] text-ink-faint">
-                      <CalendarDays size={11} className="shrink-0" />
-                      {formatVisitDate(b.visit_date)}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-1 justify-end">
-                    <StatusPill status={b.status} />
-                  </div>
+                  <StatusPill status={b.status} className="shrink-0 md:hidden" />
                 </div>
 
-                <div className="my-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-ink/5 py-2.5 text-fluid-xs text-ink-soft">
-                  <span>{visitorTypeLabel(b)}</span>
-                  <span className="flex items-center gap-1 text-ink-faint">
-                    <Users size={13} className="shrink-0" />
-                    {b.guest_count} کەس
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 md:shrink-0 md:flex-col md:gap-0.5 md:text-center">
+                  <span className="flex items-center gap-1.5 text-fluid-xs font-bold text-ink">
+                    <Clock3 size={13} className="shrink-0" />
+                    {formatVisitWeekdayAndTime(b.visit_date, b.visit_time)}
+                  </span>
+                  <span dir="ltr" className="inline-flex items-center gap-1 text-[11px] text-ink-faint">
+                    <CalendarDays size={11} className="shrink-0" />
+                    {formatVisitDate(b.visit_date)}
                   </span>
                 </div>
 
+                <div className="hidden md:flex md:flex-1 md:justify-end">
+                  <StatusPill status={b.status} />
+                </div>
+              </div>
+
+              <div className="col-span-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-ink/5 py-2.5 text-fluid-xs text-ink-soft sm:col-span-1 sm:col-start-2">
+                <span>{visitorTypeLabel(b)}</span>
+                <span className="flex items-center gap-1 text-ink-faint">
+                  <Users size={13} className="shrink-0" />
+                  {b.guest_count} کەس
+                </span>
+              </div>
+
+              <div className="col-span-2 sm:col-span-1 sm:col-start-2">
                 <BookingActions
                   booking={b}
                   busy={busyId === b.id}

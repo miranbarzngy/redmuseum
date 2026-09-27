@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Check, X, LogIn, CircleSlash, Eye, Printer, Loader2 } from "lucide-react";
 import type { BookingRow } from "@/lib/supabase/database.types";
+import { iconBtn } from "../../_components/Button";
 
 export type TargetStatus = "confirmed" | "cancelled" | "checked_in" | "no_show";
 
@@ -28,11 +29,14 @@ function ActionIcon({
       aria-label={label}
       title={label}
       className={clsx(
-        "flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors disabled:opacity-50",
-        tone === "emerald" && "bg-emerald-600 text-white hover:bg-emerald-700",
-        tone === "rose" && "bg-rose-600 text-white hover:bg-rose-700",
-        tone === "ghost" &&
-          "border border-ink/10 bg-white text-ink-faint shadow-ring hover:border-pigment-terracotta/50 hover:text-pigment-terracotta"
+        "h-10 w-10",
+        tone === "ghost"
+          ? iconBtn
+          : clsx(
+              "flex shrink-0 items-center justify-center rounded-full text-white transition-[background-color,transform] duration-150 active:scale-90 disabled:opacity-50",
+              tone === "emerald" && "bg-emerald-600 hover:bg-emerald-700",
+              tone === "rose" && "bg-rose-600 hover:bg-rose-700"
+            )
       )}
     >
       {children}
@@ -74,7 +78,7 @@ export function BookingActions({
   const isConfirmed = booking.status === "confirmed";
 
   return (
-    <div className="flex items-start gap-2">
+    <div className="flex flex-wrap items-start gap-2">
       {isPending && (
         <>
           <ActionIcon
@@ -84,7 +88,7 @@ export function BookingActions({
             disabled={busy}
             onClick={() => onRequestStatus("confirmed")}
           >
-            {busy ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} strokeWidth={2.75} />}
+            {busy ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} strokeWidth={2.75} />}
           </ActionIcon>
           <ActionIcon
             label="ڕەتکردنەوە"
@@ -93,12 +97,12 @@ export function BookingActions({
             disabled={busy}
             onClick={() => onRequestStatus("cancelled")}
           >
-            {busy ? <Loader2 size={14} className="animate-spin" /> : <X size={14} strokeWidth={2.75} />}
+            {busy ? <Loader2 size={16} className="animate-spin" /> : <X size={16} strokeWidth={2.75} />}
           </ActionIcon>
         </>
       )}
 
-      <div className="ms-auto flex items-start gap-1.5">
+      <div className="ms-auto flex flex-wrap items-start gap-2">
         {isConfirmed && (
           <>
             <ActionIcon
@@ -107,7 +111,7 @@ export function BookingActions({
               disabled={busy}
               onClick={() => onRequestStatus("checked_in")}
             >
-              {busy ? <Loader2 size={13} className="animate-spin" /> : <LogIn size={13} />}
+              {busy ? <Loader2 size={15} className="animate-spin" /> : <LogIn size={15} />}
             </ActionIcon>
             <ActionIcon
               label="دیاریکردن وەک نەهاتوو"
@@ -115,15 +119,15 @@ export function BookingActions({
               disabled={busy}
               onClick={() => onRequestStatus("no_show")}
             >
-              {busy ? <Loader2 size={13} className="animate-spin" /> : <CircleSlash size={13} />}
+              {busy ? <Loader2 size={15} className="animate-spin" /> : <CircleSlash size={15} />}
             </ActionIcon>
           </>
         )}
         <ActionIcon label="چاپکردن" showLabel onClick={onPrint}>
-          <Printer size={13} />
+          <Printer size={15} />
         </ActionIcon>
         <ActionIcon label="بینین" showLabel onClick={onView}>
-          <Eye size={13} />
+          <Eye size={15} />
         </ActionIcon>
       </div>
     </div>
