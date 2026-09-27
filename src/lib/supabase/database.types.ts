@@ -423,6 +423,26 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["booking_settings"]["Insert"]>;
         Relationships: [];
       };
+      whatsapp_templates: {
+        Row: {
+          id: string;
+          title: string;
+          body: string;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          body: string;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["whatsapp_templates"]["Insert"]>;
+        Relationships: [];
+      };
       bookings: {
         Row: {
           id: string;
@@ -681,6 +701,7 @@ export type AdminPushTokenRow = Database["public"]["Tables"]["admin_push_tokens"
 export type AdminPushTokenInsert = Database["public"]["Tables"]["admin_push_tokens"]["Insert"];
 export type SystemSettingsRow = Database["public"]["Tables"]["system_settings"]["Row"];
 export type BookingSettingsRow = Database["public"]["Tables"]["booking_settings"]["Row"];
+export type WhatsAppTemplateRow = Database["public"]["Tables"]["whatsapp_templates"]["Row"];
 export type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
 export type BookingVisitorTypeRow = Database["public"]["Tables"]["booking_visitor_types"]["Row"];
 export type BookingVisitorTypeInsert = Database["public"]["Tables"]["booking_visitor_types"]["Insert"];

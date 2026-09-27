@@ -1,4 +1,5 @@
 import { getBookings, getFacePhotoUrls } from "./actions";
+import { listWhatsAppTemplates } from "../whatsapp/actions";
 import { BookingsTabs } from "./BookingsTabs";
 import { BookingsBoard } from "./BookingsBoard";
 import { PageHeader } from "../../_components/PageHeader";
@@ -11,9 +12,15 @@ export default async function AdminBookingsPage({
 }) {
   const { view } = await searchParams;
   const supabase = createClient();
-  const [bookings, { data: visitorTypes }] = await Promise.all([
+  const [bookings, { data: visitorTypes }, whatsAppTemplates] = await Promise.all([
     getBookings(),
     supabase.from("booking_visitor_types").select("*").order("sort_order", { ascending: true }),
+    // A failed read (e.g. before 0067 is applied) just hides the WhatsApp
+    // send buttons instead of taking the whole bookings page down.
+    listWhatsAppTemplates().catch((error: Error) => {
+      console.error("[bookings] failed to load WhatsApp templates", error.message);
+      return [];
+    }),
   ]);
 
   const facePhotoPaths = bookings
@@ -34,6 +41,7 @@ export default async function AdminBookingsPage({
         bookings={bookings}
         visitorTypes={visitorTypes ?? []}
         facePhotoUrls={facePhotoUrls}
+        whatsAppTemplates={whatsAppTemplates}
         initialViewId={view ?? null}
       />
     </div>

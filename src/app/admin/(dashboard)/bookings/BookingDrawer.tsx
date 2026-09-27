@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
+import clsx from "clsx";
 import {
   Phone,
   MessageCircle,
@@ -14,6 +15,7 @@ import {
   Loader2,
   Trash2,
   Printer,
+  Send,
   X,
 } from "lucide-react";
 import { deleteBooking, getFacePhotoUrl, logBookingPrinted } from "./actions";
@@ -62,25 +64,36 @@ function InfoRow({
 export function BookingDrawer({
   booking,
   visitorTypeLabel,
+  onSendWhatsApp,
   onClose,
 }: {
   booking: BookingRow | null;
   visitorTypeLabel: string;
+  /** Opens the WhatsApp message picker; omitted when there's nothing to send. */
+  onSendWhatsApp?: () => void;
   onClose: () => void;
 }) {
   if (!booking) return null;
   return (
-    <BookingDrawerPanel key={booking.id} booking={booking} visitorTypeLabel={visitorTypeLabel} onClose={onClose} />
+    <BookingDrawerPanel
+      key={booking.id}
+      booking={booking}
+      visitorTypeLabel={visitorTypeLabel}
+      onSendWhatsApp={onSendWhatsApp}
+      onClose={onClose}
+    />
   );
 }
 
 function BookingDrawerPanel({
   booking,
   visitorTypeLabel,
+  onSendWhatsApp,
   onClose,
 }: {
   booking: BookingRow;
   visitorTypeLabel: string;
+  onSendWhatsApp?: () => void;
   onClose: () => void;
 }) {
   const [facePhotoUrl, setFacePhotoUrl] = useState<string | null>(null);
@@ -279,8 +292,14 @@ function BookingDrawerPanel({
 
             {/* Footer — a 2×2 grid of full-size actions, like a native
                 detail screen: call and WhatsApp on top, print and delete
-                (with its own confirm step) below. */}
+                (with its own confirm step) below, and a full-width row on
+                top for sending one of the /admin/whatsapp messages. */}
             <div className="grid grid-cols-2 gap-2.5 border-t border-ink/10 px-5 py-4">
+              {onSendWhatsApp && (
+                <button type="button" onClick={onSendWhatsApp} className={clsx(btnWhatsApp, "col-span-2")}>
+                  <Send size={16} /> ناردنی پەیام بە واتساپ
+                </button>
+              )}
               <a href={`tel:${booking.phone}`} className={btnPrimary}>
                 <Phone size={16} /> پەیوەندی
               </a>

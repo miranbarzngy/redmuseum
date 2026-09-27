@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Check, X, LogIn, CircleSlash, Eye, Printer, Loader2 } from "lucide-react";
+import { Check, X, LogIn, CircleSlash, Eye, Printer, Loader2, MessageCircle } from "lucide-react";
 import type { BookingRow } from "@/lib/supabase/database.types";
 import { iconBtn } from "../../_components/Button";
 
@@ -57,9 +57,11 @@ function ActionIcon({
 
 /**
  * Booking card's action cluster. `pending` bookings get prominent
- * emerald/rose approve/reject buttons on the trailing (right, RTL) edge;
- * the secondary group (mark visited/no-show, print, view) is pinned to the
- * opposite (left) edge via `ms-auto`, always visible on the card.
+ * emerald/rose approve/reject buttons on the trailing (right, RTL) edge,
+ * and every other booking a WhatsApp message button in the same spot (when
+ * any /admin/whatsapp message exists); the secondary group (mark
+ * visited/no-show, print, view) is pinned to the opposite (left) edge via
+ * `ms-auto`, always visible on the card.
  */
 export function BookingActions({
   booking,
@@ -67,12 +69,15 @@ export function BookingActions({
   onRequestStatus,
   onView,
   onPrint,
+  onSendWhatsApp,
 }: {
   booking: BookingRow;
   busy: boolean;
   onRequestStatus: (status: TargetStatus) => void;
   onView: () => void;
   onPrint: () => void;
+  /** Opens the WhatsApp message picker; omitted when there's nothing to send. */
+  onSendWhatsApp?: () => void;
 }) {
   const isPending = booking.status === "pending";
   const isConfirmed = booking.status === "confirmed";
@@ -100,6 +105,12 @@ export function BookingActions({
             {busy ? <Loader2 size={16} className="animate-spin" /> : <X size={16} strokeWidth={2.75} />}
           </ActionIcon>
         </>
+      )}
+
+      {!isPending && onSendWhatsApp && (
+        <ActionIcon label="پەیامی واتساپ" tone="emerald" showLabel onClick={onSendWhatsApp}>
+          <MessageCircle size={16} />
+        </ActionIcon>
       )}
 
       <div className="ms-auto flex flex-wrap items-start gap-2">

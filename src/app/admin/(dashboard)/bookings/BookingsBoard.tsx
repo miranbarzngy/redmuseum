@@ -13,9 +13,15 @@ import { BookingStatCards, type BookingFilter } from "./BookingStatCards";
 import { BookingToolbar, type DateRange } from "./BookingToolbar";
 import { BookingDrawer } from "./BookingDrawer";
 import { BookingPhotoLightbox } from "./BookingPhotoLightbox";
+import { WhatsAppSendSheet } from "./WhatsAppSendSheet";
 import { ConfirmDialog } from "../../_components/ConfirmDialog";
 import { EmptyState } from "../../_components/EmptyState";
-import type { BookingRow, BookingStatus, BookingVisitorTypeRow } from "@/lib/supabase/database.types";
+import type {
+  BookingRow,
+  BookingStatus,
+  BookingVisitorTypeRow,
+  WhatsAppTemplateRow,
+} from "@/lib/supabase/database.types";
 
 const CONFIRM_MESSAGE: Record<TargetStatus, string> = {
   confirmed: "ئەم داواکاریی سەردانە پەسەند بکرێت؟",
@@ -69,11 +75,15 @@ export function BookingsBoard({
   bookings,
   visitorTypes,
   facePhotoUrls,
+  whatsAppTemplates,
   initialViewId = null,
 }: {
   bookings: BookingRow[];
   visitorTypes: BookingVisitorTypeRow[];
   facePhotoUrls: Record<string, string>;
+  /** The /admin/whatsapp messages in their sort order — none turns the
+   * WhatsApp send buttons and the post-accept prompt off. */
+  whatsAppTemplates: WhatsAppTemplateRow[];
   initialViewId?: string | null;
 }) {
   const [filter, setFilter] = useState<BookingFilter>("all");
@@ -88,7 +98,9 @@ export function BookingsBoard({
   const [showOverdueOnly, setShowOverdueOnly] = useState(false);
   const [confirmTask, setConfirmTask] = useState<{ id: string; name: string; status: TargetStatus } | null>(null);
   const [lightboxPhoto, setLightboxPhoto] = useState<{ url: string; name: string } | null>(null);
+  const [sendTask, setSendTask] = useState<{ id: string; afterAccept: boolean } | null>(null);
   const [, startStatusChange] = useTransition();
+  const canSendWhatsApp = whatsAppTemplates.length > 0;
 
   const todayISO = new Date().toISOString().split("T")[0];
 
@@ -96,6 +108,10 @@ export function BookingsBoard({
     setBusyId(id);
     startStatusChange(() => {
       updateBookingStatus(id, status)
+        .then(() => {
+          // Offer a WhatsApp message to the visitor straight away.
+          if (status === "confirmed" && canSendWhatsApp) setSendTask({ id, afterAccept: true });
+        })
         .catch(() => {})
         .finally(() => setBusyId(null));
     });
@@ -154,6 +170,7 @@ export function BookingsBoard({
   }, [showOverdueOnly, overdue, filter, dateScoped, needle]);
 
   const openBooking = openId ? bookings.find((b) => b.id === openId) ?? null : null;
+  const sendBooking = sendTask ? bookings.find((b) => b.id === sendTask.id) ?? null : null;
 
   const labelById = useMemo(
     () => new Map(visitorTypes.map((vt) => [vt.id, vt.label_ku])),
@@ -305,6 +322,7 @@ export function BookingsBoard({
                   onRequestStatus={(status) => setConfirmTask({ id: b.id, name: b.name, status })}
                   onView={() => setOpenId(b.id)}
                   onPrint={() => printBooking(b, visitorTypeLabel(b))}
+                  onSendWhatsApp={canSendWhatsApp ? () => setSendTask({ id: b.id, afterAccept: false }) : undefined}
                 />
               </div>
             </div>
@@ -315,8 +333,20 @@ export function BookingsBoard({
       <BookingDrawer
         booking={openBooking}
         visitorTypeLabel={openBooking ? visitorTypeLabel(openBooking) : ""}
+        onSendWhatsApp={
+          canSendWhatsApp && openBooking ? () => setSendTask({ id: openBooking.id, afterAccept: false }) : undefined
+        }
         onClose={() => setOpenId(null)}
       />
+
+      {sendTask && sendBooking && canSendWhatsApp && (
+        <WhatsAppSendSheet
+          booking={sendBooking}
+          templates={whatsAppTemplates}
+          afterAccept={sendTask.afterAccept}
+          onClose={() => setSendTask(null)}
+        />
+      )}
 
       {lightboxPhoto && (
         <BookingPhotoLightbox

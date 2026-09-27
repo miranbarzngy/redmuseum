@@ -3,9 +3,11 @@
  * leading 0 is swapped for Iraq's 964. Numbers already in international
  * form pass through untouched. Best-effort: WhatsApp itself errors on a bad
  * number, so a wrong guess here is a dead link, not a broken page. Shared by
- * MessageDrawer and BookingDrawer. */
-export function toWhatsAppLink(phone: string): string {
+ * MessageDrawer and BookingDrawer. `text`, when given, opens the chat with
+ * that message already typed in (the admin still presses send). */
+export function toWhatsAppLink(phone: string, text?: string): string {
   const digits = phone.replace(/\D/g, "");
   const international = digits.startsWith("0") ? `964${digits.slice(1)}` : digits;
-  return `https://wa.me/${international}`;
+  const base = `https://wa.me/${international}`;
+  return text ? `${base}?text=${encodeURIComponent(text)}` : base;
 }
