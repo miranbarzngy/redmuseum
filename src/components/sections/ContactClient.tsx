@@ -10,6 +10,7 @@ import { Mail, MapPin, Navigation, Phone, Loader2, CheckCircle2, AlertCircle } f
 import { Reveal } from "@/components/ui/Reveal";
 import { Button } from "@/components/ui/Button";
 import { InfoCard } from "@/components/ui/InfoCard";
+import { asciiDigitsInPlace } from "@/lib/kurdishCalendar";
 import { GuideFlyerCard } from "./GuideFlyerCard";
 import type { Locale } from "@/i18n/routing";
 
@@ -61,6 +62,10 @@ export function ContactClient({
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
   });
+
+  // Kurdish/Arabic keyboards type ٠-٩ — swap them for 0-9 as they're typed,
+  // so the field shows plain digits and passes the 0-9 check above.
+  const phoneField = register("phone");
 
   async function onSubmit(values: FormValues) {
     setStatus("idle");
@@ -155,7 +160,11 @@ export function ContactClient({
                     dir="ltr"
                     required
                     maxLength={30}
-                    {...register("phone")}
+                    {...phoneField}
+                    onChange={(e) => {
+                      asciiDigitsInPlace(e.target);
+                      return phoneField.onChange(e);
+                    }}
                     placeholder={t("form.phonePlaceholder")}
                     className="rounded-xl border border-ink/30 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta"
                   />
