@@ -43,7 +43,7 @@ export function BookingStatCards({
             type="button"
             onClick={() => onSelect(key)}
             className={clsx(
-              "group flex flex-col items-center gap-1 rounded-xl border bg-white p-2 text-center shadow-card transition-all hover:-translate-y-0.5",
+              "group flex flex-col items-center gap-1 rounded-xl border bg-white p-2 text-center shadow-card transition-all hover:-translate-y-0.5 active:scale-95",
               active
                 ? "border-2 border-[#850B10] ring-1 ring-[#850B10]/20"
                 : "border-ink/10 hover:border-[#850B10]/30"

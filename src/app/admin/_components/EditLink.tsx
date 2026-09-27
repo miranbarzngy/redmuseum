@@ -1,6 +1,7 @@
 import Link from "next/link";
 import clsx from "clsx";
 import { Pencil } from "lucide-react";
+import { iconBtn } from "./Button";
 
 /** The pencil-in-a-circle edit affordance repeated on every admin list row.
  * `showLabel` prints the label underneath the circle — used on card grids
@@ -19,7 +20,7 @@ export function EditLink({
       <Link
         href={href}
         aria-label={label}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 text-ink-faint transition-colors hover:border-pigment-terracotta hover:text-pigment-terracotta"
+        className={clsx(iconBtn, "h-11 w-11")}
       >
         <Pencil size={18} />
       </Link>

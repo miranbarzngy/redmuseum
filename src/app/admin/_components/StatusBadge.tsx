@@ -9,7 +9,7 @@ const TONE: Record<BadgeTone, string> = {
   warning: "bg-pigment-gold/15 text-[#8a6d1f]",
   danger: "bg-pigment-crimson/10 text-pigment-crimson",
   muted: "bg-ink/5 text-ink-faint",
-  accent: "bg-pigment-terracotta/12 text-pigment-terracotta",
+  accent: "bg-pigment-terracotta/[0.12] text-pigment-terracotta",
 };
 
 /** Small pill for statuses — booking state, read/unread, active/inactive. */

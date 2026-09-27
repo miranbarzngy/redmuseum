@@ -103,6 +103,12 @@ const config: Config = {
         "modal-in": "modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
         "drawer-in": "drawerIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
         "drawer-in-left": "drawerInLeft 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
+        // Admin panel's native-app motion: bottom sheets rise on the iOS
+        // sheet curve, pages settle in with a short fade-up on navigation,
+        // snackbars pop up from below.
+        "sheet-in": "sheetIn 0.34s cubic-bezier(0.32, 0.72, 0, 1)",
+        "page-in": "pageIn 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
+        "toast-in": "toastIn 0.26s cubic-bezier(0.16, 1, 0.3, 1)",
       },
       keyframes: {
         float: {
@@ -138,6 +144,18 @@ const config: Config = {
         drawerInLeft: {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(0)" },
+        },
+        sheetIn: {
+          "0%": { transform: "translateY(100%)" },
+          "100%": { transform: "translateY(0)" },
+        },
+        pageIn: {
+          "0%": { opacity: "0", transform: "translateY(8px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        toastIn: {
+          "0%": { opacity: "0", transform: "translateY(16px) scale(0.96)" },
+          "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
         },
       },
       maxWidth: {

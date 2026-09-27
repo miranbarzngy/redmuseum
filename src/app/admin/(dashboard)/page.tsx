@@ -8,8 +8,10 @@ import { formatMessageDateParts } from "./messages/formatMessageDate";
 import { formatVisitDate } from "./bookings/formatBookingDate";
 import { getVisitStats } from "./getVisitStats";
 import { AnalyticsSection } from "./AnalyticsSection";
+import { HomeSummary, QuickActionTiles } from "./HomeTiles";
 import { PageHeader } from "../_components/PageHeader";
 import { Panel } from "../_components/Panel";
+import { QUICK_ACTIONS, canSee } from "../_components/adminNav";
 
 // گشتی is open to every logged-in admin, but its booking and message panels
 // are not: getBookings()/getMessages() throw for a role without that
@@ -28,10 +30,18 @@ export default async function AdminOverviewPage() {
 
   const pending = bookings.filter((b) => b.status === "pending");
   const unread = messages.filter((m) => !m.is_read);
+  const quickActions = QUICK_ACTIONS.filter((a) => canSee(role.permissions, a));
 
   return (
     <div className="flex flex-col gap-8 mb-24 lg:mb-0">
       <PageHeader title="گشتی" description="بەڕێوەبردنی ناوەڕۆکی پیشاندراو لە ماڵپەڕی گشتیدا." />
+
+      <HomeSummary
+        pendingBookings={canBookings ? pending.length : null}
+        unreadMessages={canMessages ? unread.length : null}
+      />
+
+      <QuickActionTiles actions={quickActions} />
 
       {(canBookings || canMessages) && (
         <div className="grid gap-6 md:grid-cols-2">
@@ -56,7 +66,7 @@ export default async function AdminOverviewPage() {
                   <Link
                     key={b.id}
                     href={`/admin/bookings?view=${b.id}`}
-                    className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-canvas-paper"
+                    className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-canvas-paper active:bg-canvas-paper"
                   >
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#850B10] text-white">
                       <CalendarClock size={14} />
@@ -94,7 +104,7 @@ export default async function AdminOverviewPage() {
                     <Link
                       key={m.id}
                       href={`/admin/messages?open=${m.id}`}
-                      className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition-colors hover:bg-canvas-paper"
+                      className="flex items-center gap-3 rounded-xl px-2 py-2 transition-colors hover:bg-canvas-paper active:bg-canvas-paper"
                     >
                       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#850B10] text-white">
                         <Mail size={14} />

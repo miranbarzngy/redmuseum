@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { Phone } from "lucide-react";
+import { btnPrimary } from "../../../_components/Button";
 import { DeleteButton } from "../../../_components/DeleteButton";
 import { PageHeader } from "../../../_components/PageHeader";
 import { Panel } from "../../../_components/Panel";
@@ -42,11 +43,8 @@ export default async function AdminMessageDetailPage(props: { params: Promise<{ 
         </p>
 
         <div className="flex flex-wrap items-center gap-3 border-t border-ink/10 pt-6">
-          <a
-            href={`tel:${message.phone}`}
-            className="font-kurdish inline-flex items-center gap-1.5 rounded-full bg-[#850B10] px-5 py-2.5 text-fluid-sm font-medium text-canvas transition-colors hover:bg-pigment-terracotta"
-          >
-            <Phone size={15} /> پەیوەندیکردن
+          <a href={`tel:${message.phone}`} className={`${btnPrimary} flex-1 sm:flex-none`}>
+            <Phone size={16} /> پەیوەندیکردن
           </a>
           <DeleteButton
             action={deleteMessage.bind(null, message.id)}

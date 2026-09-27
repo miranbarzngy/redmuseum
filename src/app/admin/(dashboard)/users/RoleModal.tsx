@@ -5,7 +5,7 @@ import { Loader2, Pencil, Plus } from "lucide-react";
 import { Modal } from "../../_components/Modal";
 import { Field } from "../../_components/Field";
 import { Toggle } from "../../_components/Toggle";
-import { btnPrimary, btnSecondary } from "../../_components/Button";
+import { btnPrimary, btnSecondary, iconBtn } from "../../_components/Button";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createRole, updateRole } from "./actions";
 import type { AdminRoleRow } from "@/lib/supabase/database.types";
@@ -64,7 +64,7 @@ export function RoleModal({
           type="button"
           onClick={() => setOpen(true)}
           aria-label="دەستکاریکردن"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 text-ink-faint transition-colors hover:border-pigment-terracotta hover:text-pigment-terracotta"
+          className={`${iconBtn} h-10 w-10`}
         >
           <Pencil size={15} />
         </button>

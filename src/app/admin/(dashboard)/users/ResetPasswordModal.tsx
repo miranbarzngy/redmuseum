@@ -4,7 +4,7 @@ import { useRef, useState, useTransition, type FormEvent } from "react";
 import { KeyRound, Loader2 } from "lucide-react";
 import { Modal } from "../../_components/Modal";
 import { Field } from "../../_components/Field";
-import { btnPrimary, btnSecondary } from "../../_components/Button";
+import { btnPrimary, btnSecondary, iconBtn } from "../../_components/Button";
 import { resetUserPassword } from "./actions";
 
 /** Quick "reset password" affordance on a user card — a lighter modal than
@@ -36,7 +36,7 @@ export function ResetPasswordModal({ userId, userName }: { userId: string; userN
         type="button"
         onClick={() => setOpen(true)}
         aria-label="نوێکردنەوەی وشەی نهێنی"
-        className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 text-ink-faint transition-colors hover:border-pigment-terracotta hover:text-pigment-terracotta"
+        className={`${iconBtn} h-10 w-10`}
       >
         <KeyRound size={15} />
       </button>

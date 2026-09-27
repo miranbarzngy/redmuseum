@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Eye } from "lucide-react";
+import { iconBtn } from "../../_components/Button";
 import { DataList, type Column } from "../../_components/DataList";
 import { RowCard } from "../../_components/RowCard";
 import { StatusBadge } from "../../_components/StatusBadge";
@@ -44,7 +45,7 @@ function ViewButton({ onClick }: { onClick: () => void }) {
       type="button"
       onClick={onClick}
       aria-label="بینینی وردەکاری"
-      className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-ink/10 text-ink-faint transition-colors hover:border-pigment-terracotta hover:text-pigment-terracotta"
+      className={`${iconBtn} h-10 w-10`}
     >
       <Eye size={15} />
     </button>

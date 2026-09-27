@@ -22,6 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       pendingBookings={notifications.pendingBookings}
       notifications={notifications}
       permissions={session.role.permissions}
+      user={{ name: session.fullName, role: session.role.name }}
     >
       {children}
     </AdminShell>

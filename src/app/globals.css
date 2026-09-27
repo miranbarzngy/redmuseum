@@ -238,3 +238,57 @@ html[lang="ar"] .tracking-tightest2 {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Admin panel: native-app touch behaviour ──────────────────────────────
+   Scoped to html.admin-root (set by src/app/admin/layout.tsx) so none of
+   this reaches the public site. */
+
+/* The browser's own pull-to-refresh (a full page reload) and overscroll
+   glow are turned off; admin's PullToRefresh does a soft router refresh
+   instead. */
+html.admin-root {
+  overscroll-behavior-y: none;
+}
+
+/* No grey flash on tap, and no 300ms double-tap-zoom wait before a tap
+   registers on controls. */
+.admin-root a,
+.admin-root button,
+.admin-root [role="button"],
+.admin-root label,
+.admin-root summary {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Long-pressing app chrome shouldn't start a text selection or pop the
+   link callout the way it would on a web page. */
+.admin-root nav,
+.admin-root header,
+.admin-root aside,
+.admin-root button {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Horizontally scrolling chip rows (filter tabs) hide their scrollbar like
+   a native segmented row. */
+.admin-root .no-scrollbar {
+  scrollbar-width: none;
+}
+.admin-root .no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Entrance motion (sheets, page fade-up, snackbars) is skipped for anyone
+   who asked for less motion. Loading spinners keep spinning — they carry
+   meaning, not decoration. */
+@media (prefers-reduced-motion: reduce) {
+  .admin-root [class*="animate-sheet-in"],
+  .admin-root [class*="animate-page-in"],
+  .admin-root [class*="animate-toast-in"],
+  .admin-root [class*="animate-modal-in"] {
+    animation: none !important;
+  }
+}

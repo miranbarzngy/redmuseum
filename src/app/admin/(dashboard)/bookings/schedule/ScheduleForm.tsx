@@ -97,7 +97,7 @@ export function ScheduleForm({ settings }: { settings: BookingSettingsRow }) {
       />
 
       <div className="flex justify-end border-t border-ink/10 pt-4">
-        <SubmitButton>پاشەکەوتکردن</SubmitButton>
+        <SubmitButton className="w-full sm:w-auto">پاشەکەوتکردن</SubmitButton>
       </div>
     </form>
   );

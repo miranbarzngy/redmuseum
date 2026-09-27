@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { CheckCheck, Loader2, Inbox as InboxIcon, Search } from "lucide-react";
 import { PageHeader } from "../../_components/PageHeader";
 import { EmptyState } from "../../_components/EmptyState";
+import { btnSecondary } from "../../_components/Button";
 import { fieldControlClass } from "../../_components/Field";
 import { useToast } from "../../_components/Toast";
 import { MessageCard } from "./MessageCard";
@@ -117,7 +118,7 @@ export function MessagesInbox({
             type="button"
             onClick={handleMarkAllRead}
             disabled={isMarkingAll}
-            className="font-kurdish inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/15 px-4 py-2.5 text-fluid-sm font-medium text-ink-soft transition-colors hover:border-emerald-500/50 hover:text-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className={btnSecondary}
           >
             {isMarkingAll ? <Loader2 size={15} className="animate-spin" /> : <CheckCheck size={15} />}
             هەموو وەک خوێندراو دابنێ
@@ -127,7 +128,7 @@ export function MessagesInbox({
 
       {total > 0 && (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
             {TABS.map((t) => {
               const count = t.key === "all" ? total : t.key === "unread" ? unreadCount : readCount;
               const active = tab === t.key;
@@ -137,7 +138,7 @@ export function MessagesInbox({
                   type="button"
                   onClick={() => setTab(t.key)}
                   className={clsx(
-                    "font-kurdish inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-fluid-xs font-medium transition-colors",
+                    "font-kurdish inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-fluid-xs font-medium transition-[colors,transform] duration-150 active:scale-95",
                     active
                       ? "bg-[#850B10] text-canvas"
                       : "border border-ink/15 text-ink-soft hover:border-pigment-terracotta hover:text-pigment-terracotta",

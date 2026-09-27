@@ -28,7 +28,7 @@ export function NotificationsBell({ notifications }: { notifications: AdminNotif
         aria-label={total > 0 ? `ئاگادارییەکان — ${total}` : "ئاگادارییەکان"}
         className={clsx(
           "relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors",
-          open ? "bg-[#850B10]/12 text-[#850B10]" : "text-ink-faint hover:bg-canvas-paper hover:text-ink-soft",
+          open ? "bg-[#850B10]/[0.12] text-[#850B10]" : "text-ink-faint hover:bg-canvas-paper hover:text-ink-soft",
         )}
       >
         <Bell strokeWidth={open ? 2.4 : 2} className="h-[19px] w-[19px]" />

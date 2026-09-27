@@ -1,7 +1,9 @@
 import clsx from "clsx";
 
+// 16px text below `sm`: iOS Safari zooms the whole page into any field
+// smaller than that on focus, which a native app never does.
 export const fieldControlClass =
-  "w-full rounded-xl border border-ink/15 bg-canvas px-3.5 py-2.5 text-fluid-sm text-ink outline-none transition-colors focus:border-pigment-terracotta focus:ring-2 focus:ring-pigment-terracotta/15 disabled:cursor-not-allowed disabled:opacity-60";
+  "w-full rounded-xl border border-ink/15 bg-canvas px-3.5 py-2.5 text-base text-ink outline-none transition-colors focus:border-pigment-terracotta focus:ring-2 focus:ring-pigment-terracotta/15 disabled:cursor-not-allowed disabled:opacity-60 sm:text-fluid-sm";
 
 type CommonProps = {
   label: string;

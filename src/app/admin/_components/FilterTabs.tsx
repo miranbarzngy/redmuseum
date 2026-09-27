@@ -7,7 +7,9 @@ import clsx from "clsx";
 export type FilterOption = { value: string; label: string; count?: number };
 
 /** URL-param-driven segmented control. The `defaultValue` option is
- * represented by *removing* the param (clean URLs for the common case). */
+ * represented by *removing* the param (clean URLs for the common case).
+ * On phones the chips stay on one line and scroll sideways edge to edge,
+ * like a native filter row, instead of wrapping into a tall block. */
 export function FilterTabs({
   param,
   options,
@@ -30,7 +32,7 @@ export function FilterTabs({
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
       {options.map((opt) => {
         const active = current === opt.value;
         return (
@@ -39,7 +41,7 @@ export function FilterTabs({
             href={hrefFor(opt.value)}
             scroll={false}
             className={clsx(
-              "font-kurdish inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-fluid-xs font-medium transition-colors",
+              "font-kurdish inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-fluid-xs font-medium transition-[colors,transform] duration-150 active:scale-95",
               active
                 ? "bg-[#850B10] text-canvas"
                 : "border border-ink/15 text-ink-soft hover:border-pigment-terracotta hover:text-pigment-terracotta"

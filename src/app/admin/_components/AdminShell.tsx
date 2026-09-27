@@ -1,117 +1,27 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import Link from "next/link";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import Link, { useLinkStatus } from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import {
-  LayoutDashboard,
-  CalendarClock,
-  Images,
-  LogOut,
-  ExternalLink,
-  UserRound,
-  BookOpen,
-  Inbox,
-  Ticket,
-  Settings,
-  MoreHorizontal,
-  Users,
-  ClipboardList,
-  X,
-} from "lucide-react";
+import { LogOut, ExternalLink, MoreHorizontal, ArrowRight, Search } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { signOut } from "../actions";
 import { useIsNativeApp } from "@/lib/useIsNativeApp";
-import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import { NativePushBridge } from "./NativePushBridge";
 import { NotificationsBell } from "./NotificationsBell";
 import { ToastProvider, FlashToast } from "./Toast";
 import { EMPTY_ADMIN_NOTIFICATIONS, type AdminNotifications } from "./adminNotificationsShape";
+import { MOBILE_PRIMARY, QUICK_ACTIONS, SETTINGS_ITEM, canSee, isActiveHref, visibleNav, type NavItem } from "./adminNav";
+import { PageChromeProvider, usePageChrome } from "./pageChrome";
+import { Sheet } from "./Sheet";
+import { PullToRefresh } from "./PullToRefresh";
+import { CommandPalette, usePaletteShortcut } from "./CommandPalette";
 
-// `shortLabel` is the compact form for the phone bottom bar, where a
-// two-word label like «بەشەکانی مۆزەخانە» wraps to two lines and breaks the
-// row's alignment. The sidebar and «زیاتر» sheet always use the full `label`.
-// `permission`, when set, hides the item from any session whose role
-// doesn't hold it (see src/lib/permissions.ts). Every section item now sets
-// one, matching its actions.ts's own requireAdminSession(permission) check
-// — گشتی (the dashboard home) is the one deliberate exception, visible to
-// any logged-in admin regardless of role.
-type NavItem = {
-  href: string;
-  label: string;
-  shortLabel?: string;
-  icon: LucideIcon;
-  permission?: string;
-};
+const LOGO_SRC = "/images/logo/android-chrome-192x192.png";
 
-const NAV_GROUPS: { label?: string; items: NavItem[] }[] = [
-  { items: [{ href: "/admin", label: "گشتی", icon: LayoutDashboard }] },
-  {
-    label: "ناوەڕۆکی ماڵپەڕ",
-    items: [
-      { href: "/admin/profile", label: "پرۆفایل", icon: UserRound, permission: PERMISSIONS.profileManage },
-      {
-        href: "/admin/museums",
-        label: "بەشەکانی مۆزەخانە",
-        shortLabel: "بەشەکان",
-        icon: BookOpen,
-        permission: PERMISSIONS.museumsManage,
-      },
-      {
-        href: "/admin/museumhistory",
-        label: "مێژووی مۆزەخانە",
-        icon: CalendarClock,
-        permission: PERMISSIONS.museumHistoryManage,
-      },
-      { href: "/admin/gallery", label: "گەلەری", icon: Images, permission: PERMISSIONS.galleryManage },
-    ],
-  },
-  {
-    label: "داواکارییەکان",
-    items: [
-      {
-        href: "/admin/bookings",
-        label: "سەردانەکان",
-        shortLabel: "سەردان",
-        icon: Ticket,
-        permission: PERMISSIONS.bookingsManage,
-      },
-      {
-        href: "/admin/messages",
-        label: "پەیامەکان",
-        shortLabel: "پەیام",
-        icon: Inbox,
-        permission: PERMISSIONS.messagesManage,
-      },
-    ],
-  },
-  {
-    label: "بەڕێوەبردنی سیستم",
-    items: [
-      { href: "/admin/users", label: "بەکارهێنەران", icon: Users, permission: PERMISSIONS.usersManage },
-      { href: "/admin/audit-logs", label: "تۆمارەکانی چاودێری", icon: ClipboardList, permission: PERMISSIONS.auditView },
-    ],
-  },
-];
-
-const SETTINGS_ITEM: NavItem = {
-  href: "/admin/settings",
-  label: "ڕێکخستنەکان",
-  icon: Settings,
-  permission: PERMISSIONS.settingsManage,
-};
-
-// Five items get a permanent slot in the phone bottom bar (followed by the
-// «زیاتر» sheet trigger — six cells total); everything else lives behind
-// the «زیاتر» sheet. The notification bell lives in the header instead.
-const MOBILE_PRIMARY = new Set([
-  "/admin",
-  "/admin/museums",
-  "/admin/gallery",
-  "/admin/bookings",
-  "/admin/messages",
-]);
+type Badge = { count: number; tone: string } | null;
+type ShellUser = { name: string; role: string };
 
 // Layout split between the desktop sidebar and the phone-style bottom bar:
 //
@@ -121,39 +31,53 @@ const MOBILE_PRIMARY = new Set([
 //    forced at every width — an Android tablet's WebView reports a
 //    desktop-width viewport, so a CSS breakpoint alone would wrongly give it
 //    the sidebar.
-export function AdminShell({
+export function AdminShell(props: {
+  children: React.ReactNode;
+  unreadMessages?: number;
+  pendingBookings?: number;
+  notifications?: AdminNotifications;
+  permissions?: string[];
+  user: ShellUser;
+}) {
+  return (
+    <ToastProvider>
+      <PageChromeProvider>
+        <ShellFrame {...props} />
+      </PageChromeProvider>
+    </ToastProvider>
+  );
+}
+
+function ShellFrame({
   children,
   unreadMessages = 0,
   pendingBookings = 0,
   notifications = EMPTY_ADMIN_NOTIFICATIONS,
   permissions = [],
+  user,
 }: {
   children: React.ReactNode;
   unreadMessages?: number;
   pendingBookings?: number;
   notifications?: AdminNotifications;
   permissions?: string[];
+  user: ShellUser;
 }) {
   const pathname = usePathname();
+  const chrome = usePageChrome();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   // When true, the phone-style bottom nav is used at every width and the
   // sidebar is never rendered (see the layout note above the component).
   const forceBottomNav = useIsNativeApp();
 
-  const visibleGroups = NAV_GROUPS.map((group) => ({
-    ...group,
-    items: group.items.filter((item) => !item.permission || hasPermission(permissions, item.permission)),
-  })).filter((group) => group.items.length > 0);
-  const showSettings = hasPermission(permissions, SETTINGS_ITEM.permission!);
-  const visibleItems: NavItem[] = [...visibleGroups.flatMap((g) => g.items), ...(showSettings ? [SETTINGS_ITEM] : [])];
-
-  function isActive(href: string) {
-    return href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
-  }
-
+  const { groups: visibleGroups, showSettings, items: visibleItems } = visibleNav(permissions);
+  const quickActions = QUICK_ACTIONS.filter((a) => canSee(permissions, a));
+  const isActive = (href: string) => isActiveHref(pathname, href);
   const currentLabel = visibleItems.find((n) => isActive(n.href))?.label ?? "بەڕێوەبردن";
 
-  function badgeFor(href: string) {
+  function badgeFor(href: string): Badge {
     if (href === "/admin/messages" && unreadMessages > 0)
       return { count: unreadMessages, tone: "bg-pigment-crimson" };
     if (href === "/admin/bookings" && pendingBookings > 0)
@@ -165,213 +89,322 @@ export function AdminShell({
   const sheetItems = visibleItems.filter((n) => !MOBILE_PRIMARY.has(n.href));
   const moreActive = sheetItems.some((n) => isActive(n.href));
 
-  return (
-    <ToastProvider>
-      <div
-        dir="rtl"
-        className={clsx("min-h-screen bg-canvas text-ink", !forceBottomNav && "lg:pr-64")}
-      >
-        <NativePushBridge />
-        <Suspense fallback={null}>
-          <FlashToast />
-        </Suspense>
+  const openPalette = useCallback(() => setPaletteOpen(true), []);
+  usePaletteShortcut(openPalette);
 
-        {/* Desktop sidebar (browser, ≥ lg) — this shell is permanently RTL, so
-            physical right-0 / border-l are used directly rather than logical
-            props. Never rendered inside the native APK. */}
-        <aside
-          className={clsx(
-            "fixed inset-y-0 right-0 z-40 hidden w-64 flex-col border-l border-ink/10 bg-white",
-            !forceBottomNav && "lg:flex",
-          )}
-        >
-          <div className="border-b border-ink/10 px-5 py-5">
-            <span className="font-kurdish text-fluid-base font-semibold text-ink">ئەمنە سورەکە</span>
+  // The top bar is flat and blends into the page at the top, and picks up
+  // its hairline + blur only once content scrolls under it — like a native
+  // app bar.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 4);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Phone top bar: until the page's large title scrolls under the bar, the
+  // bar shows only the brand (or just the back button on a sub-page); after
+  // that it takes over the title. A page without a large title (e.g. while
+  // its loading skeleton shows) gets the section name straight away.
+  const compactTitle = chrome.title ?? currentLabel;
+  const showCompactTitle = chrome.titleScrolledAway || chrome.title === null;
+
+  return (
+    <div dir="rtl" className={clsx("min-h-screen bg-canvas text-ink", !forceBottomNav && "lg:pr-64")}>
+      <NativePushBridge />
+      <Suspense fallback={null}>
+        <FlashToast />
+      </Suspense>
+
+      {/* Desktop sidebar (browser, ≥ lg) — this shell is permanently RTL, so
+          physical right-0 / border-l are used directly rather than logical
+          props. Never rendered inside the native APK. */}
+      <aside
+        className={clsx(
+          "fixed inset-y-0 right-0 z-40 hidden w-64 select-none flex-col border-l border-ink/10 bg-white",
+          !forceBottomNav && "lg:flex",
+        )}
+      >
+        <div className="flex items-center gap-3 border-b border-ink/10 px-5 py-3.5">
+          <BrandMark className="h-10 w-10" />
+          <div className="min-w-0">
+            <span className="font-kurdish block text-fluid-base font-semibold text-ink">ئەمنە سورەکە</span>
             <p className="font-kurdish mt-0.5 text-fluid-xs text-ink-faint">بەڕێوەبردن</p>
           </div>
+        </div>
 
-          <nav className="flex flex-1 flex-col gap-4 overflow-y-auto px-3 py-4">
-            {visibleGroups.map((group, gi) => (
-              <div key={group.label ?? gi} className="flex flex-col gap-1">
-                {group.label && (
-                  <p className="font-kurdish px-3.5 pb-1 text-[11px] font-medium text-ink-faint">
-                    {group.label}
-                  </p>
-                )}
-                {group.items.map((item) => (
-                  <SidebarLink key={item.href} item={item} active={isActive(item.href)} badge={badgeFor(item.href)} />
-                ))}
-              </div>
-            ))}
-          </nav>
+        <div className="px-3 pt-3">
+          <button
+            type="button"
+            onClick={openPalette}
+            className="font-kurdish flex w-full items-center gap-2.5 rounded-xl border border-ink/10 bg-canvas px-3 py-2 text-fluid-xs text-ink-faint transition-colors hover:border-ink/20 hover:text-ink-soft"
+          >
+            <Search size={15} />
+            <span className="flex-1 text-start">گەڕانی خێرا…</span>
+            <kbd dir="ltr" className="rounded-md border border-ink/15 bg-white px-1.5 py-0.5 font-sans text-[10px]">
+              Ctrl K
+            </kbd>
+          </button>
+        </div>
 
-          <div className="flex flex-col gap-1 border-t border-ink/10 p-3">
-            {showSettings && (
-              <SidebarLink item={SETTINGS_ITEM} active={isActive(SETTINGS_ITEM.href)} badge={null} />
-            )}
-            <Link
-              href="/"
-              target="_blank"
-              className="font-kurdish flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-fluid-xs font-medium text-ink-soft transition-colors hover:bg-canvas-paper hover:text-ink"
-            >
-              <ExternalLink size={15} /> بینینی ماڵپەڕ
-            </Link>
-            <form action={signOut}>
-              <button
-                type="submit"
-                className="font-kurdish flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-fluid-xs font-medium text-ink-soft transition-colors hover:bg-pigment-crimson/10 hover:text-pigment-crimson"
+        <nav className="flex flex-1 flex-col gap-3 overflow-y-auto px-3 py-3">
+          {visibleGroups.map((group, gi) => (
+            <div key={group.label ?? gi} className="flex flex-col gap-0.5">
+              {group.label && (
+                <p className="font-kurdish px-3.5 pb-1 text-[11px] font-medium text-ink-faint">{group.label}</p>
+              )}
+              {group.items.map((item) => (
+                <SidebarLink key={item.href} item={item} active={isActive(item.href)} badge={badgeFor(item.href)} />
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        <div className="flex flex-col gap-0.5 border-t border-ink/10 p-3">
+          {showSettings && <SidebarLink item={SETTINGS_ITEM} active={isActive(SETTINGS_ITEM.href)} badge={null} />}
+          <Link
+            href="/"
+            target="_blank"
+            className="font-kurdish flex items-center gap-3 rounded-xl px-3.5 py-2 text-fluid-xs font-medium text-ink-soft transition-colors hover:bg-canvas-paper hover:text-ink"
+          >
+            <ExternalLink size={15} /> بینینی ماڵپەڕ
+          </Link>
+          <UserRow user={user} withSignOut className="mt-1 px-2 py-1.5" />
+        </div>
+      </aside>
+
+      {/* Top app bar. Flat at the top of the page, blurred with a hairline
+          once content scrolls under it. Padded for the status bar / notch
+          (env() is 0 wherever there isn't one). */}
+      <header
+        className={clsx(
+          "sticky top-0 z-30 select-none pt-[env(safe-area-inset-top)] transition-[background-color,border-color,box-shadow] duration-200",
+          scrolled ? "border-b border-ink/10 bg-white/85 backdrop-blur-md" : "border-b border-transparent bg-canvas",
+        )}
+      >
+        <div className="flex h-14 items-center justify-between gap-2 px-3 sm:px-6 lg:h-16">
+          {/* Phone / native: back button or brand, then the collapsing title. */}
+          <div className={clsx("flex min-w-0 flex-1 items-center gap-1", !forceBottomNav && "lg:hidden")}>
+            {chrome.backHref ? (
+              <Link
+                href={chrome.backHref}
+                aria-label="گەڕانەوە"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink transition-transform hover:bg-canvas-paper active:scale-90"
               >
-                <LogOut size={15} /> چوونەدەرەوە
-              </button>
-            </form>
+                <ArrowRight size={21} />
+              </Link>
+            ) : (
+              <span className="flex shrink-0 items-center px-1.5">
+                <BrandMark className="h-8 w-8" />
+              </span>
+            )}
+            <div className="relative h-7 min-w-0 flex-1">
+              {!chrome.backHref && (
+                <span
+                  aria-hidden={showCompactTitle}
+                  className={clsx(
+                    "font-kurdish absolute inset-0 flex items-center truncate text-fluid-base font-semibold text-ink transition-all duration-200",
+                    showCompactTitle ? "translate-y-1 opacity-0" : "translate-y-0 opacity-100",
+                  )}
+                >
+                  ئەمنە سورەکە
+                </span>
+              )}
+              <span
+                aria-hidden={!showCompactTitle}
+                className={clsx(
+                  "font-kurdish absolute inset-0 flex items-center text-fluid-base font-semibold text-ink transition-all duration-200",
+                  showCompactTitle ? "translate-y-0 opacity-100" : "-translate-y-1 opacity-0",
+                )}
+              >
+                <span className="truncate">{compactTitle}</span>
+              </span>
+            </div>
           </div>
-        </aside>
 
-        {/* Top header. justify-between with the (single, breakpoint-toggled)
-            title span and the bell puts the title at the RTL start (physical
-            right) and the bell at the RTL end (physical top-left of the
-            page), matching the rest of the shell's RTL layout. */}
-        <header className="sticky top-0 z-30 border-b border-ink/10 bg-white/90 backdrop-blur-md">
-          <div className="flex items-center justify-between gap-3 px-5 py-4 sm:px-8">
-            <span
+          {/* Desktop sidebar layout: the section title, always shown. */}
+          <span
+            className={clsx(
+              "font-kurdish hidden truncate text-fluid-lg font-semibold text-ink",
+              !forceBottomNav && "lg:block",
+            )}
+          >
+            {currentLabel}
+          </span>
+
+          <div className="flex shrink-0 items-center gap-0.5">
+            <button
+              type="button"
+              onClick={openPalette}
+              aria-label="گەڕانی خێرا"
               className={clsx(
-                "font-kurdish text-fluid-base font-semibold text-ink",
+                "flex h-10 w-10 items-center justify-center rounded-full text-ink-faint transition-[colors,transform] hover:bg-canvas-paper hover:text-ink-soft active:scale-90",
                 !forceBottomNav && "lg:hidden",
               )}
             >
-              {currentLabel}
-            </span>
-            <span
-              className={clsx(
-                "font-kurdish hidden text-fluid-lg font-semibold text-ink",
-                !forceBottomNav && "lg:block",
-              )}
-            >
-              {currentLabel}
-            </span>
+              <Search className="h-[19px] w-[19px]" />
+            </button>
             <NotificationsBell notifications={notifications} />
           </div>
-        </header>
+        </div>
+      </header>
 
-        {/* Phone / tablet bottom nav: 5 primary + More (the notification bell
-            lives in the header now, not here — see above).
-            Every item keeps a
-            persistent label (no layout-shifting reveal); the active one gets
-            a single soft brand-red pill behind the icon plus a red label,
-            matching the sidebar / «زیاتر» sheet. Pure CSS transitions so it
-            behaves identically in the Capacitor APK build. Shown at every
-            width in the native APK, and below `lg` in a browser — the row is
-            capped and centred so it stays a "bar" on a wide tablet.
-            The bar itself floats — a rounded capsule inset from the screen
-            edges and lifted clear of the home indicator, rather than a
-            flush-to-edge strip. */}
-        <nav
-          className={clsx(
-            "fixed inset-x-0 bottom-0 z-40 flex justify-center px-4",
-            !forceBottomNav && "lg:hidden",
-          )}
-          style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)" }}
-        >
-          <ul className="mx-auto flex w-full max-w-xl items-stretch rounded-full border border-ink/10 bg-white/95 px-2 shadow-[0_20px_45px_-12px_rgba(28,27,25,0.35)] backdrop-blur-md">
-            {mobileBar.map((item) => (
-              <li key={item.href} className="flex-1">
-                <BottomNavItem
-                  label={item.shortLabel ?? item.label}
-                  ariaLabel={item.label}
-                  icon={item.icon}
-                  href={item.href}
-                  active={isActive(item.href)}
-                  badge={badgeFor(item.href)}
-                />
-              </li>
-            ))}
-            <li className="flex-1">
+      <PullToRefresh />
+
+      {/* Phone / tablet bottom nav: 5 primary + More (the notification bell
+          lives in the header, not here). Every item keeps a persistent label
+          (no layout-shifting reveal); the active one gets a single soft
+          brand-red pill behind the icon plus a red label, matching the
+          sidebar / «زیاتر» sheet. Shown at every width in the native APK,
+          and below `lg` in a browser — the row is capped and centred so it
+          stays a "bar" on a wide tablet. The bar floats — a rounded capsule
+          inset from the screen edges and lifted clear of the home
+          indicator, rather than a flush-to-edge strip. */}
+      <nav
+        className={clsx(
+          "fixed inset-x-0 bottom-0 z-40 flex select-none justify-center px-4",
+          !forceBottomNav && "lg:hidden",
+        )}
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)" }}
+      >
+        <ul className="mx-auto flex w-full max-w-xl items-stretch rounded-full border border-ink/10 bg-white/95 px-2 shadow-[0_20px_45px_-12px_rgba(28,27,25,0.35)] backdrop-blur-md">
+          {mobileBar.map((item) => (
+            <li key={item.href} className="flex-1">
               <BottomNavItem
-                label="زیاتر"
-                icon={MoreHorizontal}
-                active={moreActive || sheetOpen}
-                onClick={() => setSheetOpen(true)}
+                label={item.shortLabel ?? item.label}
+                ariaLabel={item.label}
+                icon={item.icon}
+                href={item.href}
+                active={isActive(item.href)}
+                badge={badgeFor(item.href)}
               />
             </li>
-          </ul>
-        </nav>
+          ))}
+          <li className="flex-1">
+            <BottomNavItem
+              label="زیاتر"
+              icon={MoreHorizontal}
+              active={moreActive || sheetOpen}
+              onClick={() => setSheetOpen(true)}
+            />
+          </li>
+        </ul>
+      </nav>
 
-        {/* Mobile "More" sheet */}
-        {sheetOpen && (
-          <div
-            className={clsx(
-              "fixed inset-0 z-50 bg-ink/40 backdrop-blur-sm",
-              !forceBottomNav && "lg:hidden",
-            )}
-            onClick={() => setSheetOpen(false)}
-          >
-            <div
-              className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t border-ink/10 bg-white p-4"
-              style={{ paddingBottom: "calc(1rem + env(safe-area-inset-bottom))" }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="mb-2 flex items-center justify-between">
-                <span className="font-kurdish text-fluid-sm font-semibold text-ink">هەموو بەشەکان</span>
-                <button
-                  type="button"
-                  onClick={() => setSheetOpen(false)}
-                  aria-label="داخستن"
-                  className="flex h-8 w-8 items-center justify-center rounded-full text-ink-faint hover:bg-canvas-paper hover:text-ink"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="flex flex-col gap-1">
-                {sheetItems.map(({ href, label, icon: Icon }) => (
-                  <Link
-                    key={href}
-                    href={href}
-                    onClick={() => setSheetOpen(false)}
-                    className={`font-kurdish flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-fluid-sm font-medium transition-colors ${
-                      isActive(href) ? "bg-[#850B10] text-canvas" : "text-ink-soft hover:bg-canvas-paper hover:text-ink"
-                    }`}
-                  >
-                    <Icon size={16} /> {label}
-                  </Link>
-                ))}
-                <Link
-                  href="/"
-                  target="_blank"
-                  onClick={() => setSheetOpen(false)}
-                  className="font-kurdish flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-fluid-sm font-medium text-ink-soft transition-colors hover:bg-canvas-paper hover:text-ink"
-                >
-                  <ExternalLink size={15} /> بینینی ماڵپەڕ
-                </Link>
-                <form action={signOut}>
-                  <button
-                    type="submit"
-                    className="font-kurdish flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-fluid-sm font-medium text-ink-soft transition-colors hover:bg-pigment-crimson/10 hover:text-pigment-crimson"
-                  >
-                    <LogOut size={15} /> چوونەدەرەوە
-                  </button>
-                </form>
-              </div>
+      {/* «زیاتر» — every section that isn't in the bar, as a native bottom
+          sheet of app-style tiles. Swipe it down or tap outside to close. */}
+      <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} label="هەموو بەشەکان" desktop="sheet" widthClassName="max-w-xl">
+        <div className="min-h-0 overflow-y-auto overscroll-contain px-4 pb-4">
+          <UserRow user={user} className="mb-3 bg-canvas-paper/70" />
+
+          {sheetItems.length > 0 && (
+            <div className="grid grid-cols-3 gap-2.5">
+              {sheetItems.map((item) => (
+                <SheetTile
+                  key={item.href}
+                  item={item}
+                  active={isActive(item.href)}
+                  badge={badgeFor(item.href)}
+                  onNavigate={() => setSheetOpen(false)}
+                />
+              ))}
             </div>
-          </div>
-        )}
-
-        <main
-          className={clsx(
-            "mx-auto max-w-5xl px-5 py-8 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] sm:px-8 sm:py-10",
-            !forceBottomNav && "lg:pb-12",
           )}
-        >
-          {children}
-        </main>
+
+          <div className="mt-3 flex flex-col overflow-hidden rounded-2xl bg-canvas-paper/70">
+            <Link
+              href="/"
+              target="_blank"
+              onClick={() => setSheetOpen(false)}
+              className="font-kurdish flex items-center gap-3 px-4 py-3.5 text-fluid-sm font-medium text-ink-soft transition-colors active:bg-ink/5"
+            >
+              <ExternalLink size={17} /> بینینی ماڵپەڕ
+            </Link>
+            <form action={signOut} className="border-t border-ink/10">
+              <button
+                type="submit"
+                className="font-kurdish flex w-full items-center gap-3 px-4 py-3.5 text-fluid-sm font-medium text-pigment-crimson transition-colors active:bg-pigment-crimson/10"
+              >
+                <LogOut size={17} /> چوونەدەرەوە
+              </button>
+            </form>
+          </div>
+        </div>
+      </Sheet>
+
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        sections={visibleItems}
+        actions={quickActions}
+      />
+
+      <main
+        id="admin-main"
+        className={clsx(
+          "mx-auto max-w-5xl px-4 pb-[calc(env(safe-area-inset-bottom)+7.5rem)] pt-3 sm:px-8 sm:pt-6",
+          !forceBottomNav && "lg:pb-12 lg:pt-8",
+        )}
+      >
+        {children}
+      </main>
+    </div>
+  );
+}
+
+function BrandMark({ className }: { className?: string }) {
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={LOGO_SRC} alt="" width={40} height={40} className={clsx("shrink-0 rounded-xl object-contain", className)} />
+  );
+}
+
+function UserRow({ user, withSignOut, className }: { user: ShellUser; withSignOut?: boolean; className?: string }) {
+  const initial = user.name.trim().charAt(0) || "؟";
+  return (
+    <div className={clsx("flex items-center gap-3 rounded-2xl px-3 py-2.5", className)}>
+      <span className="font-kurdish flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#850B10] text-fluid-sm font-semibold text-white">
+        {initial}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="font-kurdish truncate text-fluid-sm font-medium text-ink">{user.name}</p>
+        <p className="font-kurdish truncate text-[11px] text-ink-faint">{user.role}</p>
       </div>
-    </ToastProvider>
+      {withSignOut && (
+        <form action={signOut}>
+          <button
+            type="submit"
+            aria-label="چوونەدەرەوە"
+            title="چوونەدەرەوە"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-pigment-crimson/10 hover:text-pigment-crimson active:scale-90"
+          >
+            <LogOut size={16} />
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+function CountBadge({ badge, className }: { badge: Badge; className?: string }) {
+  if (!badge || badge.count <= 0) return null;
+  return (
+    <span
+      className={clsx(
+        "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none text-canvas ring-2 ring-white",
+        badge.tone,
+        className,
+      )}
+    >
+      {badge.count > 9 ? "9+" : badge.count}
+    </span>
   );
 }
 
 function BottomNavItem({
   label,
   ariaLabel,
-  icon: Icon,
+  icon,
   href,
   active,
   badge,
@@ -383,88 +416,141 @@ function BottomNavItem({
   icon: LucideIcon;
   href?: string;
   active: boolean;
-  badge?: { count: number; tone: string } | null;
+  badge?: Badge;
   onClick?: () => void;
 }) {
-  const inner = (
+  const className =
+    "group relative flex w-full flex-col items-center justify-center gap-1 py-2.5 outline-none [-webkit-tap-highlight-color:transparent] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#850B10]/25 md:py-3";
+
+  return href ? (
+    <Link href={href} aria-label={ariaLabel ?? label} aria-current={active ? "page" : undefined} className={className}>
+      <PendingAware>
+        {(pending) => <BottomNavFace label={label} icon={icon} active={active} pending={pending} badge={badge} />}
+      </PendingAware>
+    </Link>
+  ) : (
+    <button type="button" onClick={onClick} aria-label={ariaLabel ?? label} className={className}>
+      <BottomNavFace label={label} icon={icon} active={active} pending={false} badge={badge} />
+    </button>
+  );
+}
+
+/** Reads its parent <Link>'s navigation status — the link counts as
+ * "pending" between the tap and the new route committing. With every
+ * route's loading.tsx prefetched that's usually instant; on a slow
+ * connection it's what shows the tap registered. */
+function PendingAware({ children }: { children: (pending: boolean) => React.ReactNode }) {
+  const { pending } = useLinkStatus();
+  return <>{children(pending)}</>;
+}
+
+function BottomNavFace({
+  label,
+  icon: Icon,
+  active,
+  pending,
+  badge,
+}: {
+  label: string;
+  icon: LucideIcon;
+  active: boolean;
+  pending: boolean;
+  badge?: Badge;
+}) {
+  return (
     <>
       {/* icon in a pill that fills with soft brand red and lifts when active */}
       <span
         className={clsx(
           "relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out md:h-11 md:w-11",
           active
-            ? "-translate-y-0.5 bg-[#850B10]/12 text-[#850B10]"
-            : "translate-y-0 text-ink-faint group-hover:bg-canvas-paper group-hover:text-ink-soft",
+            ? "-translate-y-0.5 bg-[#850B10]/[0.12] text-[#850B10]"
+            : pending
+              ? "animate-pulse bg-[#850B10]/10 text-[#850B10]"
+              : "translate-y-0 text-ink-faint group-hover:bg-canvas-paper group-hover:text-ink-soft",
         )}
       >
         <Icon
           strokeWidth={active ? 2.4 : 2}
-          className="h-[19px] w-[19px] transition-transform duration-200 group-active:scale-90 md:h-[22px] md:w-[22px]"
+          className="h-[19px] w-[19px] transition-transform duration-150 group-active:scale-[0.85] md:h-[22px] md:w-[22px]"
         />
-        {badge && badge.count > 0 && (
-          <span
-            className={clsx(
-              "absolute -top-1 -right-1.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none text-canvas ring-2 ring-white md:-top-1 md:-right-1.5 md:h-4 md:min-w-4 md:text-[9px]",
-              badge.tone,
-            )}
-          >
-            {badge.count > 9 ? "9+" : badge.count}
-          </span>
-        )}
+        <CountBadge badge={badge ?? null} className="absolute -right-1.5 -top-1" />
       </span>
       {/* persistent label — only the colour changes on active */}
       <span
         className={clsx(
           "font-kurdish whitespace-nowrap text-[10px] leading-none transition-colors duration-200",
-          active ? "font-semibold text-[#850B10]" : "font-medium text-ink-faint",
+          active || pending ? "font-semibold text-[#850B10]" : "font-medium text-ink-faint",
         )}
       >
         {label}
       </span>
     </>
   );
-
-  const className =
-    "group relative flex w-full flex-col items-center justify-center gap-1 py-2.5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#850B10]/25 md:py-3";
-
-  return href ? (
-    <Link
-      href={href}
-      aria-label={ariaLabel ?? label}
-      aria-current={active ? "page" : undefined}
-      className={className}
-    >
-      {inner}
-    </Link>
-  ) : (
-    <button type="button" onClick={onClick} aria-label={ariaLabel ?? label} className={className}>
-      {inner}
-    </button>
-  );
 }
 
-function SidebarLink({
+function SheetTile({
   item,
   active,
   badge,
+  onNavigate,
 }: {
   item: NavItem;
   active: boolean;
-  badge: { count: number; tone: string } | null;
+  badge: Badge;
+  onNavigate: () => void;
 }) {
   const { href, label, icon: Icon } = item;
   return (
     <Link
       href={href}
-      className={`font-kurdish flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-fluid-sm font-medium transition-colors ${
-        active ? "bg-[#850B10] text-canvas" : "text-ink-soft hover:bg-canvas-paper hover:text-ink"
-      }`}
+      onClick={onNavigate}
+      aria-current={active ? "page" : undefined}
+      className={clsx(
+        "font-kurdish relative flex flex-col items-center gap-2 rounded-2xl px-2 py-4 text-center text-fluid-xs font-medium transition-[colors,transform] active:scale-95",
+        active ? "bg-[#850B10] text-canvas" : "bg-canvas-paper/70 text-ink-soft",
+      )}
+    >
+      <span
+        className={clsx(
+          "flex h-11 w-11 items-center justify-center rounded-2xl",
+          active ? "bg-white/15" : "bg-white text-[#850B10] shadow-ring",
+        )}
+      >
+        <Icon size={20} />
+      </span>
+      <span className="leading-tight">{label}</span>
+      <CountBadge badge={badge} className="absolute left-2 top-2" />
+    </Link>
+  );
+}
+
+function SidebarLink({ item, active, badge }: { item: NavItem; active: boolean; badge: Badge }) {
+  const { href, label, icon: Icon } = item;
+  return (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={clsx(
+        "font-kurdish flex items-center gap-3 rounded-xl px-3.5 py-2 text-fluid-sm font-medium transition-colors",
+        active ? "bg-[#850B10] text-canvas" : "text-ink-soft hover:bg-canvas-paper hover:text-ink",
+      )}
     >
       <Icon size={16} />
-      {label}
+      <span className="flex-1">{label}</span>
+      <PendingAware>
+        {(pending) =>
+          pending && !active ? (
+            <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#850B10]" />
+          ) : null
+        }
+      </PendingAware>
       {badge && (
         <span
-          className={`mr-auto flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-canvas ${badge.tone}`}
+          className={clsx(
+            "flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-canvas",
+            badge.tone,
+          )}
         >
           {badge.count}
         </span>

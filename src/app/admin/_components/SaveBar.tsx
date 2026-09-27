@@ -12,6 +12,10 @@ import { SubmitButton } from "./SubmitButton";
  * AdminShell's own nav-vs-`forceBottomNav` split for the matching logic.
  * Place it as the last child inside the <form> (so its <SubmitButton>'s
  * useFormStatus still sees the form), after the panels.
+ *
+ * On phones it's just the save button, full width and floating on its own
+ * shadow like a native screen's bottom call-to-action; from `sm` up it sits
+ * in a frosted card, right-aligned.
  */
 export function SaveBar({
   children,
@@ -25,13 +29,16 @@ export function SaveBar({
   return (
     <div
       className={clsx(
-        "sticky z-20 flex flex-wrap items-center justify-end gap-3 rounded-2xl border border-ink/10 bg-white/90 px-4 py-3 shadow-card backdrop-blur-md",
+        "sticky z-20 flex flex-wrap items-center justify-end gap-3 rounded-2xl",
+        "sm:border sm:border-ink/10 sm:bg-white/90 sm:px-4 sm:py-3 sm:shadow-card sm:backdrop-blur-md",
         "bottom-[calc(env(safe-area-inset-bottom)+7rem)]",
         !forceBottomNav && "lg:bottom-3",
       )}
     >
       {children}
-      <SubmitButton>{label}</SubmitButton>
+      <SubmitButton className="w-full shadow-[0_14px_30px_-10px_rgba(133,11,16,0.55)] sm:w-auto sm:shadow-none">
+        {label}
+      </SubmitButton>
     </div>
   );
 }

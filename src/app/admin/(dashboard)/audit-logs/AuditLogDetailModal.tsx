@@ -101,7 +101,7 @@ export function AuditLogDetailModal({
       open={log !== null}
       title={log ? describeAuditAction(log) : ""}
       onClose={onClose}
-      widthClassName="max-w-2xl"
+      widthClassName="sm:max-w-2xl"
     >
       {log && (
         <div className="flex flex-col gap-4">

@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
@@ -108,8 +109,15 @@ export async function isValidSessionToken(token: string | undefined | null): Pro
  * a role's permissions takes effect on their very next action, not at
  * token expiry. Returns null (rather than throwing) so Server Components
  * can redirect instead of erroring.
+ *
+ * Wrapped in React's cache() so one render pass only pays for these two
+ * queries once: the dashboard layout, the page and each data loader it calls
+ * (getBookings(), getMessages(), …) all go through here, and without the
+ * memo every one of them repeated the lookup. cache() is scoped to a single
+ * server request, so each navigation and each Server Action still re-checks
+ * the session fresh.
  */
-export async function getAdminSession(): Promise<AdminSession | null> {
+export const getAdminSession = cache(async function getAdminSession(): Promise<AdminSession | null> {
   const claims = await decodeSessionToken((await cookies()).get(ADMIN_COOKIE_NAME)?.value);
   if (!claims) return null;
 
@@ -141,7 +149,7 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     fullName: user.full_name,
     role: { id: user.role.id, name: user.role.name, permissions: user.role.permissions },
   };
-}
+});
 
 /**
  * Guards every admin Server Action / dashboard Server Component directly.

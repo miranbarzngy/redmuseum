@@ -15,7 +15,7 @@ export function BookingsTabs() {
   const pathname = usePathname();
 
   return (
-    <div className="flex flex-wrap items-center gap-2 border-b border-ink/10 pb-3">
+    <div className="no-scrollbar -mx-4 flex items-center gap-2 overflow-x-auto border-b border-ink/10 px-4 pb-3 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
       {TABS.map(({ href, label, icon: Icon, exact }) => {
         const active = exact ? pathname === href : pathname.startsWith(href);
         return (
@@ -23,7 +23,7 @@ export function BookingsTabs() {
             key={href}
             href={href}
             className={clsx(
-              "font-kurdish inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-fluid-xs font-medium transition-colors",
+              "font-kurdish inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-fluid-xs font-medium transition-[colors,transform] duration-150 active:scale-95",
               active
                 ? "bg-[#850B10] text-canvas"
                 : "border border-ink/15 text-ink-soft hover:border-pigment-terracotta hover:text-pigment-terracotta"

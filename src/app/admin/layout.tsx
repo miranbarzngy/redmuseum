@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { StaleServiceWorkerCleanup } from "@/components/StaleServiceWorkerCleanup";
 import "../globals.css";
@@ -44,9 +44,18 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+// viewport-fit=cover lets the shell draw under the status bar / notch /
+// home indicator and pad itself with env(safe-area-inset-*) like a native
+// app, instead of the browser letterboxing it. The theme colour tints the
+// mobile browser chrome to match the top bar.
+export const viewport: Viewport = {
+  viewportFit: "cover",
+  themeColor: "#FAFAF7",
+};
+
 export default function AdminRootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ku" dir="rtl" className={kurdishFont.variable}>
+    <html lang="ku" dir="rtl" className={`admin-root ${kurdishFont.variable}`}>
       <body className="bg-canvas font-kurdish text-ink antialiased">
         <StaleServiceWorkerCleanup />
         {children}

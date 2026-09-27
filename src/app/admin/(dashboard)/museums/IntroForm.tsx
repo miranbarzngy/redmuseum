@@ -29,7 +29,7 @@ export function IntroForm({
         />
 
         <div>
-          <SubmitButton>پاشەکەوتکردنی گۆڕانکارییەکان</SubmitButton>
+          <SubmitButton className="w-full sm:w-auto">پاشەکەوتکردنی گۆڕانکارییەکان</SubmitButton>
         </div>
       </form>
     </LanguageProvider>
