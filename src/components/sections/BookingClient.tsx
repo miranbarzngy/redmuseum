@@ -13,7 +13,7 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { Reveal } from "@/components/ui/Reveal";
 import { useDirection } from "@/lib/useDirection";
 import { easeArt } from "@/lib/motionVariants";
-import { localizeDigits, holidayKeyFor } from "@/lib/kurdishCalendar";
+import { localizeDigits, holidayKeyFor, asciiDigitsInPlace } from "@/lib/kurdishCalendar";
 import { BookingSuccess, type BookingConfirmation } from "./BookingSuccess";
 import { BookingStatusLookup } from "./BookingStatusLookup";
 import type { BookingSettings } from "@/lib/data/bookingSettings";
@@ -106,6 +106,11 @@ export function BookingClient({
     resolver: zodResolver(schema),
     defaultValues: { name: "", phone: "", guestCount: "", visitorTypeId: "", note: "" },
   });
+
+  // Kurdish/Arabic keyboards type ٠-٩ — swap them for 0-9 as they're typed,
+  // so the fields show plain digits and pass the 0-9 checks above.
+  const phoneField = register("phone");
+  const guestCountField = register("guestCount");
 
   const days = useMemo(
     () => upcomingDays(settings.bookingWindowDays).filter((d) => settings.openWeekdays.includes(d.getDay())),
@@ -348,7 +353,11 @@ export function BookingClient({
                           type="tel"
                           required
                           maxLength={30}
-                          {...register("phone")}
+                          {...phoneField}
+                          onChange={(e) => {
+                            asciiDigitsInPlace(e.target);
+                            return phoneField.onChange(e);
+                          }}
                           placeholder={t("form.phonePlaceholder")}
                           className="rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-[#850B10]"
                         />
@@ -359,14 +368,20 @@ export function BookingClient({
                           <label htmlFor="guestCount" className="text-fluid-xs font-medium text-ink-soft">
                             {t("form.guestCount")}
                           </label>
+                          {/* Text, not type="number": a number input throws
+                              away ٠-٩ before onChange can convert them. The
+                              1–MAX_GUESTS range is checked by the schema. */}
                           <input
                             id="guestCount"
-                            type="number"
+                            type="text"
                             inputMode="numeric"
-                            min={1}
-                            max={MAX_GUESTS}
+                            maxLength={String(MAX_GUESTS).length}
                             required
-                            {...register("guestCount")}
+                            {...guestCountField}
+                            onChange={(e) => {
+                              asciiDigitsInPlace(e.target);
+                              return guestCountField.onChange(e);
+                            }}
                             className="rounded-xl border border-ink/15 bg-canvas px-4 py-3 text-fluid-sm text-ink outline-none transition-colors focus:border-[#850B10]"
                           />
                           {errors.guestCount && (

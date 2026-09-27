@@ -6,7 +6,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Search, Loader2, AlertCircle, CalendarCheck } from "lucide-react";
 import clsx from "clsx";
 import { easeArt } from "@/lib/motionVariants";
-import { localizeDigits } from "@/lib/kurdishCalendar";
+import { localizeDigits, asciiDigitsInPlace } from "@/lib/kurdishCalendar";
 import type { BookingStatus } from "@/lib/supabase/database.types";
 
 interface LookupBooking {
@@ -92,6 +92,8 @@ export function BookingStatusLookup() {
           dir="ltr"
           value={phone}
           onChange={(e) => {
+            // ٠-٩ -> 0-9, or the 7-digit check below never counts them.
+            asciiDigitsInPlace(e.target);
             setPhone(e.target.value);
             if (state !== "idle" && state !== "loading") setState("idle");
           }}

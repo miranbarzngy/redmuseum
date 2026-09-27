@@ -1,5 +1,6 @@
 // Helpers for the Kurdish-flavoured date picker in the booking flow: localized
-// digits (Arabic-Indic for ku/ar) and holiday detection for the days on screen.
+// digits (Arabic-Indic for ku/ar), the reverse for typed-in numbers, and
+// holiday detection for the days on screen.
 
 const ARABIC_INDIC = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
 
@@ -8,6 +9,24 @@ export function localizeDigits(value: string | number, locale: string): string {
   const s = String(value);
   if (locale === "en") return s;
   return s.replace(/[0-9]/g, (d) => ARABIC_INDIC[Number(d)]);
+}
+
+/** Arabic-Indic (٠-٩, what Kurdish and Arabic keyboards type) and Persian
+ * (۰-۹) digits -> 0-9. Both ranges start at a multiple of 16 (U+0660,
+ * U+06F0), so the code point mod 16 is the digit. */
+export function toAsciiDigits(value: string): string {
+  return value.replace(/[٠-٩۰-۹]/g, (d) => String(d.charCodeAt(0) % 16));
+}
+
+/** Rewrite an input's text to 0-9 digits as it's typed or pasted, keeping
+ * the caret put (digits swap 1:1, so positions don't shift). Call it in
+ * onChange before the form/state reads the value. */
+export function asciiDigitsInPlace(input: HTMLInputElement): void {
+  const ascii = toAsciiDigits(input.value);
+  if (ascii === input.value) return;
+  const { selectionStart, selectionEnd } = input;
+  input.value = ascii;
+  if (selectionStart !== null) input.setSelectionRange(selectionStart, selectionEnd);
 }
 
 // Fixed-date holidays observed in the Kurdistan Region of Iraq, keyed by MM-DD.
