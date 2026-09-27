@@ -204,7 +204,7 @@ export function FooterClient({
 
         <div className="mt-4 flex flex-col items-center gap-1.5 border-t border-gray-800 pt-3 text-center">
           <span className="text-fluid-xs text-gray-500">
-            © {year} {name} - {t("rights")}
+            © {year} {name}
           </span>
         </div>
       </div>
