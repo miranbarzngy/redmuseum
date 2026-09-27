@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { PERMISSIONS, hasPermission } from "@/lib/permissions";
 import { formatVisitDate, formatSubmittedAt } from "./bookings/formatBookingDate";
 import {
   EMPTY_ADMIN_NOTIFICATIONS,
@@ -7,11 +8,13 @@ import {
 } from "../_components/adminNotificationsShape";
 
 // Feeds the notification bell + modal (src/app/admin/_components/
-// NotificationsBell.tsx, NotificationModal.tsx). "A notification" in this
-// single-admin app is just an unactioned inbound row: a booking still
-// `pending` confirmation, or a contact message not yet marked read. There's
-// no separate notifications table — this rolls the two up into one
-// newest-first list plus the totals the bell badge needs.
+// NotificationsBell.tsx, NotificationModal.tsx). "A notification" is just an
+// unactioned inbound row: a booking still `pending` confirmation, or a
+// contact message not yet marked read. There's no separate notifications
+// table — this rolls the two up into one newest-first list plus the totals
+// the bell badge needs. Each kind is only read when the session's role holds
+// that section's permission, so a role without bookings:manage never sees
+// visitors' names, phones or face photos here.
 //
 // Gated by (dashboard)/layout.tsx's own requireAdminSession() check — see
 // the allowed-call-sites list on createAdminClient() — so it's safe to read
@@ -24,31 +27,39 @@ function messageSnippet(message: string): string {
   return trimmed.length > 70 ? `${trimmed.slice(0, 70)}…` : trimmed;
 }
 
-export async function getAdminNotifications(): Promise<AdminNotifications> {
+export async function getAdminNotifications(permissions: string[]): Promise<AdminNotifications> {
+  const canBookings = hasPermission(permissions, PERMISSIONS.bookingsManage);
+  const canMessages = hasPermission(permissions, PERMISSIONS.messagesManage);
+  if (!canBookings && !canMessages) return EMPTY_ADMIN_NOTIFICATIONS;
+
   const supabase = createAdminClient();
 
   const [bookingsRes, messagesRes] = await Promise.all([
-    supabase
-      .from("bookings")
-      .select(
-        "id, name, phone, guest_count, visit_date, created_at, face_image_path, visitor_type:booking_visitor_types(label_ku)",
-        { count: "exact" },
-      )
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .limit(LIST_LIMIT),
-    supabase
-      .from("contact_messages")
-      .select("id, name, phone, message, created_at", { count: "exact" })
-      .eq("is_read", false)
-      .order("created_at", { ascending: false })
-      .limit(LIST_LIMIT),
+    canBookings
+      ? supabase
+          .from("bookings")
+          .select(
+            "id, name, phone, guest_count, visit_date, created_at, face_image_path, visitor_type:booking_visitor_types(label_ku)",
+            { count: "exact" },
+          )
+          .eq("status", "pending")
+          .order("created_at", { ascending: false })
+          .limit(LIST_LIMIT)
+      : null,
+    canMessages
+      ? supabase
+          .from("contact_messages")
+          .select("id, name, phone, message, created_at", { count: "exact" })
+          .eq("is_read", false)
+          .order("created_at", { ascending: false })
+          .limit(LIST_LIMIT)
+      : null,
   ]);
 
-  if (bookingsRes.error || messagesRes.error) {
+  if (bookingsRes?.error || messagesRes?.error) {
     console.error(
       "[getAdminNotifications] query failed",
-      bookingsRes.error?.message ?? messagesRes.error?.message,
+      bookingsRes?.error?.message ?? messagesRes?.error?.message,
     );
     return EMPTY_ADMIN_NOTIFICATIONS;
   }
@@ -56,7 +67,7 @@ export async function getAdminNotifications(): Promise<AdminNotifications> {
   // database.types.ts is hand-written and has no Relationships metadata, so
   // the joined select's shape above must be described locally (same pattern
   // as src/lib/data/gallery.ts).
-  const bookingRows = (bookingsRes.data ?? []) as unknown as {
+  const bookingRows = (bookingsRes?.data ?? []) as unknown as {
     id: string;
     name: string;
     phone: string;
@@ -105,7 +116,7 @@ export async function getAdminNotifications(): Promise<AdminNotifications> {
     } satisfies AdminNotificationItem,
   }));
 
-  const messageItems = (messagesRes.data ?? []).map((m) => ({
+  const messageItems = (messagesRes?.data ?? []).map((m) => ({
     at: m.created_at,
     item: {
       kind: "message",
@@ -123,8 +134,8 @@ export async function getAdminNotifications(): Promise<AdminNotifications> {
     .slice(0, LIST_LIMIT)
     .map(({ item }) => item);
 
-  const pendingBookings = bookingsRes.count ?? bookingItems.length;
-  const unreadMessages = messagesRes.count ?? messageItems.length;
+  const pendingBookings = bookingsRes?.count ?? bookingItems.length;
+  const unreadMessages = messagesRes?.count ?? messageItems.length;
 
   return {
     total: pendingBookings + unreadMessages,

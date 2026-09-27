@@ -14,7 +14,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     redirect("/admin/login");
   }
 
-  const notifications = await getAdminNotifications();
+  const notifications = await getAdminNotifications(session.role.permissions);
 
   return (
     <AdminShell
