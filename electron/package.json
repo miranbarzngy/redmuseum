@@ -1,6 +1,6 @@
 {
   "name": "amna-suraka-admin-desktop",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Windows desktop shell for the Amna Suraka admin panel",
   "main": "main.js",
