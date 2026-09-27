@@ -34,10 +34,10 @@ export default async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // `models/*` holds the face-api.js weight shards, which are extensionless
-  // binary files — the `.*\..*` exclusion below only catches paths with a
-  // dot (e.g. the `.json` manifests), so shard files were still being
-  // routed through the intl middleware and 404ing on the locale-prefixed
-  // redirect. Excluded here explicitly.
+  // `models/*` holds the face-scan model weights. The current `.bin` files
+  // would already match the `.*\..*` exclusion, but the older face-api.js
+  // shards were extensionless and got routed through the intl middleware
+  // (404ing on the locale-prefixed redirect) — so the folder stays
+  // excluded explicitly, whatever the weights are named.
   matcher: ["/((?!api|_next|_vercel|models|.*\\..*).*)"],
 };

@@ -76,6 +76,7 @@ export function BookingClient({
 
   const [faceImageUrl, setFaceImageUrl] = useState<string | null>(null);
   const [faceImagePath, setFaceImagePath] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   const [visitDate, setVisitDate] = useState<string | null>(null);
   const [visitTime, setVisitTime] = useState<string | null>(null);
@@ -533,6 +534,7 @@ export function BookingClient({
                           setFaceImagePath(path);
                         }}
                         onReset={resetPhoto}
+                        onUploadingChange={setPhotoUploading}
                       />
                     </div>
                   )}
@@ -594,7 +596,7 @@ export function BookingClient({
                 <button
                   type="button"
                   onClick={handleSubmitBooking}
-                  disabled={isSubmitting || !visitTime}
+                  disabled={isSubmitting || !visitTime || photoUploading}
                   className="inline-flex items-center gap-2 rounded-full bg-[#850B10] px-6 py-3 text-fluid-sm font-medium text-canvas shadow-card transition-transform hover:scale-[1.03] active:scale-95 disabled:pointer-events-none disabled:opacity-40"
                 >
                   {isSubmitting ? (

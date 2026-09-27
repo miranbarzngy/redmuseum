@@ -1,15 +1,16 @@
-Face-scan model weights (not included in the repo — download separately)
+Face-scan model weights (self-hosted, committed to the repo)
 
-`FaceCapture.tsx` loads three model bundles from this folder at runtime via
-`faceapi.nets.*.loadFromUri("/models")`:
+`src/components/sections/FaceScanCapture.tsx` loads two models from this
+folder at runtime via `faceapi.nets.*.loadFromUri("/models")`:
 
-- `tiny_face_detector_model-*`
-- `face_landmark_68_model-*`
-- `face_recognition_model-*`
+- `tiny_face_detector_model.bin` + `-weights_manifest.json`
+- `face_landmark_68_tiny_model.bin` + `-weights_manifest.json`
 
-Download the matching files from the face-api.js repo's `weights` directory
-(https://github.com/justadudewhohacks/face-api.js — see `weights/`) and place
-them directly in this folder (`public/models/`). They're served as static
-assets, not bundled by webpack, so nothing else needs to change once they're
-here — the face-scan feature only activates in the UI when an admin turns on
+They are copied verbatim from `node_modules/@vladmandic/face-api/model/`.
+When upgrading `@vladmandic/face-api` (pinned to an exact version in
+package.json), copy those four files over again so the weights match the
+library. They're served as static same-origin assets, so the CSP and the
+proxy matcher (`models` is excluded in `src/proxy.ts`) need no changes.
+
+The face-scan step only appears in the booking wizard when an admin turns on
 `system_settings.enable_face_scan` in the dashboard.
