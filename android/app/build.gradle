@@ -47,6 +47,17 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    // Release builds come out as amnasuraka.apk rather than app-release.apk.
+    // Each release is uploaded under its own version folder
+    // (app/<versionName>/amnasuraka.apk), so the URL still changes every
+    // release — see scripts/upload-app-release.mjs.
+    applicationVariants.all { variant ->
+        if (variant.buildType.name == "release") {
+            variant.outputs.all {
+                outputFileName = "amnasuraka.apk"
+            }
+        }
+    }
 }
 
 repositories {

@@ -9,7 +9,7 @@
  * Needs BLOB_READ_WRITE_TOKEN (from a *public* Blob store) in .env.local.
  * Versions come from android/app/build.gradle and electron/package.json,
  * so build first: `npm run android:release` / `npm run windows:release`.
- * Blob names carry the version, so a new release never gets served a
+ * Blob paths carry the version, so a new release never gets served a
  * CDN-cached copy of the old file.
  */
 import { openAsBlob, readFileSync, statSync, existsSync } from "node:fs";
@@ -34,8 +34,9 @@ const exeVersion = JSON.parse(readFileSync("electron/package.json", "utf8")).ver
 const releases = [
   {
     kind: "apk",
-    file: "android/app/build/outputs/apk/release/app-release.apk",
-    pathname: `app/amna-suraka-admin-${versionName}.apk`,
+    file: "android/app/build/outputs/apk/release/amnasuraka.apk",
+    // The version lives in the folder so phones save it as amnasuraka.apk.
+    pathname: `app/${versionName}/amnasuraka.apk`,
     contentType: "application/vnd.android.package-archive",
     // An APK built before the versionCode bump would make the in-app
     // updater offer the "new" version forever, since installing it never
