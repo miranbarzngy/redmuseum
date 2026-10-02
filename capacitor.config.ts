@@ -30,6 +30,15 @@ const config: CapacitorConfig = {
     // the app's actual navigation rather than immediately exiting.
     allowMixedContent: false,
   },
+  plugins: {
+    PushNotifications: {
+      // Android hands a push that arrives while the app is open to the app
+      // instead of the tray. "alert" makes the plugin still show it — on the
+      // push's own channel, so with the sound picked in Settings. Without
+      // it, a test push sent from inside the app never appears.
+      presentationOptions: ["badge", "sound", "alert"],
+    },
+  },
 };
 
 export default config;
