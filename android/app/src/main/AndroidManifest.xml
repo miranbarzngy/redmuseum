@@ -24,6 +24,12 @@
 
         </activity>
 
+        <!-- Pushes that don't name a channel still land on the high-importance
+             one created in MainActivity, not FCM's silent "Miscellaneous". -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="admin_alerts" />
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
@@ -42,4 +48,22 @@
          system installer (see ApkUpdaterPlugin). This app is sideloaded, not
          on Play, so the restricted-permission review doesn't apply. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- Push reliability (see BackgroundDeliveryPlugin): the "always run in
+         background" system dialog. Sideloaded, so Play's policy on it doesn't
+         apply. -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <!-- Android 11+ package visibility: lets BackgroundDeliveryPlugin detect
+         which vendor autostart screen exists on this device. -->
+    <queries>
+        <package android:name="com.miui.securitycenter" />
+        <package android:name="com.huawei.systemmanager" />
+        <package android:name="com.coloros.safecenter" />
+        <package android:name="com.oppo.safe" />
+        <package android:name="com.vivo.permissionmanager" />
+        <package android:name="com.iqoo.secure" />
+        <package android:name="com.letv.android.letvsafe" />
+        <package android:name="com.asus.mobilemanager" />
+        <package android:name="com.samsung.android.lool" />
+    </queries>
 </manifest>

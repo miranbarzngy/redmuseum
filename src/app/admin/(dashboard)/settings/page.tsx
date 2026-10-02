@@ -2,6 +2,7 @@ import { ScanFace } from "lucide-react";
 import { getSystemSettings, updateFaceScanSetting } from "./actions";
 import { AppDownloadsPanel } from "./AppDownloadsPanel";
 import { AppUpdatePanel } from "./AppUpdatePanel";
+import { PushReliabilityPanel } from "./PushReliabilityPanel";
 import { PageHeader } from "../../_components/PageHeader";
 import { Panel } from "../../_components/Panel";
 import { Toggle } from "../../_components/Toggle";
@@ -54,6 +55,8 @@ export default async function AdminSettingsPage() {
       </Panel>
 
       <AppDownloadsPanel />
+
+      <PushReliabilityPanel />
 
       <AppUpdatePanel />
 

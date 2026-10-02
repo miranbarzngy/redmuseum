@@ -23,6 +23,9 @@ function getFirebaseAdminApp() {
   });
 }
 
+// Must match ADMIN_ALERTS_CHANNEL_ID in android/.../MainActivity.java.
+const ADMIN_PUSH_CHANNEL_ID = "admin_alerts";
+
 export interface AdminPush {
   title: string;
   body: string;
@@ -54,7 +57,23 @@ export async function sendAdminPush(push: AdminPush): Promise<{ sent: number }> 
           // process is backgrounded or killed.
           notification: { title: push.title, body: push.body },
           data: { url: push.url },
-          android: { priority: "high" },
+          android: {
+            // "high" lets FCM wake the device out of Doze immediately
+            // instead of batching the message into the next maintenance
+            // window — the "arrives only when I open the app" symptom.
+            priority: "high",
+            // A booking alert that's a day late is worse than none.
+            ttl: 24 * 60 * 60 * 1000,
+            notification: {
+              // High-importance channel created natively in MainActivity.
+              // Without it Android posts to FCM's default "Miscellaneous"
+              // channel, which OEMs often show silently / collapsed.
+              channelId: ADMIN_PUSH_CHANNEL_ID,
+              priority: "max",
+              defaultSound: true,
+              visibility: "public",
+            },
+          },
         });
       } catch (err) {
         const code = (err as { code?: string }).code;
