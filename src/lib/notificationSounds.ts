@@ -1,4 +1,5 @@
-// Sounds an admin can pick for booking / message pushes (/admin/settings).
+// Sounds an admin can pick for booking / message pushes (/admin/settings),
+// chosen to suit the museum: calm, dignified and Kurdish where they can be.
 //
 // Android 8+ fixes a notification channel's sound when the channel is
 // created, so every sound gets its own channel and the server posts to the
@@ -10,10 +11,10 @@
 
 export const NOTIFICATION_SOUNDS = [
   { id: "default", label: "ئاوازی سیستەم", description: "دەنگی بنەڕەتی ئاگادارکردنەوەی مۆبایلەکە" },
-  { id: "chime", label: "زەنگۆڵە", description: "دوو نۆتی نەرم و ئارام" },
-  { id: "bell", label: "زەنگ", description: "یەک لێدانی زەنگی ڕوون" },
-  { id: "doorbell", label: "زەنگی دەرگا", description: "دینگ-دۆنگی ناسراو" },
-  { id: "alert", label: "ئاگاداری بەهێز", description: "ئاوازێکی خێرا و بەرز" },
+  { id: "gallery", label: "زەنگی هۆڵ", description: "سێ نۆتی نەرم، وەک بانگەوازی ناو هۆڵی مۆزەخانە" },
+  { id: "santur", label: "سەنتوور", description: "ئاوازێکی کورتی کوردی لەسەر سەنتوور" },
+  { id: "bronze", label: "زەنگی برۆنز", description: "یەک لێدانی ئارام بە دەنگدانەوەیەکی درێژ" },
+  { id: "daf", label: "دەف", description: "ڕیتمی دەفی کوردی — زیندوو و ئاشکرا، بۆ ئەوەی لەدەستت نەچێت" },
 ] as const;
 
 export type NotificationSoundId = (typeof NOTIFICATION_SOUNDS)[number]["id"];
