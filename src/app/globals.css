@@ -228,6 +228,44 @@ html[lang="ar"] .tracking-tightest2 {
   animation-duration: 7s;
 }
 
+/* PaintCanvas's background pieces: each of the 11 takes a 7s turn in its slot
+   (77s loop, so one turn = 9.09%), fading in over the first ~2.5s (3.25%) and
+   out over the ~2.5s after its turn ends — the same span the next piece fades
+   in over, so neighbours cross-fade. Hidden until its staggered delay starts
+   it. The radial mask softens the cut-out's edges into the canvas. */
+@keyframes bg-piece-fade {
+  0% {
+    opacity: 0;
+  }
+  3.25% {
+    opacity: 1;
+  }
+  9.09% {
+    opacity: 1;
+  }
+  12.34% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.bg-piece {
+  opacity: 0;
+  animation: bg-piece-fade 77s ease-in-out infinite;
+  mask-image: radial-gradient(ellipse 70% 70% at center, #000 60%, transparent 100%);
+}
+
+/* The reduced-motion rule below cuts every animation to one instant pass,
+   which would leave every piece at its resting opacity: 0. Show each slot's
+   first piece instead, still. */
+@media (prefers-reduced-motion: reduce) {
+  .bg-piece:first-child {
+    opacity: 1;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

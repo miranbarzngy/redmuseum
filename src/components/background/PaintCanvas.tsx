@@ -44,9 +44,51 @@ const LINES = [
   },
 ] as const;
 
+// Cut-out museum pieces in public/images/background (trimmed + WebP'd copies
+// of the PNGs in public/images/logo/assets/images/Background, plus that
+// folder's own 1.png/5.png). Two slots cycle through this list one piece at a
+// time — the second slot five places ahead of the first — so look-alikes
+// (xoragry/xoragry2) are kept two apart: with that offset, pieces 3–8 places
+// apart can be on screen together.
+const PIECES = [
+  "anfal",
+  "xoragry",
+  "koraw",
+  "xoragry2",
+  "peshmarga",
+  "1",
+  "awenakan",
+  "minwtaqamany",
+  "5",
+  "isis",
+  "zindanyakan",
+] as const;
+
+// Seconds each piece holds its slot. The .bg-piece keyframes (globals.css)
+// are written for PIECES.length × this — change one, re-check the other.
+const PIECE_SECONDS = 7;
+
+const SLOTS = [
+  {
+    // Bottom-left. The only slot on phones, where the text runs edge to edge.
+    className: "bottom-[6vh] left-[3vw] h-[38vh] w-[70vw] opacity-[0.08] md:h-[48vh] md:w-[30vw] md:opacity-[0.14]",
+    imgClassName: "bottom-0 left-0",
+    shift: 0,
+    delay: 0,
+  },
+  {
+    // Top-right, half a beat behind the first slot so their fades alternate.
+    className: "top-[16vh] right-[3vw] hidden h-[48vh] w-[30vw] opacity-[0.14] md:block",
+    imgClassName: "top-0 right-0",
+    shift: 5,
+    delay: PIECE_SECONDS / 2,
+  },
+] as const;
+
 /**
  * A fixed, full-viewport background layer behind the whole page: the canvas
- * color and its faint grain texture, plus five thin wavy lines running
+ * color and its faint grain texture, faded museum pieces slowly cross-fading
+ * in two corners (see PIECES/SLOTS above), plus five thin wavy lines running
  * diagonally from the bottom-left to the top-right corner, each flowing
  * continuously in that direction on an infinite loop (see .paint-line in
  * globals.css). `progress` (the page's scroll fraction, from
@@ -60,6 +102,26 @@ export function PaintCanvas(_props: PaintCanvasProps) {
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-canvas">
       <div className="absolute inset-0 bg-canvas-grain" />
 
+      {SLOTS.map((slot) => (
+        <div key={slot.shift} className={`absolute ${slot.className}`}>
+          {PIECES.map((_, i) => {
+            const name = PIECES[(i + slot.shift) % PIECES.length];
+            return (
+              // eslint-disable-next-line @next/next/no-img-element -- fixed decorative layer of pre-sized WebPs; next/image's layout modes don't fit a corner-anchored, content-sized box
+              <img
+                key={name}
+                src={`/images/background/${name}.webp`}
+                alt=""
+                decoding="async"
+                fetchPriority="low"
+                className={`bg-piece absolute max-h-full max-w-full ${slot.imgClassName}`}
+                style={{ animationDelay: `${slot.delay + i * PIECE_SECONDS}s` }}
+              />
+            );
+          })}
+        </div>
+      ))}
+
       <svg
         className="absolute inset-0 h-full w-full"
         viewBox="0 0 1000 1000"
@@ -72,7 +134,7 @@ export function PaintCanvas(_props: PaintCanvasProps) {
             className={`paint-line paint-line--${variant}`}
             d={d}
             stroke={ACCENT}
-            strokeWidth={2}
+            strokeWidth={8}
             strokeLinecap="round"
             strokeOpacity={0.03}
           />
