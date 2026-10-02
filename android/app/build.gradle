@@ -21,8 +21,8 @@ android {
         // Bump BOTH on every release you want the in-app updater to offer:
         // versionCode must strictly increase (it's what /api/app-version is
         // compared against), versionName is the human label shown in Settings.
-        versionCode 4
-        versionName "1.3"
+        versionCode 5
+        versionName "1.4"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

@@ -3,6 +3,9 @@ import { getSystemSettings, updateFaceScanSetting } from "./actions";
 import { AppDownloadsPanel } from "./AppDownloadsPanel";
 import { AppUpdatePanel } from "./AppUpdatePanel";
 import { PushReliabilityPanel } from "./PushReliabilityPanel";
+import { NotificationSoundPanel } from "./NotificationSoundPanel";
+import { PushTestPanel } from "./PushTestPanel";
+import { DEFAULT_NOTIFICATION_SOUND, isNotificationSound } from "@/lib/notificationSounds";
 import { PageHeader } from "../../_components/PageHeader";
 import { Panel } from "../../_components/Panel";
 import { Toggle } from "../../_components/Toggle";
@@ -55,6 +58,16 @@ export default async function AdminSettingsPage() {
       </Panel>
 
       <AppDownloadsPanel />
+
+      <NotificationSoundPanel
+        initial={
+          isNotificationSound(settings.notification_sound)
+            ? settings.notification_sound
+            : DEFAULT_NOTIFICATION_SOUND
+        }
+      />
+
+      <PushTestPanel />
 
       <PushReliabilityPanel />
 

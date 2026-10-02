@@ -395,11 +395,13 @@ export interface Database {
         Row: {
           id: number;
           enable_face_scan: boolean;
+          notification_sound: string;
           updated_at: string;
         };
         Insert: {
           id?: number;
           enable_face_scan?: boolean;
+          notification_sound?: string;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["system_settings"]["Insert"]>;

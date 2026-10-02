@@ -2,6 +2,13 @@ import "server-only";
 import { cert, getApps, getApp, initializeApp } from "firebase-admin/app";
 import { getMessaging } from "firebase-admin/messaging";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  DEFAULT_NOTIFICATION_SOUND,
+  isNotificationSound,
+  soundChannelId,
+  soundResource,
+  type NotificationSoundId,
+} from "@/lib/notificationSounds";
 
 // Shared Firebase Cloud Messaging fan-out to every device in
 // public.admin_push_tokens. Used by /api/notify-admin (new booking / new
@@ -23,9 +30,6 @@ function getFirebaseAdminApp() {
   });
 }
 
-// Must match ADMIN_ALERTS_CHANNEL_ID in android/.../MainActivity.java.
-const ADMIN_PUSH_CHANNEL_ID = "admin_alerts";
-
 export interface AdminPush {
   title: string;
   body: string;
@@ -33,19 +37,39 @@ export interface AdminPush {
   url: string;
 }
 
-/** Sends `push` to every registered admin device and prunes tokens FCM
- * reports as unregistered. Returns how many devices were reached. */
-export async function sendAdminPush(push: AdminPush): Promise<{ sent: number }> {
+export interface AdminPushResult {
+  /** Devices targeted. */
+  total: number;
+  sent: number;
+  failed: number;
+}
+
+/** The sound picked under /admin/settings. Falls back to the default if the
+ * 0068 column isn't there yet, so pushes never fail over a missing setting. */
+async function pickedSound(supabase: ReturnType<typeof createAdminClient>): Promise<NotificationSoundId> {
+  const { data } = await supabase.from("system_settings").select("*").eq("id", 1).maybeSingle();
+  const sound = (data as { notification_sound?: unknown } | null)?.notification_sound;
+  return isNotificationSound(sound) ? sound : DEFAULT_NOTIFICATION_SOUND;
+}
+
+/** Sends `push` to every registered admin device — or only `onlyToken`, when
+ * it is one of them — with the picked sound, and prunes tokens FCM reports
+ * as unregistered. */
+export async function sendAdminPush(push: AdminPush, onlyToken?: string): Promise<AdminPushResult> {
   const supabase = createAdminClient();
-  const { data: tokens, error } = await supabase.from("admin_push_tokens").select("id, token");
+  let query = supabase.from("admin_push_tokens").select("id, token");
+  if (onlyToken) query = query.eq("token", onlyToken);
+
+  const [{ data: tokens, error }, sound] = await Promise.all([query, pickedSound(supabase)]);
   if (error) {
     console.error("[adminPush] failed to load push tokens", error.message);
     throw new Error("load_tokens_failed");
   }
-  if (!tokens || tokens.length === 0) return { sent: 0 };
+  if (!tokens || tokens.length === 0) return { total: 0, sent: 0, failed: 0 };
 
   const messaging = getMessaging(getFirebaseAdminApp());
   const staleTokenIds: string[] = [];
+  let failed = 0;
 
   await Promise.all(
     tokens.map(async ({ id, token }) => {
@@ -65,17 +89,19 @@ export async function sendAdminPush(push: AdminPush): Promise<{ sent: number }> 
             // A booking alert that's a day late is worse than none.
             ttl: 24 * 60 * 60 * 1000,
             notification: {
-              // High-importance channel created natively in MainActivity.
-              // Without it Android posts to FCM's default "Miscellaneous"
-              // channel, which OEMs often show silently / collapsed.
-              channelId: ADMIN_PUSH_CHANNEL_ID,
+              // Android 8+ takes sound and importance from the channel
+              // (one per sound, see notificationSounds.ts). The sound field
+              // covers Android 7. A phone on an older APK that lacks the
+              // picked channel falls back to FCM's default channel.
+              channelId: soundChannelId(sound),
+              sound: soundResource(sound) ?? "default",
               priority: "max",
-              defaultSound: true,
               visibility: "public",
             },
           },
         });
       } catch (err) {
+        failed++;
         const code = (err as { code?: string }).code;
         if (code === "messaging/registration-token-not-registered") {
           staleTokenIds.push(id);
@@ -90,5 +116,5 @@ export async function sendAdminPush(push: AdminPush): Promise<{ sent: number }> 
     await supabase.from("admin_push_tokens").delete().in("id", staleTokenIds);
   }
 
-  return { sent: tokens.length - staleTokenIds.length };
+  return { total: tokens.length, sent: tokens.length - failed, failed };
 }

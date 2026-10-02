@@ -5,6 +5,29 @@ import { useRouter } from "next/navigation";
 import { Capacitor, type PluginListenerHandle } from "@capacitor/core";
 import { PushNotifications, type ActionPerformed, type Token } from "@capacitor/push-notifications";
 import { saveAdminPushToken } from "../actions";
+import { NOTIFICATION_SOUNDS, soundChannelId, soundResource } from "@/lib/notificationSounds";
+
+/** This device's FCM token, so the Settings test button can target it. */
+export const PUSH_TOKEN_KEY = "admin_push_token";
+
+/** One channel per custom sound (a channel's sound is fixed once created).
+ * "default" is the admin_alerts channel MainActivity already creates.
+ * Re-creating an existing channel keeps its settings, so this is safe on
+ * every launch. */
+async function ensureSoundChannels() {
+  for (const s of NOTIFICATION_SOUNDS) {
+    const resource = soundResource(s.id);
+    if (!resource) continue;
+    await PushNotifications.createChannel({
+      id: soundChannelId(s.id),
+      name: `Bookings & messages — ${s.label}`,
+      importance: 5,
+      sound: `${resource}.wav`,
+      vibration: true,
+      visibility: 1,
+    }).catch(() => {});
+  }
+}
 
 /**
  * Renders nothing. Only does anything when actually running inside the
@@ -37,6 +60,9 @@ export function NativePushBridge() {
 
       handles.push(
         await PushNotifications.addListener("registration", (token: Token) => {
+          try {
+            localStorage.setItem(PUSH_TOKEN_KEY, token.value);
+          } catch {}
           saveAdminPushToken(token.value).catch(() => {
             // Best-effort — a failed save just means this device won't
             // receive pushes until the next successful registration.
@@ -60,6 +86,7 @@ export function NativePushBridge() {
         )
       );
 
+      await ensureSoundChannels();
       await PushNotifications.register();
     }
 
