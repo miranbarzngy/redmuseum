@@ -14,7 +14,6 @@ export const NOTIFICATION_SOUNDS = [
   { id: "gallery", label: "زەنگی هۆڵ", description: "سێ نۆتی نەرم، وەک بانگەوازی ناو هۆڵی مۆزەخانە" },
   { id: "santur", label: "سەنتوور", description: "ئاوازێکی کورتی کوردی لەسەر سەنتوور" },
   { id: "bronze", label: "زەنگی برۆنز", description: "یەک لێدانی ئارام بە دەنگدانەوەیەکی درێژ" },
-  { id: "daf", label: "دەف", description: "ڕیتمی دەفی کوردی — زیندوو و ئاشکرا، بۆ ئەوەی لەدەستت نەچێت" },
 ] as const;
 
 export type NotificationSoundId = (typeof NOTIFICATION_SOUNDS)[number]["id"];

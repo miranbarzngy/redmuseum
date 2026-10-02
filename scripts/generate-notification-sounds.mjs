@@ -5,9 +5,8 @@
 //   - public/sounds/                 → in-browser previews
 //
 // The set is meant to suit the museum: unhurried, dignified and Kurdish
-// where it can be — a gallery-hall chime, a santur phrase in maqam Kurd, a
-// bronze bowl, and a daf rhythm for when a push mustn't be missed. Every
-// sound sits in the same small stone-hall reverb.
+// where it can be — a gallery-hall chime, a santur phrase in maqam Kurd and
+// a bronze bowl. Every sound sits in the same small stone-hall reverb.
 //
 // Run with `node scripts/generate-notification-sounds.mjs`, then rebuild the
 // APK so the new res/raw files ship with it. The noise is seeded, so
@@ -42,27 +41,20 @@ function normalise(buf, to = 1) {
   return buf;
 }
 
-function mix(into, from, gain) {
-  for (let i = 0; i < into.length; i++) into[i] += from[i] * gain;
-}
-
 // Adds one struck, decaying tone. Each partial is [frequency ratio,
 // amplitude, decay time constant in seconds], so upper partials can die
-// away faster. `tremolo` is [rate Hz, depth 0–1]; `glide` starts the pitch
-// that fraction high and lets it settle within ~30 ms (a drum skin's
-// tension spiking on impact).
-function strike(buf, start, freq, partials, { attack = 0.004, gain = 1, tremolo, glide = 0 } = {}) {
+// away faster. `tremolo` is [rate Hz, depth 0–1].
+function strike(buf, start, freq, partials, { attack = 0.004, gain = 1, tremolo } = {}) {
   const from = samples(start);
   const longest = Math.max(...partials.map((p) => p[2]));
   const to = Math.min(buf.length, from + samples(longest * 9)); // ~-78 dB
   for (let i = from; i < to; i++) {
     const t = (i - from) / RATE;
-    const time = t + glide * 0.03 * (1 - Math.exp(-t / 0.03));
     let env = gain * (t < attack ? t / attack : 1);
     if (tremolo) env *= 1 - tremolo[1] * (0.5 - 0.5 * Math.cos(TAU * tremolo[0] * t));
     let s = 0;
     for (const [ratio, amp, tau] of partials) {
-      s += amp * Math.exp(-t / tau) * Math.sin(TAU * freq * ratio * time);
+      s += amp * Math.exp(-t / tau) * Math.sin(TAU * freq * ratio * t);
     }
     buf[i] += env * s;
   }
@@ -139,8 +131,8 @@ function highpass(buf, freq) {
 }
 
 // Phone speakers reproduce next to nothing under ~400 Hz, so loudness is
-// measured above that (RMS over the first second) — otherwise the
-// bass-heavy daf would be normalised to sound the quietest on a phone.
+// measured above that (RMS over the first second) — otherwise a sound's
+// bass would count towards loudness a phone never actually plays.
 function phoneLoudness(buf) {
   const audible = highpass(highpass(buf.subarray(0, samples(1)), 400), 400);
   let sum = 0;
@@ -224,66 +216,6 @@ const BOWL = [
   [12.87, 0.05, 0.12],
 ];
 
-// Daf, the Kurdish frame drum: a skin, plus iron rings chained inside the
-// frame. "dum" is a centre hit (deep, axisymmetric skin modes), "tak" a
-// slap near the rim. The rings follow Perry Cook's PhISEM shaker model:
-// every hit hands them energy, they collide at random while it drains
-// away, and each collision rings a bank of metallic resonances.
-function daf(buf, hits, rand) {
-  const skin = new Float32Array(buf.length);
-  for (const [time, kind, gain] of hits) {
-    if (kind === "dum") {
-      // hits are never dead centre, so a few off-centre modes ring too
-      const modes = [
-        [1, 0.3, 0.22], [1.594, 0.25, 0.1], [2.136, 0.2, 0.08],
-        [2.296, 0.4, 0.12], [2.653, 0.18, 0.06], [3.598, 0.35, 0.07],
-      ];
-      strike(skin, time, 100, modes, { attack: 0.001, gain, glide: 0.25 });
-      burst(skin, time, rand, { gain: 0.5 * gain, decay: 0.01, bright: 0.25 });
-    } else {
-      strike(skin, time, 100, [[3.16, 0.5, 0.06], [3.65, 0.4, 0.05], [4.6, 0.3, 0.04], [5.65, 0.2, 0.03]], {
-        attack: 0.001,
-        gain,
-        glide: 0.1,
-      });
-      burst(skin, time, rand, { gain: 0.8 * gain, decay: 0.007, bright: 0.55 });
-    }
-  }
-
-  const rings = new Float32Array(buf.length);
-  const resonators = [
-    [1850, 0.993], [2600, 0.994], [3300, 0.994], [4100, 0.995],
-    [5000, 0.995], [6200, 0.996], [7400, 0.996], [8800, 0.996],
-  ].map(([freq, r]) => ({ freq, r, c1: 0, y1: 0, y2: 0 }));
-  const tune = (res, freq) => (res.c1 = 2 * res.r * Math.cos((TAU * freq) / RATE));
-  resonators.forEach((res) => tune(res, res.freq));
-
-  const kicks = new Map(hits.map(([time, kind, gain]) => [samples(time), (kind === "dum" ? 1 : 0.7) * gain]));
-  let energy = 0;
-  let level = 0;
-  for (let i = 0; i < rings.length; i++) {
-    energy = (energy + (kicks.get(i) ?? 0)) * 0.99972; // rattle dies over ~80 ms
-    if (rand() < 0.05) {
-      level += energy;
-      // loose rings never land on quite the same pitch twice
-      for (const res of resonators) tune(res, res.freq * (1 + 0.08 * (rand() - 0.5)));
-    }
-    level *= 0.95;
-    const x = level * (rand() * 2 - 1);
-    let y = 0;
-    for (const res of resonators) {
-      const out = x + res.c1 * res.y1 - res.r * res.r * res.y2;
-      res.y2 = res.y1;
-      res.y1 = out;
-      y += out;
-    }
-    rings[i] = y;
-  }
-
-  mix(buf, normalise(skin), 1);
-  mix(buf, normalise(rings), 0.9);
-}
-
 // ── The sounds ──────────────────────────────────────────────────────────
 
 const SOUNDS = {
@@ -317,10 +249,6 @@ const SOUNDS = {
       burst(b, 0, random(3), { gain: 0.1, decay: 0.006, bright: 0.4 });
     },
     0.6
-  ),
-  // Daf: dum – tak tak – dum, the loudest and busiest of the set
-  daf: render("daf", 1.7, 0.9, (b) =>
-    daf(b, [[0, "dum", 1], [0.21, "tak", 0.75], [0.33, "tak", 0.6], [0.54, "dum", 0.95]], random(11))
   ),
 };
 

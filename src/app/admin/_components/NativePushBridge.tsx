@@ -13,8 +13,17 @@ export const PUSH_TOKEN_KEY = "admin_push_token";
 /** One channel per custom sound (a channel's sound is fixed once created).
  * "default" is the admin_alerts channel MainActivity already creates.
  * Re-creating an existing channel keeps its settings, so this is safe on
- * every launch. */
+ * every launch. Channels for sounds no longer offered are deleted so they
+ * don't linger in the phone's notification settings. */
 async function ensureSoundChannels() {
+  const offered = new Set(NOTIFICATION_SOUNDS.map((s) => soundChannelId(s.id)));
+  const { channels } = await PushNotifications.listChannels().catch(() => ({ channels: [] }));
+  for (const { id } of channels) {
+    if (id.startsWith("admin_alerts_") && !offered.has(id)) {
+      await PushNotifications.deleteChannel({ id }).catch(() => {});
+    }
+  }
+
   for (const s of NOTIFICATION_SOUNDS) {
     const resource = soundResource(s.id);
     if (!resource) continue;
