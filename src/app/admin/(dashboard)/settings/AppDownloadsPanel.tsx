@@ -16,7 +16,7 @@ export function AppDownloadsPanel() {
   return (
     <Panel
       title="داگرتنی ئەپەکان"
-      description="وەشانی ئەپی بەڕێوەبردن بۆ ئەندرۆید و وینڈۆز دابگرە."
+      description="وەشانی ئەپی بەڕێوەبردن بۆ ئەندرۆید و ویندۆز دابگرە."
     >
       <div className="flex flex-col gap-3">
         <DownloadRow
@@ -27,7 +27,7 @@ export function AppDownloadsPanel() {
         />
         <DownloadRow
           icon={<Monitor size={16} className="text-pigment-terracotta" />}
-          label="وینڈۆز (EXE)"
+          label="ویندۆز (EXE)"
           version={manifest.exeVersionName}
           url={manifest.exeUrl}
         />
