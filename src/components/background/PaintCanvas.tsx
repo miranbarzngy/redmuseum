@@ -68,17 +68,25 @@ const PIECES = [
 // are written for PIECES.length × this — change one, re-check the other.
 const PIECE_SECONDS = 7;
 
+// Each slot's box scales with the screen: 22% of its width / 34% of its
+// height, never smaller than ~9rem × 10rem (phones) or bigger than
+// 24rem × 26rem (large monitors). A piece fits inside at its own aspect
+// ratio, so whichever side runs out first sets its size. Fainter on phones,
+// where the text runs edge to edge over the pieces.
+const SLOT_SIZE =
+  "h-[clamp(10rem,34vh,26rem)] w-[clamp(9rem,22vw,24rem)] opacity-[0.08] md:opacity-[0.14]";
+
 const SLOTS = [
   {
-    // Bottom-left. The only slot on phones, where the text runs edge to edge.
-    className: "bottom-[6vh] left-[3vw] h-[38vh] w-[70vw] opacity-[0.08] md:h-[48vh] md:w-[30vw] md:opacity-[0.14]",
+    // Bottom-left.
+    className: `bottom-[6vh] left-[3vw] ${SLOT_SIZE}`,
     imgClassName: "bottom-0 left-0",
     shift: 0,
     delay: 0,
   },
   {
     // Top-right, half a beat behind the first slot so their fades alternate.
-    className: "top-[16vh] right-[3vw] hidden h-[48vh] w-[30vw] opacity-[0.14] md:block",
+    className: `top-[16vh] right-[3vw] ${SLOT_SIZE}`,
     imgClassName: "top-0 right-0",
     shift: 5,
     delay: PIECE_SECONDS / 2,
