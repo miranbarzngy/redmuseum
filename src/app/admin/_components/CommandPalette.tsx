@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { CornerDownLeft, Search } from "lucide-react";
 import type { NavItem } from "./adminNav";
+import { startNavigationProgress } from "./NavigationProgress";
 
 type Entry = NavItem & { kind: "section" | "action" };
 
@@ -87,6 +88,7 @@ function PalettePanel({
   function go(entry: Entry | undefined) {
     if (!entry) return;
     onClose();
+    startNavigationProgress(entry.href);
     router.push(entry.href);
   }
 

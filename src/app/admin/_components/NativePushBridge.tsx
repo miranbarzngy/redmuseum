@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Capacitor, type PluginListenerHandle } from "@capacitor/core";
 import { PushNotifications, type ActionPerformed, type Token } from "@capacitor/push-notifications";
 import { saveAdminPushToken } from "../actions";
+import { startNavigationProgress } from "./NavigationProgress";
 import { NOTIFICATION_SOUNDS, soundChannelId, soundResource } from "@/lib/notificationSounds";
 
 /** This device's FCM token, so the Settings test button can target it. */
@@ -93,6 +94,7 @@ export function NativePushBridge() {
           "pushNotificationActionPerformed",
           (action: ActionPerformed) => {
             const url = (action.notification.data?.url as string | undefined) ?? "/admin/messages";
+            startNavigationProgress(url);
             router.push(url);
           }
         )

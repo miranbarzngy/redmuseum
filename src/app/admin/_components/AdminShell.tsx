@@ -9,6 +9,7 @@ import type { LucideIcon } from "lucide-react";
 import { signOut } from "../actions";
 import { useIsNativeApp } from "@/lib/useIsNativeApp";
 import { NativePushBridge, PUSH_TOKEN_KEY } from "./NativePushBridge";
+import { NavigationProgress } from "./NavigationProgress";
 import { NotificationsBell } from "./NotificationsBell";
 import { ToastProvider, FlashToast } from "./Toast";
 import { EMPTY_ADMIN_NOTIFICATIONS, type AdminNotifications } from "./adminNotificationsShape";
@@ -137,6 +138,7 @@ function ShellFrame({
       <NativePushBridge />
       <Suspense fallback={null}>
         <FlashToast />
+        <NavigationProgress />
       </Suspense>
 
       {/* Desktop sidebar (browser, ≥ lg) — this shell is permanently RTL, so

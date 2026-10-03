@@ -6,6 +6,7 @@ import { Search } from "lucide-react";
 import clsx from "clsx";
 import { fieldControlClass } from "../../_components/Field";
 import { btnSecondary } from "../../_components/Button";
+import { startNavigationProgress } from "../../_components/NavigationProgress";
 
 /** Plain date/select inputs plus a free-text search box, following
  * FilterTabs' URL-searchParam idiom — more fields than a segmented control
@@ -48,7 +49,9 @@ export function AuditLogFilters({
     for (const [key, value] of formData.entries()) {
       if (typeof value === "string" && value) next.set(key, value);
     }
-    router.push(next.size > 0 ? `${pathname}?${next.toString()}` : pathname);
+    const href = next.size > 0 ? `${pathname}?${next.toString()}` : pathname;
+    startNavigationProgress(href);
+    router.push(href);
   }
 
   return (
