@@ -1,15 +1,14 @@
 import { getSiteProfile } from "@/lib/data/profile";
-import { getBookingSettings } from "@/lib/data/bookingSettings";
 import { resolveSocials } from "@/data/socials";
 import { contactDefaults } from "@/lib/contactDefaults";
 import { ContactPageClient } from "./ContactPageClient";
 
 // Server wrapper for the standalone /contact route — same split as
-// Footer/FooterClient: this fetches the admin-entered profile plus the live
-// booking schedule, ContactPageClient (client, for the form + locale-aware
-// formatting) just renders the resolved values.
+// Footer/FooterClient: this fetches the admin-entered profile,
+// ContactPageClient (client, for the form + locale-aware formatting) just
+// renders the resolved values.
 export async function ContactPage() {
-  const [profile, bookingSettings] = await Promise.all([getSiteProfile(), getBookingSettings()]);
+  const profile = await getSiteProfile();
 
   const email = profile?.contact_email?.trim() || contactDefaults.email;
   const phone = profile?.contact_phone?.trim() || contactDefaults.phone;
@@ -25,8 +24,6 @@ export async function ContactPage() {
       locationEn={profile?.contact_location_en?.trim() || contactDefaults.location.en}
       locationAr={profile?.contact_location_ar?.trim() || contactDefaults.location.ar}
       socials={socials}
-      openWeekdays={bookingSettings.openWeekdays}
-      timeSlots={bookingSettings.timeSlots}
       guideFlyerUrl={profile?.guide_flyer_url?.trim() || null}
     />
   );
