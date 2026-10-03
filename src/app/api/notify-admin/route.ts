@@ -40,7 +40,7 @@ type NotifyBody =
 
 function buildNotification(body: NotifyBody): { title: string; body: string; url: string } {
   if (body.table === "bookings") {
-    const parts = [`بەرواری سەردان: ${body.record.visit_date}`];
+    const parts = [body.record.visit_date];
     if (body.record.visitor_type_label) {
       const guests = body.record.guest_count ?? 1;
       parts.push(`${body.record.visitor_type_label} · ${guests} کەس`);
