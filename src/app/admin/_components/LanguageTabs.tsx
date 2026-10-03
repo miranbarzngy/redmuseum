@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState } from "react";
 import clsx from "clsx";
+import { slidingIndicatorMotion, useSlidingIndicator } from "./useSlidingIndicator";
 
 export const ADMIN_LANGS = [
   { code: "ku", label: "کوردی", dir: "rtl" as const },
@@ -33,28 +34,55 @@ export function LanguageProvider({
   );
 }
 
-/** The single language switch for a form. Renders nothing outside a provider. */
+/** The single language switch for a form. Renders nothing outside a provider.
+ * An iOS-style segmented control: a gray track with a raised white pill
+ * that springs to the picked language. */
 export function LanguageTabs({ className }: { className?: string }) {
   const ctx = useLanguage();
   if (!ctx) return null;
+  return <Segments active={ctx.active} onPick={ctx.setActive} className={className} />;
+}
+
+function Segments({
+  active,
+  onPick,
+  className,
+}: {
+  active: LangCode;
+  onPick: (code: LangCode) => void;
+  className?: string;
+}) {
+  const { containerRef, indicatorRef } = useSlidingIndicator<HTMLDivElement, HTMLSpanElement>(active);
 
   return (
     <div
-      className={clsx(
-        "inline-flex items-center gap-1 rounded-full border border-ink/10 bg-canvas-paper p-1",
-        className
-      )}
+      ref={containerRef}
+      className={clsx("group/pill relative inline-flex items-center gap-0.5 rounded-full bg-ink/[0.06] p-1", className)}
     >
+      <span
+        ref={indicatorRef}
+        aria-hidden
+        className={clsx(
+          "pointer-events-none absolute left-0 top-0 rounded-full bg-white opacity-0 shadow-[0_1px_3px_rgba(28,27,25,0.14),0_1px_1px_rgba(28,27,25,0.06)]",
+          slidingIndicatorMotion
+        )}
+      />
       {ADMIN_LANGS.map((lang) => {
-        const isActive = ctx.active === lang.code;
+        const isActive = active === lang.code;
         return (
           <button
             key={lang.code}
             type="button"
-            onClick={() => ctx.setActive(lang.code)}
+            onClick={() => onPick(lang.code)}
+            data-active={isActive}
+            aria-pressed={isActive}
             className={clsx(
-              "font-kurdish rounded-full px-3.5 py-1.5 text-fluid-xs font-medium transition-colors",
-              isActive ? "bg-[#850B10] text-canvas" : "text-ink-soft hover:text-ink"
+              "font-kurdish relative rounded-full px-3.5 py-1.5 text-fluid-xs transition-[color,transform] duration-200 active:scale-95",
+              // Until the sliding pill is placed, the active button draws
+              // the same white pill itself (see useSlidingIndicator).
+              isActive
+                ? "bg-white font-semibold text-brand shadow-[0_1px_3px_rgba(28,27,25,0.14),0_1px_1px_rgba(28,27,25,0.06)] group-data-[pill=ready]/pill:bg-transparent group-data-[pill=ready]/pill:shadow-none"
+                : "font-medium text-ink-soft hover:text-ink"
             )}
           >
             {lang.label}

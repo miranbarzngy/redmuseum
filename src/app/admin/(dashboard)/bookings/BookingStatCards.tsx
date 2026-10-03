@@ -1,6 +1,9 @@
+"use client";
+
 import clsx from "clsx";
 import { Ticket, Clock, CheckCircle2, LogIn, XCircle, CircleSlash } from "lucide-react";
 import { STATUS_LABELS } from "./status";
+import { slidingIndicatorMotion, useSlidingIndicator } from "../../_components/useSlidingIndicator";
 import type { BookingStatus } from "@/lib/supabase/database.types";
 
 export type BookingFilter = "all" | BookingStatus;
@@ -20,7 +23,11 @@ const STAT_ORDER: BookingFilter[] = ["all", "pending", "confirmed", "checked_in"
  * Compact KPI strip doubling as the status filter — six small cards (all
  * five statuses + a total), each an icon circle over a count. Kept
  * deliberately small: this is a glance-and-click header, not the page's
- * focal point, so it shouldn't compete with the table below it.
+ * focal point, so it shouldn't compete with the list below it.
+ *
+ * Inactive cards are frosted white glass; the picked one sits on a brand
+ * pill that springs between cards (useSlidingIndicator). While bookings
+ * are waiting, the pending card's icon turns gold to draw the eye.
  */
 export function BookingStatCards({
   counts,
@@ -31,33 +38,67 @@ export function BookingStatCards({
   filter: BookingFilter;
   onSelect: (key: BookingFilter) => void;
 }) {
+  const { containerRef, indicatorRef } = useSlidingIndicator<HTMLDivElement, HTMLSpanElement>(filter);
+
   return (
-    <div className="grid grid-cols-3 gap-1.5 sm:gap-2 lg:grid-cols-6">
+    <div ref={containerRef} className="group/pill relative grid grid-cols-3 gap-1.5 sm:gap-2 lg:grid-cols-6">
+      <span
+        ref={indicatorRef}
+        aria-hidden
+        className={clsx(
+          "pointer-events-none absolute left-0 top-0 rounded-2xl bg-brand-fill opacity-0 shadow-brand",
+          slidingIndicatorMotion
+        )}
+      />
       {STAT_ORDER.map((key) => {
         const Icon = STAT_ICON[key];
         const label = key === "all" ? "کۆی گشتی" : STATUS_LABELS[key];
         const active = filter === key;
+        const waiting = key === "pending" && counts.rows.pending > 0;
         return (
           <button
             key={key}
             type="button"
             onClick={() => onSelect(key)}
+            data-active={active}
+            aria-pressed={active}
             className={clsx(
-              "group flex flex-col items-center gap-1 rounded-xl border bg-white p-2 text-center shadow-card transition-all hover:-translate-y-0.5 active:scale-95",
+              "relative flex flex-col items-center gap-1 rounded-2xl p-2 text-center transition-[color,background-color,box-shadow,transform] duration-300 ease-spring active:scale-95",
               active
-                ? "border-2 border-[#850B10] ring-1 ring-[#850B10]/20"
-                : "border-ink/10 hover:border-[#850B10]/30"
+                ? "bg-brand-fill text-white shadow-brand group-data-[pill=ready]/pill:bg-none group-data-[pill=ready]/pill:shadow-none"
+                : "bg-white/70 text-ink shadow-[0_1px_2px_rgba(28,27,25,0.05)] ring-1 ring-inset ring-ink/[0.08] backdrop-blur-sm hover:bg-white"
             )}
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#850B10] text-white sm:h-8 sm:w-8">
+            <span
+              className={clsx(
+                "flex h-7 w-7 items-center justify-center rounded-full transition-colors duration-300 sm:h-8 sm:w-8",
+                active
+                  ? "bg-white/20 text-white"
+                  : waiting
+                    ? "bg-gold-fill text-[#3B2A00] shadow-[0_4px_10px_-4px_rgba(194,154,36,0.7)]"
+                    : "bg-brand/10 text-brand"
+              )}
+            >
               <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" strokeWidth={2.5} />
             </span>
-            <span className="font-kurdish text-fluid-sm font-semibold leading-none text-ink sm:text-fluid-base">
+            <span className="font-kurdish text-fluid-sm font-semibold leading-none tabular-nums sm:text-fluid-base">
               {counts.rows[key]}
             </span>
-            <span className="font-kurdish text-[10px] leading-tight text-ink-soft">{label}</span>
+            <span
+              className={clsx(
+                "font-kurdish text-[10px] leading-tight transition-colors duration-300",
+                active ? "text-white" : "text-ink-soft"
+              )}
+            >
+              {label}
+            </span>
             {key === "checked_in" && counts.people.checked_in > 0 && (
-              <span className="font-kurdish text-[9px] font-medium leading-tight text-pigment-teal">
+              <span
+                className={clsx(
+                  "font-kurdish text-[9px] font-medium leading-tight",
+                  active ? "text-white" : "text-pigment-teal"
+                )}
+              >
                 {counts.people.checked_in} کەس
               </span>
             )}

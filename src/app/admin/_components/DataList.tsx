@@ -32,10 +32,10 @@ export function DataList<T>({
 }) {
   return (
     <>
-      <div className="hidden overflow-x-auto rounded-2xl border border-ink/10 bg-white shadow-card md:block">
+      <div className="hidden overflow-x-auto rounded-[1.375rem] border border-ink/[0.07] bg-white shadow-card md:block">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="border-b border-ink/10">
+            <tr className="border-b border-ink/[0.07]">
               {columns.map((c) => (
                 <th
                   key={c.key}
@@ -77,7 +77,10 @@ export function DataList<T>({
         </table>
       </div>
 
-      <div className="flex flex-col gap-3 md:hidden">
+      {/* Phones: an iOS-style grouped inset list — one rounded surface with
+          hairline dividers. Each card's own border, shadow and rounding are
+          flattened so the rows read as one group. */}
+      <div className="divide-y divide-ink/[0.06] overflow-hidden rounded-[1.375rem] border border-ink/[0.07] bg-white shadow-card md:hidden [&>div>*]:rounded-none [&>div>*]:border-0 [&>div>*]:shadow-none">
         {rows.map((row) => (
           <div key={rowKey(row)}>{renderCard(row)}</div>
         ))}

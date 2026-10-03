@@ -17,6 +17,7 @@ import { PageChromeProvider, usePageChrome } from "./pageChrome";
 import { Sheet } from "./Sheet";
 import { PullToRefresh } from "./PullToRefresh";
 import { CommandPalette, usePaletteShortcut } from "./CommandPalette";
+import { slidingIndicatorMotion, useSlidingIndicator } from "./useSlidingIndicator";
 
 const LOGO_SRC = "/images/logo/android-chrome-192x192.png";
 
@@ -88,17 +89,24 @@ function ShellFrame({
   const isActive = (href: string) => isActiveHref(pathname, href);
   const currentLabel = visibleItems.find((n) => isActive(n.href))?.label ?? "بەڕێوەبردن";
 
+  // Unread messages: brand red. Pending bookings: warm gold, with dark text
+  // — white on gold is only ~2:1.
   function badgeFor(href: string): Badge {
     if (href === "/admin/messages" && unreadMessages > 0)
-      return { count: unreadMessages, tone: "bg-pigment-crimson" };
+      return { count: unreadMessages, tone: "bg-brand-fill text-white" };
     if (href === "/admin/bookings" && pendingBookings > 0)
-      return { count: pendingBookings, tone: "bg-pigment-gold" };
+      return { count: pendingBookings, tone: "bg-gold-fill text-[#3B2A00]" };
     return null;
   }
 
   const mobileBar = visibleItems.filter((n) => MOBILE_PRIMARY.has(n.href));
   const sheetItems = visibleItems.filter((n) => !MOBILE_PRIMARY.has(n.href));
   const moreActive = sheetItems.some((n) => isActive(n.href));
+  // The dock's active pill slides between its tabs (none active → it fades).
+  const { containerRef: dockRef, indicatorRef: dockPillRef } = useSlidingIndicator<
+    HTMLUListElement,
+    HTMLSpanElement
+  >(mobileBar.find((n) => isActive(n.href))?.href ?? null);
 
   const openPalette = useCallback(() => setPaletteOpen(true), []);
   usePaletteShortcut(openPalette);
@@ -121,7 +129,11 @@ function ShellFrame({
   const showCompactTitle = chrome.titleScrolledAway || chrome.title === null;
 
   return (
-    <div dir="rtl" className={clsx("min-h-screen bg-canvas text-ink", !forceBottomNav && "lg:pr-64")}>
+    <div dir="rtl" className={clsx("isolate min-h-screen bg-canvas text-ink", !forceBottomNav && "lg:pr-64")}>
+      {/* Soft oxblood / gold glow behind everything instead of a flat
+          backdrop. Fixed, so long pages don't stretch it; the glass bars
+          and sidebar pick its tint up through their blur. */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-admin-mesh" />
       <NativePushBridge />
       <Suspense fallback={null}>
         <FlashToast />
@@ -132,11 +144,11 @@ function ShellFrame({
           props. Never rendered inside the native APK. */}
       <aside
         className={clsx(
-          "fixed inset-y-0 right-0 z-40 hidden w-64 select-none flex-col border-l border-ink/10 bg-white",
+          "fixed inset-y-0 right-0 z-40 hidden w-64 select-none flex-col border-l border-ink/[0.07] bg-white/70 backdrop-blur-xl backdrop-saturate-150",
           !forceBottomNav && "lg:flex",
         )}
       >
-        <div className="flex items-center gap-3 border-b border-ink/10 px-5 py-3.5">
+        <div className="flex items-center gap-3 border-b border-ink/[0.07] px-5 py-3.5">
           <BrandMark className="h-10 w-10" />
           <div className="min-w-0">
             <span className="font-kurdish block text-fluid-base font-semibold text-ink">ئەمنە سورەکە</span>
@@ -171,7 +183,7 @@ function ShellFrame({
           ))}
         </nav>
 
-        <div className="flex flex-col gap-0.5 border-t border-ink/10 p-3">
+        <div className="flex flex-col gap-0.5 border-t border-ink/[0.07] p-3">
           {showSettings && <SidebarLink item={SETTINGS_ITEM} active={isActive(SETTINGS_ITEM.href)} badge={null} />}
           <Link
             href="/"
@@ -184,13 +196,16 @@ function ShellFrame({
         </div>
       </aside>
 
-      {/* Top app bar. Flat at the top of the page, blurred with a hairline
-          once content scrolls under it. Padded for the status bar / notch
-          (env() is 0 wherever there isn't one). */}
+      {/* Top app bar. Transparent over the backdrop at the top of the page,
+          frosted glass with a hairline once content scrolls under it.
+          Padded for the status bar / notch (env() is 0 wherever there
+          isn't one). */}
       <header
         className={clsx(
           "sticky top-0 z-30 select-none pt-[env(safe-area-inset-top)] transition-[background-color,border-color,box-shadow] duration-200",
-          scrolled ? "border-b border-ink/10 bg-white/85 backdrop-blur-md" : "border-b border-transparent bg-canvas",
+          scrolled
+            ? "border-b border-ink/[0.07] bg-canvas/70 backdrop-blur-xl backdrop-saturate-150"
+            : "border-b border-transparent bg-transparent",
         )}
       >
         <div className="flex h-14 items-center justify-between gap-2 px-3 sm:px-6 lg:h-16">
@@ -278,7 +293,18 @@ function ShellFrame({
         )}
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)" }}
       >
-        <ul className="mx-auto flex w-full max-w-xl items-stretch rounded-full border border-ink/10 bg-white/95 px-2 shadow-[0_20px_45px_-12px_rgba(28,27,25,0.35)] backdrop-blur-md">
+        <ul
+          ref={dockRef}
+          className="group/pill relative mx-auto flex w-full max-w-xl items-stretch rounded-full border border-white/70 bg-white/75 px-2 shadow-dock ring-1 ring-ink/[0.05] backdrop-blur-xl backdrop-saturate-150"
+        >
+          <span
+            ref={dockPillRef}
+            aria-hidden
+            className={clsx(
+              "pointer-events-none absolute left-0 top-0 rounded-full bg-gradient-to-b from-brand/[0.16] to-brand/[0.07] opacity-0 ring-1 ring-inset ring-brand/10",
+              slidingIndicatorMotion,
+            )}
+          />
           {mobileBar.map((item) => (
             <li key={item.href} className="flex-1">
               <BottomNavItem
@@ -402,7 +428,7 @@ function CountBadge({ badge, className }: { badge: Badge; className?: string }) 
   return (
     <span
       className={clsx(
-        "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none text-canvas ring-2 ring-white",
+        "flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[9px] font-bold leading-none tabular-nums shadow-[0_1px_2px_rgba(28,27,25,0.25)] ring-2 ring-white",
         badge.tone,
         className,
       )}
@@ -436,12 +462,14 @@ function BottomNavItem({
   return href ? (
     <Link href={href} aria-label={ariaLabel ?? label} aria-current={active ? "page" : undefined} className={className}>
       <PendingAware>
-        {(pending) => <BottomNavFace label={label} icon={icon} active={active} pending={pending} badge={badge} />}
+        {(pending) => (
+          <BottomNavFace label={label} icon={icon} active={active} pending={pending} badge={badge} slides />
+        )}
       </PendingAware>
     </Link>
   ) : (
     <button type="button" onClick={onClick} aria-label={ariaLabel ?? label} className={className}>
-      <BottomNavFace label={label} icon={icon} active={active} pending={false} badge={badge} />
+      <BottomNavFace label={label} icon={icon} active={active} pending={false} badge={badge} slides={false} />
     </button>
   );
 }
@@ -461,24 +489,33 @@ function BottomNavFace({
   active,
   pending,
   badge,
+  slides,
 }: {
   label: string;
   icon: LucideIcon;
   active: boolean;
   pending: boolean;
   badge?: Badge;
+  /** Highlighted by the dock's sliding pill (marks itself data-active for
+   * it) rather than its own fill — every tab except «زیاتر». */
+  slides: boolean;
 }) {
   return (
     <>
-      {/* icon in a pill that fills with soft brand red and lifts when active */}
+      {/* icon well — the shared sliding pill sits behind the active one */}
       <span
+        data-active={slides && active}
         className={clsx(
-          "relative flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 ease-out md:h-11 md:w-11",
+          "relative flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-300 ease-out md:h-11 md:w-11",
           active
-            ? "-translate-y-0.5 bg-[#850B10]/[0.12] text-[#850B10]"
+            ? clsx(
+                "bg-brand/[0.12] text-brand",
+                // the sliding pill takes over once placed (useSlidingIndicator)
+                slides && "group-data-[pill=ready]/pill:bg-transparent",
+              )
             : pending
-              ? "animate-pulse bg-[#850B10]/10 text-[#850B10]"
-              : "translate-y-0 text-ink-faint group-hover:bg-canvas-paper group-hover:text-ink-soft",
+              ? "animate-pulse bg-brand/10 text-brand"
+              : "text-ink-faint group-hover:bg-ink/[0.04] group-hover:text-ink-soft",
         )}
       >
         <Icon
@@ -491,7 +528,7 @@ function BottomNavFace({
       <span
         className={clsx(
           "font-kurdish whitespace-nowrap text-[10px] leading-none transition-colors duration-200",
-          active || pending ? "font-semibold text-[#850B10]" : "font-medium text-ink-faint",
+          active || pending ? "font-semibold text-brand" : "font-medium text-ink-faint",
         )}
       >
         {label}
@@ -518,14 +555,14 @@ function SheetTile({
       onClick={onNavigate}
       aria-current={active ? "page" : undefined}
       className={clsx(
-        "font-kurdish relative flex flex-col items-center gap-2 rounded-2xl px-2 py-4 text-center text-fluid-xs font-medium transition-[colors,transform] active:scale-95",
-        active ? "bg-[#850B10] text-canvas" : "bg-canvas-paper/70 text-ink-soft",
+        "font-kurdish relative flex flex-col items-center gap-2 rounded-2xl px-2 py-4 text-center text-fluid-xs font-medium transition-[colors,transform] duration-200 ease-out active:scale-95",
+        active ? "bg-brand-fill text-white shadow-brand" : "bg-canvas-paper/70 text-ink-soft",
       )}
     >
       <span
         className={clsx(
           "flex h-11 w-11 items-center justify-center rounded-2xl",
-          active ? "bg-white/15" : "bg-white text-[#850B10] shadow-ring",
+          active ? "bg-white/15" : "bg-white text-brand shadow-ring",
         )}
       >
         <Icon size={20} />
@@ -543,23 +580,25 @@ function SidebarLink({ item, active, badge }: { item: NavItem; active: boolean; 
       href={href}
       aria-current={active ? "page" : undefined}
       className={clsx(
-        "font-kurdish flex items-center gap-3 rounded-xl px-3.5 py-2 text-fluid-sm font-medium transition-colors",
-        active ? "bg-[#850B10] text-canvas" : "text-ink-soft hover:bg-canvas-paper hover:text-ink",
+        "font-kurdish flex items-center gap-3 rounded-xl px-3.5 py-2 text-fluid-sm font-medium transition-[color,background-color,transform] duration-150 active:scale-[0.98]",
+        active ? "bg-brand-fill text-white shadow-brand" : "text-ink-soft hover:bg-ink/[0.04] hover:text-ink",
       )}
     >
       <Icon size={16} />
       <span className="flex-1">{label}</span>
+      {/* gold pip marks the current section */}
+      {active && !badge && <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-brand-gold" />}
       <PendingAware>
         {(pending) =>
           pending && !active ? (
-            <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#850B10]" />
+            <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
           ) : null
         }
       </PendingAware>
       {badge && (
         <span
           className={clsx(
-            "flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold text-canvas",
+            "flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-semibold tabular-nums",
             badge.tone,
           )}
         >

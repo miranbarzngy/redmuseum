@@ -24,7 +24,7 @@ export function RowCard({
   return (
     <div
       className={clsx(
-        "flex items-center gap-3 rounded-2xl border border-ink/10 bg-white p-3.5 shadow-card",
+        "flex items-center gap-3 rounded-2xl border border-ink/[0.07] bg-white p-3.5 shadow-card",
         className
       )}
     >

@@ -6,8 +6,18 @@ import clsx from "clsx";
 // streams into it — instead of the old tap, wait, then jump. Each shape
 // roughly mirrors the page it stands in for, so the swap doesn't jolt.
 
+// A soft highlight sweeps across each bone instead of the whole shape
+// blinking — the native skeleton look. Reduced motion stops the sweep
+// (globals.css), leaving a still gray bone.
 function Bone({ className }: { className?: string }) {
-  return <div className={clsx("animate-pulse rounded-xl bg-ink/[0.07]", className)} />;
+  return (
+    <div
+      className={clsx(
+        "relative overflow-hidden rounded-xl bg-ink/[0.06] after:absolute after:inset-0 after:animate-shimmer after:bg-gradient-to-r after:from-transparent after:via-white/70 after:to-transparent",
+        className
+      )}
+    />
+  );
 }
 
 function Frame({ narrow, children }: { narrow?: "2xl" | "3xl"; children: React.ReactNode }) {

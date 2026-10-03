@@ -5,10 +5,10 @@ import { ChevronDown } from "lucide-react";
 import clsx from "clsx";
 
 /**
- * White bordered card with an optional header (title / description / action)
- * and an optional collapse toggle. Replaces the ad-hoc
- * `rounded-2xl border border-ink/10 bg-white p-6 shadow-card` repeated on
- * every admin page.
+ * White card with an optional header (title / description / action) and an
+ * optional collapse toggle — the admin's grouped-section surface: a hairline
+ * border plus the layered admin card shadow (see --shadow-card in
+ * globals.css). Replaces the ad-hoc card markup repeated on every page.
  *
  * It's a client component only so `collapsible` can hold open/closed state —
  * server-rendered children passed in as `children` still work fine.
@@ -37,13 +37,13 @@ export function Panel({
 
   return (
     <section
-      className={clsx("rounded-2xl border border-ink/10 bg-white shadow-card", className)}
+      className={clsx("rounded-[1.375rem] border border-ink/[0.07] bg-white shadow-card", className)}
     >
       {hasHeader && (
         <div
           className={clsx(
             "flex flex-wrap items-start justify-between gap-3 px-5 py-4 sm:px-6",
-            (!collapsible || open) && "border-b border-ink/10"
+            (!collapsible || open) && "border-b border-ink/[0.07]"
           )}
         >
           {collapsible ? (

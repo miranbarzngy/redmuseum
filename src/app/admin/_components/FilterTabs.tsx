@@ -41,18 +41,18 @@ export function FilterTabs({
             href={hrefFor(opt.value)}
             scroll={false}
             className={clsx(
-              "font-kurdish inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-fluid-xs font-medium transition-[colors,transform] duration-150 active:scale-95",
+              "font-kurdish inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-fluid-xs font-medium transition-[color,background-color,box-shadow,transform] duration-200 ease-spring active:scale-95",
               active
-                ? "bg-[#850B10] text-canvas"
-                : "border border-ink/15 text-ink-soft hover:border-pigment-terracotta hover:text-pigment-terracotta"
+                ? "bg-brand-fill text-white shadow-brand"
+                : "bg-white/80 text-ink-soft shadow-[0_1px_2px_rgba(28,27,25,0.05)] ring-1 ring-inset ring-ink/10 hover:bg-white hover:text-ink"
             )}
           >
             {opt.label}
             {opt.count !== undefined && opt.count > 0 && (
               <span
                 className={clsx(
-                  "rounded-full px-1.5 text-[10px] font-semibold",
-                  active ? "bg-canvas/20 text-canvas" : "bg-ink/10 text-ink-soft"
+                  "rounded-full px-1.5 text-[10px] font-semibold tabular-nums",
+                  active ? "bg-white/20 text-white" : "bg-ink/[0.07] text-ink-soft"
                 )}
               >
                 {opt.count}

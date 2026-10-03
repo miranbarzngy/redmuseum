@@ -16,7 +16,20 @@ const config: Config = {
         ink: {
           DEFAULT: "#1C1B19",
           soft: "#4A4642",
-          faint: "#8A8580",
+          // #8A8580 everywhere except the admin panel, which sets
+          // --ink-faint darker (globals.css) so its muted text passes WCAG
+          // AA on white and paper surfaces.
+          faint: "rgb(var(--ink-faint, 138 133 128) / <alpha-value>)",
+        },
+        // The admin panel's accent set: the museum's oxblood red, a brighter
+        // rubine for the top of gradients, and warm gold for badges and
+        // active highlights.
+        brand: {
+          DEFAULT: "#850B10",
+          deep: "#6A090D",
+          rubine: "#9A1218",
+          gold: "#D4AF37",
+          "gold-deep": "#8A6D1F",
         },
         pigment: {
           terracotta: "#C1652F",
@@ -86,12 +99,25 @@ const config: Config = {
       },
       boxShadow: {
         soft: "0 20px 60px -20px rgba(28, 27, 25, 0.18)",
-        card: "0 10px 30px -12px rgba(28, 27, 25, 0.15)",
+        // The admin panel swaps in a layered version via --shadow-card.
+        card: "var(--shadow-card, 0 10px 30px -12px rgba(28, 27, 25, 0.15))",
         ring: "0 0 0 1px rgba(28, 27, 25, 0.06)",
+        // Floating glass bars (admin bottom dock, phone top bar): a long soft
+        // drop plus a 1px inner top highlight that reads as a lit glass edge.
+        dock: "0 1px 0 rgba(255, 255, 255, 0.7) inset, 0 2px 6px -1px rgba(28, 27, 25, 0.06), 0 24px 48px -16px rgba(28, 27, 25, 0.28)",
+        // Filled brand buttons and active pills: a red-tinted glow under a
+        // faint inner top highlight.
+        brand: "0 1px 0 rgba(255, 255, 255, 0.16) inset, 0 8px 20px -8px rgba(133, 11, 16, 0.55)",
       },
       backgroundImage: {
         "canvas-grain":
           "radial-gradient(circle at 20% 20%, rgba(193,101,47,0.05), transparent 40%), radial-gradient(circle at 80% 60%, rgba(31,95,91,0.05), transparent 45%)",
+        // Admin backdrop: a faint oxblood glow behind the brand corner (top
+        // right, RTL), warm gold opposite, settling into the paper tone.
+        "admin-mesh":
+          "radial-gradient(110% 55% at 100% 0%, rgba(133,11,16,0.075), transparent 62%), radial-gradient(80% 45% at 0% 0%, rgba(212,175,55,0.09), transparent 58%), linear-gradient(to bottom, #FAFAF7, #F5F2EB)",
+        "brand-fill": "linear-gradient(to bottom, #9A1218, #760A0E)",
+        "gold-fill": "linear-gradient(to bottom, #E3C25A, #C29A24)",
       },
       animation: {
         "float-slow": "float 9s ease-in-out infinite",
@@ -99,6 +125,7 @@ const config: Config = {
         "drift": "drift 22s linear infinite",
         "pulse-soft": "pulse-soft 4s ease-in-out infinite",
         "glow-ring": "glowRing 1.9s ease-out infinite",
+        "glow-ring-gold": "glowRingGold 1.9s ease-out infinite",
         "overlay-in": "overlayIn 0.2s ease-out",
         "modal-in": "modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
         "drawer-in": "drawerIn 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -109,6 +136,13 @@ const config: Config = {
         "sheet-in": "sheetIn 0.34s cubic-bezier(0.32, 0.72, 0, 1)",
         "page-in": "pageIn 0.22s cubic-bezier(0.16, 1, 0.3, 1)",
         "toast-in": "toastIn 0.26s cubic-bezier(0.16, 1, 0.3, 1)",
+        // Skeleton bones: a soft highlight sweeping across, in place of a
+        // flat opacity pulse.
+        shimmer: "shimmer 1.6s ease-in-out infinite",
+      },
+      transitionTimingFunction: {
+        // Slight overshoot, the way a native tab indicator or switch settles.
+        spring: "cubic-bezier(0.34, 1.4, 0.64, 1)",
       },
       keyframes: {
         float: {
@@ -119,6 +153,12 @@ const config: Config = {
           "0%": { boxShadow: "0 0 0 0 rgba(133,11,16,0.55)" },
           "70%": { boxShadow: "0 0 0 7px rgba(133,11,16,0)" },
           "100%": { boxShadow: "0 0 0 0 rgba(133,11,16,0)" },
+        },
+        // Same pulse in the admin's gold — the pending-booking marker.
+        glowRingGold: {
+          "0%": { boxShadow: "0 0 0 0 rgba(212,175,55,0.7)" },
+          "70%": { boxShadow: "0 0 0 7px rgba(212,175,55,0)" },
+          "100%": { boxShadow: "0 0 0 0 rgba(212,175,55,0)" },
         },
         drift: {
           "0%": { transform: "translateX(0) translateY(0)" },
@@ -156,6 +196,10 @@ const config: Config = {
         toastIn: {
           "0%": { opacity: "0", transform: "translateY(16px) scale(0.96)" },
           "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        shimmer: {
+          "0%": { transform: "translateX(100%)" },
+          "100%": { transform: "translateX(-100%)" },
         },
       },
       maxWidth: {

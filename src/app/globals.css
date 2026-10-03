@@ -259,6 +259,18 @@ html.admin-root {
   overscroll-behavior-y: none;
 }
 
+/* Admin theme overrides for the shared tokens (tailwind.config.ts):
+   - muted text (#736D67): the site's #8A8580 is 3.6:1 on white and 3.2:1 on
+     the paper tone, under WCAG AA for the panel's small labels; this is
+     5.1:1 / 4.5:1;
+   - cards: a layered shadow — a 1px contact shadow, a soft mid drop and a
+     long faint ambient one — instead of the site's single blur. */
+.admin-root {
+  --ink-faint: 115 109 103;
+  --shadow-card: 0 1px 2px rgba(28, 27, 25, 0.04), 0 6px 16px -6px rgba(28, 27, 25, 0.08),
+    0 20px 40px -20px rgba(28, 27, 25, 0.14);
+}
+
 /* No grey flash on tap, and no 300ms double-tap-zoom wait before a tap
    registers on controls. Zero specificity via :where() so a utility still
    wins — dnd-kit's drag handles need their `touch-none`, or the browser

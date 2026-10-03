@@ -8,7 +8,7 @@ export function StatusPill({ status, className }: { status: BookingStatus; class
   return (
     <span
       className={clsx(
-        "font-kurdish inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-fluid-xs font-medium",
+        "font-kurdish inline-flex w-fit items-center gap-1.5 rounded-full px-2.5 py-1 text-fluid-xs font-medium transition-[background-color,color,box-shadow] duration-300 ease-spring",
         STATUS_PILL[status],
         className
       )}

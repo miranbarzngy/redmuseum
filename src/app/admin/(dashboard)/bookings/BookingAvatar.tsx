@@ -9,8 +9,9 @@ export function bookingInitials(name: string): string {
   return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "؟";
 }
 
-/** Visitor avatar shared by the table, card, and drawer — a glowing red dot
- * marks bookings still `pending`, mirroring MessageAvatar's unread dot.
+/** Visitor avatar shared by the card and the details sheet — a pulsing gold
+ * dot marks bookings still `pending` (gold = waiting on a decision, as on
+ * the status pill), mirroring MessageAvatar's unread dot.
  * Shows the captured face photo (a short-lived signed URL, see
  * getFacePhotoUrl(s) in actions.ts) when one is passed in, falling back to
  * initials if there's none or the signed URL has expired/failed to load.
@@ -43,7 +44,7 @@ export function BookingAvatar({
     <span className={clsx("relative block", isSquare ? "h-full w-full" : "shrink-0")}>
       <span
         className={clsx(
-          "flex items-center justify-center overflow-hidden border border-ink/10 bg-canvas-paper font-semibold text-ink-soft",
+          "flex items-center justify-center overflow-hidden border border-ink/[0.06] bg-gradient-to-br from-canvas-paper to-[#EBE3D3] font-semibold text-brand",
           isSquare
             ? "h-full w-full rounded-xl text-fluid-xl"
             : clsx("rounded-full", size === "lg" ? "h-11 w-11 text-fluid-sm" : "h-9 w-9 text-fluid-xs")
@@ -69,7 +70,7 @@ export function BookingAvatar({
             e.stopPropagation();
             onViewPhoto();
           }}
-          className="absolute bottom-2 start-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/55 text-white backdrop-blur-sm transition-colors hover:bg-black/75"
+          className="absolute bottom-2 start-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/45 text-white ring-1 ring-white/25 backdrop-blur-md transition-[background-color,transform] duration-200 ease-spring hover:bg-black/65 active:scale-90"
         >
           <Eye size={14} />
         </button>
@@ -78,7 +79,7 @@ export function BookingAvatar({
         <span
           aria-label="نوێ — پەسەند نەکراوە"
           className={clsx(
-            "animate-glow-ring absolute h-3 w-3 rounded-full bg-[#850B10] ring-2 ring-white",
+            "animate-glow-ring-gold absolute h-3 w-3 rounded-full bg-gold-fill ring-2 ring-white",
             isSquare ? "end-2 top-2" : "-end-0.5 -top-0.5"
           )}
         />

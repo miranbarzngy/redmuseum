@@ -30,7 +30,7 @@ export function SaveBar({
     <div
       className={clsx(
         "sticky z-20 flex flex-wrap items-center justify-end gap-3 rounded-2xl",
-        "sm:border sm:border-ink/10 sm:bg-white/90 sm:px-4 sm:py-3 sm:shadow-card sm:backdrop-blur-md",
+        "sm:border sm:border-white/70 sm:bg-white/75 sm:px-4 sm:py-3 sm:shadow-dock sm:ring-1 sm:ring-ink/[0.05] sm:backdrop-blur-xl sm:backdrop-saturate-150",
         "bottom-[calc(env(safe-area-inset-bottom)+7rem)]",
         !forceBottomNav && "lg:bottom-3",
       )}

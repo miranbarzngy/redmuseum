@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useTransition } from "react";
-import { AlertTriangle, Ticket, Phone, CalendarDays, Clock3, Users } from "lucide-react";
+import { AlertTriangle, Ticket, Phone, CalendarDays, Clock3, Users, Tag } from "lucide-react";
 import clsx from "clsx";
 import { updateBookingStatus, getFacePhotoUrl, logBookingPrinted } from "./actions";
 import { openBookingPrint } from "./bookingPrint";
@@ -202,15 +202,15 @@ export function BookingsBoard({
 
       {/* "You forgot to mark a visit" nudge — mirrors the daily APK push. */}
       {overdue.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-pigment-gold/30 bg-pigment-gold/10 px-4 py-3">
-          <span className="font-kurdish flex items-center gap-2 text-fluid-xs text-[#8a6d1f]">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-brand-gold/35 bg-gradient-to-l from-brand-gold/[0.16] to-brand-gold/[0.06] px-4 py-3">
+          <span className="font-kurdish flex items-center gap-2 text-fluid-xs text-brand-gold-deep">
             <AlertTriangle size={15} className="shrink-0" />
             {overdue.length} سەردانی پشتڕاستکراو تێپەڕیوە و هێشتا نەشیکراوەتەوە — دیاری بکە هاتوون یان نەهاتوون.
           </span>
           <button
             type="button"
             onClick={() => setShowOverdueOnly((v) => !v)}
-            className="font-kurdish shrink-0 rounded-full bg-[#8a6d1f] px-3 py-1.5 text-fluid-xs font-medium text-canvas transition-opacity hover:opacity-90"
+            className="font-kurdish shrink-0 rounded-full bg-gold-fill px-3.5 py-1.5 text-fluid-xs font-semibold text-[#3B2A00] shadow-[0_4px_10px_-4px_rgba(194,154,36,0.7)] transition-[transform,filter] duration-200 ease-spring hover:brightness-105 active:scale-95"
           >
             {showOverdueOnly ? "گەڕانەوە" : "پیشاندان"}
           </button>
@@ -221,7 +221,7 @@ export function BookingsBoard({
         <button
           type="button"
           onClick={() => setFilter("all")}
-          className="font-kurdish w-fit text-fluid-xs font-medium text-pigment-terracotta hover:underline"
+          className="font-kurdish w-fit text-fluid-xs font-medium text-brand hover:underline"
         >
           پیشاندانی هەموو دۆخەکان
         </button>
@@ -239,13 +239,13 @@ export function BookingsBoard({
             // photo is a thumbnail beside the name/status/time, and the
             // details + actions run the full card width below it; from `sm`
             // up the photo becomes the tall cover panel down the side.
+            // Pending bookings (waiting on a decision) add a thin gold edge
+            // and halo — gold is the page's "needs attention" colour.
             <div
               key={b.id}
               className={clsx(
-                "grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-3 overflow-hidden rounded-2xl border-2 bg-white p-3 shadow-card sm:gap-x-4 sm:p-4",
-                b.status === "pending"
-                  ? "border-[#850B10] shadow-[0_0_16px_-2px_rgba(133,11,16,0.45)] bg-[#850B10]/[0.04]"
-                  : "border-ink/10"
+                "grid grid-cols-[auto_minmax(0,1fr)] gap-x-3.5 gap-y-3 overflow-hidden rounded-[1.375rem] border bg-white p-3.5 shadow-card sm:gap-x-4 sm:p-4",
+                b.status === "pending" ? "border-brand-gold/60 ring-1 ring-brand-gold/25" : "border-ink/[0.07]"
               )}
             >
               <div
@@ -307,15 +307,18 @@ export function BookingsBoard({
                 </div>
               </div>
 
-              <div className="col-span-2 flex flex-wrap items-center gap-x-4 gap-y-1 border-y border-ink/5 py-2.5 text-fluid-xs text-ink-soft sm:col-span-1 sm:col-start-2">
-                <span>{visitorTypeLabel(b)}</span>
-                <span className="flex items-center gap-1 text-ink-faint">
-                  <Users size={13} className="shrink-0" />
+              <div className="col-span-2 flex flex-wrap items-center gap-1.5 sm:col-span-1 sm:col-start-2">
+                <span className="font-kurdish inline-flex items-center gap-1 rounded-full bg-ink/[0.04] px-2.5 py-1 text-fluid-xs text-ink-soft">
+                  <Tag size={12} className="shrink-0 text-ink-faint" />
+                  {visitorTypeLabel(b)}
+                </span>
+                <span className="font-kurdish inline-flex items-center gap-1 rounded-full bg-ink/[0.04] px-2.5 py-1 text-fluid-xs tabular-nums text-ink-soft">
+                  <Users size={12} className="shrink-0 text-ink-faint" />
                   {b.guest_count} کەس
                 </span>
               </div>
 
-              <div className="col-span-2 sm:col-span-1 sm:col-start-2">
+              <div className="col-span-2 border-t border-ink/[0.06] pt-3 sm:col-span-1 sm:col-start-2">
                 <BookingActions
                   booking={b}
                   busy={busyId === b.id}

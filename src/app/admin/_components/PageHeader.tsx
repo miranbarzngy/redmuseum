@@ -27,10 +27,14 @@ export function PageHeader({
       {backHref && <InlineBackLink href={backHref} label={backLabel} />}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
+          {/* Oxblood → rubine → gold, starting where the RTL title starts.
+              inline-block so the gradient spans the words, not the whole
+              row; the bottom padding keeps Kurdish descenders inside the
+              clipped background. Every stop stays ≥ 3.8:1 on the canvas. */}
           <LargeTitle
             title={title}
             backHref={backHref}
-            className="font-kurdish text-[1.65rem] font-semibold leading-tight text-ink lg:text-fluid-xl"
+            className="font-kurdish inline-block bg-gradient-to-l from-brand-deep via-brand-rubine to-[#A8761B] bg-clip-text pb-1 text-[1.65rem] font-semibold leading-tight text-transparent lg:text-fluid-xl"
           />
           {description && (
             <p className="font-kurdish mt-1.5 text-fluid-sm text-ink-soft">{description}</p>

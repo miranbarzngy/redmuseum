@@ -36,6 +36,10 @@ type SheetProps = {
   desktop?: "center" | "sheet";
   /** Width cap from `sm` up, e.g. "sm:max-w-md". */
   widthClassName?: string;
+  /** `glass`: frosted, translucent panel with a lit top edge (iOS sheet) —
+   * for content laid out as white inset groups, which it sets off the way
+   * iOS's grouped background does. Default: solid white. */
+  surface?: "solid" | "glass";
   className?: string;
   /** Receives focus on open; defaults to the panel itself. */
   initialFocusRef?: React.RefObject<HTMLElement | null>;
@@ -49,6 +53,7 @@ function SheetPanel({
   role = "dialog",
   desktop = "center",
   widthClassName = "sm:max-w-md",
+  surface = "solid",
   className,
   initialFocusRef,
   zIndexClassName = "z-[80]",
@@ -136,7 +141,7 @@ function SheetPanel({
           aria-hidden
           onClick={requestClose}
           className={clsx(
-            "absolute inset-0 bg-ink/45 backdrop-blur-[2px] transition-opacity duration-200",
+            "absolute inset-0 bg-ink/40 backdrop-blur-sm transition-opacity duration-200",
             closing ? "opacity-0" : "animate-overlay-in",
           )}
           style={dragY > 0 && !closing ? { opacity: Math.max(0.2, 1 - dragY / 400) } : undefined}
@@ -149,7 +154,13 @@ function SheetPanel({
           aria-label={label}
           tabIndex={-1}
           className={clsx(
-            "relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[1.75rem] bg-white shadow-soft outline-none",
+            "relative flex max-h-[92dvh] w-full flex-col overflow-hidden rounded-t-[1.75rem] shadow-soft outline-none",
+            surface === "glass"
+              ? clsx(
+                  "border-t border-white/40 bg-white/80 backdrop-blur-xl backdrop-saturate-150",
+                  centered && "sm:border",
+                )
+              : "bg-white",
             "pb-[env(safe-area-inset-bottom)]",
             centered && "sm:max-h-[85vh] sm:rounded-3xl sm:pb-0",
             widthClassName,
