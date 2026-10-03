@@ -1,6 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import sharp from "sharp";
+import { NEW_IMAGE_SLOT } from "@/lib/galleryUploadSlot";
 import type { createAdminClient } from "./admin";
 
 // Allow-listed by MIME type, not by the client-supplied filename extension —
@@ -92,6 +93,26 @@ async function optimizeImage(
   return { buffer, contentType: "image/webp", ext: "webp" };
 }
 
+/** Optimizes `file` and stores it in the public `artwork` bucket. */
+async function uploadImageFile(
+  supabase: ReturnType<typeof createAdminClient>,
+  file: File,
+  options?: ImageUploadOptions
+): Promise<string> {
+  assertAllowedImage(file);
+  const { buffer, contentType, ext } = await optimizeImage(file, options);
+  const path = `${randomUUID()}.${ext}`;
+  const { error } = await supabase.storage.from("artwork").upload(path, buffer, {
+    contentType,
+    cacheControl: "31536000",
+    upsert: false,
+  });
+  if (error) throw new Error(`Image upload failed: ${error.message}`);
+
+  const { data } = supabase.storage.from("artwork").getPublicUrl(path);
+  return data.publicUrl;
+}
+
 /**
  * Uploads `fieldName` (a file input) to the `artwork` storage bucket if a
  * file was actually chosen, falling back to a plain pasted URL from
@@ -108,20 +129,7 @@ export async function resolveUploadedImageUrl(
   const file = formData.get(fieldName);
   const urlField = urlFieldName ? String(formData.get(urlFieldName) ?? "").trim() : "";
 
-  if (file instanceof File && file.size > 0) {
-    assertAllowedImage(file);
-    const { buffer, contentType, ext } = await optimizeImage(file);
-    const path = `${randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from("artwork").upload(path, buffer, {
-      contentType,
-      cacheControl: "31536000",
-      upsert: false,
-    });
-    if (error) throw new Error(`Image upload failed: ${error.message}`);
-
-    const { data } = supabase.storage.from("artwork").getPublicUrl(path);
-    return data.publicUrl;
-  }
+  if (file instanceof File && file.size > 0) return uploadImageFile(supabase, file);
 
   if (urlField) return urlField;
 
@@ -129,33 +137,40 @@ export async function resolveUploadedImageUrl(
 }
 
 /**
- * Uploads every file chosen under `fieldName` (a `multiple` file input) to
- * the `artwork` bucket and returns their public URLs, in selection order.
- * Returns an empty array if no files were chosen. `options` overrides the
- * default 2000px / quality-90 encode (e.g. BACKGROUND_PIECE_UPLOAD).
+ * Resolves an <ImageGalleryField> to its final URL list, in the order the
+ * admin dragged it into. `keptName` carries the saved URLs plus, wherever a
+ * newly picked file sits, a `${NEW_IMAGE_SLOT}<index>` stand-in that is
+ * swapped for that file's uploaded URL. A picked file with no stand-in (the
+ * form was posted before it hydrated) is appended at the end. `options`
+ * overrides the default 2000px / quality-90 encode (e.g. BACKGROUND_PIECE_UPLOAD).
  */
-export async function resolveUploadedImageUrls(
+export async function resolveGalleryImageUrls(
   supabase: ReturnType<typeof createAdminClient>,
   formData: FormData,
-  fieldName: string,
+  keptName: string,
+  fileName: string,
   options?: ImageUploadOptions
 ): Promise<string[]> {
-  const files = formData.getAll(fieldName).filter((f): f is File => f instanceof File && f.size > 0);
-
+  // Not filtered by size, so a stand-in's index lines up with the input's
+  // FileList (an untouched input posts one empty File, which never has one).
+  const files = formData.getAll(fileName).filter((f): f is File => f instanceof File);
+  const placed = new Set<number>();
   const urls: string[] = [];
-  for (const file of files) {
-    assertAllowedImage(file);
-    const { buffer, contentType, ext } = await optimizeImage(file, options);
-    const path = `${randomUUID()}.${ext}`;
-    const { error } = await supabase.storage.from("artwork").upload(path, buffer, {
-      contentType,
-      cacheControl: "31536000",
-      upsert: false,
-    });
-    if (error) throw new Error(`Image upload failed: ${error.message}`);
 
-    const { data } = supabase.storage.from("artwork").getPublicUrl(path);
-    urls.push(data.publicUrl);
+  for (const value of formData.getAll(keptName).map(String)) {
+    if (!value.startsWith(NEW_IMAGE_SLOT)) {
+      urls.push(value);
+      continue;
+    }
+    const index = Number(value.slice(NEW_IMAGE_SLOT.length));
+    const file = files[index];
+    if (!file || file.size === 0 || placed.has(index)) continue;
+    placed.add(index);
+    urls.push(await uploadImageFile(supabase, file, options));
+  }
+
+  for (const [index, file] of files.entries()) {
+    if (file.size > 0 && !placed.has(index)) urls.push(await uploadImageFile(supabase, file, options));
   }
   return urls;
 }

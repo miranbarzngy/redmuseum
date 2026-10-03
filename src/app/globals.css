@@ -260,12 +260,16 @@ html.admin-root {
 }
 
 /* No grey flash on tap, and no 300ms double-tap-zoom wait before a tap
-   registers on controls. */
-.admin-root a,
-.admin-root button,
-.admin-root [role="button"],
-.admin-root label,
-.admin-root summary {
+   registers on controls. Zero specificity via :where() so a utility still
+   wins — dnd-kit's drag handles need their `touch-none`, or the browser
+   claims the touch as a scroll and cancels the drag. */
+:where(
+  .admin-root a,
+  .admin-root button,
+  .admin-root [role="button"],
+  .admin-root label,
+  .admin-root summary
+) {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }

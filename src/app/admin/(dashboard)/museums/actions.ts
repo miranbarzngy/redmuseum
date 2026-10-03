@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveUploadedImageUrl, resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
+import { resolveGalleryImageUrls, resolveUploadedImageUrl } from "@/lib/supabase/uploadImage";
 
 function revalidatePublicSite() {
   revalidatePath("/admin/museums");
@@ -52,8 +52,8 @@ function parseBlockFields(formData: FormData) {
  *   image_url  — the single main / cover photo (shown large on the section
  *                detail page and as the thumbnail in the homepage list).
  *   image_urls — an ordered list of *additional* photos (the cover is not
- *                part of this list). Kept-thumbnail hidden inputs plus any
- *                newly uploaded files.
+ *                part of this list). Kept thumbnails and new uploads, in
+ *                the order the admin dragged them into.
  */
 async function resolveBlockImages(
   supabase: ReturnType<typeof createAdminClient>,
@@ -70,13 +70,11 @@ async function resolveBlockImages(
   );
   const image_url = mainUrl ?? null;
 
-  const kept = formData
-    .getAll("image_urls_kept")
-    .map(String)
-    .filter((url) => url && url !== image_url);
-  const added = await resolveUploadedImageUrls(supabase, formData, "image_gallery_files");
+  const image_urls = (
+    await resolveGalleryImageUrls(supabase, formData, "image_urls_kept", "image_gallery_files")
+  ).filter((url) => url && url !== image_url);
 
-  return { image_url, image_urls: [...kept, ...added] };
+  return { image_url, image_urls };
 }
 
 export async function createBiographyBlock(formData: FormData) {

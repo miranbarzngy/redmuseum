@@ -5,24 +5,25 @@ import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { BACKGROUND_PIECE_UPLOAD, resolveUploadedImageUrls } from "@/lib/supabase/uploadImage";
+import { BACKGROUND_PIECE_UPLOAD, resolveGalleryImageUrls } from "@/lib/supabase/uploadImage";
 
 export async function updateProfile(formData: FormData) {
   await requireAdminSession(PERMISSIONS.profileManage);
   const supabase = createAdminClient();
 
-  const keptHeroGalleryUrls = formData.getAll("hero_image_urls_kept").map(String);
-  const newHeroGalleryUrls = await resolveUploadedImageUrls(supabase, formData, "hero_image_gallery_files");
-  const heroImageUrls = [...keptHeroGalleryUrls, ...newHeroGalleryUrls];
-
-  const keptBackgroundUrls = formData.getAll("background_image_urls_kept").map(String);
-  const newBackgroundUrls = await resolveUploadedImageUrls(
+  const heroImageUrls = await resolveGalleryImageUrls(
     supabase,
     formData,
+    "hero_image_urls_kept",
+    "hero_image_gallery_files"
+  );
+  const backgroundImageUrls = await resolveGalleryImageUrls(
+    supabase,
+    formData,
+    "background_image_urls_kept",
     "background_image_files",
     BACKGROUND_PIECE_UPLOAD
   );
-  const backgroundImageUrls = [...keptBackgroundUrls, ...newBackgroundUrls];
 
   const guideFlyerUrl = String(formData.get("guide_flyer_url") ?? "").trim() || null;
 

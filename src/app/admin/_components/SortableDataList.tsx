@@ -31,7 +31,7 @@ function alignClass(align: Column<unknown>["align"]) {
 // Pointer covers mouse + most touch; the small distance threshold keeps a
 // plain tap from registering as a drag. TouchSensor is the explicit fallback
 // for quirky mobile browsers. (Mirrors the config in the old GalleryImageList.)
-function useReorderSensors() {
+export function useReorderSensors() {
   return useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } }),
