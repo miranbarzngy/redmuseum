@@ -1,9 +1,14 @@
 "use client";
 
-import type { MotionValue } from "framer-motion";
+import { useEffect, useState } from "react";
+import { useReducedMotion } from "framer-motion";
+import { usePathname } from "next/navigation";
+import { proxiedImage } from "@/lib/proxiedImage";
 
 interface PaintCanvasProps {
-  progress: MotionValue<number>;
+  /** Background piece URLs, in order: site_profile.background_image_urls,
+   * or the shipped set (backgroundDefaults.ts) until an admin saves one. */
+  pieces: string[];
 }
 
 // The site's deep-red accent — same shade as the timeline dots/line
@@ -44,28 +49,8 @@ const LINES = [
   },
 ] as const;
 
-// Cut-out museum pieces in public/images/background (trimmed + WebP'd copies
-// of the PNGs in public/images/logo/assets/images/Background, plus that
-// folder's own 1.png/5.png). Two slots cycle through this list one piece at a
-// time — the second slot five places ahead of the first — so look-alikes
-// (xoragry/xoragry2) are kept two apart: with that offset, pieces 3–8 places
-// apart can be on screen together.
-const PIECES = [
-  "anfal",
-  "xoragry",
-  "koraw",
-  "xoragry2",
-  "peshmarga",
-  "1",
-  "awenakan",
-  "minwtaqamany",
-  "5",
-  "isis",
-  "zindanyakan",
-] as const;
-
-// Seconds each piece holds its slot. The .bg-piece keyframes (globals.css)
-// are written for PIECES.length × this — change one, re-check the other.
+// Seconds each piece holds its slot. The two slots take turns changing, half
+// this apart; .bg-piece's opacity transition (globals.css) does the fade.
 const PIECE_SECONDS = 7;
 
 // Each slot's box scales with the screen: 22% of its width / 34% of its
@@ -77,58 +62,88 @@ const SLOT_SIZE =
   "h-[clamp(10rem,34vh,26rem)] w-[clamp(9rem,22vw,24rem)] opacity-[0.08] md:opacity-[0.14]";
 
 const SLOTS = [
-  {
-    // Bottom-left.
-    className: `bottom-[6vh] left-[3vw] ${SLOT_SIZE}`,
-    imgClassName: "bottom-0 left-0",
-    shift: 0,
-    delay: 0,
-  },
-  {
-    // Top-right, half a beat behind the first slot so their fades alternate.
-    className: `top-[16vh] right-[3vw] ${SLOT_SIZE}`,
-    imgClassName: "top-0 right-0",
-    shift: 5,
-    delay: PIECE_SECONDS / 2,
-  },
+  // Bottom-left.
+  { className: `bottom-[6vh] left-[3vw] ${SLOT_SIZE}`, imgClassName: "bottom-0 left-0" },
+  // Top-right.
+  { className: `top-[16vh] right-[3vw] ${SLOT_SIZE}`, imgClassName: "top-0 right-0" },
 ] as const;
+
+/**
+ * The piece each slot shows at `tick` (one tick per half turn): the slots
+ * change on alternate ticks, the second running half the list ahead, so with
+ * 3+ pieces they never show the same one at once. One piece leaves the second
+ * slot empty; two sit still, one per slot.
+ */
+function slotPieces(tick: number, count: number): [number, number | null] {
+  if (count === 1) return [0, null];
+  if (count === 2) return [0, 1];
+  const ahead = Math.floor(count / 2);
+  return [Math.floor(tick / 2) % count, (Math.floor((tick + 1) / 2) + ahead) % count];
+}
+
+// Uploaded pieces live in Supabase storage, so route them through Next's
+// image endpoint (same-origin and resized, see proxiedImage); the shipped
+// ones are already small local WebPs.
+function pieceSrc(url: string) {
+  return url.startsWith("/") ? url : proxiedImage(url, 640);
+}
+
+// Paths where the pieces fade out: the homepage's gallery and contact
+// sections (HomeSectionUrlSync swaps the address bar to /ku/gallery etc. as
+// they scroll into view, and usePathname follows it) and the standalone
+// /contact page, which shares that URL.
+const NO_PIECES_PATH = /^\/[^/]+\/(gallery|contact)$/;
 
 /**
  * A fixed, full-viewport background layer behind the whole page: the canvas
  * color and its faint grain texture, faded museum pieces slowly cross-fading
- * in two corners (see PIECES/SLOTS above), plus five thin wavy lines running
- * diagonally from the bottom-left to the top-right corner, each flowing
- * continuously in that direction on an infinite loop (see .paint-line in
- * globals.css). `progress` (the page's scroll fraction, from
- * ScrollExperience's useScroll()) isn't used here; the prop stays on the
- * signature so callers don't need to change if a scroll-linked effect is
- * added back later.
+ * in two corners (see SLOTS/slotPieces above), plus five thin wavy lines
+ * running diagonally from the bottom-left to the top-right corner, each
+ * flowing continuously in that direction on an infinite loop (see .paint-line
+ * in globals.css). Reduced-motion visitors get the pieces held still.
  */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- progress kept on the signature, see comment above
-export function PaintCanvas(_props: PaintCanvasProps) {
+export function PaintCanvas({ pieces }: PaintCanvasProps) {
+  const hidePieces = NO_PIECES_PATH.test(usePathname());
+  const reduceMotion = useReducedMotion();
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    if (reduceMotion || pieces.length < 3) return;
+    const id = setInterval(() => setTick((t) => t + 1), (PIECE_SECONDS / 2) * 1000);
+    return () => clearInterval(id);
+  }, [reduceMotion, pieces.length]);
+
+  const shown = slotPieces(tick, pieces.length);
+
   return (
     <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden bg-canvas">
       <div className="absolute inset-0 bg-canvas-grain" />
 
-      {SLOTS.map((slot) => (
-        <div key={slot.shift} className={`absolute ${slot.className}`}>
-          {PIECES.map((_, i) => {
-            const name = PIECES[(i + slot.shift) % PIECES.length];
-            return (
-              // eslint-disable-next-line @next/next/no-img-element -- fixed decorative layer of pre-sized WebPs; next/image's layout modes don't fit a corner-anchored, content-sized box
-              <img
-                key={name}
-                src={`/images/background/${name}.webp`}
-                alt=""
-                decoding="async"
-                fetchPriority="low"
-                className={`bg-piece absolute max-h-full max-w-full ${slot.imgClassName}`}
-                style={{ animationDelay: `${slot.delay + i * PIECE_SECONDS}s` }}
-              />
-            );
-          })}
+      {pieces.length > 0 && (
+        <div
+          className={`absolute inset-0 transition-opacity duration-700 ${hidePieces ? "opacity-0" : "opacity-100"}`}
+        >
+          {SLOTS.map((slot, s) =>
+            shown[s] === null ? null : (
+              <div key={slot.imgClassName} className={`absolute ${slot.className}`}>
+                {pieces.map((url, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element -- fixed decorative layer; next/image's layout modes don't fit a corner-anchored, content-sized box
+                  <img
+                    key={`${i}-${url}`}
+                    src={pieceSrc(url)}
+                    alt=""
+                    decoding="async"
+                    fetchPriority="low"
+                    className={`bg-piece absolute max-h-full max-w-full ${slot.imgClassName} ${
+                      i === shown[s] ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
+                ))}
+              </div>
+            )
+          )}
         </div>
-      ))}
+      )}
 
       <svg
         className="absolute inset-0 h-full w-full"

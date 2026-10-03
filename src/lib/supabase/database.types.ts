@@ -205,6 +205,7 @@ export interface Database {
           social_tiktok_url: string | null;
           social_whatsapp_url: string | null;
           guide_flyer_url: string | null;
+          background_image_urls: string[] | null;
           updated_at: string;
         };
         Insert: {
@@ -258,6 +259,7 @@ export interface Database {
           social_tiktok_url?: string | null;
           social_whatsapp_url?: string | null;
           guide_flyer_url?: string | null;
+          background_image_urls?: string[] | null;
           updated_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["site_profile"]["Insert"]>;

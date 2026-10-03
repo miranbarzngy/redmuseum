@@ -12,8 +12,8 @@
  *
  * `width` must be one of next.config.mjs's default images.imageSizes /
  * deviceSizes values (this app doesn't override them) or the endpoint
- * 400s — 384 and 1920 both are.
+ * 400s — 384, 640 and 1920 all are.
  */
-export function proxiedImage(url: string, width: 384 | 1920): string {
+export function proxiedImage(url: string, width: 384 | 640 | 1920): string {
   return `/_next/image?url=${encodeURIComponent(url)}&w=${width}&q=75`;
 }

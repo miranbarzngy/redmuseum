@@ -9,6 +9,7 @@ import { ImageGalleryField } from "../../_components/ImageGalleryField";
 import { Panel } from "../../_components/Panel";
 import { SaveBar } from "../../_components/SaveBar";
 import { statDefaults } from "@/lib/statDefaults";
+import { backgroundImageUrls } from "@/lib/backgroundDefaults";
 import type { SiteProfileRow } from "@/lib/supabase/database.types";
 import type { heroDefaults } from "@/lib/heroDefaults";
 import type { contactDefaults as contactDefaultsType } from "@/lib/contactDefaults";
@@ -54,6 +55,24 @@ export function ProfileForm({
             fileLabel="زیادکردنی وێنە"
             hint="چەند وێنە زیاد بکە بۆ گۆڕانی خۆکار هەر ٦ چرکە."
             previewClassName="aspect-video h-28 object-cover"
+          />
+        </Panel>
+
+        <Panel
+          title="وێنەکانی باکگراوەند"
+          description="بە کاڵی لە گۆشەکانی پەڕەکانی ماڵپەڕ نیشان دەدرێن و یەک لە دوای یەک دەگۆڕێن."
+          collapsible
+          defaultOpen={false}
+          bodyClassName="flex flex-col gap-8"
+        >
+          <ImageGalleryField
+            label="وێنەکان"
+            name="background_image_files"
+            keptName="background_image_urls_kept"
+            currentUrls={backgroundImageUrls(profile)}
+            fileLabel="زیادکردنی وێنە"
+            hint="باشترە وێنەی PNG بێ باکگراوەند بێت."
+            previewClassName="h-28 w-28 object-contain p-2"
           />
         </Panel>
 
