@@ -114,11 +114,27 @@ async function uploadImageFile(
 }
 
 /**
+ * Whether `url` is an image a form may keep from an earlier save: a file this
+ * app stored in the public `artwork` bucket, or one shipped under
+ * public/images (the background defaults). Kept URLs arrive in hidden form
+ * inputs, so anything else wasn't put there by the form — refuse it rather
+ * than publish an arbitrary URL on the site (next/image couldn't render
+ * another host anyway).
+ */
+function isKeptImageUrl(supabase: ReturnType<typeof createAdminClient>, url: string): boolean {
+  if (url.startsWith("/")) return /^\/images\/[\w\-./]+$/.test(url) && !url.includes("..");
+  return url.startsWith(supabase.storage.from("artwork").getPublicUrl("").data.publicUrl);
+}
+
+const INVALID_KEPT_IMAGE = "بەستەری وێنەکە نادروستە.";
+
+/**
  * Uploads `fieldName` (a file input) to the `artwork` storage bucket if a
- * file was actually chosen, falling back to a plain pasted URL from
- * `urlFieldName`. Returns `undefined` to mean "leave the existing value
- * unchanged" — the caller decides whether that's meaningful (edit forms)
- * or should be treated as "no image" (create forms).
+ * file was actually chosen, falling back to the already-saved URL in
+ * `urlFieldName` (which must pass isKeptImageUrl). Returns `undefined` to
+ * mean "leave the existing value unchanged" — the caller decides whether
+ * that's meaningful (edit forms) or should be treated as "no image" (create
+ * forms).
  */
 export async function resolveUploadedImageUrl(
   supabase: ReturnType<typeof createAdminClient>,
@@ -131,7 +147,10 @@ export async function resolveUploadedImageUrl(
 
   if (file instanceof File && file.size > 0) return uploadImageFile(supabase, file);
 
-  if (urlField) return urlField;
+  if (urlField) {
+    if (!isKeptImageUrl(supabase, urlField)) throw new Error(INVALID_KEPT_IMAGE);
+    return urlField;
+  }
 
   return undefined;
 }
@@ -154,10 +173,17 @@ export async function resolveGalleryImageUrls(
   // Not filtered by size, so a stand-in's index lines up with the input's
   // FileList (an untouched input posts one empty File, which never has one).
   const files = formData.getAll(fileName).filter((f): f is File => f instanceof File);
+  const kept = formData.getAll(keptName).map(String);
+  // Every kept URL is checked before anything is uploaded, so a refused list
+  // leaves no orphaned files behind.
+  if (kept.some((value) => !value.startsWith(NEW_IMAGE_SLOT) && !isKeptImageUrl(supabase, value))) {
+    throw new Error(INVALID_KEPT_IMAGE);
+  }
+
   const placed = new Set<number>();
   const urls: string[] = [];
 
-  for (const value of formData.getAll(keptName).map(String)) {
+  for (const value of kept) {
     if (!value.startsWith(NEW_IMAGE_SLOT)) {
       urls.push(value);
       continue;

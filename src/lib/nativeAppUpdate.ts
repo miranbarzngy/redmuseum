@@ -15,7 +15,10 @@ export interface ApkUpdaterPlugin {
   canInstall(): Promise<{ granted: boolean }>;
   /** Opens the system screen to grant the toggle above. */
   openInstallSettings(): Promise<void>;
-  /** Downloads `url` then shows the system installer. */
+  /** Downloads the latest release, then shows the system installer. From
+   * shell 1.5 the native side reads /api/app-version itself and installs
+   * only its apkUrl, checked against apkSha256 — `url` is ignored there and
+   * only still sent for shells up to 1.4, which download it as given. */
   downloadAndInstall(options: { url: string }): Promise<{ started: boolean }>;
   addListener(
     eventName: "downloadProgress",
@@ -33,6 +36,7 @@ export interface AppVersionManifest {
   versionCode: number;
   versionName: string | null;
   apkUrl: string | null;
+  apkSha256: string | null;
   notes: string | null;
 }
 
@@ -58,7 +62,8 @@ export async function checkForAppUpdate(): Promise<AppUpdateCheck> {
     if (!res.ok) return { state: "error", message: `HTTP ${res.status}` };
     const latest = (await res.json()) as AppVersionManifest;
 
-    if (!latest.apkUrl || !latest.versionCode) return { state: "not-configured" };
+    // No checksum, no update: the shell would refuse the download anyway.
+    if (!latest.apkUrl || !latest.apkSha256 || !latest.versionCode) return { state: "not-configured" };
 
     if (latest.versionCode > installed.versionCode) {
       return {

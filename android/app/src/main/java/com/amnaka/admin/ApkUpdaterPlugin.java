@@ -14,11 +14,19 @@ import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * Sideload self-updater for the Amna Suraka Admin shell.
@@ -30,6 +38,13 @@ import java.net.URL;
  * it to the system installer, so the user taps "Update" instead of
  * re-sideloading by hand.
  *
+ * What gets installed is never taken from JavaScript: the bridge is open to
+ * every page the WebView loads, so a script injected into any of them could
+ * otherwise hand the installer an APK of its choosing. Instead this reads
+ * the release manifest itself from the app's own origin (server.url in
+ * capacitor.config.ts) and installs only the APK it names — over HTTPS, from
+ * Vercel Blob, and only if the download's SHA-256 matches the manifest's.
+ *
  * Registered in {@link MainActivity#onCreate}. JS side: src/lib/nativeAppUpdate.ts.
  */
 @CapacitorPlugin(name = "ApkUpdater")
@@ -37,6 +52,12 @@ public class ApkUpdaterPlugin extends Plugin {
 
     private static final String FILE_PROVIDER_SUFFIX = ".fileprovider";
     private static final int MAX_REDIRECTS = 5;
+    /** Served by src/app/api/app-version/route.ts. */
+    private static final String MANIFEST_PATH = "/api/app-version";
+    /** Public Vercel Blob stores — where scripts/upload-app-release.mjs puts the APK. */
+    private static final String DOWNLOAD_HOST_SUFFIX = ".public.blob.vercel-storage.com";
+    private static final Pattern SHA256_HEX = Pattern.compile("^[0-9a-fA-F]{64}$");
+    private static final int MAX_MANIFEST_BYTES = 64 * 1024;
 
     /** Installed versionCode / versionName / packageName, for the JS check. */
     @PluginMethod
@@ -88,46 +109,147 @@ public class ApkUpdaterPlugin extends Plugin {
     }
 
     /**
-     * Downloads the APK at {@code url} to app-private external storage,
-     * emitting {@code downloadProgress} events, then fires the system install
-     * intent. Resolves {@code { started: true }} once the installer is shown.
+     * Reads the release manifest from this app's own origin, downloads the
+     * APK it names to app-private external storage (emitting
+     * {@code downloadProgress} events), checks it against the manifest's
+     * SHA-256, then fires the system install intent. Resolves
+     * {@code { started: true }} once the installer is shown.
+     *
+     * A {@code url} passed by the caller is ignored — shells up to 1.4
+     * downloaded it as given, which is the only reason the web side still
+     * sends it.
      */
     @PluginMethod
     public void downloadAndInstall(PluginCall call) {
-        String url = call.getString("url");
-        if (url == null || url.trim().isEmpty()) {
-            call.reject("Missing 'url'");
-            return;
-        }
-        final String downloadUrl = url.trim();
-        new Thread(() -> runDownload(call, downloadUrl)).start();
+        new Thread(() -> runUpdate(call)).start();
     }
 
-    private void runDownload(PluginCall call, String urlString) {
-        HttpURLConnection connection = null;
+    private void runUpdate(PluginCall call) {
         try {
-            File base = getContext().getExternalFilesDir(null);
-            if (base == null) {
-                call.reject("External storage is not available");
+            Release release = fetchRelease();
+            if (release.versionCode <= installedVersionCode()) {
+                call.reject("No newer version is on offer");
                 return;
-            }
-            File dir = new File(base, "updates");
-            if (!dir.exists() && !dir.mkdirs()) {
-                call.reject("Could not create the download folder");
-                return;
-            }
-            File apkFile = new File(dir, "app-update.apk");
-            if (apkFile.exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                apkFile.delete();
             }
 
-            // Follow redirects by hand — HttpURLConnection won't cross
-            // http<->https, and CDN/storage links often bounce once.
-            String current = urlString;
+            File apkFile = downloadVerified(release);
+
+            Uri apkUri = FileProvider.getUriForFile(
+                getContext(),
+                getContext().getPackageName() + FILE_PROVIDER_SUFFIX,
+                apkFile
+            );
+
+            Intent install = new Intent(Intent.ACTION_VIEW);
+            install.setDataAndType(apkUri, "application/vnd.android.package-archive");
+            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(install);
+
+            JSObject ret = new JSObject();
+            ret.put("started", true);
+            call.resolve(ret);
+        } catch (Exception e) {
+            call.reject("Update failed: " + e.getMessage(), e);
+        }
+    }
+
+    /** The latest release, as /api/app-version describes it. */
+    private static final class Release {
+        final long versionCode;
+        final URL apkUrl;
+        /** Lowercase hex. */
+        final String sha256;
+
+        Release(long versionCode, URL apkUrl, String sha256) {
+            this.versionCode = versionCode;
+            this.apkUrl = apkUrl;
+            this.sha256 = sha256;
+        }
+    }
+
+    private Release fetchRelease() throws Exception {
+        String serverUrl = getBridge().getServerUrl();
+        if (serverUrl == null) {
+            throw new IOException("No server URL is configured");
+        }
+        URL manifestUrl = new URL(new URL(serverUrl), MANIFEST_PATH);
+        if (!"https".equals(manifestUrl.getProtocol())) {
+            throw new IOException("The release manifest must be served over HTTPS");
+        }
+
+        HttpURLConnection connection = (HttpURLConnection) manifestUrl.openConnection();
+        try {
+            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(30000);
+            connection.setInstanceFollowRedirects(false);
+            connection.setUseCaches(false);
+            connection.setRequestProperty("Accept", "application/json");
+
+            int code = connection.getResponseCode();
+            if (code != HttpURLConnection.HTTP_OK) {
+                throw new IOException("Release manifest unavailable (HTTP " + code + ")");
+            }
+
+            JSONObject manifest = new JSONObject(readLimited(connection.getInputStream(), MAX_MANIFEST_BYTES));
+            String apkUrl = manifest.isNull("apkUrl") ? null : manifest.getString("apkUrl");
+            String sha256 = manifest.isNull("apkSha256") ? null : manifest.getString("apkSha256");
+            if (apkUrl == null) {
+                throw new IOException("No release is published");
+            }
+            if (sha256 == null || !SHA256_HEX.matcher(sha256).matches()) {
+                throw new IOException("The release has no valid SHA-256 checksum");
+            }
+            URL url = new URL(apkUrl);
+            if (!isAllowedDownload(url)) {
+                throw new IOException("The release is not on an allowed download host");
+            }
+            return new Release(manifest.optLong("versionCode", 0), url, sha256.toLowerCase(Locale.ROOT));
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    /** HTTPS on a public Vercel Blob store — required of the manifest's APK
+     * URL and of every redirect on the way to it. */
+    private static boolean isAllowedDownload(URL url) {
+        String host = url.getHost();
+        return "https".equals(url.getProtocol())
+            && host != null
+            && host.toLowerCase(Locale.ROOT).endsWith(DOWNLOAD_HOST_SUFFIX);
+    }
+
+    private long installedVersionCode() throws Exception {
+        PackageInfo info = getContext()
+            .getPackageManager()
+            .getPackageInfo(getContext().getPackageName(), 0);
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.P
+            ? info.getLongVersionCode()
+            : info.versionCode;
+    }
+
+    private File downloadVerified(Release release) throws Exception {
+        File base = getContext().getExternalFilesDir(null);
+        if (base == null) {
+            throw new IOException("External storage is not available");
+        }
+        File dir = new File(base, "updates");
+        if (!dir.exists() && !dir.mkdirs()) {
+            throw new IOException("Could not create the download folder");
+        }
+        File apkFile = new File(dir, "app-update.apk");
+        if (apkFile.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            apkFile.delete();
+        }
+
+        HttpURLConnection connection = null;
+        try {
+            // Follow redirects by hand, so every hop is held to the same
+            // HTTPS + Vercel Blob rule as the manifest's own URL.
+            URL current = release.apkUrl;
             int redirects = 0;
             while (true) {
-                connection = (HttpURLConnection) new URL(current).openConnection();
+                connection = (HttpURLConnection) current.openConnection();
                 connection.setConnectTimeout(30000);
                 connection.setReadTimeout(60000);
                 connection.setInstanceFollowRedirects(false);
@@ -146,20 +268,23 @@ public class ApkUpdaterPlugin extends Plugin {
                 if (isRedirect) {
                     String location = connection.getHeaderField("Location");
                     connection.disconnect();
+                    connection = null;
                     if (location == null || ++redirects > MAX_REDIRECTS) {
-                        call.reject("Too many redirects while downloading the update");
-                        return;
+                        throw new IOException("Too many redirects while downloading the update");
                     }
-                    current = new URL(new URL(current), location).toString();
+                    current = new URL(current, location);
+                    if (!isAllowedDownload(current)) {
+                        throw new IOException("The download was redirected to an untrusted host");
+                    }
                     continue;
                 }
                 if (code != HttpURLConnection.HTTP_OK) {
-                    call.reject("Download failed (HTTP " + code + ")");
-                    return;
+                    throw new IOException("Download failed (HTTP " + code + ")");
                 }
                 break;
             }
 
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
             long total = connection.getContentLengthLong();
             long received = 0;
             long lastEmit = 0;
@@ -170,6 +295,7 @@ public class ApkUpdaterPlugin extends Plugin {
                 int read;
                 while ((read = in.read(buffer)) != -1) {
                     out.write(buffer, 0, read);
+                    digest.update(buffer, 0, read);
                     received += read;
 
                     long now = System.currentTimeMillis();
@@ -188,26 +314,38 @@ public class ApkUpdaterPlugin extends Plugin {
                 out.flush();
             }
 
-            Uri apkUri = FileProvider.getUriForFile(
-                getContext(),
-                getContext().getPackageName() + FILE_PROVIDER_SUFFIX,
-                apkFile
-            );
-
-            Intent install = new Intent(Intent.ACTION_VIEW);
-            install.setDataAndType(apkUri, "application/vnd.android.package-archive");
-            install.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
-            getContext().startActivity(install);
-
-            JSObject ret = new JSObject();
-            ret.put("started", true);
-            call.resolve(ret);
-        } catch (Exception e) {
-            call.reject("Update failed: " + e.getMessage(), e);
+            if (!toHex(digest.digest()).equals(release.sha256)) {
+                //noinspection ResultOfMethodCallIgnored
+                apkFile.delete();
+                throw new IOException("The downloaded file failed its SHA-256 check");
+            }
+            return apkFile;
         } finally {
             if (connection != null) {
                 connection.disconnect();
             }
         }
+    }
+
+    private static String readLimited(InputStream in, int maxBytes) throws IOException {
+        try (InputStream stream = in; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[4096];
+            int read;
+            while ((read = stream.read(buffer)) != -1) {
+                if (out.size() + read > maxBytes) {
+                    throw new IOException("The release manifest is too large");
+                }
+                out.write(buffer, 0, read);
+            }
+            return new String(out.toByteArray(), StandardCharsets.UTF_8);
+        }
+    }
+
+    private static String toHex(byte[] bytes) {
+        StringBuilder hex = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            hex.append(String.format(Locale.ROOT, "%02x", b));
+        }
+        return hex.toString();
     }
 }

@@ -10,6 +10,9 @@ export interface AppVersionManifest {
   versionCode: number;
   versionName: string | null;
   apkUrl: string | null;
+  /** Hex SHA-256 of the APK at apkUrl. The Android shell (1.5+) refuses to
+   * install a download that doesn't match it, or a release without one. */
+  apkSha256: string | null;
   notes: string | null;
   exeVersionName: string | null;
   exeUrl: string | null;
@@ -22,6 +25,7 @@ export function getAppVersionManifest(): AppVersionManifest {
     versionCode: Number.isFinite(versionCode) ? versionCode : 0,
     versionName: process.env.APP_LATEST_VERSION_NAME || null,
     apkUrl: process.env.APP_APK_URL || null,
+    apkSha256: process.env.APP_APK_SHA256?.trim().toLowerCase() || null,
     notes: process.env.APP_UPDATE_NOTES || null,
     exeVersionName: process.env.APP_EXE_VERSION_NAME || null,
     exeUrl: process.env.APP_EXE_URL || null,

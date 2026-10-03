@@ -18,8 +18,11 @@ type CommonProps = {
 };
 
 type InputFieldProps = CommonProps & {
-  type?: "text" | "number" | "email" | "password";
+  type?: "text" | "number" | "email" | "password" | "url";
   placeholder?: string;
+  /** Browser-side format check; `title` is what it shows when it fails. */
+  pattern?: string;
+  title?: string;
   multiline?: false;
   select?: false;
 };
@@ -82,6 +85,8 @@ export function Field(props: FieldProps) {
           defaultValue={defaultValue}
           dir={dir}
           placeholder={props.placeholder}
+          pattern={props.pattern}
+          title={props.title}
           className={fieldControlClass}
         />
       )}

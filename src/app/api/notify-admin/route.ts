@@ -1,13 +1,16 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { sendAdminPush } from "@/lib/adminPush";
+import { PERMISSIONS } from "@/lib/permissions";
 import { hasWebhookSecret } from "@/lib/webhookAuth";
 
 // Called by the Supabase DB triggers in
 // supabase/migrations/0014_notify_new_message_trigger.sql (contact_messages)
 // and 0023_notify_new_booking_trigger.sql (bookings) whenever a new row
-// lands in either table. Fans the event out to every registered admin
-// device via Firebase Cloud Messaging (see src/lib/adminPush.ts).
+// lands in either table. Fans the event out via Firebase Cloud Messaging
+// (see src/lib/adminPush.ts) — only to the devices of admins who could open
+// that row in the panel: bookings:manage for a booking, messages:manage for
+// a contact message.
 //
 // Required server-only env vars: WEBHOOK_SECRET plus the FIREBASE_* trio.
 
@@ -71,8 +74,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "missing_record" }, { status: 400 });
   }
 
+  const permission = body.table === "bookings" ? PERMISSIONS.bookingsManage : PERMISSIONS.messagesManage;
+
   try {
-    const { sent } = await sendAdminPush(buildNotification(body));
+    const { sent } = await sendAdminPush(buildNotification(body), { permission });
     return NextResponse.json({ ok: true, sent });
   } catch {
     return NextResponse.json({ ok: false, error: "send_failed" }, { status: 500 });

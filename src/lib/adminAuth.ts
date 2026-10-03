@@ -185,24 +185,57 @@ export async function revokeCurrentSession(): Promise<void> {
 }
 
 /** Signs a user out everywhere — used when their password changes or their
- * account is deactivated. */
+ * account is deactivated — and unregisters their phones from admin pushes,
+ * so a lost or handed-back phone stops showing visitors' details too. A
+ * phone they still use re-registers when they sign in on it again. */
 export async function revokeUserSessions(userId: string): Promise<void> {
-  const { error } = await createAdminClient()
-    .from("admin_sessions")
-    .update({ revoked_at: new Date().toISOString() })
-    .eq("user_id", userId)
-    .is("revoked_at", null);
+  const supabase = createAdminClient();
+  const [{ error }, { error: pushError }] = await Promise.all([
+    supabase
+      .from("admin_sessions")
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("user_id", userId)
+      .is("revoked_at", null),
+    supabase.from("admin_push_tokens").delete().eq("user_id", userId),
+  ]);
   if (error) throw new Error(error.message);
+  if (pushError) throw new Error(pushError.message);
+}
+
+function saltRounds(): number {
+  return Number(process.env.BCRYPT_SALT_ROUNDS ?? 12);
 }
 
 export async function hashPassword(password: string): Promise<string> {
-  const rounds = Number(process.env.BCRYPT_SALT_ROUNDS ?? 12);
-  return bcrypt.hash(password, rounds);
+  return bcrypt.hash(password, saltRounds());
 }
 
-/** Compares a candidate password against a stored bcrypt hash — including
- * hashes produced by Postgres's pgcrypto crypt(password, gen_salt('bf')),
- * used for the one-off bootstrap admin account (see the migration). */
-export async function verifyPassword(candidate: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(candidate, hash);
+// A bcrypt hash, at the configured cost, of a random string nobody knows —
+// made once per server instance, the first time it's needed.
+let dummyPasswordHash: Promise<string> | undefined;
+
+/**
+ * Checks a login attempt against a stored bcrypt hash — including hashes
+ * produced by Postgres's pgcrypto crypt(password, gen_salt('bf')), used for
+ * the one-off bootstrap admin account (see the migration).
+ *
+ * Pass null when the email matched no active account: the candidate is then
+ * compared against a dummy hash and false is returned, so a wrong email
+ * costs the same bcrypt work as a wrong password. Skipping the comparison
+ * instead answered in ~0 ms rather than ~200 ms, which told anyone timing
+ * the login form which emails are admin accounts.
+ */
+export async function verifyPassword(candidate: string, hash: string | null): Promise<boolean> {
+  if (hash) return bcrypt.compare(candidate, hash);
+  dummyPasswordHash ??= hashPassword(crypto.randomUUID());
+  await bcrypt.compare(candidate, await dummyPasswordHash);
+  return false;
+}
+
+/** Whether `hash` has fewer rounds than hashPassword() now uses — e.g. the
+ * bootstrap account's pgcrypto hash, which is cost 6. Re-hashing it on the
+ * next successful login keeps every account at the same cost, and so keeps
+ * verifyPassword() taking the same time whichever email is tried. */
+export function passwordNeedsRehash(hash: string): boolean {
+  return bcrypt.getRounds(hash) < saltRounds();
 }

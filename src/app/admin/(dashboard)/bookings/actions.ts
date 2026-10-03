@@ -118,12 +118,21 @@ export async function deleteBooking(id: string) {
   const session = await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
 
-  await withAuditLog(session, "delete_booking", "bookings", async () => {
+  const facePhotoPath = await withAuditLog(session, "delete_booking", "bookings", async () => {
     const { data: before } = await supabase.from("bookings").select().eq("id", id).maybeSingle();
     const { error } = await supabase.from("bookings").delete().eq("id", id);
     if (error) throw new Error(error.message);
-    return { result: undefined, targetId: id, before };
+    return { result: before?.face_image_path ?? null, targetId: id, before };
   });
+
+  // The face photo is biometric data that only exists for this booking, so
+  // it goes with it — the retention job only ever finds photos a booking
+  // still points at. If this removal fails, the daily orphan sweep in
+  // /api/booking/cleanup-photos deletes it instead.
+  if (facePhotoPath) {
+    const { error } = await supabase.storage.from("face-scans").remove([facePhotoPath]);
+    if (error) console.error("[bookings] failed to delete face photo", error.message);
+  }
 
   revalidatePath("/admin/bookings");
   revalidatePath("/admin");

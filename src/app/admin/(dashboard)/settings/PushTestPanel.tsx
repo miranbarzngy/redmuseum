@@ -18,8 +18,8 @@ export function PushTestPanel() {
   const [result, setResult] = useState<Result | null>(null);
 
   function handleSend() {
-    // Inside the app only this phone is tested; from a browser, every
-    // registered phone gets it.
+    // Inside the app only this phone is tested; from a browser, every phone
+    // this admin is signed in on gets it (never other admins' phones).
     let token: string | null = null;
     if (native) {
       try {
@@ -40,7 +40,7 @@ export function PushTestPanel() {
         setResult({
           text: native
             ? NOT_REGISTERED
-            : "هیچ مۆبایلێک تۆمار نەکراوە — ئەپی ئەندرۆید بکەرەوە و ڕێگە بە ئاگادارکردنەوە بدە",
+            : "هیچ مۆبایلێک بە هەژمارەکەت تۆمار نەکراوە — ئەپی ئەندرۆید بکەرەوە و ڕێگە بە ئاگادارکردنەوە بدە",
           ok: false,
         });
       } else if (!res.sent) {
@@ -62,7 +62,7 @@ export function PushTestPanel() {
       description={
         native
           ? "ئاگادارکردنەوەیەکی تاقیکاری بۆ ئەم مۆبایلە دەنێرێت بە دەنگی هەڵبژێردراو."
-          : "ئاگادارکردنەوەیەکی تاقیکاری بۆ هەموو مۆبایلە تۆمارکراوەکان دەنێرێت."
+          : "ئاگادارکردنەوەیەکی تاقیکاری بۆ هەموو مۆبایلە تۆمارکراوەکانی خۆت دەنێرێت."
       }
     >
       <button type="button" onClick={handleSend} disabled={sending} className={btnTonal}>

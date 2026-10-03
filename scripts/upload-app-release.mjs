@@ -11,9 +11,20 @@
  * so build first: `npm run android:release` / `npm run windows:release`.
  * Blob paths carry the version, so a new release never gets served a
  * CDN-cached copy of the old file.
+ *
+ * The APK's SHA-256 is computed here, from the file on disk, and printed as
+ * APP_APK_SHA256: the Android shell (1.5+) installs an update only if the
+ * download matches it, so a release published without it isn't offered.
  */
-import { openAsBlob, readFileSync, statSync, existsSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { createReadStream, openAsBlob, readFileSync, statSync, existsSync } from "node:fs";
 import { put } from "@vercel/blob";
+
+async function sha256(file) {
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(file)) hash.update(chunk);
+  return hash.digest("hex");
+}
 
 if (!process.env.BLOB_READ_WRITE_TOKEN) {
   console.error(
@@ -42,10 +53,11 @@ const releases = [
     // updater offer the "new" version forever, since installing it never
     // raises the installed versionCode.
     staleIfOlderThan: "android/app/build.gradle",
-    env: (url) => ({
+    env: (url, digest) => ({
       APP_LATEST_VERSION_CODE: versionCode,
       APP_LATEST_VERSION_NAME: versionName,
       APP_APK_URL: url,
+      APP_APK_SHA256: digest,
     }),
   },
   {
@@ -73,7 +85,8 @@ for (const release of releases) {
   }
 
   const sizeMb = (statSync(release.file).size / 1024 / 1024).toFixed(1);
-  console.log(`Uploading ${release.file} (${sizeMb} MB) → ${release.pathname}`);
+  const digest = await sha256(release.file);
+  console.log(`Uploading ${release.file} (${sizeMb} MB, sha256 ${digest}) → ${release.pathname}`);
 
   let lastPercent = -1;
   const blob = await put(release.pathname, await openAsBlob(release.file), {
@@ -94,7 +107,7 @@ for (const release of releases) {
   // downloadUrl adds ?download=1, which makes Blob send
   // Content-Disposition: attachment so browsers save the file instead of
   // trying to open it.
-  Object.assign(envLines, release.env(blob.downloadUrl));
+  Object.assign(envLines, release.env(blob.downloadUrl, digest));
   console.log(`  done: ${blob.downloadUrl}`);
 }
 

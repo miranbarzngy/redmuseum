@@ -383,11 +383,13 @@ export interface Database {
         Row: {
           id: string;
           token: string;
+          user_id: string;
           created_at: string;
         };
         Insert: {
           id?: string;
           token: string;
+          user_id: string;
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["admin_push_tokens"]["Insert"]>;
@@ -674,6 +676,10 @@ export interface Database {
       record_page_visit: {
         Args: { p_path: string; p_country?: string | null; p_city?: string | null; p_ip_hash?: string | null };
         Returns: undefined;
+      };
+      face_scan_orphans: {
+        Args: { p_min_age_hours: number; p_limit: number };
+        Returns: string[];
       };
     };
     Enums: Record<string, never>;

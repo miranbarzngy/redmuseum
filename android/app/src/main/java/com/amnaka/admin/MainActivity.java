@@ -40,7 +40,9 @@ public class MainActivity extends BridgeActivity {
         );
         channel.setDescription("New visit requests and contact messages");
         channel.enableVibration(true);
-        channel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PUBLIC);
+        // Private, not public: a phone set to hide sensitive lock-screen
+        // content shows that a push arrived without the visitor's details.
+        channel.setLockscreenVisibility(android.app.Notification.VISIBILITY_PRIVATE);
         channel.setSound(
             RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION),
             new AudioAttributes.Builder()

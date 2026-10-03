@@ -33,7 +33,9 @@ async function ensureSoundChannels() {
       importance: 5,
       sound: `${resource}.wav`,
       vibration: true,
-      visibility: 1,
+      // 0 = private: honours the phone's "hide sensitive content" lock-screen
+      // setting instead of forcing visitors' names onto it (see adminPush.ts).
+      visibility: 0,
     }).catch(() => {});
   }
 }
@@ -46,8 +48,9 @@ async function ensureSoundChannels() {
  *
  * On mount: requests native notification permission, registers with FCM via
  * the native plugin, hands the resulting device token to
- * saveAdminPushToken(), and wires up tap-to-open so tapping the OS status
- * bar notification navigates straight to /admin/messages.
+ * saveAdminPushToken() (which ties it to the signed-in admin), and wires up
+ * tap-to-open so tapping the OS status bar notification navigates straight
+ * to /admin/messages.
  */
 export function NativePushBridge() {
   const router = useRouter();

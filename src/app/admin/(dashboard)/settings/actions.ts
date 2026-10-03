@@ -52,10 +52,11 @@ export async function updateNotificationSound(sound: string): Promise<{ ok: bool
 
 export type TestPushResult = AdminPushResult | { error: "send_failed" };
 
-/** Sample push with the picked sound. With `token` (the calling phone's)
- * only that device gets it; from a browser, every registered device does. */
+/** Sample push with the picked sound, only ever to the caller's own devices:
+ * with `token` (the calling phone's) just that one; from a browser, every
+ * phone they're signed in on. */
 export async function sendTestPush(token?: string): Promise<TestPushResult> {
-  await requireAdminSession(PERMISSIONS.settingsManage);
+  const session = await requireAdminSession(PERMISSIONS.settingsManage);
   try {
     return await sendAdminPush(
       {
@@ -63,7 +64,7 @@ export async function sendTestPush(token?: string): Promise<TestPushResult> {
         body: "ئەگەر ئەمە دەبینیت، ئاگادارکردنەوەکان بە باشی کار دەکەن",
         url: "/admin/settings",
       },
-      token || undefined
+      { userId: session.id, token: token || undefined }
     );
   } catch (err) {
     console.error("[settings] test push failed", err);

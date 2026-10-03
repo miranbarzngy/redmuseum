@@ -8,6 +8,8 @@ import {
   ADMIN_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
   createSession,
+  hashPassword,
+  passwordNeedsRehash,
   verifyPassword,
 } from "@/lib/adminAuth";
 
@@ -106,19 +108,25 @@ export async function signIn(formData: FormData) {
     .eq("email", email)
     .maybeSingle();
 
-  // Same "?error=1" outcome whether the email doesn't exist, the account
-  // is deactivated, or the password is wrong — never reveal which one.
-  const valid = Boolean(user?.is_active) && (await verifyPassword(password, user?.password_hash ?? ""));
-  if (!email || !password || !user || !valid) {
+  // Same "?error=1" outcome — and, through verifyPassword()'s dummy
+  // comparison, the same response time — whether the email doesn't exist,
+  // the account is deactivated, or the password is wrong. Never reveal which.
+  const account = user?.is_active ? user : null;
+  const valid = await verifyPassword(password, account?.password_hash ?? null);
+  if (!email || !password || !account || !valid) {
     redirect(`/admin/login?error=1&next=${encodeURIComponent(next)}`);
   }
 
+  const upgradedHash = passwordNeedsRehash(account.password_hash) ? await hashPassword(password) : null;
   await Promise.all([
     supabase.rpc("admin_login_succeeded", { p_email: email, p_ip: ip }),
-    supabase.from("admin_users").update({ last_login: new Date().toISOString() }).eq("id", user.id),
+    supabase
+      .from("admin_users")
+      .update({ last_login: new Date().toISOString(), ...(upgradedHash ? { password_hash: upgradedHash } : {}) })
+      .eq("id", account.id),
   ]);
 
-  const token = await createSession(user);
+  const token = await createSession(account);
   (await cookies()).set(ADMIN_COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

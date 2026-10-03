@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { isAuthorizedCron } from "@/lib/webhookAuth";
 import { sendAdminPush } from "@/lib/adminPush";
+import { PERMISSIONS } from "@/lib/permissions";
 
 // Daily nudge: a booking that was confirmed but whose visit date has
 // already passed while its status is still "confirmed" means the admin
@@ -42,11 +43,14 @@ async function handle(request: Request) {
   }
 
   try {
-    const { sent } = await sendAdminPush({
-      title: "نوێکردنەوەی دۆخی سەردان",
-      body: `${overdue} سەردانی پشتڕاستکراو تێپەڕیوە و هێشتا نەشیکراوەتەوە — دیاری بکە هاتوون یان نەهاتوون.`,
-      url: "/admin/bookings",
-    });
+    const { sent } = await sendAdminPush(
+      {
+        title: "نوێکردنەوەی دۆخی سەردان",
+        body: `${overdue} سەردانی پشتڕاستکراو تێپەڕیوە و هێشتا نەشیکراوەتەوە — دیاری بکە هاتوون یان نەهاتوون.`,
+        url: "/admin/bookings",
+      },
+      { permission: PERMISSIONS.bookingsManage }
+    );
     return NextResponse.json({ ok: true, overdue, sent });
   } catch {
     return NextResponse.json({ ok: false, error: "send_failed" }, { status: 500 });

@@ -13,6 +13,11 @@ import { backgroundImageUrls } from "@/lib/backgroundDefaults";
 import type { SiteProfileRow } from "@/lib/supabase/database.types";
 import type { heroDefaults } from "@/lib/heroDefaults";
 import type { contactDefaults as contactDefaultsType } from "@/lib/contactDefaults";
+import { HTTPS_URL_HINT, HTTPS_URL_PATTERN } from "@/lib/httpsUrl";
+
+// The link fields below: the browser flags anything but an https:// URL on
+// the field itself, and updateProfile() re-checks it.
+const httpsLinkInput = { type: "url", pattern: HTTPS_URL_PATTERN, title: HTTPS_URL_HINT } as const;
 
 function withFallback(value: string | null | undefined, fallback: string) {
   return value?.trim() ? value : fallback;
@@ -234,7 +239,7 @@ export function ProfileForm({
           <Field
             label="لینکی نەخشە (شوێنی مۆزەخانەکە)"
             name="contact_map_url"
-            type="text"
+            {...httpsLinkInput}
             dir="ltr"
             defaultValue={withFallback(profile?.contact_map_url, contactDefaults.mapUrl)}
             hint="بەتاڵی بهێڵەرەوە ئەگەر ناتەوێت شوێنەکە ببێتە لینک بۆ گووگڵ ماپس."
@@ -244,7 +249,7 @@ export function ProfileForm({
             <Field
               label="ئینستاگرام"
               name="social_instagram_url"
-              type="text"
+              {...httpsLinkInput}
               dir="ltr"
               defaultValue={savedOrFallback(
                 profile?.social_instagram_url,
@@ -254,7 +259,7 @@ export function ProfileForm({
             <Field
               label="فەیسبووک"
               name="social_facebook_url"
-              type="text"
+              {...httpsLinkInput}
               dir="ltr"
               defaultValue={savedOrFallback(
                 profile?.social_facebook_url,
@@ -264,14 +269,14 @@ export function ProfileForm({
             <Field
               label="ئێکس (تویتەر)"
               name="social_x_url"
-              type="text"
+              {...httpsLinkInput}
               dir="ltr"
               defaultValue={savedOrFallback(profile?.social_x_url, contactDefaults.socials.x)}
             />
             <Field
               label="یوتیوب"
               name="social_youtube_url"
-              type="text"
+              {...httpsLinkInput}
               dir="ltr"
               defaultValue={savedOrFallback(
                 profile?.social_youtube_url,
@@ -281,14 +286,14 @@ export function ProfileForm({
             <Field
               label="تیکتۆک"
               name="social_tiktok_url"
-              type="text"
+              {...httpsLinkInput}
               dir="ltr"
               defaultValue={savedOrFallback(profile?.social_tiktok_url, contactDefaults.socials.tiktok)}
             />
             <Field
               label="واتسئاپ"
               name="social_whatsapp_url"
-              type="text"
+              {...httpsLinkInput}
               dir="ltr"
               placeholder="https://wa.me/9647500000000"
               defaultValue={savedOrFallback(profile?.social_whatsapp_url, contactDefaults.socials.whatsapp)}
@@ -301,7 +306,7 @@ export function ProfileForm({
           <Field
             label="فایلی ڕێنیشاندەر (PDF)"
             name="guide_flyer_url"
-            type="text"
+            {...httpsLinkInput}
             dir="ltr"
             defaultValue={profile?.guide_flyer_url ?? ""}
             placeholder="https://example.com/guide.pdf"

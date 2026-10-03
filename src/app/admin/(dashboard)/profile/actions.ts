@@ -3,13 +3,38 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
+import { isHttpsUrl } from "@/lib/httpsUrl";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BACKGROUND_PIECE_UPLOAD, resolveGalleryImageUrls } from "@/lib/supabase/uploadImage";
 
+/** A link field: empty, or an absolute https:// URL (see src/lib/httpsUrl.ts).
+ * The form's inputs already enforce this in the browser, so this only trips
+ * on a request that skipped the form. */
+function linkField(formData: FormData, name: string): string {
+  const value = String(formData.get(name) ?? "").trim();
+  if (value && !isHttpsUrl(value)) {
+    throw new Error("بەستەرەکان دەبێت بە https:// دەست پێبکەن.");
+  }
+  return value;
+}
+
 export async function updateProfile(formData: FormData) {
   await requireAdminSession(PERMISSIONS.profileManage);
   const supabase = createAdminClient();
+
+  // Checked before any upload, so a bad link can't leave orphaned images
+  // in storage behind the failed save.
+  const links = {
+    contact_map_url: linkField(formData, "contact_map_url"),
+    social_instagram_url: linkField(formData, "social_instagram_url"),
+    social_facebook_url: linkField(formData, "social_facebook_url"),
+    social_x_url: linkField(formData, "social_x_url"),
+    social_youtube_url: linkField(formData, "social_youtube_url"),
+    social_tiktok_url: linkField(formData, "social_tiktok_url"),
+    social_whatsapp_url: linkField(formData, "social_whatsapp_url"),
+    guide_flyer_url: linkField(formData, "guide_flyer_url") || null,
+  };
 
   const heroImageUrls = await resolveGalleryImageUrls(
     supabase,
@@ -24,8 +49,6 @@ export async function updateProfile(formData: FormData) {
     "background_image_files",
     BACKGROUND_PIECE_UPLOAD
   );
-
-  const guideFlyerUrl = String(formData.get("guide_flyer_url") ?? "").trim() || null;
 
   const { error } = await supabase.from("site_profile").upsert({
     id: 1,
@@ -74,16 +97,9 @@ export async function updateProfile(formData: FormData) {
     contact_location_ku: String(formData.get("contact_location_ku") ?? "").trim(),
     contact_location_en: String(formData.get("contact_location_en") ?? "").trim(),
     contact_location_ar: String(formData.get("contact_location_ar") ?? "").trim(),
-    contact_map_url: String(formData.get("contact_map_url") ?? "").trim(),
-    social_instagram_url: String(formData.get("social_instagram_url") ?? "").trim(),
-    social_facebook_url: String(formData.get("social_facebook_url") ?? "").trim(),
-    social_x_url: String(formData.get("social_x_url") ?? "").trim(),
-    social_youtube_url: String(formData.get("social_youtube_url") ?? "").trim(),
-    social_tiktok_url: String(formData.get("social_tiktok_url") ?? "").trim(),
-    social_whatsapp_url: String(formData.get("social_whatsapp_url") ?? "").trim(),
+    ...links,
     hero_image_url: heroImageUrls[0] ?? null,
     hero_image_urls: heroImageUrls,
-    guide_flyer_url: guideFlyerUrl,
     background_image_urls: backgroundImageUrls,
   });
   if (error) throw new Error(error.message);

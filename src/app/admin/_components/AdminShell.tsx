@@ -8,7 +8,7 @@ import { LogOut, ExternalLink, MoreHorizontal, ArrowRight, Search } from "lucide
 import type { LucideIcon } from "lucide-react";
 import { signOut } from "../actions";
 import { useIsNativeApp } from "@/lib/useIsNativeApp";
-import { NativePushBridge } from "./NativePushBridge";
+import { NativePushBridge, PUSH_TOKEN_KEY } from "./NativePushBridge";
 import { NotificationsBell } from "./NotificationsBell";
 import { ToastProvider, FlashToast } from "./Toast";
 import { EMPTY_ADMIN_NOTIFICATIONS, type AdminNotifications } from "./adminNotificationsShape";
@@ -19,6 +19,17 @@ import { PullToRefresh } from "./PullToRefresh";
 import { CommandPalette, usePaletteShortcut } from "./CommandPalette";
 
 const LOGO_SRC = "/images/logo/android-chrome-192x192.png";
+
+/** Action for both sign-out buttons: passes signOut() this phone's push token
+ * (only ever stored inside the native app) so the phone is unregistered along
+ * with the session. */
+function signOutThisDevice(formData: FormData) {
+  try {
+    const pushToken = localStorage.getItem(PUSH_TOKEN_KEY);
+    if (pushToken) formData.set("push_token", pushToken);
+  } catch {}
+  return signOut(formData);
+}
 
 type Badge = { count: number; tone: string } | null;
 type ShellUser = { name: string; role: string };
@@ -320,7 +331,7 @@ function ShellFrame({
             >
               <ExternalLink size={17} /> بینینی ماڵپەڕ
             </Link>
-            <form action={signOut} className="border-t border-ink/10">
+            <form action={signOutThisDevice} className="border-t border-ink/10">
               <button
                 type="submit"
                 className="font-kurdish flex w-full items-center gap-3 px-4 py-3.5 text-fluid-sm font-medium text-pigment-crimson transition-colors active:bg-pigment-crimson/10"
@@ -371,7 +382,7 @@ function UserRow({ user, withSignOut, className }: { user: ShellUser; withSignOu
         <p className="font-kurdish truncate text-[11px] text-ink-faint">{user.role}</p>
       </div>
       {withSignOut && (
-        <form action={signOut}>
+        <form action={signOutThisDevice}>
           <button
             type="submit"
             aria-label="چوونەدەرەوە"
