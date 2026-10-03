@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="ckb" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Amna Suraka — clickgroup.site slides (source)</title>
+<!--
+  Source for the clickgroup.site homepage slider images (museum website + visit booking + admin apps).
+  #char-<id>  → 1000×1000 transparent "Character / Product Image" (rendered at 1.6x → 1600px WebP)
+  #bg-<id>    → 1920×1080 "Background Image" (JPG), graded from the museum's own photos
+  Render with:  node render.js
+  screens/*.png are real screenshots of https://redmuseum.vercel.app (Sept 2026). Face scan, visit pass,
+  status page and the admin apps are HTML mockups built from the app's own components and strings.
+-->
+<style>
+@font-face{font-family:'Kurdish';src:url('../../public/font/kurdish.otf')}
+:root{--maroon:#3D0000;--red:#CC0C0C;--wine:#850B10;--gold:#C9A227;--teal:#1F5F5B;--canvas:#FAFAF7;--paper:#F4F1E9;--ink:#1C1B19;--soft:#4A4642;--faint:#8A8580}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:transparent}
+body{font-family:'Kurdish','Segoe UI',Tahoma,sans-serif;color:#fff;padding:20px;-webkit-font-smoothing:antialiased}
+svg.i{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;display:block}
+img{display:block}
+.A{position:absolute}
+.lat{font-family:'Segoe UI',sans-serif;direction:ltr;unicode-bidi:isolate}
+
+.char{position:relative;width:1000px;height:1000px;overflow:hidden;margin-bottom:40px}
+.bgs{position:relative;width:1920px;height:1080px;overflow:hidden;margin-bottom:40px;background:#140404}
+.fit{position:absolute;inset:0;transform:scale(.88);transform-origin:44% 100%}
+.at{position:absolute;transform-origin:0 0}
+.face-l{transform:perspective(2600px) rotateY(-14deg) rotateX(4deg)}
+
+/* ── device frames ── */
+.iph{position:relative;width:330px;height:700px}
+.iph .frame{position:absolute;inset:0;border-radius:54px;background:linear-gradient(150deg,#5b6474 0%,#1a2130 16%,#0b0f17 55%,#3a4252 100%);box-shadow:0 40px 90px rgba(0,0,0,.55)}
+.iph .frame:before{content:'';position:absolute;inset:3px;border-radius:51px;background:#04060a}
+.iph .screen{position:absolute;left:9px;top:9px;width:312px;height:682px;border-radius:46px;overflow:hidden;background:var(--canvas)}
+.iph .screen:after,.lap .scr:after,.adr .scrn:after,.win .body:after{content:'';position:absolute;inset:0;z-index:30;pointer-events:none;background:linear-gradient(118deg,rgba(255,255,255,.18) 0%,rgba(255,255,255,.04) 26%,rgba(255,255,255,0) 40%)}
+.iph .island{position:absolute;left:50%;top:10px;width:96px;height:26px;margin-left:-48px;border-radius:16px;background:#000;z-index:31}
+.iph .pbtn{position:absolute;width:4px;border-radius:2px;background:#3a4252}
+.shot{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+.lap{position:relative;width:1080px}
+.lap .lid{width:1000px;height:640px;margin:0 auto;border-radius:30px 30px 10px 10px;padding:18px;background:linear-gradient(150deg,#3a3a40 0%,#18181c 42%,#0c0c0f 100%);box-shadow:0 40px 90px rgba(0,0,0,.5),0 0 0 2px rgba(255,255,255,.12)}
+.lap .scr{position:relative;width:100%;height:100%;border-radius:12px;overflow:hidden;background:var(--canvas)}
+.lap .deck{position:relative;height:36px;margin-top:-2px;border-radius:4px 4px 30px 30px;background:linear-gradient(180deg,#55555c,#2a2a30 60%,#17171b);box-shadow:0 30px 60px rgba(0,0,0,.5),inset 0 2px 0 rgba(255,255,255,.2)}
+.lap .deck:before{content:'';position:absolute;top:0;left:50%;width:180px;height:12px;margin-left:-90px;border-radius:0 0 14px 14px;background:#141418}
+.adr{position:relative;width:350px;height:740px;border-radius:40px;padding:9px;background:linear-gradient(150deg,#4b5563 0%,#1f2937 14%,#0b0f17 55%,#374151 100%);box-shadow:0 40px 90px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.08)}
+.adr .scrn{position:relative;width:100%;height:100%;border-radius:32px;overflow:hidden;background:var(--canvas)}
+.adr .hole{position:absolute;left:50%;top:12px;width:13px;height:13px;margin-left:-6.5px;border-radius:50%;background:#000;z-index:31}
+.adr .side{position:absolute;right:-3px;width:4px;border-radius:2px;background:#4b5563}
+.win{position:relative;width:920px;height:600px;border-radius:14px;overflow:hidden;background:var(--canvas);box-shadow:0 40px 90px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.18)}
+.win .tbar{height:38px;display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid rgba(28,27,25,.08);direction:ltr;font:13px 'Segoe UI',sans-serif;color:#333}
+.win .tbar .t{display:flex;align-items:center;gap:8px;padding-left:12px}
+.win .tbar .t img{width:18px;height:18px}
+.win .tbar .c{display:flex;height:100%}
+.win .tbar .c span{width:46px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#555}
+.win .body{position:relative;height:calc(100% - 38px);display:flex;color:var(--ink)}
+/* 360-wide app content, scaled into a frame */
+.app360{position:absolute;left:0;top:0;width:360px;transform-origin:0 0;direction:rtl;color:var(--ink)}
+
+/* ── museum site chrome (mock pages) ── */
+.hrs{height:30px;background:#1C1B19;display:flex;align-items:center;justify-content:center;gap:8px;font-size:11px;color:#e7e5e4}
+.hrs i{width:7px;height:7px;border-radius:50%;background:#22c55e}
+.shd{height:62px;background:#e9e7e3;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:1px solid rgba(28,27,25,.06)}
+.shd .b{display:flex;align-items:center;gap:8px}
+.shd .b img{width:34px;height:34px;object-fit:contain}
+.shd .b b{display:block;font-size:12px;color:var(--ink);line-height:1.3}
+.shd .b small{display:block;font:600 7.5px 'Segoe UI',sans-serif;letter-spacing:.12em;color:var(--faint);direction:ltr;text-align:right}
+.shd .mb{width:38px;height:38px;border-radius:50%;border:1px solid rgba(28,27,25,.15);display:flex;align-items:center;justify-content:center;color:var(--ink)}
+
+/* ── face scan (dark camera overlay, like FaceScanCapture.tsx) ── */
+.fs{position:absolute;inset:0;background:radial-gradient(120% 80% at 50% 35%,#1b1b1f 0%,#0a0a0c 70%);display:flex;flex-direction:column;align-items:center;color:#fff}
+.fs .ttl{margin-top:58px;font-size:14px;color:rgba(255,255,255,.65)}
+.fs .x{position:absolute;left:18px;top:50px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.1);display:flex;align-items:center;justify-content:center}
+.fs .ring{position:relative;width:268px;height:268px;margin-top:40px}
+.fs .ring .b1{position:absolute;inset:0;border-radius:50%;border:2px solid #10b981;box-shadow:0 0 40px rgba(16,185,129,.45)}
+.fs .ring .b2{position:absolute;inset:5px;border-radius:50%;background:conic-gradient(#34d399 0 70%,rgba(255,255,255,.1) 70% 100%)}
+.fs .ring .cam{position:absolute;inset:11px;border-radius:50%;overflow:hidden;background:#171717}
+.fs .ring .cam svg{width:100%;height:100%;display:block}
+.fs .ring .scan{position:absolute;left:24px;right:24px;top:58%;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,#6ee7b7,transparent);box-shadow:0 0 12px #34d399}
+.fs .ring .bdg{position:absolute;left:50%;bottom:-12px;transform:translateX(-50%);white-space:nowrap;border-radius:999px;background:#10b981;padding:4px 12px;font-size:11px;font-weight:700;box-shadow:0 6px 16px rgba(0,0,0,.4)}
+.fs .t1{margin-top:38px;font-size:19px;font-weight:700;color:#34d399}
+.fs .t2{margin-top:6px;font-size:17px;font-weight:700}
+.fs .t3{margin-top:4px;font-size:12px;color:rgba(255,255,255,.55);text-align:center;padding:0 40px;line-height:1.6}
+.fs .pb{margin-top:12px;width:160px;height:4px;border-radius:4px;background:rgba(255,255,255,.15);overflow:hidden}
+.fs .pb b{display:block;width:62%;height:100%;background:#10b981;border-radius:4px}
+
+/* ── floating pieces ── */
+.card{background:#fff;color:var(--ink);border-radius:24px;box-shadow:0 30px 70px rgba(0,0,0,.45)}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:9px 20px;border-radius:999px;font-size:20px;font-weight:700;white-space:nowrap}
+.langs{display:flex;gap:4px;padding:6px;border-radius:999px;background:#fff;box-shadow:0 20px 50px rgba(0,0,0,.4);width:max-content}
+.langs span{padding:8px 20px;border-radius:999px;font-size:20px;font-weight:700;color:var(--soft)}
+.langs span.on{background:var(--ink);color:#fff}
+.steps{display:flex;align-items:center;width:max-content;padding:16px 22px;gap:0;border-radius:24px;background:#fff;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.steps .s{display:flex;flex-direction:column;align-items:center;gap:6px;width:92px;font-size:17px;font-weight:700;color:var(--soft)}
+.steps .s b{width:44px;height:44px;border-radius:50%;border:2px solid rgba(28,27,25,.2);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--soft);background:#fff}
+.steps .s.on b{background:var(--wine);border-color:var(--wine);color:#fff;box-shadow:0 0 0 5px rgba(133,11,16,.15)}
+.steps .s.on{color:var(--wine)}
+.steps .ln{width:38px;height:2px;background:rgba(28,27,25,.15);margin-bottom:26px}
+.times{width:400px;padding:20px 22px}
+.times h6{font-size:18px;margin-bottom:12px}
+.times .g{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.times .g span{height:46px;border-radius:14px;border:1px solid rgba(28,27,25,.14);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:var(--ink);direction:ltr}
+.times .g span.on{background:var(--wine);border-color:var(--wine);color:#fff;box-shadow:0 8px 18px rgba(133,11,16,.35)}
+.times .br{margin-top:12px;display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;font-size:14px;color:#8a6d1f;background:repeating-linear-gradient(-45deg,rgba(201,162,39,.12) 0 8px,rgba(201,162,39,.05) 8px 16px)}
+.pgcard{position:absolute;width:250px}
+.pgcard .im{position:relative;height:370px;border-radius:22px;overflow:hidden;border:3px solid #fff;box-shadow:0 26px 60px rgba(0,0,0,.5)}
+.pgcard .lb{position:absolute;top:-16px;right:14px;z-index:2;display:flex;align-items:center;gap:8px;padding:6px 14px 6px 8px;border-radius:999px;background:var(--wine);color:#fff;font-size:17px;font-weight:700;box-shadow:0 10px 24px rgba(0,0,0,.4);white-space:nowrap}
+.pgcard .lb b{width:26px;height:26px;border-radius:50%;background:#fff;color:var(--wine);display:flex;align-items:center;justify-content:center;font-size:14px}
+.lock{width:330px;padding:18px 22px;display:flex;align-items:center;gap:14px}
+.lock img{width:78px;height:78px;object-fit:contain}
+.lock b{display:block;font-size:19px;line-height:1.35}
+.lock small{display:block;font:600 11px 'Segoe UI',sans-serif;letter-spacing:.14em;color:var(--faint);direction:ltr;text-align:right;margin-top:3px}
+/* visit pass (BookingSuccess.tsx) */
+.pass{width:390px;overflow:hidden;border-radius:28px;background:#fff;color:var(--ink);border:1px solid rgba(200,169,110,.35);box-shadow:0 34px 80px rgba(0,0,0,.5)}
+.pass .hd{display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px 22px 20px;background:rgba(31,95,91,.07);border-bottom:1px solid rgba(28,27,25,.05);text-align:center}
+.pass .ok{width:50px;height:50px;border-radius:50%;background:rgba(31,95,91,.15);color:var(--teal);display:flex;align-items:center;justify-content:center}
+.pass .hd h4{font-size:22px}
+.pass .hd p{font-size:13px;color:var(--soft)}
+.pass .gb{margin-top:2px;border-radius:999px;background:rgba(201,162,39,.15);padding:4px 12px;font-size:12px;font-weight:700;color:#8a6d1f}
+.pass .pt{padding:18px 22px 0}
+.pass .pt h5{font-size:17px}
+.pass .pt i{display:block;margin-top:10px;height:3px;border-radius:3px;background:var(--wine)}
+.pass .qr{display:flex;align-items:center;gap:16px;padding:16px 22px}
+.pass .qr .q{width:132px;height:132px;padding:10px;border-radius:14px;border:1px solid rgba(28,27,25,.1);flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.pass .qr .q img{width:100%;height:100%}
+.pass .qr p{font-size:13px;line-height:1.7;color:var(--soft)}
+.pass .qr p b{display:block;font-size:12px;color:var(--faint);font-weight:400}
+.pass .qr p .ref{font:700 20px 'Segoe UI',sans-serif;color:var(--wine);direction:ltr;display:block;text-align:right;margin-bottom:6px}
+.pass .rows{margin:0 22px;border:1px solid rgba(28,27,25,.1);border-radius:18px;padding:0 16px}
+.pass .rows div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(28,27,25,.05);font-size:13.5px}
+.pass .rows div:last-child{border:0}
+.pass .rows span{color:var(--faint)}
+.pass .ft{padding:16px 22px 20px;display:flex;justify-content:center}
+.pass .dl{display:inline-flex;align-items:center;gap:8px;border-radius:999px;background:var(--wine);color:#fff;padding:10px 20px;font-size:14px;font-weight:700}
+.wa{width:420px;border-radius:26px;overflow:hidden;background:#0b141a;box-shadow:0 34px 80px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.12)}
+.wa .wh{background:#1f2c34;padding:12px 16px;display:flex;align-items:center;gap:12px;font-size:16px}
+.wa .wh .av{width:40px;height:40px;border-radius:50%;background:#fff;padding:3px}
+.wa .wh .av img{width:100%;height:100%;object-fit:contain}
+.wa .wh small{display:block;font-size:12px;color:#8fa3ad}
+.wa .wh .wi{margin-right:auto;width:34px;height:34px;border-radius:50%;background:#25d366;display:flex;align-items:center;justify-content:center}
+.wa .bub{margin:14px;background:#005c4b;border-radius:16px 4px 16px 16px;padding:12px 16px;font-size:17px;line-height:1.65}
+.wa .bub .tm{display:block;text-align:left;font:12px 'Segoe UI',sans-serif;color:#9fd7c9}
+.notif{width:440px;padding:14px 16px;border-radius:24px;background:rgba(250,250,247,.98);color:var(--ink);box-shadow:0 30px 60px rgba(0,0,0,.45)}
+.notif .r{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--faint)}
+.notif .r img{width:22px;height:22px;object-fit:contain}
+.notif b{display:block;font-size:18px;margin-top:6px}
+.notif p{font-size:14px;color:var(--soft);margin-top:2px}
+.notif .bt{display:flex;gap:8px;margin-top:10px}
+.notif .bt span{flex:1;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:700}
+.badge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;width:150px;height:150px;border-radius:40px;color:#fff;box-shadow:0 0 0 6px rgba(255,255,255,.12),0 24px 50px rgba(0,0,0,.45)}
+.badge b{font:800 24px 'Segoe UI',sans-serif;letter-spacing:2px}
+/* admin mock (AdminShell look: canvas, ink, floating pill bottom bar) */
+.ah{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(250,250,247,.95);border-bottom:1px solid rgba(28,27,25,.08)}
+.ah .t{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700}
+.ah .t img{width:30px;height:30px;object-fit:contain}
+.ah .ic{display:flex;gap:4px}
+.ah .ic span{position:relative;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--ink)}
+.ah .ic span i{position:absolute;top:7px;right:8px;width:9px;height:9px;border-radius:50%;background:var(--red);border:2px solid #fff}
+.ftabs{display:flex;gap:6px;padding:12px 14px 4px;overflow:hidden}
+.ftabs span{padding:6px 13px;border-radius:999px;font-size:12.5px;font-weight:700;color:var(--soft);background:#fff;border:1px solid rgba(28,27,25,.1);white-space:nowrap}
+.ftabs span.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.stc{display:flex;gap:8px;padding:10px 14px}
+.stc div{flex:1;border-radius:16px;background:#fff;border:1px solid rgba(28,27,25,.07);padding:10px 12px}
+.stc small{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--faint)}
+.stc small i{width:7px;height:7px;border-radius:50%}
+.stc b{display:block;font:700 22px 'Segoe UI',sans-serif;margin-top:2px;text-align:right}
+.bk{margin:0 14px 10px;padding:12px;border-radius:20px;background:#fff;border:1px solid rgba(28,27,25,.07);box-shadow:0 1px 3px rgba(28,27,25,.06)}
+.bk .r1{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.bk .who{display:flex;align-items:center;gap:10px;min-width:0}
+.bk .fa{width:46px;height:46px;border-radius:14px;overflow:hidden;flex-shrink:0;background:#e7e5e4}
+.bk .fa svg{width:100%;height:100%;display:block}
+.bk .ini{width:46px;height:46px;border-radius:14px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;color:#fff}
+.bk b{display:block;font-size:15px;line-height:1.3}
+.bk .ph{font:12px 'Segoe UI',sans-serif;color:var(--faint);direction:ltr;text-align:right}
+.st{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.st.p{background:#fffbeb;color:#b45309}.st.c{background:#f0f9ff;color:#0369a1}.st.h{background:#ecfdf5;color:#047857}
+.bk .r2{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.bk .r2 span{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:10px;background:var(--paper);font-size:12px;color:var(--soft)}
+.bk .r3{display:flex;gap:6px;margin-top:10px}
+.bk .r3 span{flex:1;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:5px;font-size:12.5px;font-weight:700}
+.bnav{position:absolute;left:12px;right:12px;bottom:14px;height:64px;display:flex;justify-content:space-around;align-items:center;border-radius:999px;background:rgba(255,255,255,.96);border:1px solid rgba(28,27,25,.1);box-shadow:0 20px 45px -12px rgba(28,27,25,.35)}
+.bnav div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--faint)}
+.bnav div.on{color:var(--wine)}
+.bnav div.on i{background:rgba(133,11,16,.1)}
+.bnav i{width:40px;height:26px;border-radius:13px;display:flex;align-items:center;justify-content:center}
+.side{width:230px;flex-shrink:0;border-left:1px solid rgba(28,27,25,.08);background:#fff;padding:14px 12px;display:flex;flex-direction:column;gap:12px}
+.side .br{display:flex;align-items:center;gap:10px;padding-bottom:12px;border-bottom:1px solid rgba(28,27,25,.08)}
+.side .br img{width:36px;height:36px;object-fit:contain}
+.side .br b{display:block;font-size:15px}.side .br small{font-size:11px;color:var(--faint)}
+.side .sr{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:12px;border:1px solid rgba(28,27,25,.1);background:var(--canvas);font-size:11px;color:var(--faint)}
+.side .sr kbd{margin-right:auto;font:10px 'Segoe UI',sans-serif;border:1px solid rgba(28,27,25,.15);border-radius:5px;padding:1px 5px;background:#fff}
+.side p{font-size:10px;color:var(--faint);padding:0 8px;margin-bottom:2px}
+.side a{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:10px;font-size:12.5px;color:var(--soft);text-decoration:none}
+.side a.on{background:var(--paper);color:var(--ink);font-weight:700}
+.main{flex:1;padding:18px 20px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.main h3{font-size:20px}
+.tiles{display:flex;gap:10px}
+.tiles div{flex:1;border-radius:16px;background:#fff;border:1px solid rgba(28,27,25,.07);padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+.tiles small{display:block;font-size:12px;color:var(--faint)}
+.tiles b{font:700 26px 'Segoe UI',sans-serif}
+.tiles i{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.an{border-radius:18px;background:#fff;border:1px solid rgba(28,27,25,.07);padding:14px 16px}
+.an h6{font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.an h6 small{font-size:11px;color:var(--faint);font-weight:400}
+.an .ks{display:flex;gap:18px;margin:10px 0}
+.an .ks div small{display:block;font-size:11px;color:var(--faint)}
+.an .ks div b{font:700 19px 'Segoe UI',sans-serif}
+.an .bars{height:120px;display:flex;align-items:flex-end;gap:5px;border-bottom:1px solid rgba(28,27,25,.1);direction:ltr}
+.an .bars i{flex:1;border-radius:4px 4px 1px 1px;background:linear-gradient(180deg,#b91c1c,#850B10)}
+.an .bars i.lo{background:linear-gradient(180deg,#e7d3c7,#d6b9a8)}
+.qa{display:flex;gap:8px}
+.qa span{flex:1;display:flex;align-items:center;gap:7px;padding:10px 12px;border-radius:14px;background:#fff;border:1px solid rgba(28,27,25,.07);font-size:12px;font-weight:700;color:var(--soft)}
+.qa span i{width:28px;height:28px;border-radius:9px;background:rgba(133,11,16,.08);color:var(--wine);display:flex;align-items:center;justify-content:center}
+/* status page mock */
+.sp{padding:22px 16px}
+.sp .ey{font-size:12px;color:var(--wine);font-weight:700;text-align:center}
+.sp h4{font-size:24px;text-align:center;margin:4px 0 16px}
+.sp .box{border-radius:22px;background:#fff;border:1px solid rgba(28,27,25,.08);box-shadow:0 10px 30px rgba(28,27,25,.08);padding:20px 18px;text-align:center}
+.sp .box .ic{width:64px;height:64px;margin:0 auto;border-radius:50%;background:#e0f2fe;color:#0369a1;display:flex;align-items:center;justify-content:center}
+.sp .box b{display:block;font-size:22px;margin-top:10px;color:#0369a1}
+.sp .box p{font-size:13px;color:var(--soft);margin-top:4px;line-height:1.7}
+.sp .box .ref{direction:ltr;unicode-bidi:isolate;display:inline-block;margin-top:10px;font:700 14px 'Segoe UI',sans-serif;color:var(--wine);background:rgba(133,11,16,.06);padding:4px 12px;border-radius:999px}
+.sp .tl{margin-top:16px;border-radius:22px;background:#fff;border:1px solid rgba(28,27,25,.08);padding:14px 16px}
+.sp .tl div{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px;color:var(--soft)}
+.sp .tl div i{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff}
+.sp .tl div small{margin-right:auto;font:12px 'Segoe UI',sans-serif;color:var(--faint)}
+
+/* ── backgrounds: the museum's own photos, graded toward the brand oxblood ── */
+.bgs .ph{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(.85) contrast(1.06)}
+.bgs .gr{position:absolute;inset:0;mix-blend-mode:multiply}
+.bgs .glow{position:absolute;inset:0;mix-blend-mode:screen}
+.bgs .grain{position:absolute;inset:0;opacity:.1;mix-blend-mode:overlay;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .6 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>")}
+.bgs .vig{position:absolute;inset:0;background:radial-gradient(ellipse at 68% 45%,rgba(0,0,0,0) 40%,rgba(0,0,0,.6) 100%)}
+</style>
+</head>
+<body>
+
+<section class="char" id="char-overview"></section>
+<section class="char" id="char-all-pages"></section>
+<section class="char" id="char-face-scan"></section>
+<section class="char" id="char-visit-pass"></section>
+<section class="char" id="char-admin-app"></section>
+
+<section class="bgs" id="bg-overview" data-photo="bg-1.jpg" data-pos="60% 40%" data-grade="linear-gradient(90deg,#4a0a0a 0%,#a8443a 55%,#ecc0ac 100%)"></section>
+<section class="bgs" id="bg-all-pages" data-photo="bg-awenakan.jpg" data-pos="50% 50%" data-grade="linear-gradient(90deg,#3a1606 0%,#b8793a 55%,#ffe2b8 100%)"></section>
+<section class="bgs" id="bg-face-scan" data-photo="bg-6.jpg" data-pos="50% 55%" data-grade="linear-gradient(90deg,#0c2624 0%,#3e8a80 55%,#c0ece0 100%)"></section>
+<section class="bgs" id="bg-visit-pass" data-photo="bg-3.jpg" data-pos="50% 45%" data-grade="linear-gradient(90deg,#3d0000 0%,#a33a36 55%,#f2b8a8 100%)"></section>
+<section class="bgs" id="bg-admin-app" data-photo="bg-gorapan.jpg" data-pos="55% 45%" data-grade="linear-gradient(90deg,#1c1b2a 0%,#7a6068 55%,#ecd6ce 100%)"></section>
+
+<script>
+const IMG = '../../public/images/logo/', PHOTOS = IMG + 'assets/images/', LOGO = IMG + 'logo.png', S = 'screens/';
+const NAME = 'مۆزەخانەی نیشتیمانی ئەمنە سورەکە';
+const ICONS = {
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  ticket: '<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>',
+  dash: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+  book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  images: '<path d="M18 22H4a2 2 0 0 1-2-2V6"/><path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"/><circle cx="12" cy="8" r="2"/><rect width="16" height="16" x="6" y="2" rx="2"/>',
+  inbox: '<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  more: '<circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  msg: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
+  menu: '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+  user: '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  history: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/>',
+  shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  clipboard: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>',
+};
+const ic = (n, sz, st = '') => `<svg class="i" viewBox="0 0 24 24" style="width:${sz}px;height:${sz}px;${st}">${ICONS[n]}</svg>`;
+const WA = '<svg viewBox="0 0 24 24" width="20" height="20"><path fill="#fff" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm5.3 14.1c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.1-4.6-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.9s.7-2 1-2.3c.3-.3.6-.3.8-.3h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.3.5-.4.5c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1c.2-.3.4-.2.6-.1l2 .9c.3.1.5.2.5.3.1.2.1.7-.1 1.3z"/></svg>';
+
+// ─── cartoon visitor face + 68-point landmark mesh (same model as face-api's tiny landmarks) ───
+const bz = (p0, p1, p2, p3, t) => { const u = 1 - t; return [u*u*u*p0[0] + 3*u*u*t*p1[0] + 3*u*t*t*p2[0] + t*t*t*p3[0], u*u*u*p0[1] + 3*u*u*t*p1[1] + 3*u*t*t*p2[1] + t*t*t*p3[1]]; };
+function landmarks() {
+  const A = [[61,95],[61,112],[68,130],[82,141]], B = [[82,141],[88,146],[94,149.5],[100,149.5]];
+  const left = [[60,82],[60.5,92], bz(...A,.3), bz(...A,.6), bz(...A,.85), bz(...B,0), bz(...B,.4), bz(...B,.75), [100,149.5]];
+  const jaw = [...left]; for (let i = 7; i >= 0; i--) jaw.push([200 - left[i][0], left[i][1]]);
+  const eye = cx => [[cx-8,88],[cx-3.5,85.8],[cx+3.5,85.8],[cx+8,88],[cx+3.5,90],[cx-3.5,90]];
+  return [...jaw, [70,79],[75,75.2],[81,73.2],[87,73.3],[92,75.2], [108,75.2],[113,73.3],[119,73.2],[125,75.2],[130,79],
+    [100,82],[100,89],[100,96],[100,103.5], [93,107],[96.3,109.8],[100,111],[103.7,109.8],[107,107], ...eye(82), ...eye(118),
+    [89.5,123.5],[93,122],[97,121.5],[100,122.3],[103,121.5],[107,122],[110.5,123.5],[107,126.6],[103.5,127.9],[100,128.2],[96.5,127.9],[93,126.6],
+    [91,123.8],[95,123.6],[100,124.2],[105,123.6],[109,123.8],[105,124.9],[100,125.2],[95,124.9]];
+}
+const rg = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+const MESH = [rg(0,16), rg(17,21), rg(22,26), rg(27,30), rg(31,35), [30,33], [...rg(36,41),36], [...rg(42,47),42], [...rg(48,59),48], [...rg(60,67),60],
+  [17,36],[21,39],[22,42],[26,45],[21,27],[22,27],[27,39],[27,42],[0,36],[16,45],[1,41],[15,46],[31,48],[35,54],[3,48],[13,54],
+  [5,59],[11,55],[57,8],[39,31],[42,35],[30,39],[30,42],[33,51],[2,31],[14,35]];
+const pose = (tx, ty, r, s) => `translate(${100 + tx} ${95 + ty}) rotate(${r}) scale(${s}) translate(-100 -95)`;
+function faceSVG(p, { lm = false, ps = pose(0, 4, 0, 1.2), shirt = ['#7f1d1d', '#450a0a'] } = {}) {
+  const eye = (cx, sd) => `
+    <clipPath id="${p}c${sd}"><path d="M${cx-8},88 Q${cx},82.5 ${cx+8},88 Q${cx},93 ${cx-8},88 Z"/></clipPath>
+    <path d="M${cx-8},88 Q${cx},82.5 ${cx+8},88 Q${cx},93 ${cx-8},88 Z" fill="#f4ede6"/>
+    <g clip-path="url(#${p}c${sd})"><circle cx="${cx}" cy="87.9" r="3.5" fill="#4a2c1a"/><circle cx="${cx}" cy="87.9" r="1.8" fill="#0b0705"/><circle cx="${cx + 1.2}" cy="86.6" r=".95" fill="#fff"/></g>
+    <path d="M${cx-8.6},88 Q${cx},79.4 ${cx+8.6},88 Q${cx},82.5 ${cx-8.6},88 Z" fill="url(#${p}skin)"/>
+    <path d="M${cx-8.4},88 Q${cx},82.5 ${cx+8.4},88" fill="none" stroke="#1a120d" stroke-width="1.4" stroke-linecap="round"/>`;
+  let mesh = '';
+  if (lm) {
+    const L = landmarks();
+    mesh = `<g fill="none" stroke="rgba(52,211,153,.6)" stroke-width=".55">${MESH.map(s => `<path d="M${s.map(k => L[k][0].toFixed(1) + ',' + L[k][1].toFixed(1)).join('L')}"/>`).join('')}</g>
+      <g>${L.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i >= 36 && i <= 47 ? 1.35 : 1.1}" fill="#a7f3d0" stroke="#10b981" stroke-width=".5"/>`).join('')}</g>`;
+  }
+  return `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs>
+    <radialGradient id="${p}bg" cx="100" cy="70" r="150" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#57534e"/><stop offset=".55" stop-color="#292524"/><stop offset="1" stop-color="#0c0a09"/></radialGradient>
+    <radialGradient id="${p}skin" cx="98" cy="84" r="64" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#e2ab82"/><stop offset=".6" stop-color="#c98b63"/><stop offset="1" stop-color="#a3674a"/></radialGradient>
+    <linearGradient id="${p}shirt" x1="0" y1="150" x2="0" y2="205" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${shirt[0]}"/><stop offset="1" stop-color="${shirt[1]}"/></linearGradient>
+    <linearGradient id="${p}hair" x1="0" y1="25" x2="0" y2="92" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#33241a"/><stop offset="1" stop-color="#130c08"/></linearGradient></defs>
+  <rect width="200" height="200" fill="url(#${p}bg)"/>
+  <g transform="${ps}">
+    <path d="M10,206 C14,180 40,166 70,160 L87,155 C92,161 108,161 113,155 L130,160 C160,166 186,180 190,206 Z" fill="url(#${p}shirt)"/>
+    <path d="M85,124 L85,157 C92,163 108,163 115,157 L115,124 Z" fill="#a3674a"/>
+    <ellipse cx="60.5" cy="93" rx="6.5" ry="11" fill="#b97a54"/><ellipse cx="139.5" cy="93" rx="6.5" ry="11" fill="#b97a54"/>
+    <path d="M100,44 C124,44 139,60 140,86 C141,106 134,124 122,136 C114,143 107,147 100,147 C93,147 86,143 78,136 C66,124 59,106 60,86 C61,60 76,44 100,44 Z" fill="url(#${p}skin)"/>
+    <path d="M59,92 C55,74 57,56 67,44 C77,32 92,26 108,27 C125,28 139,38 143,56 C145,68 143,80 141,92 C140,82 137,72 132,66 C125,60 115,57 104,58 C92,58 81,60 73,65 C66,70 61,80 59,92 Z" fill="url(#${p}hair)"/>
+    <path d="M70,78 Q80,69.5 92,74 L92,76.8 Q80,73 70,80 Z" fill="#1a120d"/><path d="M130,78 Q120,69.5 108,74 L108,76.8 Q120,73 130,80 Z" fill="#1a120d"/>
+    ${eye(82, 'R')}${eye(118, 'L')}
+    <path d="M97.5,84 C96.5,94 94.5,101 93.2,105.5" fill="none" stroke="#a3674a" stroke-width="1" opacity=".55"/>
+    <path d="M93,106 C92.6,110 96,111.6 100,111.6 C104,111.6 107.4,110 107,106" fill="none" stroke="#8a5538" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M61,95 C61,112 68,130 82,141 C88,146 94,149.5 100,149.5 C106,149.5 112,146 118,141 C132,130 139,112 139,95 C137,103 133,110 127,115 C122,119 116,120 111,121 C108,118.5 104,117.5 100,117.5 C96,117.5 92,118.5 89,121 C84,120 78,119 73,115 C67,110 63,103 61,95 Z" fill="#1a120d" opacity=".9"/>
+    <path d="M89.5,123.5 C93.5,121.8 97,121.4 100,122.3 C103,121.4 106.5,121.8 110.5,123.5 C106,124.3 103,124.4 100,124.6 C97,124.4 94,124.3 89.5,123.5 Z" fill="#7d3b2c"/>
+    <path d="M90,123.9 C94.5,128.6 105.5,128.6 110,123.9 C106,125 94,125 90,123.9 Z" fill="#a0503e"/>
+    ${mesh}
+  </g>
+  ${lm ? '<rect x="49" y="34" width="102" height="138" rx="4" fill="none" stroke="#34d399" stroke-width="1" stroke-dasharray="4 3"/>' : ''}
+</svg>`;
+}
+
+// ─── building blocks ───
+const iphone = inner => `<div class="iph"><div class="frame"></div>
+  <div class="pbtn" style="left:-3px;top:130px;height:34px"></div><div class="pbtn" style="left:-3px;top:180px;height:56px"></div><div class="pbtn" style="right:-3px;top:160px;height:80px"></div>
+  <div class="screen">${inner}<div class="island"></div></div></div>`;
+const shot = f => `<img class="shot" src="${S}${f}">`;
+const siteHead = `<div class="hrs"><i></i>شەممە–پێنج شەممە · ٩:٠٠ بەیانی – ٤:٠٠ دوا نیوەڕۆ</div>
+  <div class="shd"><div class="b"><img src="${LOGO}"><div><b>${NAME}</b><small>NATIONAL MUSEUM AMNASURAKA</small></div></div><span class="mb">${ic('menu', 18)}</span></div>`;
+const app = (html, scale, top = 0) => `<div class="app360" style="transform:scale(${scale});top:${top}px">${html}</div>`;
+
+const faceScanScreen = `<div class="fs">
+  <span class="x">${ic('x', 18)}</span>
+  <div class="ttl">پشتڕاستکردنەوەی ناسنامە</div>
+  <div class="ring"><div class="b1"></div><div class="b2"></div>
+    <div class="cam">${faceSVG('fs', { lm: true, ps: pose(0, 6, 0, 1.12) })}<div class="scan"></div></div>
+    <div class="bdg">ڕووخسار دۆزرایەوە</div></div>
+  <div class="t1">ڕووخسار ڕێکە</div>
+  <div class="t2">ئێستا چاو بتروکێنە</div>
+  <div class="t3">یان چاوەڕێ بکە تا وێنەکە خۆکارانە بگیرێت</div>
+  <div class="pb"><b></b></div>
+</div>`;
+
+const statusPage = `<div style="position:absolute;inset:0;background:var(--canvas)">${app(`${siteHead}
+  <div class="sp"><div class="ey">بە دوا داچوونی سەردان</div><h4>دۆخی سەردان</h4>
+    <div class="box"><div class="ic">${ic('check', 32, 'stroke-width:2.6')}</div><b>پەسەندکرا</b>
+      <p>سەردانەکەت پەسەندکراوە. بەخێربێیت بۆ مۆزەخانە!</p><span class="ref">#A7K3Q9</span></div>
+    <div class="tl">
+      <div><i style="background:#f59e0b">${ic('check', 14, 'stroke-width:3')}</i>چاوەڕوانی پەسەندکردن<small>09:14</small></div>
+      <div><i style="background:#0ea5e9">${ic('check', 14, 'stroke-width:3')}</i>پەسەندکرا<small>09:32</small></div>
+      <div><i style="background:#e7e5e4;color:#a8a29e">${ic('clock', 14)}</i>هاتوو<small>10:00</small></div>
+    </div></div>`, 312 / 360)}</div>`;
+
+const pass = `<div class="pass">
+  <div class="hd"><div class="ok">${ic('check', 26, 'stroke-width:2.6')}</div><h4>تۆمار کرا</h4><p>داواکارییەکەت سەرکەوتووانە تۆمار کرا</p><span class="gb">چاوەڕوانی پەسەندکردن بە</span></div>
+  <div class="pt"><h5>کارتی سەردانیکردن</h5><i></i></div>
+  <div class="qr"><div class="q"><img src="${S}pass-qr.svg"></div>
+    <p><b>ژمارەی سەردان</b><span class="ref">#A7K3Q9</span>ئەم کۆدە لە کاتی سەردانیکردن پیشانی کارمەندانی مۆزەخانە بدە.</p></div>
+  <div class="rows">
+    <div><span>ناو</span>ئاراس ئەحمەد</div>
+    <div><span>ژمارەی میوان</span>٤</div>
+    <div><span>جۆری سەردان</span>سەردانی خێزانی</div>
+    <div><span>بەرواری سەردانیکردن</span><span class="lat" style="color:var(--ink)">2026/10/05</span></div>
+    <div><span>کاتژمێر</span>١٠:٠٠ بەیانی</div>
+  </div>
+  <div class="ft"><span class="dl">${ic('download', 16)}داگرتنی وێنەی کارت</span></div>
+</div>`;
+
+const bkCard = (who, name, phone, st, date, time, guests, type, actions) => `<div class="bk">
+  <div class="r1"><div class="who">${who}<div style="min-width:0"><b>${name}</b><div class="ph">${phone}</div></div></div>
+    <span class="st ${st}">${{ p: 'چاوەڕوان', c: 'پەسندکراو', h: 'هاتوو' }[st]}</span></div>
+  <div class="r2"><span>${ic('calendar', 13)}${date}</span><span>${ic('clock', 13)}${time}</span><span>${ic('users', 13)}${guests} کەس</span><span>${type}</span></div>
+  ${actions ? `<div class="r3"><span style="background:var(--teal);color:#fff">${ic('check', 14, 'stroke-width:3')}پەسەندکردن</span><span style="border:1px solid #fecdd3;color:#be123c">${ic('x', 14)}ڕەتکردنەوە</span><span style="background:#25d366;color:#fff;flex:0 0 44px">${WA}</span></div>` : ''}
+</div>`;
+const adminPhone = `<div class="adr"><div class="side" style="top:150px;height:70px"></div><div class="side" style="top:240px;height:44px"></div>
+  <div class="scrn"><div class="hole"></div>${app(`
+    <div style="height:34px"></div>
+    <div class="ah"><div class="t"><img src="${LOGO}">سەردانەکان</div><div class="ic"><span>${ic('search', 19)}</span><span>${ic('bell', 19)}<i></i></span></div></div>
+    <div class="ftabs"><span class="on">هەموو</span><span>چاوەڕوان</span><span>پەسندکراو</span><span>هاتوو</span><span>نەهاتووە</span></div>
+    <div class="stc"><div><small><i style="background:#f59e0b"></i>چاوەڕوان</small><b>12</b></div><div><small><i style="background:#0ea5e9"></i>پەسندکراو</small><b>34</b></div><div><small><i style="background:#10b981"></i>هاتوو</small><b>82</b></div></div>
+    ${bkCard(`<div class="fa">${faceSVG('a1')}</div>`, 'ئاراس ئەحمەد', '0750 123 4567', 'p', '2026/10/05', '10:00', '٤', 'خێزانی', true)}
+    ${bkCard('<div class="ini" style="background:#1F5F5B">ق</div>', 'قوتابخانەی ئاشتی', '0770 555 0199', 'c', '2026/10/05', '11:00', '٣٢', 'قوتابخانە')}
+    ${bkCard('<div class="ini" style="background:#850B10">ش</div>', 'شیلان کەریم', '0751 987 6543', 'h', '2026/10/04', '09:00', '٢', 'گەشتیار')}
+    <div class="bnav">${[['dash', 'گشتی'], ['book', 'بەشەکان'], ['images', 'گەلەری'], ['ticket', 'سەردان', 1], ['inbox', 'پەیام'], ['more', 'زیاتر']]
+      .map(([n, l, on]) => `<div class="${on ? 'on' : ''}"><i>${ic(n, 17)}</i>${l}</div>`).join('')}</div>`, 332 / 360)}
+  </div></div>`;
+const winApp = `<div class="win">
+  <div class="tbar"><div class="t"><img src="${LOGO}">Amna Suraka Admin</div><div class="c"><span>─</span><span>☐</span><span>✕</span></div></div>
+  <div class="body">
+    <div class="side">
+      <div class="br"><img src="${LOGO}"><div><b>ئەمنە سورەکە</b><small>بەڕێوەبردن</small></div></div>
+      <div class="sr">${ic('search', 13)}گەڕانی خێرا…<kbd>Ctrl K</kbd></div>
+      <div><a class="on">${ic('dash', 15)}گشتی</a></div>
+      <div><p>ناوەڕۆکی ماڵپەڕ</p><a>${ic('user', 15)}پرۆفایل</a><a>${ic('book', 15)}بەشەکانی مۆزەخانە</a><a>${ic('history', 15)}مێژووی مۆزەخانە</a><a>${ic('images', 15)}گەلەری</a></div>
+      <div><p>داواکارییەکان</p><a>${ic('ticket', 15)}سەردانەکان</a><a>${ic('inbox', 15)}پەیامەکان</a><a>${ic('msg', 15)}پەیامەکانی واتساپ</a></div>
+      <div><p>بەڕێوەبردنی سیستم</p><a>${ic('users', 15)}بەکارهێنەران</a><a>${ic('clipboard', 15)}تۆمارەکانی چاودێری</a></div>
+    </div>
+    <div class="main">
+      <h3>گشتی</h3>
+      <div class="tiles">
+        <div><span><small>سەردانی چاوەڕوان</small><b>12</b></span><i style="background:#fffbeb;color:#b45309">${ic('ticket', 19)}</i></div>
+        <div><span><small>پەیامی نەخوێندراو</small><b>3</b></span><i style="background:rgba(133,11,16,.08);color:var(--wine)">${ic('inbox', 19)}</i></div>
+      </div>
+      <div class="an"><h6>ئامارەکانی سەردانکەران<small>٣٠ ڕۆژی ڕابردوو</small></h6>
+        <div class="ks"><div><small>کۆی سەردانەکان</small><b>17,252</b></div><div><small>سەردانکەرە جیاوازەکان</small><b>9,480</b></div><div><small>وڵاتەکان</small><b>24</b></div></div>
+        <div class="bars">${[38,52,45,61,48,70,66,58,74,63,80,72,55,68,84,77,62,90,71,66,83,95,78,69,88,74,92,86,79,100].map((h, i) => `<i class="${i % 7 === 5 ? 'lo' : ''}" style="height:${h}%"></i>`).join('')}</div></div>
+      <div class="qa"><span><i>${ic('plus', 15)}</i>زیادکردنی وێنە</span><span><i>${ic('plus', 15)}</i>زیادکردنی بەش</span><span><i>${ic('calendar', 15)}</i>خشتەی سەردان</span></div>
+    </div>
+  </div></div>`;
+
+const COMP = {
+  'overview': `
+    <div class="at" style="left:118px;top:300px;transform:scale(.8)"><div class="face-l"><div class="lap"><div class="lid"><div class="scr">${shot('desktop-home.png')}</div></div><div class="deck"></div></div></div></div>
+    <div class="at" style="left:20px;top:440px;transform:scale(.7)"><div class="face-l">${iphone(shot('home-en.png'))}</div></div>
+    <div class="at" style="left:752px;top:420px;transform:scale(.7)"><div class="face-l">${iphone(shot('home-ar.png'))}</div></div>
+    <div class="at card lock" style="left:60px;top:150px"><img src="${LOGO}"><div><b>${NAME}</b><small>NATIONAL MUSEUM AMNASURAKA</small></div></div>
+    <div class="at langs" style="left:560px;top:196px"><span class="on">کوردی</span><span>العربية</span><span class="lat">English</span></div>`,
+  'all-pages': `
+    <div class="at" style="left:60px;top:150px;transform:perspective(2600px) rotateY(-16deg) rotateX(6deg)">
+      ${[['home-ku.png', 'سەرەکی', 0, 0], ['history.png', 'مێژووی مۆزەخانە', 280, 0], ['departments.png', 'بەشەکانی مۆزەخانە', 560, 0],
+         ['activities.png', 'چالاکییەکان', 0, 420], ['booking.png', 'سەردانی مۆزەخانە', 280, 420], ['contact.png', 'پەیوەندی', 560, 420]]
+        .map(([f, l, x, y], i) => `<div class="pgcard" style="left:${x}px;top:${y}px"><div class="lb"><b>${'١٢٣٤٥٦'[i]}</b>${l}</div><div class="im">${shot(f)}</div></div>`).join('')}
+    </div>
+    <div class="at langs" style="left:330px;top:40px"><span class="on">کوردی</span><span>العربية</span><span class="lat">English</span></div>`,
+  'face-scan': `
+    <div class="at" style="left:60px;top:330px;transform:scale(.86)"><div class="face-l">${iphone(shot('booking.png'))}</div></div>
+    <div class="at" style="left:470px;top:170px;transform:scale(1.08)"><div class="face-l">${iphone(faceScanScreen)}</div></div>
+    <div class="at steps" style="left:40px;top:140px">
+      <div class="s on"><b>١</b>وێنە</div><div class="ln"></div><div class="s"><b>٢</b>زانیاری</div><div class="ln"></div><div class="s"><b>٣</b>ڕۆژ</div><div class="ln"></div><div class="s"><b>٤</b>کاتژمێر</div>
+    </div>
+    <div class="at card times" style="left:30px;top:720px">
+      <h6>هەڵبژاردنی کاتی سەردانیکردن</h6>
+      <div class="g"><span>9:00</span><span class="on">10:00</span><span>11:00</span><span>1:00</span><span>2:00</span><span>3:00</span></div>
+      <div class="br">${ic('clock', 16)}کاتی پشووی کارمەندان: ١٢ بۆ ١ ی دوا نیوەڕۆ</div>
+    </div>`,
+  'visit-pass': `
+    <div class="at" style="left:560px;top:250px;transform:scale(.95)"><div class="face-l">${iphone(statusPage)}</div></div>
+    <div class="at" style="left:90px;top:190px;transform:rotate(-3deg)">${pass}</div>
+    <div class="at wa" style="left:520px;top:80px;transform:scale(.9)">
+      <div class="wh"><div class="av"><img src="${LOGO}"></div><div>${NAME}<small>WhatsApp</small></div><div class="wi">${WA}</div></div>
+      <div class="bub">سڵاو ئاراس، سەردانەکەت بۆ ڕۆژی ٥/١٠ کاتژمێر ١٠ی بەیانی پەسەندکرا ✅ تکایە کارتی سەردانەکەت لەگەڵ خۆت بهێنە.<span class="tm">09:32 ✓✓</span></div>
+    </div>`,
+  'admin-app': `
+    <div class="at" style="left:40px;top:250px;transform:scale(.8)"><div class="face-l">${winApp}</div></div>
+    <div class="at" style="left:620px;top:300px;transform:scale(.92)"><div class="face-l">${adminPhone}</div></div>
+    <div class="at notif" style="left:430px;top:150px">
+      <div class="r"><img src="${LOGO}"><b style="font-size:12px;margin:0;color:var(--soft)">Amna Suraka Admin</b>• ئێستا</div>
+      <b>داواکاری سەردانی نوێ</b><p>ئاراس ئەحمەد — ٤ کەس — ٥/١٠ · ١٠:٠٠ بەیانی</p>
+      <div class="bt"><span style="background:var(--teal);color:#fff">${ic('check', 15, 'stroke-width:3')}پەسەندکردن</span><span style="background:#e7e5e4;color:var(--soft)">بینین</span></div>
+    </div>
+    <div class="at badge" style="left:70px;top:770px;background:linear-gradient(145deg,#4ade80,#16a34a)"><svg viewBox="0 0 64 40" style="width:80px;height:50px"><path d="M8 38a24 24 0 0 1 48 0z" fill="#fff"/><circle cx="22" cy="27" r="3" fill="#16a34a"/><circle cx="42" cy="27" r="3" fill="#16a34a"/><path d="M16 12 10 3M48 12l6-9" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></svg><b>APK</b></div>
+    <div class="at badge" style="left:240px;top:800px;width:130px;height:130px;border-radius:34px;background:linear-gradient(145deg,#38bdf8,#0369a1)"><svg viewBox="0 0 24 24" style="width:52px;height:52px"><path fill="#fff" d="M3 5.5 10 4.5v7H3zM11 4.3 21 3v8.5H11zM3 12.5h7v7l-7-1zM11 12.5h10V21l-10-1.4z"/></svg><b style="font-size:16px;letter-spacing:1px">Windows</b></div>`,
+};
+for (const [id, html] of Object.entries(COMP)) document.getElementById('char-' + id).innerHTML = `<div class="fit">${html}</div>`;
+
+// ─── backgrounds: museum photo → oxblood grade → warm glow on the right (the slider darkens the left 92%) ───
+document.querySelectorAll('[data-photo]').forEach(el => {
+  el.innerHTML = `<img class="ph" src="${PHOTOS}${el.dataset.photo}" style="object-position:${el.dataset.pos}">
+    <div class="gr" style="background:${el.dataset.grade}"></div>
+    <div class="glow" style="background:radial-gradient(ellipse at 78% 40%,rgba(255,190,140,.18),rgba(0,0,0,0) 60%)"></div>
+    <div class="grain"></div><div class="vig"></div>`;
+});
+</script>
+</body>
+</html>
