@@ -6,13 +6,15 @@ import { AnimatePresence, motion, useMotionValueEvent, useReducedMotion, useScro
 import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { scrollToId } from "@/lib/scrollTo";
+import { homeSectionHref } from "@/lib/homeSections";
 import { pickSectionTitle } from "@/lib/museumSectionTitle";
 import { formatVisitingHours } from "@/lib/visitingHours";
 import type { Locale } from "@/i18n/routing";
 
-// Homepage sections, scrolled to in place.
+// Homepage sections — scrolled to in place on the homepage, opened by their
+// own URL (/museums, /gallery) from any other page.
 const SECTION_IDS = ["biography", "media"] as const;
 // Booking and Contact are their own routes (/booking, /contact), not
 // homepage sections, so they navigate instead of scrolling — this way
@@ -63,7 +65,6 @@ export function Header({
   const tBooking = useTranslations("booking");
   const tFooter = useTranslations("footer");
   const locale = useLocale() as Locale;
-  const pathname = usePathname();
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const { scrollY } = useScroll();
@@ -101,20 +102,17 @@ export function Header({
     setMenuOpen(false);
     setSectionsOpen(false);
     setMobileSectionsOpen(false);
-    scrollToId(id);
+    if (!scrollToId(id)) router.push(homeSectionHref(id));
   }
 
   // Clicking the logo/wordmark should always land on the homepage — a
-  // smooth scroll-to-top when already there, an actual navigation from any
-  // other route (e.g. /booking), where "hero" doesn't exist to scroll to.
+  // smooth scroll-to-top when already there (whichever section URL it's
+  // showing), an actual navigation from any other route (e.g. /booking),
+  // where "hero" doesn't exist to scroll to.
   function handleLogoClick() {
     setMenuOpen(false);
     setSectionsOpen(false);
-    if (pathname === "/") {
-      scrollToId("hero");
-    } else {
-      router.push("/");
-    }
+    if (!scrollToId("hero")) router.push("/");
   }
 
   // `solid` is for pages whose hero is a full-bleed dark photo (the nav's

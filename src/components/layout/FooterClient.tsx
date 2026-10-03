@@ -3,8 +3,9 @@
 import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
 import { Mail, Phone, MapPin } from "lucide-react";
-import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { scrollToId } from "@/lib/scrollTo";
+import { homeSectionHref } from "@/lib/homeSections";
 import { SocialIcon } from "@/components/ui/SocialIcon";
 import type { Locale } from "@/i18n/routing";
 import type { SocialLink } from "@/data/socials";
@@ -49,7 +50,6 @@ export function FooterClient({
 }: FooterClientProps) {
   const locale = useLocale() as Locale;
   const t = useTranslations("footer");
-  const pathname = usePathname();
   const router = useRouter();
   const year = new Date().getFullYear();
 
@@ -59,11 +59,7 @@ export function FooterClient({
 
   function handleSectionClick(id: string) {
     const anchor = SECTION_ANCHOR[id] ?? id;
-    if (pathname === "/") {
-      scrollToId(anchor);
-    } else {
-      router.push(`/#${anchor}`);
-    }
+    if (!scrollToId(anchor)) router.push(homeSectionHref(anchor));
   }
 
   const quickLinks: { id: string; label: string; href?: "/booking" | "/contact" }[] = [

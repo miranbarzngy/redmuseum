@@ -43,7 +43,7 @@ export async function HeroLogoStrip() {
   const loc = locale as Locale;
 
   return (
-    <div className="mx-auto flex w-full flex-col items-center gap-10 px-4 py-14 sm:px-8 sm:py-20">
+    <div id="history" className="mx-auto flex w-full flex-col items-center gap-10 px-4 py-14 sm:px-8 sm:py-20">
       <Reveal from="fade">
         <div className="flex flex-col items-center gap-3 text-center">
           <span
