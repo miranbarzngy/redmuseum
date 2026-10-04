@@ -6,7 +6,11 @@ import { requireAdminSession } from "@/lib/adminAuth";
 import { isHttpsUrl } from "@/lib/httpsUrl";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { BACKGROUND_PIECE_UPLOAD, resolveGalleryImageUrls } from "@/lib/supabase/uploadImage";
+import {
+  BACKGROUND_PIECE_UPLOAD,
+  removeUnusedArtwork,
+  resolveGalleryImageUrls,
+} from "@/lib/supabase/uploadImage";
 
 /** A link field: empty, or an absolute https:// URL (see src/lib/httpsUrl.ts).
  * The form's inputs already enforce this in the browser, so this only trips
@@ -49,6 +53,12 @@ export async function updateProfile(formData: FormData) {
     "background_image_files",
     BACKGROUND_PIECE_UPLOAD
   );
+
+  const { data: previous } = await supabase
+    .from("site_profile")
+    .select("hero_image_url, hero_image_urls, background_image_urls")
+    .eq("id", 1)
+    .maybeSingle();
 
   const { error } = await supabase.from("site_profile").upsert({
     id: 1,
@@ -104,6 +114,13 @@ export async function updateProfile(formData: FormData) {
   });
   if (error) throw new Error(error.message);
 
+  if (previous) {
+    removeUnusedArtwork(supabase, [
+      previous.hero_image_url,
+      ...(previous.hero_image_urls ?? []),
+      ...(previous.background_image_urls ?? []),
+    ]);
+  }
   revalidatePath("/admin/profile");
   revalidatePath("/[locale]", "layout");
   redirect("/admin/profile?saved=1");

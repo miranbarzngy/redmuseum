@@ -1,5 +1,6 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
+import { after } from "next/server";
 import sharp from "sharp";
 import { NEW_IMAGE_SLOT } from "@/lib/galleryUploadSlot";
 import type { createAdminClient } from "./admin";
@@ -123,7 +124,49 @@ async function uploadImageFile(
  */
 function isKeptImageUrl(supabase: ReturnType<typeof createAdminClient>, url: string): boolean {
   if (url.startsWith("/")) return /^\/images\/[\w\-./]+$/.test(url) && !url.includes("..");
-  return url.startsWith(supabase.storage.from("artwork").getPublicUrl("").data.publicUrl);
+  return url.startsWith(artworkUrlPrefix(supabase));
+}
+
+/** The public URL of the `artwork` bucket's root, ending in "/" — every
+ * stored image URL is this plus the object name. */
+function artworkUrlPrefix(supabase: ReturnType<typeof createAdminClient>): string {
+  return supabase.storage.from("artwork").getPublicUrl("").data.publicUrl;
+}
+
+/**
+ * Once the response is sent, deletes the artwork-bucket files behind
+ * `previousUrls` that no saved content uses any more. Call it after a save
+ * that replaced or removed images, with the item's image URLs from before
+ * the save: anything still referenced (kept by the edit, or the same image
+ * on another row — see artwork_unreferenced(), 0074) stays, and URLs outside
+ * the bucket (the /images/ background defaults) are ignored. Best-effort —
+ * the save already succeeded, so a failure here is only logged.
+ */
+export function removeUnusedArtwork(
+  supabase: ReturnType<typeof createAdminClient>,
+  previousUrls: readonly (string | null | undefined)[]
+): void {
+  const prefix = artworkUrlPrefix(supabase);
+  const names = Array.from(
+    new Set(
+      previousUrls
+        .filter((url): url is string => Boolean(url?.startsWith(prefix)))
+        .map((url) => url.slice(prefix.length))
+    )
+  );
+  if (names.length === 0) return;
+
+  after(async () => {
+    const { data: unused, error } = await supabase.rpc("artwork_unreferenced", { p_names: names });
+    if (error) {
+      console.error("[artwork] reference check failed", error.message);
+      return;
+    }
+    if (!unused || unused.length === 0) return;
+
+    const { error: removeError } = await supabase.storage.from("artwork").remove(unused);
+    if (removeError) console.error("[artwork] failed to delete unused images", removeError.message);
+  });
 }
 
 const INVALID_KEPT_IMAGE = "بەستەری وێنەکە نادروستە.";

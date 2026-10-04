@@ -1,11 +1,13 @@
 import { ClipboardList } from "lucide-react";
 import { requireAdminSession } from "@/lib/adminAuth";
-import { PERMISSIONS } from "@/lib/permissions";
+import { hasPermission, PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PageHeader } from "../../_components/PageHeader";
 import { EmptyState } from "../../_components/EmptyState";
 import { AuditLogFilters } from "./AuditLogFilters";
 import { AuditLogGrid } from "./AuditLogGrid";
+import { AuditLogRetentionControl } from "./AuditLogRetentionControl";
+import { DEFAULT_AUDIT_RETENTION, isAuditLogRetention } from "./retention";
 
 const PAGE_SIZE = 100;
 
@@ -14,7 +16,7 @@ export default async function AuditLogsPage({
 }: {
   searchParams: Promise<{ from?: string; to?: string; user?: string; action?: string; q?: string }>;
 }) {
-  await requireAdminSession(PERMISSIONS.auditView);
+  const session = await requireAdminSession(PERMISSIONS.auditView);
   const { from, to, user, action, q } = await searchParams;
   const supabase = createAdminClient();
 
@@ -51,12 +53,15 @@ export default async function AuditLogsPage({
     }
   }
 
-  const [{ data: logs }, { data: users }, { data: roles }, { data: categories }] = await Promise.all([
-    query,
-    supabase.from("admin_users").select("id, full_name, email").order("full_name", { ascending: true }),
-    supabase.from("admin_roles").select("id, name"),
-    supabase.from("gallery_categories").select("id, label_ku"),
-  ]);
+  const [{ data: logs }, { data: users }, { data: roles }, { data: categories }, { data: settings }] =
+    await Promise.all([
+      query,
+      supabase.from("admin_users").select("id, full_name, email").order("full_name", { ascending: true }),
+      supabase.from("admin_roles").select("id, name"),
+      supabase.from("gallery_categories").select("id, label_ku"),
+      supabase.from("audit_log_settings").select("retention").eq("id", 1).maybeSingle(),
+    ]);
+  const retention = isAuditLogRetention(settings?.retention) ? settings.retention : DEFAULT_AUDIT_RETENTION;
 
   // Logs only ever stored an email snapshot (see admin_audit_logs.user_email
   // in src/lib/auditLogger.ts) — resolve it to the user's current display
@@ -77,6 +82,8 @@ export default async function AuditLogsPage({
   // logs `status`, to avoid duplicating booking PII into every entry), so
   // a delete — where the live row is gone by the time this renders — is the
   // one case that falls back to whatever name was snapshotted in `before`.
+  // Bookings have no such fallback: deleteBooking deliberately leaves the
+  // visitor's name out of its snapshot, so a deleted booking shows by entity.
   const nameByRoleId = new Map((roles ?? []).map((r) => [r.id, r.name]));
   const bookingIds = Array.from(
     new Set(
@@ -126,7 +133,6 @@ export default async function AuditLogsPage({
     admin_users: nameByUserId,
   };
   const SNAPSHOT_FIELD_BY_ENTITY: Record<string, string | undefined> = {
-    bookings: "name",
     admin_roles: "name",
     admin_users: "full_name",
   };
@@ -152,7 +158,12 @@ export default async function AuditLogsPage({
 
   return (
     <div className="flex flex-col gap-6 mb-24 lg:mb-0">
-      <PageHeader title="تۆمارەکانی چاودێری" description="کردارەکانی هەموو بەکارهێنەرانی بەڕێوەبردن." />
+      <PageHeader title="تۆمارەکانی چاودێری" description="کردارەکانی هەموو بەکارهێنەرانی بەڕێوەبردن.">
+        <AuditLogRetentionControl
+          initial={retention}
+          canManage={hasPermission(session.role.permissions, PERMISSIONS.settingsManage)}
+        />
+      </PageHeader>
       <AuditLogFilters users={users ?? []} />
       {logsWithTargets.length === 0 ? (
         <EmptyState icon={ClipboardList} title="هیچ تۆمارێک نەدۆزرایەوە" />

@@ -6,7 +6,7 @@ import { requireAdminSession } from "@/lib/adminAuth";
 import { withAuditLog } from "@/lib/auditLogger";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveUploadedImageUrl } from "@/lib/supabase/uploadImage";
+import { removeUnusedArtwork, resolveUploadedImageUrl } from "@/lib/supabase/uploadImage";
 
 // display_order is owned by the drag-and-drop list on /admin/gallery (see
 // reorderGalleryImages) — it is per-category, so the form never sets it.
@@ -73,7 +73,7 @@ export async function updateGalleryImage(id: string, formData: FormData) {
   const fields = parseGalleryFields(formData);
   const imageUrl = await resolveUploadedImageUrl(supabase, formData, "image_file");
 
-  await withAuditLog(session, "update_gallery_image", "gallery", async () => {
+  const previousImageUrl = await withAuditLog(session, "update_gallery_image", "gallery", async () => {
     const { data: before } = await supabase.from("gallery").select().eq("id", id).maybeSingle();
     const { data: after, error } = await supabase
       .from("gallery")
@@ -82,9 +82,10 @@ export async function updateGalleryImage(id: string, formData: FormData) {
       .select()
       .single();
     if (error) throw new Error(error.message);
-    return { result: undefined, targetId: id, before, after };
+    return { result: before?.image_url, targetId: id, before, after };
   });
 
+  if (imageUrl) removeUnusedArtwork(supabase, [previousImageUrl]);
   revalidatePublicSite();
   redirect("/admin/gallery?saved=1");
 }
@@ -93,13 +94,14 @@ export async function deleteGalleryImage(id: string) {
   const session = await requireAdminSession(PERMISSIONS.galleryManage);
   const supabase = createAdminClient();
 
-  await withAuditLog(session, "delete_gallery_image", "gallery", async () => {
+  const imageUrl = await withAuditLog(session, "delete_gallery_image", "gallery", async () => {
     const { data: before } = await supabase.from("gallery").select().eq("id", id).maybeSingle();
     const { error } = await supabase.from("gallery").delete().eq("id", id);
     if (error) throw new Error(error.message);
-    return { result: undefined, targetId: id, before };
+    return { result: before?.image_url, targetId: id, before };
   });
 
+  removeUnusedArtwork(supabase, [imageUrl]);
   revalidatePublicSite();
 }
 

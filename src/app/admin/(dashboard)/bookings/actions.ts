@@ -114,15 +114,30 @@ export async function updateBookingStatus(id: string, status: BookingStatus) {
   revalidatePath("/admin");
 }
 
+/** What a delete_booking audit entry keeps of the booking: which visit it
+ * was, nothing that identifies the visitor. An allowlist, so a column added
+ * later stays out of the log until someone decides it belongs there — the
+ * name, phone, note, QR token and face photo path would otherwise outlive
+ * the deleted booking in the audit log. */
+function bookingAuditSnapshot(booking: BookingRow) {
+  const { id, visit_date, visit_time, guest_count, visitor_type_id, status, face_scan_consent, created_at } =
+    booking;
+  return { id, visit_date, visit_time, guest_count, visitor_type_id, status, face_scan_consent, created_at };
+}
+
 export async function deleteBooking(id: string) {
   const session = await requireAdminSession(PERMISSIONS.bookingsManage);
   const supabase = createAdminClient();
 
   const facePhotoPath = await withAuditLog(session, "delete_booking", "bookings", async () => {
-    const { data: before } = await supabase.from("bookings").select().eq("id", id).maybeSingle();
+    const { data: booking } = await supabase.from("bookings").select().eq("id", id).maybeSingle();
     const { error } = await supabase.from("bookings").delete().eq("id", id);
     if (error) throw new Error(error.message);
-    return { result: before?.face_image_path ?? null, targetId: id, before };
+    return {
+      result: booking?.face_image_path ?? null,
+      targetId: id,
+      before: booking ? bookingAuditSnapshot(booking) : null,
+    };
   });
 
   // The face photo is biometric data that only exists for this booking, so

@@ -5,7 +5,11 @@ import { redirect } from "next/navigation";
 import { requireAdminSession } from "@/lib/adminAuth";
 import { PERMISSIONS } from "@/lib/permissions";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { resolveGalleryImageUrls, resolveUploadedImageUrl } from "@/lib/supabase/uploadImage";
+import {
+  removeUnusedArtwork,
+  resolveGalleryImageUrls,
+  resolveUploadedImageUrl,
+} from "@/lib/supabase/uploadImage";
 
 function revalidatePublicSite() {
   revalidatePath("/admin/museums");
@@ -77,6 +81,17 @@ async function resolveBlockImages(
   return { image_url, image_urls };
 }
 
+/** A block's current cover + additional photo URLs, read before a save or
+ * delete so removeUnusedArtwork can clear whichever of them it dropped. */
+async function blockImageUrls(supabase: ReturnType<typeof createAdminClient>, id: string) {
+  const { data } = await supabase
+    .from("biography_blocks")
+    .select("image_url, image_urls")
+    .eq("id", id)
+    .maybeSingle();
+  return data ? [data.image_url, ...(data.image_urls ?? [])] : [];
+}
+
 export async function createBiographyBlock(formData: FormData) {
   await requireAdminSession(PERMISSIONS.museumsManage);
   const supabase = createAdminClient();
@@ -105,6 +120,7 @@ export async function updateBiographyBlock(id: string, formData: FormData) {
   const supabase = createAdminClient();
   const fields = parseBlockFields(formData);
   const images = await resolveBlockImages(supabase, formData);
+  const previousImageUrls = await blockImageUrls(supabase, id);
 
   const { error } = await supabase
     .from("biography_blocks")
@@ -112,6 +128,7 @@ export async function updateBiographyBlock(id: string, formData: FormData) {
     .eq("id", id);
   if (error) throw new Error(error.message);
 
+  removeUnusedArtwork(supabase, previousImageUrls);
   revalidatePublicSite();
   redirect("/admin/museums?saved=1");
 }
@@ -119,9 +136,11 @@ export async function updateBiographyBlock(id: string, formData: FormData) {
 export async function deleteBiographyBlock(id: string) {
   await requireAdminSession(PERMISSIONS.museumsManage);
   const supabase = createAdminClient();
+  const imageUrls = await blockImageUrls(supabase, id);
   const { error } = await supabase.from("biography_blocks").delete().eq("id", id);
   if (error) throw new Error(error.message);
 
+  removeUnusedArtwork(supabase, imageUrls);
   revalidatePublicSite();
 }
 

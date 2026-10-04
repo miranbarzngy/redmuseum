@@ -5,6 +5,7 @@ const ENTITY_LABELS: Record<string, string> = {
   admin_users: "بەکارهێنەرانی بەڕێوەبردن",
   admin_roles: "ڕۆڵەکان",
   bookings: "سەردانەکان",
+  audit_log_settings: "تۆمارەکانی چاودێری",
 };
 
 /** target_entity is a raw table name ("gallery", "admin_roles", …) — this
@@ -72,6 +73,8 @@ const ACTION_LABELS: Record<string, string> = {
   print_booking: "چاپکردنی سەردان",
   update_booking_status: "نوێکردنەوەی دۆخی سەردان",
   delete_booking: "سڕینەوەی سەردان",
+  // audit_log_settings
+  update_audit_log_retention: "گۆڕینی ماوەی هەڵگرتنی تۆمارەکان",
 };
 
 /** Fallback for any action not in ACTION_LABELS above (e.g. a newly added

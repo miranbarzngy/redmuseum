@@ -12,7 +12,8 @@
     "android:release": "cd android && gradlew.bat assembleRelease",
     "electron:dev": "cd electron && npm start",
     "windows:release": "cd electron && npm run dist",
-    "release:upload": "node --env-file-if-exists=.env.local scripts/upload-app-release.mjs"
+    "release:upload": "node --env-file-if-exists=.env.local scripts/upload-app-release.mjs",
+    "artwork:cleanup": "node --env-file-if-exists=.env.local scripts/cleanup-unused-artwork.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.2",

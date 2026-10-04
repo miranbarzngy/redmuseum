@@ -1,4 +1,6 @@
 export type BookingStatus = "pending" | "confirmed" | "checked_in" | "cancelled" | "no_show";
+/** How long admin_audit_logs entries are kept (0073). */
+export type AuditLogRetention = "keep_all" | "1_week" | "1_month";
 
 export interface Database {
   public: {
@@ -619,6 +621,20 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["admin_audit_logs"]["Insert"]>;
         Relationships: [];
       };
+      audit_log_settings: {
+        Row: {
+          id: number;
+          retention: AuditLogRetention;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          retention?: AuditLogRetention;
+          updated_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["audit_log_settings"]["Insert"]>;
+        Relationships: [];
+      };
       admin_login_attempts: {
         Row: {
           ip: string;
@@ -681,6 +697,14 @@ export interface Database {
         Args: { p_min_age_hours: number; p_limit: number };
         Returns: string[];
       };
+      purge_audit_logs: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
+      artwork_unreferenced: {
+        Args: { p_names: string[] };
+        Returns: string[];
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
@@ -710,6 +734,7 @@ export type TributeInsert = Database["public"]["Tables"]["tributes"]["Insert"];
 export type AdminPushTokenRow = Database["public"]["Tables"]["admin_push_tokens"]["Row"];
 export type AdminPushTokenInsert = Database["public"]["Tables"]["admin_push_tokens"]["Insert"];
 export type SystemSettingsRow = Database["public"]["Tables"]["system_settings"]["Row"];
+export type AuditLogSettingsRow = Database["public"]["Tables"]["audit_log_settings"]["Row"];
 export type BookingSettingsRow = Database["public"]["Tables"]["booking_settings"]["Row"];
 export type WhatsAppTemplateRow = Database["public"]["Tables"]["whatsapp_templates"]["Row"];
 export type BookingRow = Database["public"]["Tables"]["bookings"]["Row"];
