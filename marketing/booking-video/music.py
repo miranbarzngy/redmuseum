@@ -3,14 +3,19 @@
 A soft, warm loop (pad + plucked arpeggio + light bass and beat) built from scratch with numpy, so the
 video carries no third-party music rights. The museum app's own notification sounds mark the
 moments a booking reaches staff and the WhatsApp message reaches the visitor.
-    python3 music.py
+    python3 music.py                                   → out/music.wav (75 s, with this video's sound effects)
+    python3 music.py 56 ../site-tour/out/music.wav --no-sfx   → any length, music only
 """
 import os
+import sys
 import wave
 import numpy as np
 
 SR = 44100
-DUR = 75.0
+ARGS = [a for a in sys.argv[1:] if not a.startswith("--")]
+DUR = float(ARGS[0]) if ARGS else 75.0
+SFX = "--no-sfx" not in sys.argv
+HERE_OUT = ARGS[1] if len(ARGS) > 1 else None
 BPM = 96
 BEAT = 60 / BPM
 BAR = 4 * BEAT
@@ -92,7 +97,7 @@ ARP = [0, 1, 2, 1, 2, 3, 2, 1]  # index 3 = top note an octave up
 bars = int(np.ceil(DUR / BAR))
 for b in range(bars):
     t0 = b * BAR
-    if t0 >= 72.5:
+    if t0 >= DUR - 2.5:
         break
     ch = CHORDS[b % 4]
     add(pad([m + 12 for m in ch], BAR + 0.8), t0, gain=0.16)
@@ -103,15 +108,16 @@ for b in range(bars):
     if b >= 2:
         add(bass(ch[0] - 12, BEAT * 1.9), t0, gain=0.30)
         add(bass(ch[0] - 12, BEAT * 1.9), t0 + 2 * BEAT, gain=0.24)
-    if 3 <= b <= 26:
+    if b >= 3 and t0 + BAR <= DUR - 7.5:
         for k in range(4):
             add(kick(), t0 + k * BEAT, gain=0.22 if k % 2 == 0 else 0.12)
             add(shaker(), t0 + k * BEAT + BEAT / 2, pan=0.2, gain=0.05)
 
 # final chord rings out under the credit
-add(pad([69, 72, 76, 81], 5.0), 70.6, gain=0.20)
+END = DUR - 4.4
+add(pad([69, 72, 76, 81], 5.0), END, gain=0.20)
 for k, m in enumerate([69, 72, 76, 81]):
-    add(pluck(m + 12, 2.5), 70.8 + k * 0.12, pan=(k - 1.5) / 3, gain=0.10)
+    add(pluck(m + 12, 2.5), END + 0.2 + k * 0.12, pan=(k - 1.5) / 3, gain=0.10)
 
 # light stereo echo on everything so far
 d = int(BEAT * 0.75 * SR)
@@ -143,20 +149,22 @@ def shutter():
 
 
 sounds = os.path.join(HERE, '..', '..', 'public', 'sounds')
-add(load_wav(os.path.join(sounds, 'notify_santur.wav')), 45.8, gain=0.55)   # staff gets the booking
-add(load_wav(os.path.join(sounds, 'notify_bronze.wav')), 56.3, gain=0.55)   # WhatsApp reaches Shilan
-add(shutter(), 36.25, gain=0.25)                                              # face photo taken
-add(beep(1760, 0.09), 62.4, gain=0.18)                                        # QR scanned
-add(beep(2350, 0.12), 62.52, gain=0.18)
+if SFX:
+    add(load_wav(os.path.join(sounds, 'notify_santur.wav')), 45.8, gain=0.55)   # staff gets the booking
+    add(load_wav(os.path.join(sounds, 'notify_bronze.wav')), 56.3, gain=0.55)   # WhatsApp reaches Shilan
+    add(shutter(), 36.25, gain=0.25)                                              # face photo taken
+    add(beep(1760, 0.09), 62.4, gain=0.18)                                        # QR scanned
+    add(beep(2350, 0.12), 62.52, gain=0.18)
 
 mix = np.stack([L, R], axis=1)
 fade = int(1.5 * SR)
 mix[-fade:] *= np.linspace(1, 0, fade)[:, None]
 mix *= 0.89 / np.abs(mix).max()
-os.makedirs(os.path.join(HERE, 'out'), exist_ok=True)
-with wave.open(os.path.join(HERE, 'out', 'music.wav'), 'wb') as w:
+out = HERE_OUT or os.path.join(HERE, 'out', 'music.wav')
+os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+with wave.open(out, 'wb') as w:
     w.setnchannels(2)
     w.setsampwidth(2)
     w.setframerate(SR)
     w.writeframes((mix * 32767).astype(np.int16).tobytes())
-print('wrote out/music.wav')
+print('wrote', out)

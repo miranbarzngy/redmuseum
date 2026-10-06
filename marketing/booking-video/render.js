@@ -1,6 +1,7 @@
 // Renders video.html into a Facebook feed video (1080×1350, 30 fps, H.264 + AAC).
 //   node render.js                 → out/booking-museum-fb.mp4 (needs out/music.wav from music.py)
 //   node render.js stills 3 20 41  → out/stills/t-03.0.jpg … for quick checks
+// Another page: PAGE=../site-tour/tour.html NAME=tour.mp4 node render.js (out/ sits next to the page)
 // Playwright comes from the global install (NODE_PATH=$(npm root -g)); ffmpeg must be on PATH.
 const { chromium } = require('playwright');
 const { spawn } = require('child_process');
@@ -8,8 +9,9 @@ const fs = require('fs');
 const path = require('path');
 
 const FPS = 30;
-const OUT = path.join(__dirname, 'out');
-const url = 'file://' + path.join(__dirname, 'video.html');
+const PAGE = path.resolve(process.env.PAGE || path.join(__dirname, 'video.html'));
+const OUT = path.join(path.dirname(PAGE), 'out');
+const url = 'file://' + PAGE;
 
 (async () => {
   const [mode, ...rest] = process.argv.slice(2);
@@ -33,7 +35,7 @@ const url = 'file://' + path.join(__dirname, 'video.html');
   }
 
   const music = path.join(OUT, 'music.wav');
-  const out = path.join(OUT, 'booking-museum-fb.mp4');
+  const out = path.join(OUT, process.env.NAME || 'booking-museum-fb.mp4');
   const args = ['-y', '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-'];
   if (fs.existsSync(music)) args.push('-i', music);
   args.push('-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p', '-profile:v', 'high', '-movflags', '+faststart');
