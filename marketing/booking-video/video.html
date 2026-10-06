@@ -306,22 +306,16 @@ img{display:block}
 .bigurl .in{display:flex;align-items:center;gap:22px;direction:ltr;background:#fff;border-radius:999px;padding:24px 50px 24px 26px;box-shadow:0 30px 70px rgba(0,0,0,.4);animation:urlPulse 1.4s ease-in-out infinite}
 .bigurl .gl{width:86px;height:86px;border-radius:50%;background:var(--wine);display:grid;place-items:center}
 .bigurl b{font-family:Inter;font-weight:800;font-size:76px;letter-spacing:-1.5px;color:var(--maroon)}
-.types{position:absolute;top:910px;left:70px;right:70px;display:flex;flex-wrap:wrap;justify-content:center;gap:16px}
-.types span{border:2px solid rgba(255,255,255,.55);border-radius:999px;padding:6px 26px 10px;font-size:31px;background:rgba(255,255,255,.08)}
 .cta .mus{position:absolute;bottom:90px;left:0;right:0;font-size:32px;color:#F6E7B4}
 
-/* credits */
-.credit{position:absolute;inset:0;background:#EEF4FB;background-image:linear-gradient(rgba(37,99,235,.06) 2px,transparent 2px),linear-gradient(90deg,rgba(37,99,235,.06) 2px,transparent 2px);background-size:60px 60px}
-.credit::after{content:"";position:absolute;inset:0;background:radial-gradient(600px 500px at 50% 45%,rgba(255,255,255,.9),transparent 70%)}
-.credit>*{position:relative;z-index:1}
-.lock{position:absolute;top:470px;left:0;right:0;justify-content:center;display:flex;align-items:center;gap:34px;direction:ltr}
-.lock b{font-family:Inter;font-weight:800;font-size:96px;letter-spacing:-2.5px;color:#0F1B3D;white-space:nowrap}
-.lock .pic{width:230px;height:230px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 8px #fff,0 0 0 13px #3B82F6,0 30px 60px rgba(15,27,61,.25);flex:none}
-.lock .pic img{width:100%;height:100%;object-fit:cover}
-.credit .by{position:absolute;top:340px;left:0;right:0;text-align:center;font-size:38px;color:#4B5B7C}
-.credit .kn{position:absolute;top:770px;left:0;right:0;text-align:center;font-size:58px;color:#0F1B3D}
-.credit .role{position:absolute;top:870px;left:0;right:0;text-align:center;font-size:32px;color:#4B5B7C}
-.credit .site{position:absolute;bottom:120px;left:0;right:0;margin:0 auto;width:max-content;display:flex;align-items:center;gap:12px;direction:ltr;font-family:Inter;font-weight:700;font-size:34px;color:var(--maroon);background:#fff;border-radius:999px;padding:12px 30px;box-shadow:0 14px 30px rgba(15,27,61,.12)}
+/* credit inside the CTA */
+.cred{position:absolute;top:900px;left:0;right:0;text-align:center}
+.cred .by{font-size:28px;color:#F6E7B4}
+.cred .lk{display:inline-flex;align-items:center;gap:20px;direction:ltr;margin-top:12px;background:rgba(255,255,255,.95);border-radius:999px;padding:12px 14px 12px 34px;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.cred .lk b{font-family:Inter;font-weight:800;font-size:46px;letter-spacing:-1px;color:#0F1B3D;white-space:nowrap}
+.cred .pic{width:104px;height:104px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 4px #fff,0 0 0 8px #3B82F6;flex:none}
+.cred .pic img{width:100%;height:100%;object-fit:cover}
+.cred .kn{font-size:36px;color:#fff;margin-top:16px}
 </style>
 </head>
 <body>
@@ -704,29 +698,20 @@ img{display:block}
     <div class="lab"><span data-ic="image" data-sz="26" data-c="var(--wine)"></span>چالاکییەکان</div></div>
 </section>
 
-<!-- ============ S11 · Call to action (66 – 70.6) ============ -->
-<section class="scene" data-s="66" data-e="70.7">
+<!-- ============ S11 · Call to action + credit (66 – 75) ============ -->
+<section class="scene" data-s="66" data-e="76">
   <div class="photo kb a" style="--at:66s;--du:5s;background-image:url('../../public/images/logo/assets/images/Vistor%20Touring/2.jpg')"></div>
   <div class="photo" style="background:linear-gradient(180deg,rgba(61,0,0,.82),rgba(40,0,0,.95))"></div>
   <div class="cta">
     <div class="logocard a fd" style="--at:66.15s;top:150px"><img src="../../public/images/logo/assets/images/amnasuraka_logo-removebg-preview.png"></div>
     <h1 class="a fu" style="--at:66.35s">ئەمڕۆ سەردانەکەت تۆمار بکە</h1>
     <div class="bigurl"><div class="a pop" style="--at:66.8s"><div class="in"><div class="gl"><span data-ic="globe" data-sz="50" data-c="#fff"></span></div><b>booking.museum</b></div></div></div>
-    <div class="types">
-      <span class="a fu" style="--at:67.3s">خوێندنگە</span><span class="a fu" style="--at:67.42s">زانکۆ</span><span class="a fu" style="--at:67.54s">وەفدی فەرمی</span><span class="a fu" style="--at:67.66s">کەسی</span><span class="a fu" style="--at:67.78s">ڕۆژنامەوانی</span>
+    <div class="cred">
+      <div class="by a fu" style="--at:67.4s">دیزاین و پەرەپێدان</div>
+      <div class="lk a pop" style="--at:67.65s;--du:.7s"><b>Miran Barzanji</b><div class="pic"><img src="assets/miran.jpg"></div></div>
+      <div class="kn a fu" style="--at:68.05s">میران بەرزنجی</div>
     </div>
     <div class="mus a fi" style="--at:68s">مۆزەخانەی نیشتیمانی ئەمنە سورەکە</div>
-  </div>
-</section>
-
-<!-- ============ S12 · Credit (70.6 – 75) ============ -->
-<section class="scene" data-s="70.6" data-e="76">
-  <div class="credit">
-    <div class="by a fu" style="--at:70.9s">دیزاین و پەرەپێدان</div>
-    <div class="lock a pop" style="--at:71.15s;--du:.8s"><b>Miran Barzngy</b><div class="pic"><img src="assets/miran.jpg"></div></div>
-    <div class="kn a fu" style="--at:71.7s">میران بەرزنجی</div>
-    <div class="role a fu" style="--at:71.95s">ماڵپەڕ و سیستەمی سەردانی مۆزەخانە</div>
-    <div class="site a fu" style="--at:72.3s"><span data-ic="globe" data-sz="34" data-c="var(--wine)"></span>booking.museum</div>
   </div>
 </section>
 
