@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="ckb" dir="ltr"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Kufi;src:url(assets/noto-kufi-arabic-arabic-400-normal.woff2);font-weight:400}
+@font-face{font-family:Kufi;src:url(assets/noto-kufi-arabic-arabic-700-normal.woff2);font-weight:700}
+@font-face{font-family:Kufi;src:url(assets/noto-kufi-arabic-arabic-900-normal.woff2);font-weight:900}
+@font-face{font-family:Kufi;src:url(assets/noto-kufi-arabic-latin-400-normal.woff2);font-weight:400;unicode-range:U+0000-00FF}
+@font-face{font-family:Kufi;src:url(assets/noto-kufi-arabic-latin-700-normal.woff2);font-weight:700;unicode-range:U+0000-00FF}
+@font-face{font-family:Kufi;src:url(assets/noto-kufi-arabic-latin-900-normal.woff2);font-weight:900;unicode-range:U+0000-00FF}
+:root{--ink:#1e1b4b;--blue:#4f6cf0;--mut:#64748b;--green:#10b981;--red:#850B10;--red2:#9A1218;--gold:#D4AF37;--cream:#FAFAF7}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:clip;font-family:Kufi,sans-serif;color:var(--ink)}
+body{background:
+  radial-gradient(900px 700px at 85% 5%,#cdeafd 0%,transparent 65%),
+  radial-gradient(800px 800px at 5% 75%,#dcdcfb 0%,transparent 65%),
+  linear-gradient(170deg,#f5f8ff 0%,#eaf1fd 50%,#e3ebfc 100%)}
+.abs{position:absolute}
+#dots{position:absolute;inset:0;background-image:radial-gradient(#9fb2d6 1.6px,transparent 1.8px);background-size:36px 36px;opacity:.32}
+.scene{position:absolute;inset:0}
+.grad{background:linear-gradient(90deg,#1e1b4b 0%,#3b45d6 55%,#7c3aed 100%);-webkit-background-clip:text;color:transparent}
+.kicker{display:flex;align-items:center;justify-content:center;gap:22px;color:#0ea5e9;font-weight:700;font-size:38px}
+.kicker i{display:block;width:90px;height:3px;background:#38a5e8;border-radius:2px}
+.card{background:#fff;border-radius:34px;box-shadow:0 26px 60px -24px rgba(60,70,160,.38)}
+.tile{border-radius:110px;background:linear-gradient(145deg,#38bdf8 0%,#4f6cf0 50%,#7c3aed 100%);
+ box-shadow:0 50px 90px -20px rgba(79,70,229,.55),inset 0 4px 0 rgba(255,255,255,.35);overflow:hidden}
+.head{position:absolute;left:0;right:0;top:70px;text-align:center}
+.head h2{font-weight:900;font-size:64px;line-height:1.5}
+#cap{position:absolute;left:60px;right:60px;top:1560px;height:150px;display:flex;align-items:center;gap:28px;padding:0 34px;
+ background:rgba(255,255,255,.92);border:2px solid #c7d7f5;border-radius:40px;box-shadow:0 26px 50px -24px rgba(60,70,160,.4)}
+#capN{width:92px;height:92px;flex:none;border-radius:28px;background:linear-gradient(145deg,#38bdf8,#4f6cf0 55%,#7c3aed);
+ color:#fff;font-weight:900;font-size:50px;display:flex;align-items:center;justify-content:center}
+#capT{font-weight:900;font-size:44px;line-height:1.35}
+#capS{font-weight:700;font-size:28px;color:var(--mut)}
+.phone{position:absolute;width:600px;height:1230px;border-radius:92px;background:#0f172a;padding:20px;
+ box-shadow:0 60px 120px -30px rgba(30,27,75,.55),inset 0 0 0 3px #334155}
+.screen{position:relative;width:100%;height:100%;border-radius:74px;overflow:hidden;background:#fff}
+.island{position:absolute;top:22px;left:50%;width:170px;height:46px;margin-left:-85px;background:#0f172a;border-radius:30px;z-index:20}
+.status{position:absolute;top:26px;left:0;right:0;height:40px;padding:0 54px;display:flex;justify-content:space-between;font:700 26px/40px Kufi;z-index:19;color:#0f172a}
+.urlbar{position:absolute;top:84px;left:26px;right:26px;height:70px;border-radius:24px;background:#f1f5f9;display:flex;align-items:center;
+ justify-content:center;gap:10px;font:700 26px Kufi;color:#334155;z-index:18}
+.load{position:absolute;top:160px;left:26px;height:6px;border-radius:3px;background:linear-gradient(90deg,#38bdf8,#7c3aed);z-index:18}
+.view{position:absolute;top:172px;left:0;right:0;bottom:0;overflow:hidden;direction:rtl}
+.shot{display:block;width:560px;height:1212px}
+.pg{position:absolute;right:18px;z-index:5;padding:8px 20px;border-radius:999px;background:rgba(133,11,16,.92);color:#fff;font-weight:900;font-size:22px}
+/* museum booking ui */
+.mb{position:absolute;inset:0;background:linear-gradient(to bottom,#FAFAF7,#F5F2EB);padding:26px 34px 0;direction:rtl}
+.steps{display:flex;align-items:center;justify-content:space-between;margin:6px 10px 22px;direction:rtl}
+.st{width:58px;height:58px;border-radius:50%;border:3px solid #d6d3d1;background:#fff;color:#a8a29e;font-weight:900;font-size:24px;display:flex;align-items:center;justify-content:center;flex:none}
+.st.on{border-color:var(--red);background:var(--red);color:#fff}
+.st.done{border-color:var(--red);color:var(--red)}
+.stl{flex:1;height:3px;background:#e7e5e4;margin:0 6px}
+.lbl{font-weight:700;font-size:21px;color:#4A4642;margin:14px 0 8px}
+.inp{height:72px;border-radius:20px;border:2px solid #e7e5e4;background:#fff;padding:0 22px;display:flex;align-items:center;font-weight:700;font-size:26px;color:#1C1B19}
+.mbtn{position:absolute;left:34px;right:34px;bottom:34px;height:92px;border-radius:26px;background:linear-gradient(#9A1218,#760A0E);color:#fff;font-weight:900;font-size:32px;display:flex;align-items:center;justify-content:center;box-shadow:0 18px 30px -14px #850B10}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;direction:rtl}
+.cd{height:62px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;background:#fff;color:#1C1B19;border:2px solid #f0eee9}
+.cd.off{color:#c4bfb8;background:#f4f1e9;text-decoration:line-through}
+.cw{font-size:15px;font-weight:700;color:#8A8580;text-align:center}
+.tm{height:76px;border-radius:20px;font-weight:900;font-size:26px;display:flex;align-items:center;justify-content:center;background:#fff;border:2px solid #e7e5e4;color:#1C1B19}
+.tm.brk{background:#f4f1e9;color:#b8b2aa;border-style:dashed}
+.notif{position:absolute;left:22px;right:22px;top:80px;border-radius:34px;background:rgba(255,255,255,.97);padding:22px 26px;z-index:30;direction:rtl;
+ box-shadow:0 30px 60px -18px rgba(15,23,42,.45);border:1px solid #e2e8f0}
+.nb{height:72px;border-radius:20px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:28px}
+.chip{display:inline-flex;align-items:center;gap:10px;padding:6px 18px;border-radius:999px;font-weight:700;font-size:20px}
+#touch{position:absolute;width:86px;height:86px;margin:-43px 0 0 -43px;border-radius:50%;background:rgba(79,108,240,.35);border:5px solid rgba(255,255,255,.95);box-shadow:0 8px 24px rgba(30,27,75,.35);z-index:200}
+#ripple{position:absolute;width:86px;height:86px;margin:-43px 0 0 -43px;border-radius:50%;border:5px solid rgba(79,108,240,.7);z-index:199}
+.feat{display:flex;align-items:center;gap:22px;padding:22px 30px;border-radius:30px;background:#fff;box-shadow:0 20px 44px -22px rgba(60,70,160,.4);font-weight:900;font-size:34px}
+.feat b{width:72px;height:72px;flex:none;border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:34px}
+.confetti{position:absolute;width:18px;height:28px;border-radius:5px}
+</style></head><body>
+<div id="stage" dir="rtl" style="position:fixed;left:0;top:0;width:1080px;height:1920px;overflow:hidden">
+<div id="dots"></div>
+
+<!-- INTRO -->
+<div class="scene" id="intro">
+  <div class="abs" id="introGlow" style="left:540px;top:760px;width:900px;height:900px;margin:-450px 0 0 -450px;border-radius:50%;background:radial-gradient(circle,rgba(110,140,255,.38) 0%,rgba(140,190,255,.16) 40%,transparent 68%)"></div>
+  <div class="abs tile" id="introTile" style="left:310px;top:530px;width:460px;height:460px">
+    <svg viewBox="0 0 460 460" width="460" height="460">
+      <path d="M230 82 L380 160 L80 160Z" fill="#fff"/>
+      <rect x="92" y="168" width="276" height="22" rx="8" fill="#e0e7ff"/>
+      <g fill="#fff"><rect x="112" y="200" width="34" height="140" rx="10"/><rect x="180" y="200" width="34" height="140" rx="10"/><rect x="246" y="200" width="34" height="140" rx="10"/><rect x="314" y="200" width="34" height="140" rx="10"/></g>
+      <rect x="80" y="348" width="300" height="30" rx="10" fill="#e0e7ff"/>
+      <g transform="translate(262 252) rotate(-10)"><rect x="0" y="0" width="150" height="104" rx="18" fill="#fff" stroke="#7c3aed" stroke-width="8"/><rect x="18" y="20" width="44" height="44" rx="6" fill="#4f6cf0"/><rect x="74" y="26" width="58" height="10" rx="5" fill="#c7d2fe"/><rect x="74" y="48" width="40" height="10" rx="5" fill="#c7d2fe"/><path d="M18 82h114" stroke="#38bdf8" stroke-width="8" stroke-linecap="round"/></g>
+    </svg>
+  </div>
+  <div class="abs" id="introTxt" style="left:0;right:0;top:1100px;text-align:center">
+    <div class="kicker"><i></i>Museum Visit System<i></i></div>
+    <h1 class="grad" style="white-space:nowrap;font-weight:900;font-size:66px;line-height:1.5;margin-top:6px">سیستەمی سەردانی مۆزەخانە</h1>
+    <div style="font-weight:700;font-size:38px;color:#475569;margin-top:6px">ماڵپەڕ + مۆڵەتی سەردان + ئەپی بەڕێوەبردن</div>
+  </div>
+</div>
+
+<!-- MUSEUM ENTRANCE + QR -->
+<div class="scene" id="shop">
+  <div class="head" id="shopHead"><div class="kicker"><i></i>هەنگاوی یەکەم<i></i></div><h2 class="grad">مامۆستا دێتە مۆزەخانە</h2></div>
+  <div class="abs card" id="store" style="left:70px;top:330px;width:940px;height:1130px;border-radius:50px;overflow:hidden;background:linear-gradient(180deg,#fff 0%,#faf6ee 100%)">
+    <div style="position:absolute;top:60px;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:22px">
+      <img src="assets/mlogo.png" style="height:96px">
+      <div><div style="font-weight:900;font-size:38px;color:#1C1B19">مۆزەخانەی نیشتیمانی ئەمنە سورەکە</div>
+      <div style="font-weight:700;font-size:20px;color:#8A8580;letter-spacing:2px">NATIONAL MUSEUM AMNASURAKA</div></div>
+    </div>
+    <svg class="abs" style="left:0;top:200px" width="940" height="560" viewBox="0 0 940 560">
+      <path d="M470 20 L880 150 L60 150Z" fill="#850B10"/>
+      <rect x="80" y="150" width="780" height="34" fill="#6A090D"/>
+      <g fill="#efe7d6">
+        <rect x="110" y="190" width="56" height="320" rx="10"/><rect x="230" y="190" width="56" height="320" rx="10"/>
+        <rect x="654" y="190" width="56" height="320" rx="10"/><rect x="774" y="190" width="56" height="320" rx="10"/>
+      </g>
+      <rect x="330" y="250" width="280" height="260" rx="20" fill="#e7dcc6"/>
+      <path d="M350 510 V320 Q470 250 590 320 V510Z" fill="#c8b89a"/>
+      <rect x="60" y="510" width="820" height="40" rx="10" fill="#d9ccb2"/>
+      <circle cx="470" cy="96" r="30" fill="#D4AF37"/>
+    </svg>
+    <div style="position:absolute;left:0;right:0;bottom:0;height:150px;background:#ede5d3"></div>
+  </div>
+  <div class="abs" id="qrStand" style="left:560px;top:690px;width:380px">
+    <div class="card" style="padding:30px 30px 34px;text-align:center;border:4px solid #f3d9da">
+      <div style="font-weight:900;font-size:32px;line-height:1.4">مۆڵەتی سەردان وەربگرە</div>
+      <div style="font-weight:700;font-size:22px;color:var(--mut);margin-bottom:16px">سکانی بکە 📱</div>
+      <div style="position:relative;width:260px;height:260px;margin:0 auto">
+        <svg viewBox="-2 -2 {{QN2}} {{QN2}}" width="260" height="260" shape-rendering="crispEdges"><rect x="-2" y="-2" width="{{QN2}}" height="{{QN2}}" fill="#fff"/><path d="{{QR}}" fill="#1e1b4b"/></svg>
+        <div id="scanLine" class="abs" style="left:-10px;right:-10px;height:8px;border-radius:4px;background:#38bdf8;box-shadow:0 0 24px 6px rgba(56,189,248,.7)"></div>
+        <div id="qrOk" class="abs" style="inset:0;border-radius:16px;background:rgba(16,185,129,.88);display:flex;align-items:center;justify-content:center;color:#fff;font-size:150px;font-weight:900">✓</div>
+      </div>
+      <div style="direction:ltr;font-weight:700;font-size:24px;color:var(--blue);margin-top:16px">redmuseum.vercel.app</div>
+    </div>
+    <div style="width:30px;height:120px;margin:0 auto;background:#cbd5e1"></div>
+    <div style="width:200px;height:24px;margin:0 auto;border-radius:12px;background:#94a3b8"></div>
+  </div>
+  <div class="abs" id="cust" style="left:120px;top:700px;width:420px;height:860px">
+    <svg viewBox="0 0 420 860" width="420" height="860" overflow="visible">
+      <g id="cLegL"><rect x="150" y="560" width="54" height="230" rx="24" fill="#3f3f46"/><rect x="126" y="772" width="84" height="38" rx="19" fill="#3b2414"/></g>
+      <g id="cLegR"><rect x="214" y="560" width="54" height="230" rx="24" fill="#52525b"/><rect x="210" y="772" width="84" height="38" rx="19" fill="#3b2414"/></g>
+      <path d="M118 330 Q120 270 180 262 L240 262 Q300 270 302 330 L310 600 Q210 620 110 600Z" fill="#8b5e3c"/>
+      <path d="M180 262 L210 372 L240 262Z" fill="#f8fafc"/>
+      <path d="M203 282 L217 282 L222 300 L210 384 L198 300Z" fill="#1d4ed8"/><rect x="202" y="276" width="16" height="12" rx="3" fill="#1e40af"/>
+      <path d="M180 262 L200 360 L166 304Z M240 262 L220 360 L254 304Z" fill="#6f4a2f"/>
+      <rect x="236" y="420" width="44" height="8" rx="4" fill="#6f4a2f"/>
+      <circle cx="210" cy="470" r="6" fill="#5b3b24"/><circle cx="210" cy="520" r="6" fill="#5b3b24"/>
+      <rect x="244" y="392" width="10" height="34" rx="4" fill="#facc15"/><rect x="258" y="396" width="10" height="30" rx="4" fill="#ef4444"/>
+      <g id="cArmL">
+        <path d="M128 300 Q96 420 112 540" stroke="#8b5e3c" stroke-width="50" fill="none" stroke-linecap="round"/>
+        <g transform="translate(70 380) rotate(-8)"><rect x="0" y="0" width="64" height="150" rx="8" fill="#15803d"/><rect x="6" y="6" width="52" height="138" rx="5" fill="#16a34a"/><rect x="14" y="30" width="36" height="8" rx="4" fill="#facc15"/><rect x="58" y="4" width="10" height="142" rx="3" fill="#f5f5f4"/></g>
+        <circle cx="114" cy="548" r="25" fill="#e8b48a"/>
+      </g>
+      <rect x="190" y="215" width="40" height="56" rx="16" fill="#d9a074"/>
+      <ellipse cx="210" cy="160" rx="82" ry="94" fill="#e8b48a"/>
+      <ellipse cx="128" cy="168" rx="14" ry="22" fill="#d9a074"/><ellipse cx="292" cy="168" rx="14" ry="22" fill="#d9a074"/>
+      <path d="M126 160 Q114 66 210 58 Q306 64 294 160 Q290 112 262 100 Q226 86 186 94 Q150 100 140 118 Q128 136 126 160Z" fill="#4b5563"/>
+      <path d="M140 118 Q170 80 240 88" stroke="#9ca3af" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M128 150 Q126 176 132 186M292 150 Q294 176 288 186" stroke="#9ca3af" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <g fill="none" stroke="#1f2937" stroke-width="6"><circle cx="176" cy="160" r="24"/><circle cx="244" cy="160" r="24"/><path d="M200 158 Q210 150 220 158M152 156 L134 150M268 156 L286 150"/></g>
+      <ellipse cx="176" cy="162" rx="7" ry="9" fill="#1f2937"/><ellipse cx="244" cy="162" rx="7" ry="9" fill="#1f2937"/>
+      <path d="M156 128 Q176 120 196 128M224 128 Q244 120 264 128" stroke="#4b5563" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <path d="M210 168 Q204 190 212 196" stroke="#c98b5e" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M180 212 Q210 200 240 212 Q232 222 210 218 Q188 222 180 212Z" fill="#4b5563"/>
+      <path d="M190 230 Q210 242 230 230" stroke="#9a3412" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <g id="cArmR">
+        <path d="M292 300 Q330 420 312 540" stroke="#8b5e3c" stroke-width="50" fill="none" stroke-linecap="round"/>
+        <g transform="translate(312 548)"><rect x="-34" y="-96" width="68" height="124" rx="14" fill="#0f172a"/><rect x="-28" y="-90" width="56" height="112" rx="10" fill="#38bdf8" id="cPhoneScr"/><circle cx="0" cy="0" r="25" fill="#e8b48a"/></g>
+      </g>
+    </svg>
+  </div>
+  <div class="abs card" id="linkChip" style="left:110px;top:1300px;padding:22px 30px;display:flex;align-items:center;gap:18px;border:3px solid #bfdbfe">
+    <span style="width:56px;height:56px;border-radius:50%;background:var(--green);color:#fff;font-size:32px;display:flex;align-items:center;justify-content:center">✓</span>
+    <span style="direction:ltr;font-weight:900;font-size:32px;color:var(--blue)">redmuseum.vercel.app</span>
+  </div>
+</div>
+
+<!-- VISITOR PHONE -->
+<div class="phone" id="cPhone" style="left:240px;top:250px">
+ <div class="screen">
+  <div class="island"></div>
+  <div class="status" dir="ltr"><span>9:41</span><span>●●● ▮</span></div>
+  <div class="urlbar" dir="ltr"><span style="color:#16a34a">🔒</span><span id="urlTxt"></span><span id="caret" style="width:3px;height:34px;background:var(--blue)"></span></div>
+  <div class="load" id="loadBar"></div>
+  <div class="view">
+   <div id="blank" class="abs" style="inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;color:#94a3b8;font-weight:700;font-size:26px"><div style="font-size:90px">🌐</div>لینکی مۆزەخانەکە بنووسە</div>
+   <div id="site" class="abs" style="left:0;top:0;width:560px">
+     <div style="position:relative"><img class="shot" src="assets/home-ku.jpg"></div>
+     <div style="position:relative"><img class="shot" src="assets/history.jpg"></div>
+     <div style="position:relative"><img class="shot" src="assets/departments.jpg"></div>
+     <div style="position:relative"><img class="shot" src="assets/department-page.jpg"></div>
+     <div style="position:relative"><img class="shot" src="assets/activities.jpg"></div>
+   </div>
+   <div class="pg" id="pgChip" style="top:150px"></div>
+
+   <!-- STEP 1 face scan -->
+   <div id="bk1" class="mb">
+     <div style="text-align:center;font-weight:900;font-size:31px;white-space:nowrap;color:#1C1B19">وەرگرتنی مۆڵەتی سەردانیکردن</div>
+     <div class="steps" id="stp1"></div>
+     <div style="text-align:center;font-weight:900;font-size:30px;margin-bottom:14px">وێنەی ڕووخسارت بگرە</div>
+     <div style="position:relative;width:440px;height:560px;margin:0 auto;border-radius:40px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#3b3f52,#151826)">
+       <svg viewBox="0 0 420 520" width="440" height="560" style="position:absolute;inset:0">
+         <rect x="120" y="380" width="180" height="160" rx="60" fill="#8b5e3c"/><path d="M190 380 L210 450 L230 380Z" fill="#fff"/><path d="M204 392 L216 392 L214 450 L206 450Z" fill="#1d4ed8"/>
+         <rect x="185" y="300" width="50" height="90" rx="20" fill="#d9a074"/>
+         <ellipse cx="210" cy="230" rx="100" ry="118" fill="#e8b48a"/>
+         <path d="M108 228 Q94 110 210 100 Q326 108 312 228 Q306 168 272 154 Q230 138 184 148 Q140 156 128 184 Q112 204 108 228Z" fill="#4b5563"/>
+         <path d="M128 172 Q166 126 248 136" stroke="#9ca3af" stroke-width="7" fill="none" stroke-linecap="round"/>
+         <g fill="none" stroke="#1f2937" stroke-width="7"><circle cx="172" cy="228" r="30"/><circle cx="248" cy="228" r="30"/><path d="M202 226 Q210 218 218 226"/></g>
+         <g id="eyes"><ellipse cx="172" cy="230" rx="9" ry="11" fill="#1f2937"/><ellipse cx="248" cy="230" rx="9" ry="11" fill="#1f2937"/></g>
+         <path d="M176 296 Q210 282 244 296 Q234 308 210 304 Q186 308 176 296Z" fill="#4b5563"/>
+         <path d="M188 318 Q210 332 232 318" stroke="#9a3412" stroke-width="6" fill="none" stroke-linecap="round"/>
+         <g id="mesh" fill="#38bdf8"></g>
+         <ellipse id="oval" cx="210" cy="236" rx="138" ry="168" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="18 12"/>
+       </svg>
+       <div id="flash" class="abs" style="inset:0;background:#fff"></div>
+       <div id="scanMsg" class="abs" style="left:20px;right:20px;bottom:20px;padding:12px;border-radius:18px;background:rgba(15,23,42,.75);color:#fff;text-align:center;font-weight:900;font-size:26px"></div>
+     </div>
+   </div>
+   <!-- STEP 2 info -->
+   <div id="bk2" class="mb">
+     <div style="text-align:center;font-weight:900;font-size:31px;white-space:nowrap;color:#1C1B19">وەرگرتنی مۆڵەتی سەردانیکردن</div>
+     <div class="steps" id="stp2"></div>
+     <div style="display:flex;align-items:center;gap:16px;margin-bottom:6px"><div style="width:84px;height:84px;border-radius:50%;background:#e8b48a;border:4px solid var(--red);display:flex;align-items:center;justify-content:center;font-size:46px">👨‍🏫</div><span class="chip" style="background:#dcfce7;color:#15803d">وێنە تۆمارکرا ✓</span></div>
+     <div class="lbl">ناوی سیانی</div><div class="inp" id="f1"></div>
+     <div class="lbl">ژمارەی مۆبایل</div><div class="inp" id="f2" style="direction:ltr;justify-content:flex-end"></div>
+     <div class="lbl">ژمارەی میوان</div><div class="inp" id="f3"></div>
+     <div class="lbl">جۆری سەردان</div><div class="inp" id="f4" style="justify-content:space-between"><span id="f4t"></span><span style="color:#a8a29e">⌄</span></div>
+     <div class="mbtn" id="next2">دواتر ←</div>
+   </div>
+   <!-- STEP 3 day -->
+   <div id="bk3" class="mb">
+     <div style="text-align:center;font-weight:900;font-size:31px;white-space:nowrap;color:#1C1B19">وەرگرتنی مۆڵەتی سەردانیکردن</div>
+     <div class="steps" id="stp3"></div>
+     <div style="text-align:center;font-weight:900;font-size:30px;margin-bottom:12px">بەرواری سەردان — مانگی تشرینی یەکەم</div>
+     <div class="cal" id="calW" style="margin-bottom:8px"></div>
+     <div class="cal" id="cal"></div>
+     <div style="margin-top:18px;display:flex;gap:16px;font-weight:700;font-size:19px;color:#8A8580"><span>⛔ پشوو / هەینی</span><span style="color:var(--red)">● هەڵبژێردراو</span></div>
+     <div class="mbtn" id="next3">دواتر ←</div>
+   </div>
+   <!-- STEP 4 time -->
+   <div id="bk4" class="mb">
+     <div style="text-align:center;font-weight:900;font-size:31px;white-space:nowrap;color:#1C1B19">وەرگرتنی مۆڵەتی سەردانیکردن</div>
+     <div class="steps" id="stp4"></div>
+     <div style="text-align:center;font-weight:900;font-size:30px;margin-bottom:6px">هەڵبژاردنی کاتی سەردانیکردن</div>
+     <div style="text-align:center;font-weight:700;font-size:20px;color:#8A8580;margin-bottom:14px">٩ی بەیانی — ٤ی دوا نیوەڕۆ · پشووی کارمەندان ١٢ بۆ ١</div>
+     <div id="times" style="display:grid;grid-template-columns:1fr 1fr;gap:12px"></div>
+     <div class="mbtn" id="submit">سەردان تۆمار بکە</div>
+   </div>
+   <!-- PASS -->
+   <div id="pass" class="mb" style="padding-top:30px">
+     <div style="text-align:center;font-weight:900;font-size:36px;margin-bottom:16px" id="pTitle">تۆمار کرا</div>
+     <div style="background:#fff;border-radius:34px;overflow:hidden;box-shadow:0 26px 60px -24px rgba(60,20,20,.35)">
+       <div style="background:linear-gradient(#9A1218,#760A0E);color:#fff;padding:20px 26px;display:flex;align-items:center;gap:16px">
+         <img src="assets/mlogo.png" style="height:60px;background:#fff;border-radius:12px;padding:4px">
+         <div><div style="font-weight:900;font-size:26px">کارتی سەردانیکردن</div><div style="font-size:16px;opacity:.85;letter-spacing:1px" dir="ltr">AMNA SURAKA · #A7K3Q9</div></div>
+       </div>
+       <div style="padding:22px 26px">
+         <div style="display:flex;justify-content:space-between;align-items:center">
+           <div><div style="font-weight:900;font-size:30px">ئاراس ئەحمەد</div><div style="color:#8A8580;font-size:19px;direction:ltr;text-align:right">0750 123 4567</div></div>
+           <span class="chip" id="pStatus"></span>
+         </div>
+         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0">
+           <div style="background:#F4F1E9;border-radius:18px;padding:12px 16px"><div style="color:#8A8580;font-size:17px;font-weight:700">بەرواری سەردانیکردن</div><div style="font-weight:900;font-size:23px">دوو شەمە ١٢/١٠</div></div>
+           <div style="background:#F4F1E9;border-radius:18px;padding:12px 16px"><div style="color:#8A8580;font-size:17px;font-weight:700">کاتژمێر</div><div style="font-weight:900;font-size:23px">١٠:٠٠ بەیانی</div></div>
+           <div style="background:#F4F1E9;border-radius:18px;padding:12px 16px"><div style="color:#8A8580;font-size:17px;font-weight:700">ژمارەی میوان</div><div style="font-weight:900;font-size:23px">٢٥ کەس</div></div>
+           <div style="background:#F4F1E9;border-radius:18px;padding:12px 16px"><div style="color:#8A8580;font-size:17px;font-weight:700">جۆری سەردان</div><div style="font-weight:900;font-size:20px;white-space:nowrap">گەشتی قوتابخانە</div></div>
+         </div>
+         <div style="display:flex;align-items:center;gap:20px;border-top:2px dashed #e7e5e4;padding-top:18px">
+           <svg viewBox="-2 -2 {{QN2b}} {{QN2b}}" width="170" height="170" shape-rendering="crispEdges"><rect x="-2" y="-2" width="{{QN2b}}" height="{{QN2b}}" fill="#fff"/><path d="{{QR2}}" fill="#1C1B19"/></svg>
+           <div style="font-weight:700;font-size:20px;color:#4A4642;line-height:1.7">ئەم کۆدە لە کاتی سەردانیکردن پیشانی کارمەندانی مۆزەخانە بدە.</div>
+         </div>
+       </div>
+     </div>
+   </div>
+  </div>
+  <div class="notif" id="cNotif">
+    <div style="display:flex;align-items:center;gap:12px;font-size:20px;color:var(--mut);font-weight:700"><span style="width:40px;height:40px;border-radius:12px;background:#16a34a;color:#fff;display:flex;align-items:center;justify-content:center">✆</span>WhatsApp · ئێستا</div>
+    <div style="font-weight:900;font-size:30px;margin-top:8px">مۆزەخانەی ئەمنە سورەکە</div>
+    <div style="font-weight:700;font-size:22px;color:#475569">سەردانەکەت پەسەند کرا ✅ دوو شەمە ١٢/١٠ — ١٠:٠٠ بەیانی</div>
+  </div>
+ </div>
+</div>
+
+<!-- ADMIN -->
+<div class="scene" id="admin">
+  <div class="head" id="admHead"><div class="kicker"><i></i>لای کارمەندانی مۆزەخانە<i></i></div><h2 class="grad">ئاگاداری ڕاستەوخۆ</h2></div>
+  <div class="abs" id="barber" style="left:-10px;top:690px;width:440px;height:880px">
+    <svg viewBox="0 0 420 860" width="440" height="880" overflow="visible">
+      <rect x="150" y="560" width="54" height="230" rx="26" fill="#1e293b"/><rect x="214" y="560" width="54" height="230" rx="26" fill="#1e293b"/>
+      <rect x="128" y="770" width="82" height="40" rx="20" fill="#0f172a"/><rect x="210" y="770" width="82" height="40" rx="20" fill="#0f172a"/>
+      <path d="M118 330 Q120 270 180 262 L240 262 Q300 270 302 330 L310 600 Q210 620 110 600Z" fill="#850B10"/>
+      <path d="M180 262 L210 360 L240 262Z" fill="#f8fafc"/><path d="M200 290 L210 360 L220 290Z" fill="#1e293b"/>
+      <path d="M180 262 L196 340 L170 300Z M240 262 L224 340 L250 300Z" fill="#6A090D"/>
+      <rect x="240" y="380" width="46" height="60" rx="8" fill="#fff"/><rect x="248" y="390" width="30" height="8" rx="4" fill="#D4AF37"/><rect x="248" y="406" width="22" height="6" rx="3" fill="#cbd5e1"/>
+      <g><path d="M128 300 Q96 420 112 540" stroke="#850B10" stroke-width="50" fill="none" stroke-linecap="round"/><circle cx="114" cy="548" r="25" fill="#c98b5e"/></g>
+      <rect x="190" y="215" width="40" height="56" rx="16" fill="#b97a50"/>
+      <ellipse cx="210" cy="160" rx="82" ry="94" fill="#c98b5e"/>
+      <ellipse cx="128" cy="168" rx="14" ry="22" fill="#b97a50"/><ellipse cx="292" cy="168" rx="14" ry="22" fill="#b97a50"/>
+      <path d="M126 150 Q120 56 210 50 Q300 56 294 150 Q292 98 250 92 Q210 86 170 92 Q128 98 126 150Z" fill="#3f2a1d"/>
+      <path d="M176 206 Q210 194 244 206" stroke="#3f2a1d" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <path d="M186 224 Q210 238 234 224" stroke="#7a3d2a" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <ellipse cx="178" cy="156" rx="9" ry="11" fill="#111827"/><ellipse cx="242" cy="156" rx="9" ry="11" fill="#111827"/>
+      <path d="M160 132 Q178 122 196 132M224 132 Q242 122 260 132" stroke="#3f2a1d" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <g id="bArmR"><path d="M292 300 Q330 420 312 540" stroke="#850B10" stroke-width="50" fill="none" stroke-linecap="round"/><circle cx="312" cy="548" r="25" fill="#c98b5e"/></g>
+    </svg>
+  </div>
+  <div class="abs" id="bubble" style="left:30px;top:600px;padding:16px 24px;border-radius:30px 30px 30px 6px;background:#fff;font-weight:900;font-size:30px;box-shadow:0 20px 40px -18px rgba(60,70,160,.4)">سەردانێکی نوێ! 🔔</div>
+  <div class="phone" id="aPhone" style="left:440px;top:330px;transform-origin:0 0">
+   <div class="screen" style="background:#FAFAF7;direction:rtl">
+    <div class="island"></div>
+    <div class="status" dir="ltr"><span>9:41</span><span>●●● ▮</span></div>
+    <div class="abs" style="top:96px;left:30px;right:30px;display:flex;align-items:center;gap:16px">
+      <img src="assets/mlogo.png" style="height:70px">
+      <div><div style="font-weight:900;font-size:28px">سەردانەکان</div><div style="font-weight:700;font-size:18px;color:var(--mut)">ئەپی بەڕێوەبردن · ئەندرۆید و ویندۆز</div></div>
+    </div>
+    <div class="abs" style="top:196px;left:30px;right:30px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+      <div style="background:#fff;border-radius:20px;padding:12px;text-align:center;box-shadow:0 8px 20px -12px rgba(0,0,0,.2)"><div style="font-weight:900;font-size:30px;color:#a16207" id="kp">٣</div><div style="font-size:16px;font-weight:700;color:var(--mut)">چاوەڕوان</div></div>
+      <div style="background:#fff;border-radius:20px;padding:12px;text-align:center;box-shadow:0 8px 20px -12px rgba(0,0,0,.2)"><div style="font-weight:900;font-size:30px;color:var(--red)" id="kc">١٢</div><div style="font-size:16px;font-weight:700;color:var(--mut)">پەسندکراو</div></div>
+      <div style="background:#fff;border-radius:20px;padding:12px;text-align:center;box-shadow:0 8px 20px -12px rgba(0,0,0,.2)"><div style="font-weight:900;font-size:30px;color:#047857">٤٨</div><div style="font-size:16px;font-weight:700;color:var(--mut)">هاتوو</div></div>
+    </div>
+    <div class="abs" id="aList" style="top:330px;left:24px;right:24px"></div>
+   </div>
+   <div class="notif" id="aNotif" style="top:84px">
+    <div style="display:flex;align-items:center;gap:12px;font-size:20px;color:var(--mut);font-weight:700"><img src="assets/mlogo.png" style="height:40px">ئەمنە سورەکە ئەدمین · ئێستا</div>
+    <div style="font-weight:900;font-size:30px;margin-top:8px">داواکاری سەردانی نوێ 🏛️</div>
+    <div style="font-weight:700;font-size:21px;color:#475569">ئاراس ئەحمەد · ٢٥ قوتابی — دوو شەمە ١٢/١٠ — ١٠:٠٠</div>
+    <div style="display:flex;gap:14px;margin-top:16px">
+      <div class="nb" id="aOk" style="flex:1.4;background:linear-gradient(#9A1218,#760A0E);color:#fff">✓ پەسەند</div>
+      <div class="nb" style="flex:1;background:#e7e5e4;color:#4A4642">دواتر</div>
+    </div>
+   </div>
+  </div>
+</div>
+
+<!-- OUTRO -->
+<div class="scene" id="outro">
+  <div class="abs" style="left:0;right:0;top:140px;text-align:center" id="oHead">
+    <div class="kicker"><i></i>Museum Visit System<i></i></div>
+    <h2 class="grad" style="font-weight:900;font-size:56px;line-height:1.5;white-space:nowrap">هەموو شتێک لە یەک سیستەمدا</h2>
+  </div>
+  <div class="abs" id="feats" style="left:100px;right:100px;top:430px;display:flex;flex-direction:column;gap:24px">
+    <div class="feat"><b style="background:#e0f2fe">🌐</b>ماڵپەڕی تەواو بە سێ زمان</div>
+    <div class="feat"><b style="background:#ede9fe">🙂</b>مۆڵەتی سەردان بە سکانی ڕووخسار</div>
+    <div class="feat"><b style="background:#fee2e2">🎫</b>کارتی سەردان بە کۆدی QR</div>
+    <div class="feat"><b style="background:#dcfce7">🔔</b>ئاگاداری ڕاستەوخۆ + واتساپ</div>
+    <div class="feat"><b style="background:#ffedd5">📱</b>ئەپی ئەندرۆید و ویندۆز</div>
+    <div class="feat"><b style="background:#fef9c3">📊</b>ئامار، گەلەری و ڕۆڵەکان</div>
+  </div>
+  <div class="abs" id="cta" style="left:90px;right:90px;top:1330px;border-radius:44px;padding:36px 30px;text-align:center;color:#fff;
+    background:linear-gradient(135deg,#38bdf8 0%,#4f6cf0 50%,#7c3aed 100%);box-shadow:0 40px 80px -30px rgba(79,70,229,.7)">
+    <div style="font-weight:900;font-size:48px;line-height:1.45">سیستەمێکی وا بۆ دامەزراوەکەت دەوێت؟</div>
+    <div style="font-weight:700;font-size:32px;opacity:.95;margin-top:6px">ئێستا پەیوەندیمان پێوە بکە</div>
+    <div style="direction:ltr;font-weight:900;font-size:60px;margin-top:12px;letter-spacing:2px">0770 146 6787</div>
+  </div>
+  <div class="abs" id="brand" style="left:0;right:0;top:1790px;display:flex;align-items:center;justify-content:center;gap:24px;direction:ltr">
+    <span style="font-weight:900;font-size:44px;color:#1e1b4b">Miran Barzngy</span>
+    <span style="width:104px;height:104px;border-radius:50%;padding:5px;background:#3b82f6;box-shadow:0 10px 26px -10px rgba(37,99,235,.6)"><img src="assets/miran.jpg" style="width:100%;height:100%;border-radius:50%;display:block;border:4px solid #fff"></span>
+  </div>
+</div>
+
+<div id="confettiBox" class="abs" style="inset:0;pointer-events:none;overflow:hidden"></div>
+<div id="cap"><div id="capN">١</div><div><div id="capT"></div><div id="capS"></div></div></div>
+<div id="ripple"></div><div id="touch"></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const cl=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const P=(t,a,b)=>cl((t-a)/(b-a));
+const eo=x=>1-Math.pow(1-x,3), eio=x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2;
+const back=x=>{const c=1.7;return 1+(c+1)*Math.pow(x-1,3)+c*Math.pow(x-1,2)};
+const win=(t,a,b,f=.45)=>Math.min(P(t,a,a+f),1-P(t,b-f,b));
+function S(el,o){el=typeof el==='string'?$(el):el;for(const k in o)el.style[k]=o[k]}
+const rnd=(i,k)=>{const x=Math.sin(i*127.1+k*311.7)*43758.5453;return x-Math.floor(x)};
+window.STAGE_W=1080;window.STAGE_H=1920;
+const DUR=42;
+const TIMES=[['٩:٠٠ بەیانی',''],['١٠:٠٠ بەیانی',''],['١١:٠٠ بەیانی',''],['١١:٣٠ بەیانی',''],['١٢ — ١ پشوو','brk'],['١:٠٠ دوا نیوەڕۆ',''],['٢:٠٠ دوا نیوەڕۆ',''],['٣:٠٠ دوا نیوەڕۆ','']];
+function steps(n){let h='';for(let i=1;i<=4;i++){h+=`<div class="st ${i<n?'done':i===n?'on':''}">${i<n?'✓':'٠١٢٣٤'[i]}</div>`;if(i<4)h+='<div class="stl"></div>'}return h}
+function init(){
+  for(let i=1;i<=4;i++)$('stp'+i).innerHTML=steps(i);
+  $('calW').innerHTML=['شەمە','یەک','دوو','سێ','چوار','پێنج','هەینی'].map(w=>`<div class="cw">${w}</div>`).join('');
+  let c='';const ar='٠١٢٣٤٥٦٧٨٩';const ak=n=>String(n).split('').map(d=>ar[d]).join('');
+  // Oct 2026 starts Thursday → in a Sat-first week, offset 5
+  for(let i=0;i<5;i++)c+='<div></div>';
+  for(let d=1;d<=31;d++){const dow=(5+d-1)%7;const off=dow===6||d<6;c+=`<div class="cd ${off?'off':''}" id="cd${d}">${ak(d)}</div>`}
+  $('cal').innerHTML=c;
+  $('times').innerHTML=TIMES.map((x,i)=>`<div class="tm ${x[1]}" id="tm${i}">${x[0]}</div>`).join('');
+  let m='';for(let i=0;i<46;i++){const a=i/46*Math.PI*2, r=i%2?78:100;m+=`<circle id="ms${i}" cx="${210+Math.cos(a)*r*(i%3?1:.6)}" cy="${236+Math.sin(a)*r*1.15*(i%3?1:.6)}" r="4"/>`}
+  $('mesh').innerHTML=m;
+  let h='';const cs=['#38bdf8','#4f6cf0','#7c3aed','#10b981','#D4AF37','#850B10','#ec4899'];
+  for(let i=0;i<70;i++)h+=`<div class="confetti" id="cf${i}" style="background:${cs[i%7]}"></div>`;$('confettiBox').innerHTML=h;
+}
+let touchList=[];
+function touch(t){
+  let o=0,x=0,y=0,rip=0,rx=0,ry=0;
+  for(let [a,b,x0,y0,x1,y1,tap] of touchList){
+    if(t<a-.25||t>Math.max(b+.25,(tap||0)+.6))continue;
+    if(typeof x1==='string'){const r=$(x1).getBoundingClientRect();x1=r.left+r.width/2;y1=r.top+r.height/2}
+    if(t<=b+.25){o=win(t,a-.25,b+.25,.25);const k=eio(P(t,a,b));x=x0+(x1-x0)*k;y=y0+(y1-y0)*k}
+    if(tap!=null&&t>=tap&&t<tap+.6){rip=P(t,tap,tap+.6);rx=x1;ry=y1}
+  }
+  const press=touchList.some(e=>e[6]!=null&&t>=e[6]-.08&&t<e[6]+.12)?.82:1;
+  S('touch',{opacity:o,left:x+'px',top:y+'px',transform:`scale(${press})`});
+  S('ripple',{opacity:rip?(1-rip):0,left:rx+'px',top:ry+'px',transform:`scale(${1+rip*1.6})`});
+}
+const CAPS=[[3.6,9.4,'١','کۆدی QR سکان بکە','لە بەردەم مۆزەخانەکە'],[10.0,12.6,'١','یان لینکەکە بکەرەوە','redmuseum.vercel.app — بێ دابەزاندنی ئەپ'],
+ [12.6,19.2,'٢','هەموو پەڕەکان ببینە','مێژوو، بەشەکان و چالاکییەکان — بە سێ زمان'],[19.2,21.4,'٣','ڕووخسارت سکان بکە','بە چاوتروکاندن — بێ تۆماری ساختە'],
+ [21.4,26.8,'٣','زانیاری، ڕۆژ و کات','پشوو و ڕۆژانی داخراو خۆکارانە دادەخرێن'],
+ [27.0,33.2,'٤','کارمەند ئاگادار دەکرێتەوە','لە ئەپی ئەندرۆید یان ویندۆز پەسەندی دەکات'],[33.4,37.4,'٥','کارتی سەردانەکەت ئامادەیە!','QR پیشانی دەرگاوان بدە']];
+function caption(t){let o=0;for(const [a,b,n,tt,s] of CAPS){if(t>=a&&t<b){o=win(t,a,b,.35);$('capN').textContent=n;$('capT').textContent=tt;$('capS').textContent=s;
+    S('cap',{transform:`translateY(${(1-eo(P(t,a,a+.45)))*60}px)`})}}S('cap',{opacity:o})}
+const PH={x:240,y:250}, VIEW={x:260,y:270+172};
+function typed(el,txt,a,b,t){$(el).textContent=txt.slice(0,Math.round(P(t,a,b)*txt.length))}
+function seek(t){
+  // intro
+  const iO=1-P(t,2.9,3.4);S('intro',{opacity:iO,display:iO>0?'block':'none'});
+  const tk=back(P(t,.15,.9));S('introTile',{transform:`scale(${tk}) rotate(${(1-tk)*-14}deg)`,opacity:P(t,.1,.4)});
+  S('introTxt',{opacity:P(t,.7,1.2),transform:`translateY(${(1-eo(P(t,.7,1.3)))*50}px)`});
+  S('introGlow',{transform:`scale(${.9+.1*Math.sin(t*2)})`});
+  // entrance
+  const sO=win(t,3.1,9.9,.4);S('shop',{opacity:sO,display:sO>0?'block':'none'});
+  const walk=eo(P(t,3.3,5.0)),walking=t<5.0,ph=t*9;
+  S('cust',{transform:`translateX(${-420+walk*540}px) translateY(${walking?Math.abs(Math.sin(ph))*-12:0}px)`});
+  S('cLegL',{transform:`rotate(${walking?Math.sin(ph)*14:0}deg)`,transformOrigin:'177px 570px'});
+  S('cLegR',{transform:`rotate(${walking?-Math.sin(ph)*14:0}deg)`,transformOrigin:'241px 570px'});
+  S('cArmR',{transform:`rotate(${-eo(P(t,5.0,5.7))*62}deg)`,transformOrigin:'292px 300px'});
+  S('cArmL',{transform:`rotate(${walking?Math.sin(ph)*10:0}deg)`,transformOrigin:'128px 300px'});
+  const sc=P(t,5.8,7.2);S('scanLine',{opacity:sc>0&&sc<1?1:0,top:(Math.sin(sc*Math.PI*3-Math.PI/2)*.5+.5)*252+'px'});
+  S('qrOk',{opacity:P(t,7.2,7.4)*(1-P(t,8.8,9.2)),transform:`scale(${back(P(t,7.2,7.6))})`});
+  $('cPhoneScr').setAttribute('fill',t>7.2?'#10b981':'#38bdf8');
+  S('linkChip',{opacity:P(t,7.5,7.8),transform:`translateY(${(1-back(P(t,7.5,8.0)))*40}px)`});
+  S('qrStand',{transform:`translateY(${(1-eo(P(t,3.2,3.9)))*60}px)`,opacity:P(t,3.2,3.6)});
+  S('shopHead',{opacity:P(t,3.3,3.8)});
+  // visitor phone
+  const z=eio(P(t,9.2,10.1));const handX=492,handY=988;
+  let cpO=P(t,9.2,9.5),cpS=.12+.88*z,cpX=(handX-PH.x-300)*(1-z),cpY=(handY-PH.y-615)*(1-z),cpR=-30*(1-z);
+  const away=eio(P(t,26.8,27.6));cpX+=-900*away;cpO*=(1-away);
+  if(t>32.8){const b2=eio(P(t,32.8,33.5));cpX=-900*(1-b2);cpO=b2}
+  const out=eio(P(t,37.3,37.9));cpO*=1-out;cpS*=1-out*.15;
+  S('cPhone',{opacity:cpO,display:cpO>0.001?'block':'none',transform:`translate(${cpX}px,${cpY+out*120}px) scale(${cpS}) rotate(${cpR}deg)`});
+  const url='redmuseum.vercel.app';$('urlTxt').textContent=url.slice(0,Math.round(P(t,10.4,11.6)*url.length));
+  S('caret',{opacity:(t<11.9&&Math.floor(t*3)%2===0)?1:0});
+  const ld=P(t,11.8,12.4);S('loadBar',{width:ld*508+'px',opacity:ld>0&&ld<1?1:0});
+  const siteO=P(t,12.2,12.5);S('site',{opacity:siteO});S('blank',{opacity:1-siteO});
+  // continuous scroll through pages: stops at page tops
+  const H=1212, VH=1018;
+  const stops=[[13.4,13.9,0,.55],[14.0,14.6,.55,1],[15.2,15.8,1,2],[16.2,16.7,2,3],[17.1,17.6,3,4],[18.1,18.7,4,0]];
+  let pos=0;for(const [a,b,f,to] of stops){if(t>=a)pos=f+(to-f)*eio(P(t,a,b))}
+  S('site',{transform:`translateY(${-pos*H}px)`});
+  const names=['سەرەکی','مێژووی مۆزەخانە','بەشەکانی مۆزەخانە','هۆڵی گەلەری','چالاکییەکان'];
+  const pi=Math.min(4,Math.round(pos));$('pgChip').textContent=names[pi];
+  S('pgChip',{opacity:(t>12.6&&t<18.8)?1:0});
+  // booking steps
+  const sl=(id,a)=>{const k=eio(P(t,a,a+.45));S(id,{transform:`translateX(${(1-k)*-560}px)`,opacity:t>a-.02?1:0})};
+  sl('bk1',19.0);sl('bk2',21.3);sl('bk3',23.3);sl('bk4',24.6);
+  // face scan
+  const fs=P(t,19.5,21.0);
+  const found=t>19.8, aligned=t>20.2, blink=t>20.45&&t<20.65, shot=t>20.7;
+  $('oval').setAttribute('stroke',aligned?'#10b981':'#fff');
+  for(let i=0;i<46;i++)$('ms'+i).style.opacity=found&&!shot?(.4+.6*Math.abs(Math.sin(t*6+i))):0;
+  $('eyes').setAttribute('transform',blink?'translate(0 230) scale(1 .1) translate(0 -230)':'');
+  S('flash',{opacity:shot?1-P(t,20.7,21.0):0});
+  $('scanMsg').textContent=shot?'وێنەکە پاشەکەوت کرا ✓':blink?'ئێستا چاو بتروکێنە':aligned?'ڕووخسار ڕێکە':found?'ڕووخسار دۆزرایەوە':'کامێراکە ڕووەو ڕووخسارت بکە';
+  S('scanMsg',{background:shot?'rgba(16,185,129,.92)':'rgba(15,23,42,.75)'});
+  // info typing
+  typed('f1','ئاراس ئەحمەد محەمەد',21.7,22.3,t);typed('f2','07501234567',22.3,22.7,t);typed('f3','٢٥',22.72,22.8,t);
+  $('f4t').textContent=t>22.95?'گەشتی قوتابخانە':'هەڵبژێرە';
+  S('next2',{transform:`scale(${1-.05*Math.sin(P(t,23.1,23.3)*Math.PI)})`});
+  // day
+  const dSel=t>23.95;for(let d=6;d<=31;d++){const e=$('cd'+d);if(e.classList.contains('off'))continue;S(e,{background:d===12&&dSel?'#850B10':'#fff',color:d===12&&dSel?'#fff':'#1C1B19',transform:`scale(${d===12?1+.15*Math.sin(P(t,23.95,24.25)*Math.PI):1})`})}
+  // time
+  const tSel=t>25.3;for(let i=0;i<TIMES.length;i++){if(TIMES[i][1])continue;const on=i===1&&tSel;S('tm'+i,{background:on?'#850B10':'#fff',color:on?'#fff':'#1C1B19',borderColor:on?'#850B10':'#e7e5e4',transform:`scale(${i===1?1+.06*Math.sin(P(t,25.3,25.6)*Math.PI):1})`})}
+  S('submit',{opacity:t>25.3?1:.5,transform:`scale(${1-.05*Math.sin(P(t,25.9,26.15)*Math.PI)})`});
+  // pass
+  const pk=eo(P(t,26.2,26.7));S('pass',{transform:`translateY(${(1-pk)*1018}px)`,opacity:t>26.15?1:0});
+  const ok=t>34.0;$('pTitle').textContent=ok?'سەردانەکەت پەسەند کرا 🎉':'تۆمار کرا — چاوەڕوانی پەسەندکردن';
+  S('pStatus',{background:ok?'linear-gradient(#9A1218,#760A0E)':'#f5d77a',color:ok?'#fff':'#3B2A00',transform:`scale(${ok?1+.25*Math.sin(P(t,34,34.4)*Math.PI):1})`});
+  $('pStatus').textContent=ok?'● پەسندکراو':'● چاوەڕوان';
+  const cn=win(t,33.5,36.6,.4);S('cNotif',{opacity:cn,transform:`translateY(${(1-eo(P(t,33.5,33.95)))*-200}px)`});
+  // admin
+  const aO=win(t,26.8,33.0,.5);S('admin',{opacity:aO,display:aO>0?'block':'none'});
+  S('barber',{transform:`translateX(${(1-eo(P(t,27.0,27.9)))*-460}px)`});
+  S('bArmR',{transform:`rotate(${-eo(P(t,27.9,28.4))*40}deg)`,transformOrigin:'292px 300px'});
+  S('aPhone',{transform:`translateX(${(1-eo(P(t,27.1,27.9)))*700}px) scale(.82)`});
+  S('bubble',{opacity:win(t,28.8,30.6,.25),transform:`scale(${back(P(t,28.8,29.2))})`});
+  const an=P(t,28.6,29.05),anOut=P(t,30.9,31.3);
+  S('aNotif',{opacity:an*(1-anOut),transform:`translateY(${(1-eo(an))*-240-anOut*60}px)`});
+  S('aOk',{transform:`scale(${1-.07*Math.sin(P(t,30.6,30.85)*Math.PI)})`});
+  $('kp').textContent=t>31.1?'٢':t>28.6?'٤':'٣';$('kc').textContent=t>31.1?'١٣':'١٢';
+  const newK=eo(P(t,31.1,31.6)),g=P(t,32,33);
+  const key=String(t>28.6)+String(t>31.1)+Math.round(newK*20)+Math.round(g*10);
+  if($('aList')._k!==key){$('aList')._k=key;
+    const card=(n,meta,st,stStyle,extra='')=>`<div class="card" style="padding:20px 22px;margin-bottom:14px;border-radius:26px;${extra}">
+      <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:900;font-size:26px">${n}</div><span class="chip" style="${stStyle}">${st}</span></div>
+      <div style="color:var(--mut);font-size:19px;font-weight:700;margin-top:4px">${meta}</div></div>`;
+    const PEND='background:#f5d77a;color:#3B2A00',CONF='background:linear-gradient(#9A1218,#760A0E);color:#fff',IN='background:#ecfdf5;color:#047857';
+    let l='';
+    if(t>28.6) l+= t>31.1?card('ئاراس ئەحمەد','٢٥ میوان · گەشتی قوتابخانە · دوو شەمە ١٢/١٠ · ١٠:٠٠','● پەسندکراو',CONF,`transform:scale(${.94+.06*newK});box-shadow:0 0 0 ${5*(1-g)}px #fca5a5,0 26px 60px -24px rgba(60,70,160,.38)`)
+                     :card('ئاراس ئەحمەد','٢٥ میوان · گەشتی قوتابخانە · دوو شەمە ١٢/١٠ · ١٠:٠٠','● چاوەڕوان',PEND);
+    l+=card('گروپی گەشتیاران','١٢ میوان · گەشتیار · ١١:٠٠','● پەسندکراو',CONF);
+    l+=card('سارا عومەر','٢ میوان · گەشتیار · ٩:٠٠','● هاتوو',IN);
+    l+=card('شیلان کەریم','٤ میوان · خێزانی · ١:٠٠','● چاوەڕوان',PEND);
+    $('aList').innerHTML=l}
+  S('admHead',{opacity:P(t,27.0,27.5)});
+  // confetti
+  for(let i=0;i<70;i++){const st=34.0+rnd(i,1)*.3,k=P(t,st,st+2.4);
+    const x=540+(rnd(i,2)-.5)*300+(rnd(i,3)-.5)*1100*eo(k),y=700-900*eo(Math.min(k*1.6,1))*rnd(i,4)*.6+1500*k*k;
+    S('cf'+i,{opacity:k>0&&k<1?1-k*.3:0,left:x+'px',top:y+'px',transform:`rotate(${k*720*(rnd(i,5)-.5)*2}deg)`})}
+  // outro
+  const oO=P(t,37.6,38.0);S('outro',{opacity:oO,display:oO>0?'block':'none'});
+  S('oHead',{transform:`translateY(${(1-eo(P(t,37.6,38.2)))*-40}px)`});
+  [...$('feats').children].forEach((el,i)=>{const k=P(t,38.0+i*.2,38.45+i*.2);S(el,{opacity:k,transform:`translateX(${(1-eo(k))*-140}px)`})});
+  const ck=P(t,39.5,40.0);S('cta',{opacity:ck,transform:`scale(${.85+.15*back(ck)})`});
+  S('brand',{opacity:P(t,40.1,40.5),transform:`translateY(${(1-eo(P(t,40.1,40.6)))*30}px)`});
+  touchList=[
+    [13.3,14.6,560,1300,560,700,null],[15.1,15.8,560,1300,560,700,null],[16.1,16.7,560,1300,560,700,null],[17.0,17.6,560,1300,560,700,null],
+    [18.0,18.7,560,600,560,1300,null],
+    [21.5,22.1,560,1300,'f1',0,21.6],[22.8,22.95,560,900,'f4',0,22.9],[22.95,23.1,560,1000,'next2',0,23.1],
+    [23.5,23.95,540,1300,'cd12',0,23.95],[24.2,24.5,540,900,'next3',0,24.5],
+    [24.9,25.3,540,1300,'tm1',0,25.3],[25.5,25.9,540,800,'submit',0,25.9],
+    [29.8,30.6,760,1500,'aOk',0,30.6],
+  ];
+  touch(t);caption(t);
+}
+</script>
+</body></html>

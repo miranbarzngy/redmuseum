@@ -1,0 +1,8 @@
+# Regenerable render output and tooling. The finished videos and covers are
+# kept; the scripts in source/, explainer-src/ and website-slides/ rebuild the rest.
+node_modules/
+out-*/
+stills-*/
+# Screen captures (capture.mjs) and the generated soundtrack (audio.py)
+Amnasuraka marketing video/source/cap/
+Amnasuraka marketing video/source/audio.wav
