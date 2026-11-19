@@ -9,8 +9,8 @@
     "dist": "electron-builder --win"
   },
   "devDependencies": {
-    "electron": "^38.4.0",
-    "electron-builder": "^26.0.20"
+    "electron": "^44.11.5",
+    "electron-builder": "^26.18.0"
   },
   "build": {
     "appId": "com.amnaka.admin",
@@ -25,8 +25,18 @@
     ],
     "win": {
       "target": [
-        { "target": "nsis", "arch": ["x64"] },
-        { "target": "portable", "arch": ["x64"] }
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
       "icon": "build/icon.ico"
     },
